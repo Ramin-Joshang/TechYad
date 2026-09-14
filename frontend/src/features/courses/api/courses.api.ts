@@ -39,6 +39,7 @@ export interface Lesson {
   description?: string;
   content?: string;
   videoUrl?: string;
+  type?: string;
   duration?: number;
   isFreePreview: boolean;
   order: number;

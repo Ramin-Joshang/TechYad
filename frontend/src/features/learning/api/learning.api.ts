@@ -27,5 +27,11 @@ export const learningApi = {
   },
   getLessonProgress: async (lessonId: string) => {
     return api.get<any, ApiResponse<any>>(`/progress/${lessonId}`);
+  },
+  getLessonComments: async (lessonId: string) => {
+    return api.get<any, ApiResponse<any[]>>(`/lessons/${lessonId}/comments`);
+  },
+  addLessonComment: async (lessonId: string, text: string, parentId?: string) => {
+    return api.post<any, ApiResponse<any>>(`/lessons/${lessonId}/comments`, { text, parentId });
   }
 };
