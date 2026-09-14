@@ -6,6 +6,24 @@ import { Enrollment } from './enrollment.model.js';
 import { AppError } from '../../common/errors/AppError.js';
 
 export class AssignmentService {
+  static async getMyAssignmentDetails(userId: string, assignmentId: string) {
+    const assignment = await Assignment.findById(assignmentId).populate('courseId', 'title').populate('lessonId', 'title').populate('attachments');
+    if (!assignment) throw new AppError('Assignment not found', 404, 'NOT_FOUND');
+    const enrollment = await Enrollment.findOne({ userId, courseId: assignment.courseId });
+    if (!enrollment) throw new AppError('Not enrolled in this course', 403, 'FORBIDDEN');
+    const submission = await AssignmentSubmission.findOne({ userId, assignmentId }).populate('files');
+    return { assignment, submission };
+  }
+  static async getMyAssignments(userId: string) {
+    const enrollments = await Enrollment.find({ userId, status: 'active' });
+    const courseIds = enrollments.map(e => e.courseId);
+    const assignments = await Assignment.find({ courseId: { $in: courseIds }, isPublished: true }).populate('courseId', 'title').populate('lessonId', 'title');
+    const submissions = await AssignmentSubmission.find({ userId });
+    return assignments.map(a => {
+      const submission = submissions.find(s => s.assignmentId.toString() === a._id.toString());
+      return { assignment: a, submission };
+    });
+  }
   // --- Instructor Actions ---
   static async createAssignment(instructorId: string, lessonId: string, data: any) {
     const lesson = await Lesson.findById(lessonId).populate('courseId');

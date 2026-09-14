@@ -32,3 +32,13 @@ export const getMySubmissions = async (req: AuthRequest, res: Response) => {
   const result = await AssignmentService.getMySubmissions(req.user._id as string);
   sendSuccess(res, result, 'My submissions retrieved successfully');
 };
+
+export const getMyAssignments = async (req: AuthRequest, res: Response) => {
+  const result = await AssignmentService.getMyAssignments(req.user._id as string);
+  sendSuccess(res, result, 'My assignments retrieved successfully');
+};
+
+export const getMyAssignmentDetails = async (req: AuthRequest, res: Response) => {
+  const result = await AssignmentService.getMyAssignmentDetails(req.user._id as string, req.params.id as string);
+  sendSuccess(res, result, 'Assignment details retrieved successfully');
+};

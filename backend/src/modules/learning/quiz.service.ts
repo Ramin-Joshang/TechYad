@@ -7,6 +7,16 @@ import { AppError } from '../../common/errors/AppError.js';
 import { Types } from 'mongoose';
 
 export class QuizService {
+  static async getMyQuizzes(userId: string) {
+    const enrollments = await Enrollment.find({ userId, status: 'active' });
+    const courseIds = enrollments.map(e => e.courseId);
+    const quizzes = await Quiz.find({ courseId: { $in: courseIds }, isPublished: true }).populate('courseId', 'title');
+    const attempts = await QuizAttempt.find({ userId });
+    return quizzes.map(q => {
+      const attempt = attempts.find(a => a.quizId.toString() === q._id.toString());
+      return { quiz: q, attempt };
+    });
+  }
   // --- Instructor Actions ---
   static async createQuiz(instructorId: string, lessonId: string, data: any) {
     const lesson = await Lesson.findById(lessonId).populate('courseId');

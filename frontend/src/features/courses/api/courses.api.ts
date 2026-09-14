@@ -41,7 +41,7 @@ export interface Lesson {
   videoUrl?: string;
   type?: string;
   duration?: number;
-  isFreePreview: boolean;
+  isFree: boolean;
   order: number;
   chapterId: string;
   courseId: string;

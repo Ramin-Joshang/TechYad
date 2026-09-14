@@ -19,3 +19,5 @@ router.get('/me/quizzes/:quizId/result', requireAuth, asyncHandler(Controller.ge
 router.post('/instructor/lessons/:lessonId/quizzes', isInstructor, validate(createQuizSchema), asyncHandler(Controller.createQuiz));
 
 export default router;
+
+router.get('/me/quizzes', requireAuth, asyncHandler(Controller.getMyQuizzes));

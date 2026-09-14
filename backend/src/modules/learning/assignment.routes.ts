@@ -21,3 +21,7 @@ router.get('/instructor/assignments/:assignmentId/submissions', isInstructor, as
 router.patch('/instructor/submissions/:submissionId/grade', isInstructor, validate(gradeSubmissionSchema), asyncHandler(Controller.gradeSubmission));
 
 export default router;
+
+router.get('/me/assignments', requireAuth, asyncHandler(Controller.getMyAssignments));
+
+router.get('/me/assignments/:id', requireAuth, asyncHandler(Controller.getMyAssignmentDetails));

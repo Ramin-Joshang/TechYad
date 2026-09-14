@@ -27,3 +27,8 @@ export const getQuizResult = async (req: AuthRequest, res: Response) => {
   const result = await QuizService.getQuizResult(req.user._id as string, req.params.quizId as string);
   sendSuccess(res, result, 'Quiz result retrieved successfully');
 };
+
+export const getMyQuizzes = async (req: AuthRequest, res: Response) => {
+  const result = await QuizService.getMyQuizzes(req.user._id as string);
+  sendSuccess(res, result, 'My quizzes retrieved successfully');
+};
