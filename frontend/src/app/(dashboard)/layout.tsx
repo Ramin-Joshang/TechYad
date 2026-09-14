@@ -74,7 +74,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         { name: 'نمرات', href: '/student/grades', icon: GraduationCap },
         { name: 'پرداخت‌های من', href: '/student/payments', icon: CreditCard },
         { name: 'علاقه‌مندی‌ها', href: '/student/favorites', icon: Heart },
-        { name: 'تیکت‌های پشتیبانی', href: '/student/tickets', icon: Ticket },
+        { name: 'تیکت‌های پشتیبانی', href: '/student/support', icon: Ticket },
         { name: 'اعلان‌ها', href: '/student/notifications', icon: Bell },
         profileLink
       ];
