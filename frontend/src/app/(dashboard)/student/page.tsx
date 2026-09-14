@@ -3,6 +3,7 @@
 import { useAuthStore } from '@/features/auth/stores/auth.store';
 import { learningApi } from '@/features/learning/api/learning.api';
 import { commerceApi } from '@/features/commerce/api/commerce.api';
+import { notificationsApi } from '@/features/notifications/api/notifications.api';
 import { useQuery } from '@tanstack/react-query';
 import { 
   BookOpen, PlayCircle, BarChart, FileText, CheckSquare,
@@ -22,6 +23,11 @@ export default function StudentDashboard() {
   const { data: ordersData, isLoading: ordersLoading } = useQuery({
     queryKey: ['myOrders'],
     queryFn: () => commerceApi.getMyOrders().then(res => res.data)
+  });
+
+  const { data: notificationsData } = useQuery({
+    queryKey: ['myNotifications'],
+    queryFn: () => notificationsApi.getNotifications().then(res => res.data)
   });
 
   if (dashboardLoading || ordersLoading) {
@@ -52,6 +58,7 @@ export default function StudentDashboard() {
   const recentEnrollments = dashboardData?.recentEnrollments || [];
   const latestQuizzes = dashboardData?.latestQuizzes || [];
   const orders = ordersData || [];
+  const notifications = notificationsData || [];
 
   const continueCourse = recentEnrollments.length > 0 ? recentEnrollments[0] : null;
 
@@ -253,14 +260,28 @@ export default function StudentDashboard() {
             </div>
             <div className="bg-white rounded-3xl p-6 shadow-sm border border-gray-100">
               <div className="space-y-4">
-                <div className="flex items-start gap-3 p-3 hover:bg-gray-50 rounded-xl transition cursor-pointer">
-                  <div className="w-2 h-2 mt-2 bg-blue-500 rounded-full shrink-0"></div>
-                  <div>
-                    <h4 className="text-sm font-bold text-gray-900">خوش آمدید!</h4>
-                    <p className="text-xs text-gray-500 mt-1 line-clamp-2">به پنل کاربری تک‌یاد خوش آمدید. برای شروع به بخش دوره‌ها مراجعه کنید.</p>
-                    <span className="text-[10px] text-gray-400 mt-2 block">همین الان</span>
+                {notifications.length > 0 ? (
+                  notifications.slice(0, 3).map((notif: any) => (
+                    <Link href="/student/notifications" key={notif._id} className="flex items-start gap-3 p-3 hover:bg-gray-50 rounded-xl transition cursor-pointer block">
+                      {!notif.readAt ? (
+                        <div className="w-2 h-2 mt-2 bg-blue-500 rounded-full shrink-0"></div>
+                      ) : (
+                        <div className="w-2 h-2 mt-2 bg-transparent rounded-full shrink-0"></div>
+                      )}
+                      <div>
+                        <h4 className={`text-sm font-bold ${!notif.readAt ? 'text-gray-900' : 'text-gray-700'}`}>{notif.title}</h4>
+                        <p className="text-xs text-gray-500 mt-1 line-clamp-2">{notif.message}</p>
+                        <span className="text-[10px] text-gray-400 mt-2 block">
+                          {new Date(notif.createdAt).toLocaleDateString('fa-IR')}
+                        </span>
+                      </div>
+                    </Link>
+                  ))
+                ) : (
+                  <div className="text-center py-4 text-gray-500 text-sm">
+                    اعلان جدیدی ندارید
                   </div>
-                </div>
+                )}
                 <div className="text-center pt-2">
                   <Link href="/student/notifications" className="text-sm font-bold text-blue-600 hover:text-blue-700">مشاهده همه اعلان‌ها</Link>
                 </div>
