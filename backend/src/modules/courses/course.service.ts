@@ -142,9 +142,8 @@ export class CourseService {
     return lessons.map(l => {
       const lObj = l.toObject();
       if (!lObj.isFree) {
-        delete lObj.video;
-        delete lObj.content;
-        delete lObj.attachments;
+        delete (lObj as any).video;
+        delete (lObj as any).files;
       }
       return lObj;
     });

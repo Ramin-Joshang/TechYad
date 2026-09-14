@@ -7,3 +7,10 @@ export const updateProgressSchema = z.object({
     completed: z.boolean().optional()
   })
 });
+
+export const submitAssignmentSchema = z.object({
+  body: z.object({
+    content: z.string().optional(),
+    attachments: z.array(z.string()).optional()
+  })
+});
