@@ -21,3 +21,6 @@ router.post('/instructor/lessons/:lessonId/quizzes', isInstructor, validate(crea
 export default router;
 
 router.get('/me/quizzes', requireAuth, asyncHandler(Controller.getMyQuizzes));
+
+router.patch('/instructor/quizzes/:quizId', isInstructor, asyncHandler(Controller.updateQuiz));
+router.delete('/instructor/quizzes/:quizId', isInstructor, asyncHandler(Controller.deleteQuiz));

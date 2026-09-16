@@ -105,5 +105,17 @@ export const coursesApi = {
   },
   createLesson: async (chapterId: string, data: any) => {
     return api.post<any, SingleResponse<Lesson>>(`/instructor/chapters/${chapterId}/lessons`, data);
+  },
+  updateChapter: async (chapterId: string, data: any) => {
+    return api.patch<any, SingleResponse<Chapter>>(`/instructor/chapters/${chapterId}`, data);
+  },
+  deleteChapter: async (chapterId: string) => {
+    return api.delete<any, SingleResponse<any>>(`/instructor/chapters/${chapterId}`);
+  },
+  updateLesson: async (lessonId: string, data: any) => {
+    return api.patch<any, SingleResponse<Lesson>>(`/instructor/lessons/${lessonId}`, data);
+  },
+  deleteLesson: async (lessonId: string) => {
+    return api.delete<any, SingleResponse<any>>(`/instructor/lessons/${lessonId}`);
   }
 };

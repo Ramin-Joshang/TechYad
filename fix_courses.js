@@ -1,10 +1,12 @@
 const fs = require('fs');
 let code = fs.readFileSync('frontend/src/features/courses/api/courses.api.ts', 'utf8');
 
-// Remove the bad append
-code = code.split('};\n  // Curriculum Management')[0];
-
-const newMethods = `
+// The file should end with the original export and we add the new methods
+// I'll just rewrite the file content up to `createLesson: async` and then append my methods
+const originalMethods = code.split('createLesson: async (chapterId: string, data: any) => {')[0];
+const suffix = `createLesson: async (chapterId: string, data: any) => {
+    return api.post<any, SingleResponse<Lesson>>(\`/instructor/chapters/\${chapterId}/lessons\`, data);
+  },
   updateChapter: async (chapterId: string, data: any) => {
     return api.patch<any, SingleResponse<Chapter>>(\`/instructor/chapters/\${chapterId}\`, data);
   },
@@ -20,4 +22,4 @@ const newMethods = `
 };
 `;
 
-fs.writeFileSync('frontend/src/features/courses/api/courses.api.ts', code + ',\n' + newMethods);
+fs.writeFileSync('frontend/src/features/courses/api/courses.api.ts', originalMethods + suffix);

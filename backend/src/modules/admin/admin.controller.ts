@@ -13,7 +13,7 @@ export const getUsers = async (req: Request, res: Response) => {
 };
 
 export const updateUserStatus = async (req: Request, res: Response) => {
-  const result = await AdminService.updateUserStatus(req.params.id as string, req.body.status);
+  const result = await AdminService.updateUserStatus((req.params.id as any as string) as any as string, req.body.status);
   sendSuccess(res, result, 'User status updated');
 };
 
@@ -28,7 +28,7 @@ export const getCoupons = async (req: Request, res: Response) => {
 };
 
 export const deleteCoupon = async (req: Request, res: Response) => {
-  const result = await AdminService.deleteCoupon(req.params.id as string);
+  const result = await AdminService.deleteCoupon((req.params.id as any as string) as any as string);
   sendSuccess(res, result, 'Coupon deleted');
 };
 
@@ -41,7 +41,7 @@ export const getTickets = async (req: Request, res: Response) => {
   sendSuccess(res, result, 'Tickets retrieved');
 };
 export const updateTicketStatus = async (req: Request, res: Response) => {
-  const result = await AdminService.updateTicketStatus(req.params.id, req.body.status);
+  const result = await AdminService.updateTicketStatus((req.params.id as any as string) as any as string, req.body.status);
   sendSuccess(res, result, 'Ticket status updated');
 };
 export const getClasses = async (req: Request, res: Response) => {

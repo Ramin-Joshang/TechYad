@@ -25,6 +25,36 @@ export class AssignmentService {
     });
   }
   // --- Instructor Actions ---
+  
+  static async updateAssignment(assignmentId: string, instructorId: string, data: any) {
+    const Assignment = require('./assignment.model').Assignment;
+    const Course = require('../courses/course.model').Course;
+    const Lesson = require('../courses/lesson.model').Lesson;
+
+    const assignment = await Assignment.findById(assignmentId);
+    if (!assignment) throw new AppError('Assignment not found', 404, 'NOT_FOUND');
+    const lesson = await Lesson.findById(assignment.lessonId);
+    const course = await Course.findOne({ _id: lesson.courseId, instructors: instructorId });
+    if (!course) throw new AppError('Unauthorized', 403, 'FORBIDDEN');
+
+    return await Assignment.findByIdAndUpdate(assignmentId, data, { new: true });
+  }
+
+  static async deleteAssignment(assignmentId: string, instructorId: string) {
+    const Assignment = require('./assignment.model').Assignment;
+    const Course = require('../courses/course.model').Course;
+    const Lesson = require('../courses/lesson.model').Lesson;
+
+    const assignment = await Assignment.findById(assignmentId);
+    if (!assignment) throw new AppError('Assignment not found', 404, 'NOT_FOUND');
+    const lesson = await Lesson.findById(assignment.lessonId);
+    const course = await Course.findOne({ _id: lesson.courseId, instructors: instructorId });
+    if (!course) throw new AppError('Unauthorized', 403, 'FORBIDDEN');
+
+    await Assignment.findByIdAndDelete(assignmentId);
+    return { success: true };
+  }
+  
   static async createAssignment(instructorId: string, lessonId: string, data: any) {
     const lesson = await Lesson.findById(lessonId).populate('courseId');
     if (!lesson) throw new AppError('Lesson not found', 404, 'NOT_FOUND');
@@ -61,7 +91,7 @@ export class AssignmentService {
   static async getInstructorAssignments(instructorId: string, query: any) {
     const Course = require('../courses/course.model').Course;
     const courses = await Course.find({ instructors: instructorId });
-    const courseIds = courses.map(c => c._id);
+    const courseIds = courses.map((c: any) => c._id);
     const assignments = await Assignment.find({ courseId: { $in: courseIds } }).populate('lessonId', 'title');
     return assignments;
   }
@@ -69,7 +99,7 @@ export class AssignmentService {
   static async getInstructorSubmissions(instructorId: string, query: any) {
     const Course = require('../courses/course.model').Course;
     const courses = await Course.find({ instructors: instructorId });
-    const courseIds = courses.map(c => c._id);
+    const courseIds = courses.map((c: any) => c._id);
     const assignments = await Assignment.find({ courseId: { $in: courseIds } });
     const assignmentIds = assignments.map(a => a._id);
     

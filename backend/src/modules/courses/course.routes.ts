@@ -47,3 +47,8 @@ router.post('/admin/courses/:id/publish', isAdmin, asyncHandler(Controller.publi
 router.post('/admin/courses/:id/reject', isAdmin, asyncHandler(Controller.rejectCourse));
 
 export default router;
+
+router.patch('/instructor/chapters/:chapterId', isInstructor, asyncHandler(Controller.updateChapter));
+router.delete('/instructor/chapters/:chapterId', isInstructor, asyncHandler(Controller.deleteChapter));
+router.patch('/instructor/lessons/:lessonId', isInstructor, asyncHandler(Controller.updateLesson));
+router.delete('/instructor/lessons/:lessonId', isInstructor, asyncHandler(Controller.deleteLesson));

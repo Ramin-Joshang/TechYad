@@ -13,7 +13,7 @@ export class CommerceService {
   static async getInstructorSales(instructorId: string, month?: number, year?: number) {
     const { Course } = require('../courses/course.model.js');
     const courses = await Course.find({ instructors: instructorId });
-    const courseIds = courses.map(c => c._id);
+    const courseIds = courses.map((c: any) => c._id);
     
     let dateFilter = {};
     if (month && year) {
@@ -32,8 +32,8 @@ export class CommerceService {
     // Filter items to only include this instructor's courses and calculate total
     let totalSales = 0;
     const sales = orders.map(order => {
-      const relevantItems = order.items.filter(item => item.itemType === 'course' && courseIds.some(cid => cid.equals(item.itemId)));
-      const orderTotal = relevantItems.reduce((acc, curr) => acc + curr.finalPrice, 0);
+      const relevantItems = order.items.filter(item => item.itemType === 'course' && courseIds.some((cid: any) => cid.equals(item.itemId)));
+      const orderTotal = relevantItems.reduce((acc: number, curr: any) => acc + curr.finalPrice, 0);
       totalSales += orderTotal * 0.7; // 70% share
       
       return {

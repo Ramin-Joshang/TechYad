@@ -117,15 +117,15 @@ static async getInstructorCourses(instructorId: string, query: any) {
     const classes = await Class.find({ instructors: instructorId });
     
     const totalCourses = courses.length;
-    const publishedCourses = courses.filter(c => c.status === 'published').length;
-    const drafts = courses.filter(c => c.status === 'draft').length;
-    const pending = courses.filter(c => c.status === 'pending_review').length;
-    const activeClasses = classes.filter(c => c.status === 'published').length;
+    const publishedCourses = courses.filter((c: any) => c.status === 'published').length;
+    const drafts = courses.filter((c: any) => c.status === 'draft').length;
+    const pending = courses.filter((c: any) => c.status === 'pending_review').length;
+    const activeClasses = classes.filter((c: any) => c.status === 'published').length;
 
-    const totalStudents = courses.reduce((acc, curr) => acc + (curr.studentCount || 0), 0);
+    const totalStudents = courses.reduce((acc: number, curr: any) => acc + (curr.studentCount || 0), 0);
     
     const { Order } = require('../commerce/order.model.js');
-    const courseIds = courses.map(c => c._id);
+    const courseIds = courses.map((c: any) => c._id);
     
     // Total revenue
     const orders = await Order.find({ 
@@ -135,9 +135,9 @@ static async getInstructorCourses(instructorId: string, query: any) {
     });
     
     let totalRevenue = 0;
-    orders.forEach(order => {
-      const relevantItems = order.items.filter(item => item.itemType === 'course' && courseIds.some(cid => cid.equals(item.itemId)));
-      totalRevenue += relevantItems.reduce((acc, curr) => acc + curr.finalPrice, 0) * 0.7;
+    orders.forEach((order: any) => {
+      const relevantItems = order.items.filter((item: any) => item.itemType === 'course' && courseIds.some((cid: any) => cid.equals(item.itemId)));
+      totalRevenue += relevantItems.reduce((acc: number, curr: any) => acc + curr.finalPrice, 0) * 0.7;
     });
 
     // Monthly revenue
@@ -146,9 +146,9 @@ static async getInstructorCourses(instructorId: string, query: any) {
     const monthlyOrders = orders.filter(o => o.createdAt >= startDate);
     
     let monthlyRevenue = 0;
-    monthlyOrders.forEach(order => {
-      const relevantItems = order.items.filter(item => item.itemType === 'course' && courseIds.some(cid => cid.equals(item.itemId)));
-      monthlyRevenue += relevantItems.reduce((acc, curr) => acc + curr.finalPrice, 0) * 0.7;
+    monthlyOrders.forEach((order: any) => {
+      const relevantItems = order.items.filter((item: any) => item.itemType === 'course' && courseIds.some((cid: any) => cid.equals(item.itemId)));
+      monthlyRevenue += relevantItems.reduce((acc: number, curr: any) => acc + curr.finalPrice, 0) * 0.7;
     });
     
     return {
@@ -233,6 +233,28 @@ static async getInstructorCourses(instructorId: string, query: any) {
     return await Chapter.create({ ...data, courseId });
   }
 
+  
+  static async updateChapter(chapterId: string, instructorId: string, data: any) {
+    const chapter = await Chapter.findById(chapterId);
+    if (!chapter) throw new AppError('Chapter not found', 404, 'NOT_FOUND');
+    const course = await Course.findOne({ _id: chapter.courseId, instructors: instructorId });
+    if (!course) throw new AppError('Unauthorized', 403, 'FORBIDDEN');
+    
+    return await Chapter.findByIdAndUpdate(chapterId, data, { new: true });
+  }
+
+  static async deleteChapter(chapterId: string, instructorId: string) {
+    const chapter = await Chapter.findById(chapterId);
+    if (!chapter) throw new AppError('Chapter not found', 404, 'NOT_FOUND');
+    const course = await Course.findOne({ _id: chapter.courseId, instructors: instructorId });
+    if (!course) throw new AppError('Unauthorized', 403, 'FORBIDDEN');
+    
+    await Chapter.findByIdAndDelete(chapterId);
+    // Cascade delete lessons? Yes.
+    await Lesson.deleteMany({ chapterId });
+    return { success: true };
+  }
+  
   static async getChapters(courseId: string) {
     return await Chapter.find({ courseId }).sort({ order: 1 });
   }
@@ -248,6 +270,26 @@ static async getInstructorCourses(instructorId: string, query: any) {
     return await Lesson.create({ ...data, chapterId, courseId: course._id });
   }
 
+  
+  static async updateLesson(lessonId: string, instructorId: string, data: any) {
+    const lesson = await Lesson.findById(lessonId);
+    if (!lesson) throw new AppError('Lesson not found', 404, 'NOT_FOUND');
+    const course = await Course.findOne({ _id: lesson.courseId, instructors: instructorId });
+    if (!course) throw new AppError('Unauthorized', 403, 'FORBIDDEN');
+    
+    return await Lesson.findByIdAndUpdate(lessonId, data, { new: true });
+  }
+
+  static async deleteLesson(lessonId: string, instructorId: string) {
+    const lesson = await Lesson.findById(lessonId);
+    if (!lesson) throw new AppError('Lesson not found', 404, 'NOT_FOUND');
+    const course = await Course.findOne({ _id: lesson.courseId, instructors: instructorId });
+    if (!course) throw new AppError('Unauthorized', 403, 'FORBIDDEN');
+    
+    await Lesson.findByIdAndDelete(lessonId);
+    return { success: true };
+  }
+  
   static async getLessons(chapterId: string) {
     const lessons = await Lesson.find({ chapterId }).sort({ order: 1 });
     // Strip secure content if not fetching via secure route

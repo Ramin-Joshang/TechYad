@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { coursesApi } from '@/features/courses/api/courses.api';
 import { learningApi } from '@/features/learning/api/learning.api';
-import { Loader2, Plus, ChevronDown, ChevronUp, Video, FileText, CheckSquare } from 'lucide-react';
+import { Loader2, Plus, ChevronDown, ChevronUp, Video, FileText, CheckSquare, Trash2, Edit2 } from 'lucide-react';
 
 const LessonItem = ({ lesson }: { lesson: any }) => {
   const [showAddMenu, setShowAddMenu] = useState(false);
@@ -26,6 +26,14 @@ const LessonItem = ({ lesson }: { lesson: any }) => {
     setLoading(false);
   };
 
+  
+  const deleteLessonMutation = useMutation({
+    mutationFn: () => coursesApi.deleteLesson(lesson._id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['chapter-lessons'] });
+    }
+  });
+  
   const handleAddQuiz = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -132,6 +140,14 @@ const ChapterItem = ({ chapter }: { chapter: any }) => {
     enabled: isOpen
   });
 
+  
+  const deleteChapterMutation = useMutation({
+    mutationFn: () => coursesApi.deleteChapter(chapter._id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['chapters'] });
+    }
+  });
+  
   const addLessonMutation = useMutation({
     mutationFn: (data: any) => coursesApi.createLesson(chapter._id, data),
     onSuccess: () => {
@@ -148,7 +164,13 @@ const ChapterItem = ({ chapter }: { chapter: any }) => {
         onClick={() => setIsOpen(!isOpen)}
       >
         <div className="font-bold text-gray-900">{chapter.title}</div>
-        {isOpen ? <ChevronUp className="w-5 h-5 text-gray-500" /> : <ChevronDown className="w-5 h-5 text-gray-500" />}
+        
+        <div className="flex items-center gap-2">
+          <button onClick={(e) => { e.stopPropagation(); if(confirm('فصل و تمام دروس آن حذف شوند؟')) deleteChapterMutation.mutate() }} className="p-2 text-red-500 hover:bg-red-50 rounded-lg">
+            <Trash2 className="w-4 h-4" />
+          </button>
+          {isOpen ? <ChevronUp className="w-5 h-5 text-gray-500" /> : <ChevronDown className="w-5 h-5 text-gray-500" />}
+        </div>
       </div>
       
       {isOpen && (

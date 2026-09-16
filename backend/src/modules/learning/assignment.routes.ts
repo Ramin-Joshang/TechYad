@@ -27,3 +27,6 @@ export default router;
 router.get('/me/assignments', requireAuth, asyncHandler(Controller.getMyAssignments));
 
 router.get('/me/assignments/:id', requireAuth, asyncHandler(Controller.getMyAssignmentDetails));
+
+router.patch('/instructor/assignments/:assignmentId', isInstructor, asyncHandler(Controller.updateAssignment));
+router.delete('/instructor/assignments/:assignmentId', isInstructor, asyncHandler(Controller.deleteAssignment));
