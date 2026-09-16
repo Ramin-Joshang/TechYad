@@ -16,7 +16,7 @@ export default function MyCoursesPage() {
 
   const enrollments = enrollmentsData || [];
   
-  const filteredCourses = enrollments.filter(e => 
+  const filteredCourses = enrollments.filter((e: any) => 
     e.courseId?.title?.toLowerCase().includes(search.toLowerCase())
   );
 
@@ -39,7 +39,7 @@ export default function MyCoursesPage() {
             type="text"
             placeholder="جستجو در دوره‌های من..."
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            onChange={(e: any) => setSearch(e.target.value)}
             className="w-full pl-4 pr-12 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all"
           />
         </div>

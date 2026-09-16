@@ -1,37 +1,34 @@
 import { api } from '@/lib/api';
 
-interface ApiResponse<T> {
-  success: boolean;
-  message?: string;
-  data: T;
-}
-
 export const learningApi = {
   getStudentDashboard: async () => {
-    return api.get<any, ApiResponse<any>>('/dashboard');
+    return api.get('/dashboard');
   },
   getMyEnrollments: async () => {
-    return api.get<any, ApiResponse<any[]>>('/enrollments');
+    return api.get('/enrollments');
   },
   getMyEnrollmentDetails: async (courseId: string) => {
-    return api.get<any, ApiResponse<any>>(`/enrollments/${courseId}`);
-  },
-  enrollInFreeCourse: async (courseId: string) => {
-    return api.post<any, ApiResponse<any>>(`/enrollments/free/${courseId}`);
+    return api.get(`/enrollments/${courseId}`);
   },
   getSecureLesson: async (lessonId: string) => {
-    return api.get<any, ApiResponse<any>>(`/lessons/${lessonId}`);
+    return api.get(`/lessons/${lessonId}`);
   },
   updateLessonProgress: async (lessonId: string, data: any) => {
-    return api.post<any, ApiResponse<any>>(`/progress/${lessonId}`, data);
+    return api.post(`/progress/${lessonId}`, data);
   },
   getLessonProgress: async (lessonId: string) => {
-    return api.get<any, ApiResponse<any>>(`/progress/${lessonId}`);
+    return api.get(`/progress/${lessonId}`);
   },
   getLessonComments: async (lessonId: string) => {
-    return api.get<any, ApiResponse<any[]>>(`/lessons/${lessonId}/comments`);
+    return api.get(`/lessons/${lessonId}/comments`);
   },
-  addLessonComment: async (lessonId: string, text: string, parentId?: string) => {
-    return api.post<any, ApiResponse<any>>(`/lessons/${lessonId}/comments`, { text, parentId });
+  addLessonComment: async (lessonId: string, data: any) => {
+    return api.post(`/lessons/${lessonId}/comments`, data);
+  },
+  createAssignment: async (lessonId: string, data: any) => {
+    return api.post(`/instructor/lessons/${lessonId}/assignments`, data);
+  },
+  createQuiz: async (lessonId: string, data: any) => {
+    return api.post(`/instructor/lessons/${lessonId}/quizzes`, data);
   }
 };

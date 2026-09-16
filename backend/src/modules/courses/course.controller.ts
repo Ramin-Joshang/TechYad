@@ -80,3 +80,8 @@ export const getLessons = async (req: Request, res: Response) => {
   const result = await CourseService.getLessons(req.params.chapterId as string);
   sendSuccess(res, result, 'Lessons retrieved successfully');
 };
+
+export const getCourseStudents = async (req: AuthRequest, res: Response) => {
+  const result = await CourseService.getCourseStudents(req.params.courseId, req.query);
+  sendSuccess(res, result, 'Students retrieved successfully');
+};

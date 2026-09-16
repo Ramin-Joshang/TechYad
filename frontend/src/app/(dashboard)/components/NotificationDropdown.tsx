@@ -37,7 +37,7 @@ export function NotificationDropdown({ role }: { role: string }) {
   });
 
   const notifications = notificationsData || [];
-  const unreadCount = notifications.filter((n: any) => !n.isRead).length;
+  const unreadCount = notifications.filter((n: any) => !n.readAt).length;
   
   const getIcon = (type: string) => {
     switch(type) {
@@ -92,7 +92,7 @@ export function NotificationDropdown({ role }: { role: string }) {
                 {notifications.slice(0, 5).map((notif: any) => (
                   <div 
                     key={notif._id} 
-                    className={`p-4 hover:bg-gray-50 transition flex gap-3 relative group ${notif.isRead ? 'opacity-70' : 'bg-blue-50/30'}`}
+                    className={`p-4 hover:bg-gray-50 transition flex gap-3 relative group ${notif.readAt ? 'opacity-70' : 'bg-blue-50/30'}`}
                   >
                     <div className="shrink-0 mt-1">
                       {getIcon(notif.type)}
@@ -104,7 +104,7 @@ export function NotificationDropdown({ role }: { role: string }) {
                         {new Date(notif.createdAt).toLocaleDateString('fa-IR')}
                       </span>
                     </div>
-                    {!notif.isRead && (
+                    {!notif.readAt && (
                       <button
                         onClick={() => markReadMutation.mutate(notif._id)}
                         disabled={markReadMutation.isPending}

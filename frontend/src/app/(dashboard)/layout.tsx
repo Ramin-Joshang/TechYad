@@ -9,7 +9,7 @@ import { authApi } from '@/features/auth/api/auth.api';
 import { useState } from 'react';
 import {
   BookOpen, LayoutDashboard, LogOut, UserCircle, 
-  Settings, PlayCircle, BarChart, FileText, CheckSquare,
+  Settings, PlayCircle, BarChart, FileText, CheckSquare, MessageSquare,
   GraduationCap, CreditCard, Heart, Ticket, Bell,
   Users, DollarSign, List, Shield, Menu, X, Video, Activity,
   Briefcase, ChevronRight, ChevronLeft
@@ -57,13 +57,12 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     } else if (user?.role === 'instructor') {
       return [
         { name: 'داشبورد', href: '/instructor', icon: LayoutDashboard },
-        { name: 'دوره‌های منتشر شده', href: '/instructor/courses/published', icon: CheckSquare },
-        { name: 'دوره‌های پیش‌نویس', href: '/instructor/courses/draft', icon: FileText },
-        { name: 'دوره‌های در انتظار', href: '/instructor/courses/pending', icon: Activity },
-        { name: 'کلاس‌های من', href: '/instructor/classes', icon: Video },
+        { name: 'مدیریت دوره‌ها', href: '/instructor/courses', icon: BookOpen },
+        { name: 'کلاس‌های زنده', href: '/instructor/classes', icon: Video },
         { name: 'دانشجویان من', href: '/instructor/students', icon: Users },
-        { name: 'فروش ماهانه', href: '/instructor/sales/monthly', icon: BarChart },
-        { name: 'فروش کل', href: '/instructor/sales', icon: DollarSign },
+        { name: 'بررسی تکالیف', href: '/instructor/assignments', icon: FileText },
+        { name: 'نظرات دانشجویان', href: '/instructor/comments', icon: MessageSquare },
+        { name: 'گزارش مالی', href: '/instructor/sales', icon: DollarSign },
         profileLink
       ];
     } else {

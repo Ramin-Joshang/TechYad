@@ -133,6 +133,20 @@ export class CourseService {
   }
 
   // --- Course Workflows ---
+  static async getCourseStudents(courseId: string, query: any) {
+    const Enrollment = require('../learning/enrollment.model').Enrollment;
+    const page = parseInt(query.page) || 1;
+    const limit = parseInt(query.limit) || 10;
+    const skip = (page - 1) * limit;
+    const enrollments = await Enrollment.find({ courseId })
+      .populate('userId', 'firstName lastName email avatar')
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit);
+    const total = await Enrollment.countDocuments({ courseId });
+    return { students: enrollments, total, page, pages: Math.ceil(total / limit) };
+  }
+
   static async requestReview(id: string, instructorId: string) {
     const course = await Course.findOneAndUpdate(
       { _id: id, instructors: instructorId, status: { $in: ['draft', 'rejected'] } },

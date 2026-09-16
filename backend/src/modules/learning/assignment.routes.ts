@@ -17,6 +17,8 @@ router.post('/assignments/:assignmentId/submit', requireAuth, validate(submitAss
 
 // --- Instructor ---
 router.post('/instructor/lessons/:lessonId/assignments', isInstructor, validate(createAssignmentSchema), asyncHandler(Controller.createAssignment));
+router.get('/instructor/assignments', isInstructor, asyncHandler(Controller.getInstructorAssignments));
+router.get('/instructor/submissions', isInstructor, asyncHandler(Controller.getInstructorSubmissions));
 router.get('/instructor/assignments/:assignmentId/submissions', isInstructor, asyncHandler(Controller.getSubmissions));
 router.patch('/instructor/submissions/:submissionId/grade', isInstructor, validate(gradeSubmissionSchema), asyncHandler(Controller.gradeSubmission));
 

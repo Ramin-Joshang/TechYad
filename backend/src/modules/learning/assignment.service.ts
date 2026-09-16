@@ -58,6 +58,36 @@ export class AssignmentService {
       .sort({ submittedAt: -1 });
   }
 
+  static async getInstructorAssignments(instructorId: string, query: any) {
+    const Course = require('../courses/course.model').Course;
+    const courses = await Course.find({ instructors: instructorId });
+    const courseIds = courses.map(c => c._id);
+    const assignments = await Assignment.find({ courseId: { $in: courseIds } }).populate('lessonId', 'title');
+    return assignments;
+  }
+
+  static async getInstructorSubmissions(instructorId: string, query: any) {
+    const Course = require('../courses/course.model').Course;
+    const courses = await Course.find({ instructors: instructorId });
+    const courseIds = courses.map(c => c._id);
+    const assignments = await Assignment.find({ courseId: { $in: courseIds } });
+    const assignmentIds = assignments.map(a => a._id);
+    
+    const page = parseInt(query.page) || 1;
+    const limit = parseInt(query.limit) || 10;
+    const skip = (page - 1) * limit;
+    const filter: any = { assignmentId: { $in: assignmentIds } };
+    if (query.status) filter.status = query.status;
+
+    const submissions = await AssignmentSubmission.find(filter)
+      .populate('userId', 'firstName lastName avatar')
+      .populate('assignmentId', 'title')
+      .sort({ submittedAt: -1 })
+      .skip(skip).limit(limit);
+    const total = await AssignmentSubmission.countDocuments(filter);
+    return { submissions, total, page, pages: Math.ceil(total / limit) };
+  }
+
   static async gradeSubmission(instructorId: string, submissionId: string, data: { score: number, feedback?: string }) {
     const submission = await AssignmentSubmission.findById(submissionId).populate('assignmentId');
     if (!submission) throw new AppError('Submission not found', 404, 'NOT_FOUND');
