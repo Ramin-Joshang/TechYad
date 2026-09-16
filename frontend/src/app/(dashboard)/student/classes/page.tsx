@@ -4,14 +4,29 @@ import { useQuery } from '@tanstack/react-query';
 import { classesApi } from '@/features/learning/api/classes.api';
 import { Video, Calendar, Clock, MapPin, ExternalLink, Loader2 } from 'lucide-react';
 import Link from 'next/link';
+import { useState } from 'react';
 
 export default function MyClassesPage() {
+  const [joiningId, setJoiningId] = useState<string | null>(null);
+
   const { data: classesData, isLoading } = useQuery({
     queryKey: ['myClasses'],
     queryFn: () => classesApi.getMyClasses().then(res => res.data)
   });
 
   const classes = classesData || [];
+
+  const handleJoin = async (classId: string) => {
+    try {
+      setJoiningId(classId);
+      const res = await classesApi.joinClass(classId);
+      if (res.data?.meetingUrl) window.open(res.data.meetingUrl, "_blank");
+    } catch (err) {
+      alert("خطا در دریافت لینک ورود");
+    } finally {
+      setJoiningId(null);
+    }
+  };
 
   return (
     <div className="space-y-8 pb-12 animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -83,10 +98,13 @@ export default function MyClassesPage() {
 
                   <div className="mt-auto">
                     {isOnline ? (
-                      <a href={`/classes/${classInfo.slug || classInfo._id}/join`} className="flex items-center justify-center gap-2 w-full bg-emerald-50 text-emerald-700 py-2.5 rounded-xl font-bold hover:bg-emerald-100 transition">
-                        <ExternalLink className="w-4 h-4" />
-                        ورود به کلاس
-                      </a>
+                      <button 
+                        onClick={() => handleJoin(classInfo._id)}
+                        disabled={joiningId === classInfo._id}
+                        className="flex items-center justify-center gap-2 w-full bg-emerald-50 text-emerald-700 py-2.5 rounded-xl font-bold hover:bg-emerald-100 transition disabled:opacity-50">
+                        {joiningId === classInfo._id ? <Loader2 className="w-4 h-4 animate-spin" /> : <ExternalLink className="w-4 h-4" />}
+                        {joiningId === classInfo._id ? 'در حال اتصال...' : 'ورود به کلاس'}
+                      </button>
                     ) : (
                       <Link href={`/classes/${classInfo.slug || classInfo._id}`} className="flex items-center justify-center gap-2 w-full bg-gray-50 text-gray-700 py-2.5 rounded-xl font-bold hover:bg-gray-100 transition">
                         مشاهده اطلاعات کلاس

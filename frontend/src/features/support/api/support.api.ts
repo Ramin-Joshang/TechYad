@@ -8,15 +8,15 @@ interface ApiResponse<T> {
 
 export const supportApi = {
   getMyTickets: async () => {
-    return api.get<any, ApiResponse<any[]>>('/support/tickets');
+    return api.get<any, ApiResponse<any[]>>('/me/tickets');
   },
   getTicketDetails: async (id: string) => {
-    return api.get<any, ApiResponse<any>>(`/support/tickets/${id}`);
+    return api.get<any, ApiResponse<any>>(`/me/tickets/${id}`);
   },
   createTicket: async (data: { subject: string, category?: string, priority?: string, message: string }) => {
-    return api.post<any, ApiResponse<any>>('/support/tickets', data);
+    return api.post<any, ApiResponse<any>>('/me/tickets', data);
   },
   replyToTicket: async (id: string, data: { message: string }) => {
-    return api.post<any, ApiResponse<any>>(`/support/tickets/${id}/reply`, data);
+    return api.post<any, ApiResponse<any>>(`/me/tickets/${id}/messages`, data);
   }
 };

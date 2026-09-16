@@ -8,12 +8,12 @@ interface ApiResponse<T> {
 
 export const notificationsApi = {
   getNotifications: async () => {
-    return api.get<any, ApiResponse<any[]>>('/notifications');
+    return api.get<any, ApiResponse<any[]>>('/me/notifications');
   },
   markAsRead: async (id: string) => {
-    return api.patch<any, ApiResponse<any>>(`/notifications/${id}/read`);
+    return api.patch<any, ApiResponse<any>>(`/me/notifications/${id}/read`);
   },
   markAllAsRead: async () => {
-    return api.patch<any, ApiResponse<any>>('/notifications/read-all');
+    return api.patch<any, ApiResponse<any>>('/me/notifications/read-all');
   }
 };
