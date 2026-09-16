@@ -122,11 +122,23 @@ const LessonItem = ({ lesson }: { lesson: any }) => {
 
 const ChapterItem = ({ chapter }: { chapter: any }) => {
   const [isOpen, setIsOpen] = useState(false);
+  const [showAddLesson, setShowAddLesson] = useState(false);
+  const [lessonData, setLessonData] = useState({ title: '', videoUrl: '', duration: 10, isFreePreview: false });
+  const queryClient = useQueryClient();
   
   const { data: lessons, isLoading } = useQuery({
     queryKey: ['chapter-lessons', chapter._id],
     queryFn: () => coursesApi.getChapterLessons(chapter._id).then(res => res.data),
     enabled: isOpen
+  });
+
+  const addLessonMutation = useMutation({
+    mutationFn: (data: any) => coursesApi.createLesson(chapter._id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['chapter-lessons', chapter._id] });
+      setShowAddLesson(false);
+      setLessonData({ title: '', videoUrl: '', duration: 10, isFreePreview: false });
+    }
   });
 
   return (
@@ -144,15 +156,54 @@ const ChapterItem = ({ chapter }: { chapter: any }) => {
           {isLoading ? (
             <div className="flex justify-center p-4"><Loader2 className="w-5 h-5 animate-spin text-gray-400" /></div>
           ) : lessons?.length === 0 ? (
-            <div className="text-center p-4 text-sm text-gray-500 bg-gray-100 rounded-xl border border-dashed border-gray-300">
+            <div className="text-center p-4 mb-4 text-sm text-gray-500 bg-gray-100 rounded-xl border border-dashed border-gray-300">
               درسی در این فصل وجود ندارد.
             </div>
           ) : (
-            <div>
+            <div className="mb-4">
               {lessons?.map((lesson: any) => (
                 <LessonItem key={lesson._id} lesson={lesson} />
               ))}
             </div>
+          )}
+
+          {!showAddLesson ? (
+            <button 
+              onClick={() => setShowAddLesson(true)}
+              className="w-full py-2.5 rounded-xl border-2 border-dashed border-gray-200 text-gray-500 hover:border-gray-300 hover:bg-gray-50 font-bold text-sm transition-all flex justify-center items-center gap-2"
+            >
+              <Plus className="w-4 h-4" /> درس جدید
+            </button>
+          ) : (
+            <form onSubmit={e => { e.preventDefault(); addLessonMutation.mutate(lessonData); }} className="p-4 bg-white border border-gray-200 rounded-xl shadow-sm space-y-4">
+              <h4 className="font-bold text-sm text-gray-900">ایجاد درس جدید</h4>
+              <input 
+                required placeholder="عنوان درس" 
+                value={lessonData.title} onChange={e => setLessonData({...lessonData, title: e.target.value})}
+                className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm"
+              />
+              <input 
+                placeholder="لینک ویدیو (اختیاری)" 
+                value={lessonData.videoUrl} onChange={e => setLessonData({...lessonData, videoUrl: e.target.value})}
+                className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm text-left dir-ltr"
+              />
+              <div className="flex items-center gap-4">
+                <label className="flex items-center gap-2 text-sm font-medium text-gray-700">
+                  <input type="checkbox" checked={lessonData.isFreePreview} onChange={e => setLessonData({...lessonData, isFreePreview: e.target.checked})} className="rounded text-blue-600 focus:ring-blue-500" />
+                  پیش‌نمایش رایگان
+                </label>
+                <div className="flex-1 flex items-center gap-2">
+                  <span className="text-sm font-medium text-gray-700">مدت (دقیقه):</span>
+                  <input type="number" min="1" value={lessonData.duration} onChange={e => setLessonData({...lessonData, duration: Number(e.target.value)})} className="w-20 px-2 py-1 border border-gray-200 rounded-lg text-sm" />
+                </div>
+              </div>
+              <div className="flex gap-2 justify-end pt-2">
+                <button type="button" onClick={() => setShowAddLesson(false)} className="px-4 py-2 text-sm text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-lg font-bold">انصراف</button>
+                <button type="submit" disabled={addLessonMutation.isPending} className="px-4 py-2 text-sm text-white bg-blue-600 hover:bg-blue-700 rounded-lg font-bold flex items-center gap-2">
+                  {addLessonMutation.isPending && <Loader2 className="w-3 h-3 animate-spin"/>} ذخیره
+                </button>
+              </div>
+            </form>
           )}
         </div>
       )}
@@ -161,23 +212,65 @@ const ChapterItem = ({ chapter }: { chapter: any }) => {
 };
 
 export const CurriculumBuilder = ({ courseId }: { courseId: string }) => {
+  const [showAddChapter, setShowAddChapter] = useState(false);
+  const [chapterTitle, setChapterTitle] = useState('');
+  const queryClient = useQueryClient();
+
   const { data: chapters, isLoading } = useQuery({
     queryKey: ['chapters', courseId],
     queryFn: () => coursesApi.getCourseChapters(courseId).then(res => res.data)
   });
 
-  if (isLoading) return <div className="py-12 flex justify-center"><Loader2 className="w-8 h-8 animate-spin text-gray-400" /></div>;
+  const addChapterMutation = useMutation({
+    mutationFn: (title: string) => coursesApi.createChapter(courseId, { title, order: chapters?.length || 0 }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['chapters', courseId] });
+      setShowAddChapter(false);
+      setChapterTitle('');
+    }
+  });
 
   return (
-    <div className="space-y-2">
-      {chapters?.length === 0 ? (
+    <div className="bg-white rounded-3xl p-6 md:p-8 shadow-sm border border-gray-100">
+      <div className="flex justify-between items-center mb-6">
+        <h2 className="text-lg font-bold text-gray-900">سرفصل‌های دوره</h2>
+        <button 
+          onClick={() => setShowAddChapter(true)}
+          className="px-4 py-2 bg-gray-900 hover:bg-black text-white font-bold rounded-xl shadow-sm text-sm flex items-center gap-2 transition-colors"
+        >
+          <Plus className="w-4 h-4" /> فصل جدید
+        </button>
+      </div>
+
+      {showAddChapter && (
+        <form onSubmit={e => { e.preventDefault(); addChapterMutation.mutate(chapterTitle); }} className="mb-6 p-4 bg-gray-50 border border-gray-200 rounded-2xl flex items-center gap-3">
+          <input 
+            required autoFocus
+            placeholder="عنوان فصل جدید..."
+            value={chapterTitle} onChange={e => setChapterTitle(e.target.value)}
+            className="flex-1 px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 outline-none"
+          />
+          <button type="submit" disabled={addChapterMutation.isPending || !chapterTitle} className="px-6 py-2.5 bg-blue-600 text-white font-bold rounded-xl shadow-md disabled:opacity-50">
+            {addChapterMutation.isPending ? <Loader2 className="w-5 h-5 animate-spin" /> : 'ذخیره'}
+          </button>
+          <button type="button" onClick={() => setShowAddChapter(false)} className="px-4 py-2.5 text-gray-600 hover:bg-gray-200 rounded-xl font-bold">
+            لغو
+          </button>
+        </form>
+      )}
+
+      {isLoading ? (
+        <div className="py-12 flex justify-center"><Loader2 className="w-8 h-8 animate-spin text-gray-400" /></div>
+      ) : chapters?.length === 0 ? (
         <div className="text-center py-12 bg-gray-50 rounded-2xl border border-dashed border-gray-200">
           <p className="text-gray-500 font-medium">هنوز هیچ سرفصلی ایجاد نشده است.</p>
         </div>
       ) : (
-        chapters?.map((chapter: any) => (
-          <ChapterItem key={chapter._id} chapter={chapter} />
-        ))
+        <div className="space-y-2">
+          {chapters?.map((chapter: any) => (
+            <ChapterItem key={chapter._id} chapter={chapter} />
+          ))}
+        </div>
       )}
     </div>
   );

@@ -27,3 +27,8 @@ export const joinOnlineClass = async (req: AuthRequest, res: Response) => {
   const result = await ClassService.joinOnlineClass(req.user._id as string, req.params.id as string);
   sendSuccess(res, result, 'Join link generated successfully');
 };
+
+export const getInstructorClasses = async (req: AuthRequest, res: Response) => {
+  const result = await ClassService.getInstructorClasses(req.user._id as string);
+  sendSuccess(res, result, 'Instructor classes retrieved successfully');
+};

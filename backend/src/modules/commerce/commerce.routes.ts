@@ -1,12 +1,13 @@
 import { Router } from 'express';
 import * as Controller from './commerce.controller.js';
 import { validate } from '../../common/middleware/validate.js';
-import { authenticate } from '../../common/middleware/auth.js';
+import { authenticate, authorize } from '../../common/middleware/auth.js';
 import { asyncHandler } from '../../common/utils/asyncHandler.js';
 import { addToCartSchema, applyCouponSchema } from './commerce.validation.js';
 
 const router = Router();
 const requireAuth = asyncHandler(authenticate);
+const isInstructor = [requireAuth, authorize('create_course')];
 
 // --- Cart ---
 router.get('/me/cart', requireAuth, asyncHandler(Controller.getCart));

@@ -12,6 +12,7 @@ router.get('/classes', asyncHandler(Controller.getClasses));
 router.get('/classes/:slug', asyncHandler(Controller.getClassBySlug));
 
 // Instructor routes
+router.get('/instructor/classes', isInstructor, asyncHandler(Controller.getInstructorClasses));
 router.post('/instructor/classes', isInstructor, asyncHandler(Controller.createClass));
 
 // Student routes

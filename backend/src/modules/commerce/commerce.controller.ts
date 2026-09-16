@@ -53,3 +53,13 @@ export const verifyMockPayment = async (req: AuthRequest, res: Response) => {
   const result = await CommerceService.verifyPaymentMock(req.user._id as string, authority as string, status as 'OK' | 'NOK');
   sendSuccess(res, result, 'Payment verification processed');
 };
+
+export const getInstructorSales = async (req: AuthRequest, res: Response) => {
+  const { month, year } = req.query;
+  const result = await CommerceService.getInstructorSales(
+    req.user._id as string, 
+    month ? parseInt(month as string) : undefined,
+    year ? parseInt(year as string) : undefined
+  );
+  sendSuccess(res, result, 'Instructor sales retrieved successfully');
+};

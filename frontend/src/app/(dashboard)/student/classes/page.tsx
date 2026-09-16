@@ -62,7 +62,7 @@ export default function MyClassesPage() {
             const classInfo = c.classId || c; // Depending on how the backend returns enrollments vs class models
             if (!classInfo) return null;
 
-            const isOnline = classInfo.type === 'online';
+            const isOnline = classInfo.mode === 'online';
             
             return (
               <div key={classInfo._id || c._id} className="bg-white rounded-3xl overflow-hidden border border-gray-100 shadow-sm hover:shadow-md transition-all flex flex-col sm:flex-row">

@@ -80,7 +80,13 @@ export class CourseService {
     .limit(4);
   }
 
-  static async getInstructorCourses(instructorId: string, query: any) {
+  
+  static async getInstructorCourseById(courseId: string, instructorId: string) {
+    const course = await Course.findOne({ _id: courseId, instructors: instructorId });
+    if (!course) throw new AppError('Course not found or you are not authorized', 404, 'NOT_FOUND');
+    return course;
+  }
+static async getInstructorCourses(instructorId: string, query: any) {
     const page = parseInt(query.page) || 1;
     const limit = parseInt(query.limit) || 10;
     const skip = (page - 1) * limit;
@@ -105,20 +111,55 @@ export class CourseService {
     };
   }
 
-  static async getInstructorStats(instructorId: string) {
+    static async getInstructorStats(instructorId: string) {
     const courses = await Course.find({ instructors: instructorId });
+    const { Class } = require('../classes/class.model.js');
+    const classes = await Class.find({ instructors: instructorId });
+    
     const totalCourses = courses.length;
     const publishedCourses = courses.filter(c => c.status === 'published').length;
+    const drafts = courses.filter(c => c.status === 'draft').length;
+    const pending = courses.filter(c => c.status === 'pending_review').length;
+    const activeClasses = classes.filter(c => c.status === 'published').length;
+
     const totalStudents = courses.reduce((acc, curr) => acc + (curr.studentCount || 0), 0);
     
-    // In a real app, calculate revenue from orders, for now mockup
-    const totalRevenue = courses.reduce((acc, curr) => acc + ((curr.studentCount || 0) * (curr.price || 0)), 0) * 0.7; // 70% share
+    const { Order } = require('../commerce/order.model.js');
+    const courseIds = courses.map(c => c._id);
+    
+    // Total revenue
+    const orders = await Order.find({ 
+      status: 'paid', 
+      'items.itemType': 'course', 
+      'items.itemId': { $in: courseIds } 
+    });
+    
+    let totalRevenue = 0;
+    orders.forEach(order => {
+      const relevantItems = order.items.filter(item => item.itemType === 'course' && courseIds.some(cid => cid.equals(item.itemId)));
+      totalRevenue += relevantItems.reduce((acc, curr) => acc + curr.finalPrice, 0) * 0.7;
+    });
+
+    // Monthly revenue
+    const now = new Date();
+    const startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+    const monthlyOrders = orders.filter(o => o.createdAt >= startDate);
+    
+    let monthlyRevenue = 0;
+    monthlyOrders.forEach(order => {
+      const relevantItems = order.items.filter(item => item.itemType === 'course' && courseIds.some(cid => cid.equals(item.itemId)));
+      monthlyRevenue += relevantItems.reduce((acc, curr) => acc + curr.finalPrice, 0) * 0.7;
+    });
     
     return {
       totalCourses,
       publishedCourses,
+      drafts,
+      pending,
+      activeClasses,
       totalStudents,
-      totalRevenue
+      totalRevenue,
+      monthlyRevenue
     };
   }
 

@@ -4,6 +4,10 @@ import { AppError } from '../../common/errors/AppError.js';
 import { Types } from 'mongoose';
 
 export class ClassService {
+  static async getInstructorClasses(instructorId: string) {
+    return await Class.find({ instructors: instructorId }).sort({ startDate: 1 });
+  }
+
   static async getClasses() {
     return await Class.find({ status: { $in: ['published', 'completed'] } })
       .populate('instructors', 'firstName lastName avatar')
@@ -21,6 +25,7 @@ export class ClassService {
     const mockRoomLink = data.mode === 'online' ? `https://www.skyroom.online/ch/techyad/${new Types.ObjectId().toString().substring(0, 8)}` : undefined;
     
     return await Class.create({
+      capacity: data.capacity || data.maxStudents,
       ...data,
       meetingLink: mockRoomLink,
       createdBy: userId,

@@ -31,3 +31,24 @@ export const deleteCoupon = async (req: Request, res: Response) => {
   const result = await AdminService.deleteCoupon(req.params.id as string);
   sendSuccess(res, result, 'Coupon deleted');
 };
+
+export const getOrders = async (req: Request, res: Response) => {
+  const result = await AdminService.getOrders(req.query);
+  sendSuccess(res, result, 'Orders retrieved');
+};
+export const getTickets = async (req: Request, res: Response) => {
+  const result = await AdminService.getTickets(req.query);
+  sendSuccess(res, result, 'Tickets retrieved');
+};
+export const updateTicketStatus = async (req: Request, res: Response) => {
+  const result = await AdminService.updateTicketStatus(req.params.id, req.body.status);
+  sendSuccess(res, result, 'Ticket status updated');
+};
+export const getClasses = async (req: Request, res: Response) => {
+  const result = await AdminService.getClasses(req.query);
+  sendSuccess(res, result, 'Classes retrieved');
+};
+export const getRevenueStats = async (req: Request, res: Response) => {
+  const result = await AdminService.getRevenueStats();
+  sendSuccess(res, result, 'Revenue stats retrieved');
+};

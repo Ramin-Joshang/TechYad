@@ -31,6 +31,7 @@ router.post('/lessons/:lessonId/comments', requireAuth, asyncHandler(CommentCont
 
 // --- Instructor Routes ---
 router.get('/instructor/courses', isInstructor, asyncHandler(Controller.getInstructorCourses));
+router.get('/instructor/courses/:id', isInstructor, asyncHandler(Controller.getInstructorCourseById));
 router.get('/instructor/stats', isInstructor, asyncHandler(Controller.getInstructorStats));
 router.get('/instructor/comments', isInstructor, asyncHandler(CommentController.getInstructorComments));
 router.get('/instructor/courses/:courseId/students', isInstructor, asyncHandler(Controller.getCourseStudents));

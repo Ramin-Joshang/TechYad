@@ -85,3 +85,9 @@ export const getCourseStudents = async (req: AuthRequest, res: Response) => {
   const result = await CourseService.getCourseStudents(req.params.courseId, req.query);
   sendSuccess(res, result, 'Students retrieved successfully');
 };
+
+  export const getInstructorCourseById = async (req: AuthRequest, res: Response) => {
+    const course = await CourseService.getInstructorCourseById(req.params.id, req.user._id as string);
+    sendSuccess(res, course, 'Course retrieved successfully');
+  };
+  

@@ -20,3 +20,10 @@ router.get('/admin/coupons', isAdmin, asyncHandler(Controller.getCoupons));
 router.delete('/admin/coupons/:id', isAdmin, asyncHandler(Controller.deleteCoupon));
 
 export default router;
+
+// Extra Admin Routes
+router.get('/admin/orders', isAdmin, asyncHandler(Controller.getOrders));
+router.get('/admin/tickets', isAdmin, asyncHandler(Controller.getTickets));
+router.patch('/admin/tickets/:id/status', isAdmin, asyncHandler(Controller.updateTicketStatus));
+router.get('/admin/classes', isAdmin, asyncHandler(Controller.getClasses));
+router.get('/admin/revenue', isAdmin, asyncHandler(Controller.getRevenueStats));

@@ -1,89 +1,85 @@
 'use client';
-
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { api } from '@/lib/api';
-import { Loader2, CheckCircle, XCircle, BookOpen, Clock } from 'lucide-react';
-import Link from 'next/link';
+import { adminApi } from '@/features/admin/api/admin.api';
+import { Loader2, Search, CheckCircle, XCircle, Activity } from 'lucide-react';
 
-export default function PendingCoursesPage() {
+export default function AdminPendingCoursesPage() {
   const queryClient = useQueryClient();
-  const [rejectId, setRejectId] = useState<string | null>(null);
-  const [reason, setReason] = useState('');
-
-  const { data, isLoading } = useQuery({
-    queryKey: ['admin-pending-courses'],
-    queryFn: () => api.get('/admin/courses', { params: { status: 'pending_review' } }).then(res => res.data?.data)
+  const [search, setSearch] = useState('');
+  
+  const { data: coursesData, isLoading } = useQuery({
+    queryKey: ['adminCourses'],
+    queryFn: () => adminApi.getCourses().then(res => res.data?.data)
   });
 
   const publishMutation = useMutation({
-    mutationFn: (id: string) => api.post(`/admin/courses/${id}/publish`),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['admin-pending-courses'] });
-      alert('دوره با موفقیت منتشر شد');
-    }
+    mutationFn: (id: string) => adminApi.publishCourse(id),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['adminCourses'] })
   });
 
   const rejectMutation = useMutation({
-    mutationFn: ({ id, reason }: { id: string, reason: string }) => api.post(`/admin/courses/${id}/reject`, { reason }),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['admin-pending-courses'] });
-      setRejectId(null);
-      setReason('');
-    }
+    mutationFn: (id: string) => adminApi.rejectCourse(id, 'رد شده توسط ادمین'),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['adminCourses'] })
   });
+
+  const courses = coursesData?.courses || [];
+  const pendingCourses = courses.filter((c: any) => c.status === 'pending');
+  const filteredCourses = pendingCourses.filter((c: any) => 
+    c.title?.toLowerCase().includes(search.toLowerCase())
+  );
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-black text-gray-900">بررسی دوره‌ها</h1>
-        <p className="text-gray-500 mt-1">دوره‌های در انتظار تایید اساتید</p>
+      <div className="flex justify-between items-center">
+        <div className="flex items-center gap-3">
+          <div className="p-3 bg-amber-100 text-amber-600 rounded-xl"><Activity className="w-6 h-6" /></div>
+          <div>
+            <h1 className="text-2xl font-black text-gray-900">دوره‌های در انتظار بررسی</h1>
+            <p className="text-gray-500 mt-1">تایید یا رد دوره‌های درخواست شده توسط اساتید</p>
+          </div>
+        </div>
       </div>
 
       <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
         {isLoading ? (
-          <div className="p-12 flex justify-center text-blue-600"><Loader2 className="w-8 h-8 animate-spin" /></div>
-        ) : data?.courses?.length === 0 ? (
-          <div className="p-12 text-center text-gray-500 font-medium">هیچ دوره‌ای در انتظار بررسی نیست.</div>
+          <div className="p-12 flex justify-center"><Loader2 className="w-8 h-8 animate-spin text-amber-600" /></div>
+        ) : filteredCourses.length === 0 ? (
+           <div className="p-12 text-center text-gray-500 font-medium">دوره‌ای برای بررسی وجود ندارد.</div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-right">
               <thead>
                 <tr className="border-b border-gray-100 bg-gray-50/50">
-                  <th className="p-4 font-bold text-gray-600 text-sm">دوره</th>
+                  <th className="p-4 font-bold text-gray-600 text-sm">عنوان دوره</th>
                   <th className="p-4 font-bold text-gray-600 text-sm">استاد</th>
                   <th className="p-4 font-bold text-gray-600 text-sm">تاریخ درخواست</th>
                   <th className="p-4 font-bold text-gray-600 text-sm text-center">عملیات</th>
                 </tr>
               </thead>
               <tbody>
-                {data?.courses?.map((course: any) => (
-                  <tr key={course._id} className="border-b border-gray-50">
-                    <td className="p-4">
-                      <div className="font-bold text-gray-900">{course.title}</div>
-                    </td>
-                    <td className="p-4 font-medium text-gray-600">
+                {filteredCourses.map((course: any) => (
+                  <tr key={course._id} className="border-b border-gray-50 hover:bg-gray-50/50 transition-colors">
+                    <td className="p-4 font-bold text-gray-900">{course.title}</td>
+                    <td className="p-4 text-gray-600 font-medium">
                       {course.instructors?.[0]?.firstName} {course.instructors?.[0]?.lastName}
                     </td>
-                    <td className="p-4 font-medium text-gray-600">
-                      {new Date(course.updatedAt).toLocaleDateString('fa-IR')}
+                    <td className="p-4 text-gray-600 text-sm font-medium">
+                      {new Date(course.updatedAt || course.createdAt).toLocaleDateString('fa-IR')}
                     </td>
                     <td className="p-4">
                       <div className="flex justify-center gap-2">
                         <button 
                           onClick={() => publishMutation.mutate(course._id)}
-                          disabled={publishMutation.isPending}
-                          className="p-2 bg-emerald-50 text-emerald-600 hover:bg-emerald-100 rounded-lg transition-colors"
-                          title="تایید و انتشار"
+                          className="px-3 py-1.5 bg-emerald-100 text-emerald-700 hover:bg-emerald-200 rounded-lg text-sm font-bold transition-colors flex items-center gap-1"
                         >
-                          <CheckCircle className="w-5 h-5" />
+                          <CheckCircle className="w-4 h-4" /> تایید
                         </button>
                         <button 
-                          onClick={() => setRejectId(course._id)}
-                          className="p-2 bg-red-50 text-red-600 hover:bg-red-100 rounded-lg transition-colors"
-                          title="رد دوره"
+                          onClick={() => rejectMutation.mutate(course._id)}
+                          className="px-3 py-1.5 bg-rose-100 text-rose-700 hover:bg-rose-200 rounded-lg text-sm font-bold transition-colors flex items-center gap-1"
                         >
-                          <XCircle className="w-5 h-5" />
+                          <XCircle className="w-4 h-4" /> رد
                         </button>
                       </div>
                     </td>
@@ -94,37 +90,6 @@ export default function PendingCoursesPage() {
           </div>
         )}
       </div>
-
-      {rejectId && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl p-6 w-full max-w-md shadow-xl animate-in zoom-in-95 duration-200">
-            <h2 className="text-xl font-bold text-gray-900 mb-4">رد دوره</h2>
-            <p className="text-sm text-gray-600 mb-4">لطفاً علت رد دوره را برای استاد بنویسید تا بتواند مشکلات را برطرف کند.</p>
-            <textarea
-              value={reason}
-              onChange={(e) => setReason(e.target.value)}
-              className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all resize-none mb-4"
-              rows={4}
-              placeholder="مثال: کیفیت صدای ویدیو در فصل اول پایین است..."
-            ></textarea>
-            <div className="flex justify-end gap-3">
-              <button 
-                onClick={() => setRejectId(null)}
-                className="px-5 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold rounded-xl transition-colors"
-              >
-                انصراف
-              </button>
-              <button 
-                onClick={() => rejectMutation.mutate({ id: rejectId, reason })}
-                disabled={!reason.trim() || rejectMutation.isPending}
-                className="px-5 py-2.5 bg-red-600 hover:bg-red-700 text-white font-bold rounded-xl shadow-md disabled:opacity-50 transition-colors"
-              >
-                {rejectMutation.isPending ? <Loader2 className="w-5 h-5 animate-spin"/> : 'تایید و رد دوره'}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

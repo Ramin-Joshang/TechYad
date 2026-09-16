@@ -12,37 +12,43 @@ import { api } from '@/lib/api';
 
 export default function InstructorDashboard() {
   const { user } = useAuthStore();
-
-  // In a real scenario, fetch instructor dashboard stats from backend
+  
   const { data: earningsData } = useQuery({
     queryKey: ['instructor-earnings'],
     queryFn: () => coursesApi.getInstructorStats().then(res => res.data)
   });
+  
+  const { data: upcomingClasses } = useQuery({
+    queryKey: ['instructor-upcoming-classes'],
+    queryFn: () => api.get('/instructor/classes').then(res => res.data?.data)
+  });
 
-  const mockStats = {
-    totalCourses: 12,
-    totalStudents: earningsData?.totalStudents || 845,
-    totalSales: earningsData?.totalRevenue || 45000000,
-    monthlySales: (earningsData?.totalRevenue || 0) / 12,
-    classes: 4,
-    drafts: 2,
-    pending: 1,
-    published: 9
+  const stats = {
+    totalCourses: earningsData?.totalCourses || 0,
+    totalStudents: earningsData?.totalStudents || 0,
+    totalSales: earningsData?.totalRevenue || 0,
+    monthlySales: earningsData?.monthlyRevenue || 0,
+    classes: earningsData?.activeClasses || 0,
+    drafts: earningsData?.drafts || 0,
+    pending: earningsData?.pending || 0,
+    published: earningsData?.publishedCourses || 0
   };
 
   const primaryStats = [
-    { label: 'دانشجویان شما', value: mockStats.totalStudents.toLocaleString(), icon: Users, color: 'bg-blue-500' },
-    { label: 'فروش کل (تومان)', value: mockStats.totalSales.toLocaleString(), icon: DollarSign, color: 'bg-emerald-500' },
-    { label: 'فروش این ماه', value: mockStats.monthlySales.toLocaleString(), icon: TrendingUp, color: 'bg-amber-500' },
-    { label: 'دوره‌های شما', value: mockStats.totalCourses, icon: BookOpen, color: 'bg-purple-500' },
+    { label: 'دانشجویان شما', value: stats.totalStudents.toLocaleString(), icon: Users, color: 'bg-blue-500' },
+    { label: 'فروش کل (تومان)', value: stats.totalSales.toLocaleString(), icon: DollarSign, color: 'bg-emerald-500' },
+    { label: 'فروش این ماه', value: stats.monthlySales.toLocaleString(), icon: TrendingUp, color: 'bg-amber-500' },
+    { label: 'دوره‌های شما', value: stats.totalCourses, icon: BookOpen, color: 'bg-purple-500' },
   ];
 
   const secondaryStats = [
-    { label: 'دوره‌های منتشر شده', value: mockStats.published, icon: CheckSquare, color: 'text-emerald-600 bg-emerald-50' },
-    { label: 'دوره‌های در انتظار تایید', value: mockStats.pending, icon: Activity, color: 'text-amber-600 bg-amber-50' },
-    { label: 'دوره‌های پیش‌نویس', value: mockStats.drafts, icon: FileText, color: 'text-gray-600 bg-gray-100' },
-    { label: 'کلاس‌های فعال', value: mockStats.classes, icon: Video, color: 'text-blue-600 bg-blue-50' },
+    { label: 'دوره‌های منتشر شده', value: stats.published, icon: CheckSquare, color: 'text-emerald-600 bg-emerald-50' },
+    { label: 'دوره‌های در انتظار تایید', value: stats.pending, icon: Activity, color: 'text-amber-600 bg-amber-50' },
+    { label: 'دوره‌های پیش‌نویس', value: stats.drafts, icon: FileText, color: 'text-gray-600 bg-gray-100' },
+    { label: 'کلاس‌های فعال', value: stats.classes, icon: Video, color: 'text-blue-600 bg-blue-50' },
   ];
+
+  const activeLiveClasses = upcomingClasses?.filter((c: any) => c.status === 'published')?.slice(0, 3) || [];
 
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
@@ -51,8 +57,8 @@ export default function InstructorDashboard() {
       <div className="bg-white rounded-3xl p-8 shadow-sm border border-gray-100 flex flex-col md:flex-row justify-between items-center gap-6 relative overflow-hidden">
         <div className="absolute top-0 left-0 w-64 h-64 bg-emerald-50 rounded-full blur-3xl -translate-y-1/2 -translate-x-1/2"></div>
         <div className="relative z-10">
-          <h1 className="text-3xl font-black text-gray-900 mb-2">سلام استاد {user?.lastName}! 🎓</h1>
-          <p className="text-gray-500 text-lg">به پنل مدیریت آموزشی خود خوش آمدید. آمار دوره‌های شما عالی است!</p>
+          <h1 className="text-3xl font-black text-gray-900 mb-2">سلام استاد {user?.lastName || user?.firstName}! 🎓</h1>
+          <p className="text-gray-500 text-lg">به پنل مدیریت آموزشی خود خوش آمدید. آمار دوره‌های شما در دسترس است.</p>
         </div>
         <div className="relative z-10 shrink-0">
           <Link href="/instructor/courses/new" className="px-6 py-4 bg-gray-900 hover:bg-black text-white rounded-2xl font-bold shadow-xl shadow-gray-900/20 transition-all flex items-center gap-2">
@@ -118,24 +124,39 @@ export default function InstructorDashboard() {
           </div>
           
           <div className="space-y-4">
-            {[1, 2, 3].map((item) => (
-              <div key={item} className="flex items-center gap-4 p-4 rounded-2xl bg-gray-50 border border-gray-100">
-                <div className="w-14 h-14 bg-white rounded-xl shadow-sm border border-gray-200 flex flex-col items-center justify-center shrink-0">
-                  <span className="text-xs font-bold text-red-500">مهر</span>
-                  <span className="text-lg font-black text-gray-900">{item + 12}</span>
-                </div>
-                <div className="flex-1 min-w-0">
-                  <h4 className="font-bold text-gray-900 truncate">کلاس آنلاین برنامه‌نویسی پایتون</h4>
-                  <div className="flex items-center gap-2 text-sm text-gray-500 mt-1">
-                    <Video className="w-3 h-3" />
-                    <span>ساعت ۱۷:۰۰ الی ۱۹:۰۰</span>
-                  </div>
-                </div>
-                <button className="px-4 py-2 bg-blue-100 text-blue-700 font-bold text-sm rounded-xl hover:bg-blue-200 transition-colors">
-                  ورود
-                </button>
+            {activeLiveClasses.length === 0 ? (
+              <div className="text-center py-8 text-gray-500 bg-gray-50 rounded-2xl border border-dashed border-gray-200">
+                هیچ کلاس زنده‌ای ندارید.
               </div>
-            ))}
+            ) : (
+              activeLiveClasses.map((cls: any) => {
+                const date = new Date(cls.startDate);
+                const day = date.getDate();
+                const monthName = date.toLocaleDateString('fa-IR', { month: 'short' });
+                const time = date.toLocaleTimeString('fa-IR', { hour: '2-digit', minute: '2-digit' });
+                
+                return (
+                  <div key={cls._id} className="flex items-center gap-4 p-4 rounded-2xl bg-gray-50 border border-gray-100">
+                    <div className="w-14 h-14 bg-white rounded-xl shadow-sm border border-gray-200 flex flex-col items-center justify-center shrink-0">
+                      <span className="text-xs font-bold text-red-500">{monthName}</span>
+                      <span className="text-lg font-black text-gray-900">{day}</span>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <h4 className="font-bold text-gray-900 truncate">{cls.title}</h4>
+                      <div className="flex items-center gap-2 text-sm text-gray-500 mt-1">
+                        <Video className="w-3 h-3" />
+                        <span>ساعت {time}</span>
+                      </div>
+                    </div>
+                    {cls.meetingLink && (
+                      <a href={cls.meetingLink} target="_blank" rel="noopener noreferrer" className="px-4 py-2 bg-blue-100 text-blue-700 font-bold text-sm rounded-xl hover:bg-blue-200 transition-colors">
+                        ورود
+                      </a>
+                    )}
+                  </div>
+                )
+              })
+            )}
           </div>
         </div>
 

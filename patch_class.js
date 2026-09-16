@@ -1,7 +1,30 @@
 const fs = require('fs');
-let file = fs.readFileSync('backend/src/modules/classes/class.model.ts', 'utf8');
 
-file = file.replace('endDate: Date;', 'endDate: Date;\n  enrolledCount?: number;\n  rating?: number;\n  sessions?: number;\n  thumbnail?: string;');
-file = file.replace('endDate: { type: Date, required: true },', 'endDate: { type: Date, required: true },\n    enrolledCount: { type: Number, default: 0 },\n    rating: { type: Number, default: 0 },\n    sessions: { type: Number, default: 0 },\n    thumbnail: { type: String },');
+let service = fs.readFileSync('backend/src/modules/classes/class.service.ts', 'utf8');
+if (!service.includes('getInstructorClasses')) {
+  service = service.replace(
+    "  static async getClasses() {",
+    "  static async getInstructorClasses(instructorId: string) {\n    return await Class.find({ instructors: instructorId }).sort({ startDate: 1 });\n  }\n\n  static async getClasses() {"
+  );
+  fs.writeFileSync('backend/src/modules/classes/class.service.ts', service);
+}
 
-fs.writeFileSync('backend/src/modules/classes/class.model.ts', file);
+let controller = fs.readFileSync('backend/src/modules/classes/class.controller.ts', 'utf8');
+if (!controller.includes('getInstructorClasses')) {
+  controller += `
+export const getInstructorClasses = async (req: AuthRequest, res: Response) => {
+  const result = await ClassService.getInstructorClasses(req.user._id as string);
+  sendSuccess(res, result, 'Instructor classes retrieved successfully');
+};
+`;
+  fs.writeFileSync('backend/src/modules/classes/class.controller.ts', controller);
+}
+
+let routes = fs.readFileSync('backend/src/modules/classes/class.routes.ts', 'utf8');
+if (!routes.includes('getInstructorClasses')) {
+  routes = routes.replace(
+    "// Instructor routes",
+    "// Instructor routes\nrouter.get('/instructor/classes', isInstructor, asyncHandler(Controller.getInstructorClasses));"
+  );
+  fs.writeFileSync('backend/src/modules/classes/class.routes.ts', routes);
+}

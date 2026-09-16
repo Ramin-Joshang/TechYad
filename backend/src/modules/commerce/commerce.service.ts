@@ -10,6 +10,45 @@ import { ClassEnrollment } from '../classes/class-enrollment.model.js';
 import { AppError } from '../../common/errors/AppError.js';
 
 export class CommerceService {
+  static async getInstructorSales(instructorId: string, month?: number, year?: number) {
+    const { Course } = require('../courses/course.model.js');
+    const courses = await Course.find({ instructors: instructorId });
+    const courseIds = courses.map(c => c._id);
+    
+    let dateFilter = {};
+    if (month && year) {
+      const startDate = new Date(year, month - 1, 1);
+      const endDate = new Date(year, month, 0, 23, 59, 59);
+      dateFilter = { createdAt: { $gte: startDate, $lte: endDate } };
+    }
+    
+    const orders = await Order.find({ 
+      status: 'paid', 
+      'items.itemType': 'course', 
+      'items.itemId': { $in: courseIds },
+      ...dateFilter
+    }).populate('userId', 'firstName lastName avatar').sort({ createdAt: -1 });
+    
+    // Filter items to only include this instructor's courses and calculate total
+    let totalSales = 0;
+    const sales = orders.map(order => {
+      const relevantItems = order.items.filter(item => item.itemType === 'course' && courseIds.some(cid => cid.equals(item.itemId)));
+      const orderTotal = relevantItems.reduce((acc, curr) => acc + curr.finalPrice, 0);
+      totalSales += orderTotal * 0.7; // 70% share
+      
+      return {
+        _id: order._id,
+        userId: order.userId,
+        items: relevantItems,
+        total: orderTotal,
+        instructorShare: orderTotal * 0.7,
+        createdAt: order.createdAt
+      };
+    });
+    
+    return { sales, totalSales };
+  }
+
   // --- Cart ---
   static async getCart(userId: string) {
     let cart = await Cart.findOne({ userId });

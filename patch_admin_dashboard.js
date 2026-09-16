@@ -1,4 +1,6 @@
-'use client';
+const fs = require('fs');
+
+const code = `'use client';
 import { useAuthStore } from '@/features/auth/stores/auth.store';
 import { adminApi } from '@/features/admin/api/admin.api';
 import { useQuery } from '@tanstack/react-query';
@@ -82,7 +84,7 @@ export default function AdminDashboard() {
           return (
             <Link href={stat.link} key={i} className="bg-white p-6 rounded-3xl shadow-sm border border-gray-100 hover:shadow-md hover:border-blue-100 transition-all group">
               <div className="flex justify-between items-start mb-4">
-                <div className={`p-4 rounded-2xl text-white shadow-lg ${stat.color} group-hover:scale-110 group-hover:rotate-3 transition-transform`}>
+                <div className={\`p-4 rounded-2xl text-white shadow-lg \${stat.color} group-hover:scale-110 group-hover:rotate-3 transition-transform\`}>
                   <Icon className="w-6 h-6" />
                 </div>
               </div>
@@ -103,7 +105,7 @@ export default function AdminDashboard() {
               const Icon = stat.icon;
               return (
                 <Link href={stat.link} key={i} className="flex items-center gap-4 p-4 rounded-2xl border border-gray-100 hover:border-gray-200 hover:bg-gray-50 transition-colors group">
-                  <div className={`p-4 rounded-2xl ${stat.color} group-hover:scale-110 transition-transform`}>
+                  <div className={\`p-4 rounded-2xl \${stat.color} group-hover:scale-110 transition-transform\`}>
                     <Icon className="w-6 h-6" />
                   </div>
                   <div>
@@ -124,12 +126,12 @@ export default function AdminDashboard() {
               {courseStats.map((stat, i) => {
                 const Icon = stat.icon;
                 return (
-                  <Link href={stat.link} key={i} className={`flex items-center justify-between p-5 rounded-2xl border border-transparent hover:border-gray-100 transition-colors ${stat.bg}`}>
+                  <Link href={stat.link} key={i} className={\`flex items-center justify-between p-5 rounded-2xl border border-transparent hover:border-gray-100 transition-colors \${stat.bg}\`}>
                     <div className="flex items-center gap-3">
-                      <div className={`p-2 rounded-xl bg-white/50 backdrop-blur ${stat.color}`}>
+                      <div className={\`p-2 rounded-xl bg-white/50 backdrop-blur \${stat.color}\`}>
                         <Icon className="w-5 h-5" />
                       </div>
-                      <span className={`font-bold ${stat.color}`}>{stat.label}</span>
+                      <span className={\`font-bold \${stat.color}\`}>{stat.label}</span>
                     </div>
                     <span className="text-2xl font-black text-gray-900">{stat.value}</span>
                   </Link>
@@ -143,3 +145,6 @@ export default function AdminDashboard() {
     </div>
   );
 }
+`;
+
+fs.writeFileSync('frontend/src/app/(dashboard)/admin/page.tsx', code);
