@@ -1,0 +1,10 @@
+--- frontend/src/components/layout/Navbar.tsx
++++ frontend/src/components/layout/Navbar.tsx
+@@ -21,2 +21,7 @@
+ 
++  // Hide Navbar in dashboard routes
++  if (pathname?.startsWith('/admin') || pathname?.startsWith('/student') || pathname?.startsWith('/instructor') || pathname?.startsWith('/profile')) {
++    return null;
++  }
++
+   return (

@@ -1,7 +1,17 @@
+"use client";
 import Link from 'next/link';
 import { Mail, Phone, MapPin, Send, Camera, Briefcase, MessageCircle } from 'lucide-react';
 
+import { usePathname } from 'next/navigation';
+
 export function Footer() {
+  const pathname = usePathname();
+
+  // Hide Footer in dashboard routes
+  if (pathname?.startsWith('/admin') || pathname?.startsWith('/student') || pathname?.startsWith('/instructor') || pathname?.startsWith('/profile')) {
+    return null;
+  }
+
   return (
     <footer className="bg-gray-900 text-gray-300 pt-16 pb-8 border-t border-gray-800">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

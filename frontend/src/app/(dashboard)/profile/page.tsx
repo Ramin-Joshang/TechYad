@@ -48,7 +48,17 @@ export default function ProfilePage() {
     try {
       setUploading(true);
       const res = await mediaApi.uploadFile(file);
-      setFormData(prev => ({ ...prev, avatar: res.data.url }));
+      const newAvatar = res.data.url;
+      setFormData(prev => ({ ...prev, avatar: newAvatar }));
+      // Auto-save the avatar
+      try {
+        const updateRes = await authApi.updateProfile({ ...formData, avatar: newAvatar });
+        if (updateRes.success) {
+          updateUser({ avatar: newAvatar });
+          setMessage('تصویر پروفایل با موفقیت بروزرسانی شد.');
+          setStatus('success');
+        }
+      } catch (e) { console.error('auto save failed', e); }
     } catch (err) {
       console.error('File upload failed', err);
       alert('خطا در آپلود تصویر');
