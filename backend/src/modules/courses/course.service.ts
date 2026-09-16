@@ -2,6 +2,9 @@ import { Course } from './course.model.js';
 import { Chapter } from './chapter.model.js';
 import { Lesson } from './lesson.model.js';
 import { AppError } from '../../common/errors/AppError.js';
+import { Class } from '../classes/class.model.js';
+import { Order } from '../commerce/order.model.js';
+import { Enrollment } from '../learning/enrollment.model.js';
 
 export class CourseService {
   // --- Courses ---
@@ -113,7 +116,7 @@ static async getInstructorCourses(instructorId: string, query: any) {
 
     static async getInstructorStats(instructorId: string) {
     const courses = await Course.find({ instructors: instructorId });
-    const { Class } = require('../classes/class.model.js');
+    
     const classes = await Class.find({ instructors: instructorId });
     
     const totalCourses = courses.length;
@@ -124,7 +127,7 @@ static async getInstructorCourses(instructorId: string, query: any) {
 
     const totalStudents = courses.reduce((acc: number, curr: any) => acc + (curr.studentCount || 0), 0);
     
-    const { Order } = require('../commerce/order.model.js');
+    
     const courseIds = courses.map((c: any) => c._id);
     
     // Total revenue
@@ -143,7 +146,7 @@ static async getInstructorCourses(instructorId: string, query: any) {
     // Monthly revenue
     const now = new Date();
     const startDate = new Date(now.getFullYear(), now.getMonth(), 1);
-    const monthlyOrders = orders.filter(o => o.createdAt >= startDate);
+    const monthlyOrders = orders.filter(o => (o as any).createdAt >= startDate);
     
     let monthlyRevenue = 0;
     monthlyOrders.forEach((order: any) => {
@@ -175,7 +178,7 @@ static async getInstructorCourses(instructorId: string, query: any) {
 
   // --- Course Workflows ---
   static async getCourseStudents(courseId: string, query: any) {
-    const Enrollment = require('../learning/enrollment.model').Enrollment;
+    
     const page = parseInt(query.page) || 1;
     const limit = parseInt(query.limit) || 10;
     const skip = (page - 1) * limit;

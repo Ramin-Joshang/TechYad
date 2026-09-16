@@ -3,12 +3,16 @@ import { Order } from '../commerce/order.model.js';
 import { Course } from '../courses/course.model.js';
 import { Coupon } from '../commerce/coupon.model.js';
 import { AppError } from '../../common/errors/AppError.js';
+import { Role } from '../auth/role.model.js';
+import { Class } from '../classes/class.model.js';
+import { Ticket } from '../support/ticket.model.js';
+
 
 export class AdminService {
   static async getDashboardStats() {
-    const Role = require('../auth/role.model.js').Role;
-    const Class = require('../classes/class.model.js').Class;
-    const Ticket = require('../support/ticket.model.js').Ticket;
+    
+    
+    
 
     const totalUsers = await User.countDocuments();
     const totalCourses = await Course.countDocuments();
@@ -64,22 +68,22 @@ export class AdminService {
   }
 
   static async getTickets(query: any) {
-    const SupportTicket = require('../support/support.model').SupportTicket;
+    
     const page = parseInt(query.page) || 1;
     const limit = parseInt(query.limit) || 20;
     const skip = (page - 1) * limit;
-    const tickets = await SupportTicket.find().populate('userId', 'firstName lastName email').sort({ createdAt: -1 }).skip(skip).limit(limit);
-    const total = await SupportTicket.countDocuments();
+    const tickets = await Ticket.find().populate('userId', 'firstName lastName email').sort({ createdAt: -1 }).skip(skip).limit(limit);
+    const total = await Ticket.countDocuments();
     return { tickets, total, page, pages: Math.ceil(total / limit) };
   }
   
   static async updateTicketStatus(ticketId: string, status: string) {
-    const SupportTicket = require('../support/support.model').SupportTicket;
-    return await SupportTicket.findByIdAndUpdate(ticketId, { status }, { new: true });
+    
+    return await Ticket.findByIdAndUpdate(ticketId, { status }, { new: true });
   }
 
   static async getClasses(query: any) {
-    const Class = require('../classes/class.model').Class;
+    
     const page = parseInt(query.page) || 1;
     const limit = parseInt(query.limit) || 20;
     const skip = (page - 1) * limit;
@@ -92,7 +96,7 @@ export class AdminService {
     const orders = await Order.find({ status: 'paid' });
     const totalRevenue = orders.reduce((acc, curr) => acc + curr.totalAmount, 0);
     const thisMonthRevenue = orders
-      .filter(o => new Date(o.createdAt).getMonth() === new Date().getMonth())
+      .filter(o => new Date((o as any).createdAt).getMonth() === new Date().getMonth())
       .reduce((acc, curr) => acc + curr.totalAmount, 0);
       
     return { totalRevenue, thisMonthRevenue, ordersCount: orders.length };

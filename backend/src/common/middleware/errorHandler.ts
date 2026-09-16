@@ -5,7 +5,7 @@ import { env } from '../../config/env.js';
 export const errorHandler = (err: Error | AppError, req: Request, res: Response, next: NextFunction) => {
   let statusCode = 500;
   let code = 'INTERNAL_ERROR';
-  let message = 'Internal Server Error';
+  let message = env.NODE_ENV === 'development' ? err.message || 'Internal Server Error' : 'Internal Server Error';
 
   if (err instanceof AppError) {
     statusCode = err.statusCode;

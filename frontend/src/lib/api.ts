@@ -29,7 +29,7 @@ api.interceptors.response.use(
 
     if (error.response) {
       const status = error.response.status;
-      const message = error.response.data?.message || 'خطایی رخ داده است';
+      const message = error.response.data?.error?.message || error.response.data?.message || 'خطایی رخ داده است';
 
       if (status === 401 && originalRequest && !originalRequest._retry) {
         if (isRefreshing) {
@@ -71,10 +71,10 @@ api.interceptors.response.use(
       } else if (!hideToast) {
         switch (status) {
           case 403:
-            toast.error('شما دسترسی لازم برای این عملیات را ندارید');
+            toast.error(message || 'شما دسترسی لازم برای این عملیات را ندارید');
             break;
           case 404:
-            toast.error('مورد یافت نشد');
+            toast.error(message || 'مورد یافت نشد');
             break;
           case 409:
             toast.error(message || 'تداخل اطلاعات. این عملیات قابل انجام نیست');
@@ -83,7 +83,7 @@ api.interceptors.response.use(
             toast.error(message || 'اطلاعات وارد شده نامعتبر است');
             break;
           case 500:
-            toast.error('خطای سرور. لطفا مجددا تلاش کنید');
+            toast.error(message || 'خطای سرور. لطفا مجددا تلاش کنید');
             break;
           default:
             if (status !== 401) {

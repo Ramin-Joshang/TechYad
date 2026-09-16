@@ -1,9 +1,9 @@
+import { Course } from '../courses/course.model.js';
 import mongoose from 'mongoose';
 import { Cart, ICartItem } from './cart.model.js';
 import { Order } from './order.model.js';
 import { Payment } from './payment.model.js';
 import { Coupon } from './coupon.model.js';
-import { Course } from '../courses/course.model.js';
 import { Class } from '../classes/class.model.js';
 import { Enrollment } from '../learning/enrollment.model.js';
 import { ClassEnrollment } from '../classes/class-enrollment.model.js';
@@ -11,7 +11,7 @@ import { AppError } from '../../common/errors/AppError.js';
 
 export class CommerceService {
   static async getInstructorSales(instructorId: string, month?: number, year?: number) {
-    const { Course } = require('../courses/course.model.js');
+    
     const courses = await Course.find({ instructors: instructorId });
     const courseIds = courses.map((c: any) => c._id);
     
@@ -42,7 +42,7 @@ export class CommerceService {
         items: relevantItems,
         total: orderTotal,
         instructorShare: orderTotal * 0.7,
-        createdAt: order.createdAt
+        createdAt: (order as any).createdAt
       };
     });
     

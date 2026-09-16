@@ -20,28 +20,28 @@ export class QuizService {
   // --- Instructor Actions ---
   
   static async updateQuiz(quizId: string, instructorId: string, data: any) {
-    const Quiz = require('./quiz.model').Quiz;
-    const Course = require('../courses/course.model').Course;
-    const Lesson = require('../courses/lesson.model').Lesson;
+    
+    
+    
 
     const quiz = await Quiz.findById(quizId);
     if (!quiz) throw new AppError('Quiz not found', 404, 'NOT_FOUND');
     const lesson = await Lesson.findById(quiz.lessonId);
-    const course = await Course.findOne({ _id: lesson.courseId, instructors: instructorId });
+    const course = await Course.findOne({ _id: lesson?.courseId, instructors: instructorId });
     if (!course) throw new AppError('Unauthorized', 403, 'FORBIDDEN');
 
     return await Quiz.findByIdAndUpdate(quizId, data, { new: true });
   }
 
   static async deleteQuiz(quizId: string, instructorId: string) {
-    const Quiz = require('./quiz.model').Quiz;
-    const Course = require('../courses/course.model').Course;
-    const Lesson = require('../courses/lesson.model').Lesson;
+    
+    
+    
 
     const quiz = await Quiz.findById(quizId);
     if (!quiz) throw new AppError('Quiz not found', 404, 'NOT_FOUND');
     const lesson = await Lesson.findById(quiz.lessonId);
-    const course = await Course.findOne({ _id: lesson.courseId, instructors: instructorId });
+    const course = await Course.findOne({ _id: lesson?.courseId, instructors: instructorId });
     if (!course) throw new AppError('Unauthorized', 403, 'FORBIDDEN');
 
     await Quiz.findByIdAndDelete(quizId);
@@ -52,13 +52,13 @@ export class QuizService {
     const lesson = await Lesson.findById(lessonId).populate('courseId');
     if (!lesson) throw new AppError('Lesson not found', 404, 'NOT_FOUND');
 
-    const course = await Course.findOne({ _id: lesson.courseId, instructors: instructorId });
+    const course = await Course.findOne({ _id: lesson?.courseId, instructors: instructorId });
     if (!course) throw new AppError('Unauthorized', 403, 'FORBIDDEN');
 
     const quiz = await Quiz.create({
       ...data,
-      courseId: lesson.courseId,
-      lessonId: lesson._id
+      courseId: lesson?.courseId,
+      lessonId: lesson?._id
     });
 
     await Lesson.findByIdAndUpdate(lessonId, { quizId: quiz._id });
