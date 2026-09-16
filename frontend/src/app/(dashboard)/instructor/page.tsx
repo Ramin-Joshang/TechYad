@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import { useQuery } from '@tanstack/react-query';
+import { coursesApi } from '@/features/courses/api/courses.api';
 import { api } from '@/lib/api';
 
 export default function InstructorDashboard() {
@@ -15,14 +16,14 @@ export default function InstructorDashboard() {
   // In a real scenario, fetch instructor dashboard stats from backend
   const { data: earningsData } = useQuery({
     queryKey: ['instructor-earnings'],
-    queryFn: () => api.get('/instructor/earnings').then(res => res.data?.data || res.data)
+    queryFn: () => coursesApi.getInstructorStats().then(res => res.data)
   });
 
   const mockStats = {
     totalCourses: 12,
     totalStudents: earningsData?.totalStudents || 845,
-    totalSales: earningsData?.totalEarnings || 45000000,
-    monthlySales: earningsData?.monthlyEarnings || 8500000,
+    totalSales: earningsData?.totalRevenue || 45000000,
+    monthlySales: (earningsData?.totalRevenue || 0) / 12,
     classes: 4,
     drafts: 2,
     pending: 1,

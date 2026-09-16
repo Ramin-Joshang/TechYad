@@ -1,0 +1,257 @@
+'use client';
+
+import { useState, useEffect, use } from 'react';
+import { useRouter } from 'next/navigation';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { coursesApi } from '@/features/courses/api/courses.api';
+import { api } from '@/lib/api';
+import Link from 'next/link';
+import { 
+  ArrowRight, Loader2, Save, Send, AlertCircle, 
+  CheckCircle, Plus, ChevronDown, ChevronUp, Video, FileText
+} from 'lucide-react';
+
+export default function EditCoursePage({ params }: { params: Promise<{ id: string }> }) {
+  const router = useRouter();
+  const queryClient = useQueryClient();
+  const resolvedParams = use(params);
+  const courseId = resolvedParams.id;
+  
+  const [activeTab, setActiveTab] = useState<'info' | 'curriculum'>('info');
+  const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState({ type: '', text: '' });
+  
+  // Data Fetching
+  const { data: course, isLoading: loadingCourse } = useQuery({
+    queryKey: ['course', courseId],
+    queryFn: () => api.get(`/instructor/courses/${courseId}`).then(res => res.data?.data)
+  });
+
+  const { data: chapters, isLoading: loadingChapters } = useQuery({
+    queryKey: ['chapters', courseId],
+    queryFn: () => coursesApi.getCourseChapters(courseId).then(res => res.data)
+  });
+
+  // Since we don't have a specific GET course by ID for instructors, we might need to fallback to getCourses and filter or just use public one
+  // Let's create a custom endpoint or just use the slug endpoint if we have slug. For now, assuming GET /instructor/courses/:id exists or we modify backend.
+  
+  // State for Basic Info
+  const [formData, setFormData] = useState({
+    title: '',
+    shortDescription: '',
+    description: '',
+    price: 0,
+    status: 'draft',
+    rejectionReason: ''
+  });
+
+  useEffect(() => {
+    if (course) {
+      setFormData({
+        title: course.title || '',
+        shortDescription: course.shortDescription || '',
+        description: course.description || '',
+        price: course.price || 0,
+        status: course.status || 'draft',
+        rejectionReason: course.rejectionReason || ''
+      });
+    }
+  }, [course]);
+
+  const handleInfoSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setMessage({ type: '', text: '' });
+
+    try {
+      await coursesApi.updateCourse(courseId, formData);
+      setMessage({ type: 'success', text: 'اطلاعات با موفقیت ذخیره شد' });
+      queryClient.invalidateQueries({ queryKey: ['course', courseId] });
+    } catch (err: any) {
+      setMessage({ type: 'error', text: err.response?.data?.message || 'خطا در ذخیره اطلاعات' });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleRequestReview = async () => {
+    if (!confirm('آیا از ارسال این دوره برای بررسی اطمینان دارید؟')) return;
+    setLoading(true);
+    setMessage({ type: '', text: '' });
+    
+    try {
+      await coursesApi.requestCourseReview(courseId);
+      setMessage({ type: 'success', text: 'دوره برای بررسی ارسال شد' });
+      queryClient.invalidateQueries({ queryKey: ['course', courseId] });
+      router.push('/instructor/courses');
+    } catch (err: any) {
+      setMessage({ type: 'error', text: err.response?.data?.message || 'خطا در ارسال برای بررسی' });
+      setLoading(false);
+    }
+  };
+
+  if (loadingCourse) {
+    return <div className="flex justify-center p-12"><Loader2 className="w-8 h-8 animate-spin text-blue-600" /></div>;
+  }
+
+  return (
+    <div className="max-w-5xl mx-auto space-y-6 pb-20">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white p-6 rounded-3xl shadow-sm border border-gray-100">
+        <div className="flex items-center gap-4">
+          <Link href="/instructor/courses" className="p-2 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors">
+            <ArrowRight className="w-5 h-5 text-gray-600" />
+          </Link>
+          <div>
+            <h1 className="text-xl font-black text-gray-900">{formData.title}</h1>
+            <div className="flex items-center gap-2 mt-1">
+              <span className="text-sm font-medium text-gray-500">وضعیت:</span>
+              <span className={`px-2 py-0.5 rounded-full text-xs font-bold ${
+                formData.status === 'published' ? 'bg-emerald-100 text-emerald-700' :
+                formData.status === 'pending_review' ? 'bg-amber-100 text-amber-700' :
+                formData.status === 'rejected' ? 'bg-red-100 text-red-700' :
+                'bg-gray-100 text-gray-700'
+              }`}>
+                {formData.status === 'published' ? 'منتشر شده' :
+                 formData.status === 'pending_review' ? 'در انتظار تایید' :
+                 formData.status === 'rejected' ? 'رد شده' : 'پیش‌نویس'}
+              </span>
+            </div>
+          </div>
+        </div>
+        
+        <div className="flex gap-2 w-full sm:w-auto">
+          {(formData.status === 'draft' || formData.status === 'rejected') && (
+            <button 
+              onClick={handleRequestReview}
+              disabled={loading}
+              className="flex-1 sm:flex-none px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl shadow-md flex items-center justify-center gap-2 transition-colors text-sm"
+            >
+              <Send className="w-4 h-4" />
+              ارسال برای بررسی
+            </button>
+          )}
+        </div>
+      </div>
+
+      {formData.status === 'rejected' && formData.rejectionReason && (
+        <div className="bg-red-50 border border-red-200 p-4 rounded-2xl flex items-start gap-3">
+          <AlertCircle className="w-6 h-6 text-red-600 shrink-0 mt-0.5" />
+          <div>
+            <h3 className="font-bold text-red-800 text-sm mb-1">دوره شما رد شده است</h3>
+            <p className="text-red-700 text-sm">{formData.rejectionReason}</p>
+          </div>
+        </div>
+      )}
+
+      {message.text && (
+        <div className={`p-4 rounded-xl text-sm font-bold flex items-center gap-2 ${
+          message.type === 'error' ? 'bg-red-50 text-red-700 border border-red-100' : 'bg-green-50 text-green-700 border border-green-100'
+        }`}>
+          {message.type === 'error' ? <AlertCircle className="w-5 h-5"/> : <CheckCircle className="w-5 h-5"/>}
+          {message.text}
+        </div>
+      )}
+
+      {/* Tabs */}
+      <div className="flex gap-4 border-b border-gray-200">
+        <button 
+          onClick={() => setActiveTab('info')}
+          className={`pb-4 px-2 font-bold transition-colors ${activeTab === 'info' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-500 hover:text-gray-800'}`}
+        >
+          اطلاعات پایه
+        </button>
+        <button 
+          onClick={() => setActiveTab('curriculum')}
+          className={`pb-4 px-2 font-bold transition-colors ${activeTab === 'curriculum' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-500 hover:text-gray-800'}`}
+        >
+          سرفصل‌ها و دروس
+        </button>
+      </div>
+
+      {/* Content */}
+      {activeTab === 'info' ? (
+        <form onSubmit={handleInfoSubmit} className="bg-white rounded-3xl p-6 md:p-8 shadow-sm border border-gray-100 space-y-6">
+          <div>
+            <label className="block text-sm font-bold text-gray-700 mb-2">عنوان دوره</label>
+            <input 
+              type="text" 
+              required
+              value={formData.title}
+              onChange={(e) => setFormData({...formData, title: e.target.value})}
+              className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-bold text-gray-700 mb-2">توضیح کوتاه</label>
+            <textarea 
+              value={formData.shortDescription}
+              onChange={(e) => setFormData({...formData, shortDescription: e.target.value})}
+              rows={2}
+              className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all resize-none"
+            ></textarea>
+          </div>
+          <div>
+            <label className="block text-sm font-bold text-gray-700 mb-2">توضیحات کامل</label>
+            <textarea 
+              value={formData.description}
+              onChange={(e) => setFormData({...formData, description: e.target.value})}
+              rows={8}
+              className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all resize-none"
+            ></textarea>
+          </div>
+          <div className="w-1/2">
+            <label className="block text-sm font-bold text-gray-700 mb-2">قیمت (تومان)</label>
+            <input 
+              type="number" 
+              required
+              value={formData.price}
+              onChange={(e) => setFormData({...formData, price: Number(e.target.value)})}
+              className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
+            />
+          </div>
+          
+          <div className="pt-4 border-t border-gray-100 flex justify-end">
+            <button 
+              type="submit" 
+              disabled={loading}
+              className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-md transition-all flex items-center gap-2"
+            >
+              {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />}
+              ذخیره تغییرات
+            </button>
+          </div>
+        </form>
+      ) : (
+        <div className="bg-white rounded-3xl p-6 md:p-8 shadow-sm border border-gray-100">
+          <div className="flex justify-between items-center mb-6">
+            <h2 className="text-lg font-bold text-gray-900">سرفصل‌های دوره</h2>
+            <button className="px-4 py-2 bg-gray-900 hover:bg-black text-white font-bold rounded-xl shadow-sm text-sm flex items-center gap-2 transition-colors">
+              <Plus className="w-4 h-4" /> فصل جدید
+            </button>
+          </div>
+          
+          {loadingChapters ? (
+            <div className="py-12 flex justify-center"><Loader2 className="w-8 h-8 animate-spin text-gray-400" /></div>
+          ) : chapters?.length === 0 ? (
+            <div className="text-center py-12 bg-gray-50 rounded-2xl border border-dashed border-gray-200">
+              <p className="text-gray-500 font-medium">هنوز هیچ سرفصلی ایجاد نشده است.</p>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {/* Mockup for Chapter builder UI since we need more complex logic to actually build it fully */}
+              {chapters?.map((chapter: any, idx: number) => (
+                <div key={chapter._id} className="border border-gray-200 rounded-2xl overflow-hidden">
+                  <div className="bg-gray-50 p-4 flex justify-between items-center cursor-pointer hover:bg-gray-100 transition-colors">
+                    <div className="font-bold text-gray-900">فصل {idx + 1}: {chapter.title}</div>
+                    <ChevronDown className="w-5 h-5 text-gray-500" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}

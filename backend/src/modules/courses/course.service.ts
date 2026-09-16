@@ -80,6 +80,48 @@ export class CourseService {
     .limit(4);
   }
 
+  static async getInstructorCourses(instructorId: string, query: any) {
+    const page = parseInt(query.page) || 1;
+    const limit = parseInt(query.limit) || 10;
+    const skip = (page - 1) * limit;
+    const filter: any = { instructors: instructorId };
+    if (query.status) {
+      filter.status = query.status;
+    }
+    const courses = await Course.find(filter)
+      .populate('categoryId', 'title slug')
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit);
+    const total = await Course.countDocuments(filter);
+    return {
+      courses,
+      pagination: {
+        total,
+        page,
+        limit,
+        pages: Math.ceil(total / limit)
+      }
+    };
+  }
+
+  static async getInstructorStats(instructorId: string) {
+    const courses = await Course.find({ instructors: instructorId });
+    const totalCourses = courses.length;
+    const publishedCourses = courses.filter(c => c.status === 'published').length;
+    const totalStudents = courses.reduce((acc, curr) => acc + (curr.studentCount || 0), 0);
+    
+    // In a real app, calculate revenue from orders, for now mockup
+    const totalRevenue = courses.reduce((acc, curr) => acc + ((curr.studentCount || 0) * (curr.price || 0)), 0) * 0.7; // 70% share
+    
+    return {
+      totalCourses,
+      publishedCourses,
+      totalStudents,
+      totalRevenue
+    };
+  }
+
   static async updateCourse(id: string, instructorId: string, data: any) {
     const course = await Course.findOneAndUpdate(
       { _id: id, instructors: instructorId },
@@ -93,12 +135,27 @@ export class CourseService {
   // --- Course Workflows ---
   static async requestReview(id: string, instructorId: string) {
     const course = await Course.findOneAndUpdate(
-      { _id: id, instructors: instructorId, status: 'draft' },
+      { _id: id, instructors: instructorId, status: { $in: ['draft', 'rejected'] } },
       { status: 'pending_review' },
       { new: true }
     );
     if (!course) throw new AppError('Course not found or not in draft status', 404, 'NOT_FOUND');
     return course;
+  }
+
+  static async getAdminCourses(query: any) {
+    const page = parseInt(query.page) || 1;
+    const limit = parseInt(query.limit) || 10;
+    const skip = (page - 1) * limit;
+    const filter: any = {};
+    if (query.status) filter.status = query.status;
+    const courses = await Course.find(filter)
+      .populate('instructors', 'firstName lastName avatar')
+      .sort({ updatedAt: -1 })
+      .skip(skip)
+      .limit(limit);
+    const total = await Course.countDocuments(filter);
+    return { courses, total, page, pages: Math.ceil(total / limit) };
   }
 
   static async publishCourse(id: string) {

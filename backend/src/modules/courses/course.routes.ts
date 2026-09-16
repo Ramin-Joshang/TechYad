@@ -30,6 +30,8 @@ router.get('/lessons/:lessonId/comments', asyncHandler(CommentController.getLess
 router.post('/lessons/:lessonId/comments', requireAuth, asyncHandler(CommentController.addLessonComment));
 
 // --- Instructor Routes ---
+router.get('/instructor/courses', isInstructor, asyncHandler(Controller.getInstructorCourses));
+router.get('/instructor/stats', isInstructor, asyncHandler(Controller.getInstructorStats));
 router.post('/instructor/courses', isInstructor, validate(createCourseSchema), asyncHandler(Controller.createCourse));
 router.patch('/instructor/courses/:id', isInstructor, validate(updateCourseSchema), asyncHandler(Controller.updateCourse));
 router.post('/instructor/courses/:id/request-review', isInstructor, asyncHandler(Controller.requestReview));
@@ -37,6 +39,7 @@ router.post('/instructor/courses/:courseId/chapters', isInstructor, validate(cre
 router.post('/instructor/chapters/:chapterId/lessons', isInstructor, validate(createLessonSchema), asyncHandler(Controller.createLesson));
 
 // --- Admin Routes ---
+router.get('/admin/courses', isAdmin, asyncHandler(Controller.getAdminCourses));
 router.post('/admin/courses/:id/publish', isAdmin, asyncHandler(Controller.publishCourse));
 router.post('/admin/courses/:id/reject', isAdmin, asyncHandler(Controller.rejectCourse));
 
