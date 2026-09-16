@@ -3,6 +3,8 @@
 import { useState } from 'react';
 import { useAuthStore } from '@/features/auth/stores/auth.store';
 import { authApi } from '@/features/auth/api/auth.api';
+import { mediaApi } from '@/features/media/api/media.api';
+import { Loader2, Upload } from 'lucide-react';
 
 export default function ProfilePage() {
   const { user, updateUser } = useAuthStore();
@@ -15,6 +17,7 @@ export default function ProfilePage() {
   
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
   const [message, setMessage] = useState('');
+  const [uploading, setUploading] = useState(false);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
@@ -35,6 +38,22 @@ export default function ProfilePage() {
     } catch (err: any) {
       setStatus('error');
       setMessage(err.response?.data?.message || 'خطا در بروزرسانی پروفایل');
+    }
+  };
+
+  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    
+    try {
+      setUploading(true);
+      const res = await mediaApi.uploadFile(file);
+      setFormData(prev => ({ ...prev, avatar: res.data.url }));
+    } catch (err) {
+      console.error('File upload failed', err);
+      alert('خطا در آپلود تصویر');
+    } finally {
+      setUploading(false);
     }
   };
 
@@ -66,16 +85,24 @@ export default function ProfilePage() {
               )}
             </div>
             <div className="flex-1">
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">آدرس تصویر پروفایل (Avatar URL)</label>
-              <input 
-                type="url"
-                name="avatar"
-                value={formData.avatar}
-                onChange={handleChange}
-                className="w-full px-4 py-2 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all dir-ltr text-left"
-                placeholder="https://example.com/avatar.jpg"
-              />
-              <p className="text-xs text-gray-500 mt-1.5">لینک تصویر خود را وارد کنید.</p>
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">تصویر پروفایل</label>
+              <div className="flex items-center gap-4">
+                <input 
+                  type="file" 
+                  id="avatar-upload" 
+                  className="hidden" 
+                  accept="image/*"
+                  onChange={handleAvatarUpload}
+                />
+                <label htmlFor="avatar-upload" className="inline-flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 font-bold rounded-xl cursor-pointer hover:bg-gray-200 transition">
+                  {uploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
+                  آپلود تصویر جدید
+                </label>
+                {formData.avatar && (
+                   <button type="button" onClick={() => setFormData(prev => ({ ...prev, avatar: '' }))} className="text-sm text-red-500 hover:underline">حذف</button>
+                )}
+              </div>
+              <p className="text-xs text-gray-500 mt-2">فرمت‌های مجاز: JPG, PNG</p>
             </div>
           </div>
 

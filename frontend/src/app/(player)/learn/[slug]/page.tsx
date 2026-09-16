@@ -36,7 +36,7 @@ export default function CoursePlayerPage({ params }: { params: Promise<{ slug: s
   const isEnrolled = !!enrollment;
 
   // Fetch Chapters
-  const { data: chaptersData } = useQuery({
+  const { data: chaptersData, isLoading: chaptersLoading } = useQuery({
     queryKey: ['chapters', course?._id],
     queryFn: () => coursesApi.getCourseChapters(course!._id).then(res => res.data),
     enabled: !!course?._id
@@ -44,15 +44,17 @@ export default function CoursePlayerPage({ params }: { params: Promise<{ slug: s
   const chapters = chaptersData || [];
 
   // Fetch Lessons for all chapters
-  const { data: allLessons } = useQuery({
+  const { data: allLessonsData, isLoading: lessonsLoading } = useQuery({
     queryKey: ['lessons', chapters.map(c => c._id).join(',')],
     queryFn: async () => {
+      if (chapters.length === 0) return [];
       const promises = chapters.map(c => coursesApi.getChapterLessons(c._id).then(res => res.data));
       const results = await Promise.all(promises);
       return results.flat();
     },
-    enabled: chapters.length > 0
+    enabled: !!chaptersData
   });
+  const allLessons = allLessonsData || [];
 
   // Fetch Secure Lesson
   const { data: secureLessonData, isLoading: lessonLoading, isError: lessonAccessError } = useQuery({
@@ -112,10 +114,20 @@ export default function CoursePlayerPage({ params }: { params: Promise<{ slug: s
     }
   };
 
-  if (courseLoading || enrollmentLoading || !allLessons) {
+  if (courseLoading || enrollmentLoading || chaptersLoading || lessonsLoading) {
     return (
       <div className="flex h-full items-center justify-center text-white bg-gray-900">
         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+      </div>
+    );
+  }
+
+  if (!course) {
+    return (
+      <div className="flex h-full items-center justify-center text-white bg-gray-900">
+        <div className="text-center space-y-4">
+          <p className="text-xl">دوره مورد نظر یافت نشد.</p>
+        </div>
       </div>
     );
   }
