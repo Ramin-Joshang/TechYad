@@ -1,0 +1,33 @@
+const fs = require('fs');
+let code = fs.readFileSync('frontend/src/app/(dashboard)/layout.tsx', 'utf8');
+
+code = code.replace(
+  "import {",
+  "import { NotificationDropdown } from './components/NotificationDropdown';\nimport {"
+);
+
+const oldNotifBlock = `              <button 
+                onClick={() => setShowNotifications(!showNotifications)}
+                className="p-2 text-gray-500 hover:bg-gray-100 rounded-full relative transition"
+              >
+                <Bell className="w-5 h-5" />
+                <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full border border-white"></span>
+              </button>
+              
+              {showNotifications && (
+                <div className="absolute top-12 left-0 w-80 bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden z-50 animate-in fade-in zoom-in-95 duration-200">
+                  <div className="p-4 border-b border-gray-50 flex items-center justify-between bg-gray-50/50">
+                    <h3 className="font-bold text-sm text-gray-900">اعلان‌های اخیر</h3>
+                    <Link href={\`/\${user?.role === 'student' ? 'student' : user?.role === 'instructor' ? 'instructor' : 'admin'}/notifications\`} onClick={() => setShowNotifications(false)} className="text-xs font-bold text-blue-600 hover:text-blue-700">مشاهده همه</Link>
+                  </div>
+                  <div className="max-h-[300px] overflow-y-auto">
+                    <div className="p-8 text-center text-sm text-gray-500">
+                      برای مشاهده اعلان‌ها به صفحه اختصاصی مراجعه کنید
+                    </div>
+                  </div>
+                </div>
+              )}`;
+
+code = code.replace(oldNotifBlock, '<NotificationDropdown role={user?.role || \'student\'} />');
+
+fs.writeFileSync('frontend/src/app/(dashboard)/layout.tsx', code);
