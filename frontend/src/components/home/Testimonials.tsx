@@ -1,29 +1,46 @@
-import { Quote, Star } from "lucide-react";
+import { Star, Quote } from "lucide-react";
 
 export function Testimonials({ data = [] }: { data: any[] }) {
   if (!data?.length) return null;
+  
   return (
-    <section className="py-20 bg-gray-50">
+    <section className="py-24 bg-[var(--neo-bg)] border-b border-[var(--neo-border)] overflow-hidden">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-16">
-          <h2 className="text-3xl font-bold text-gray-900 mb-4">نظرات دانشجویان</h2>
-          <p className="text-gray-600">افتخار ما، رضایت شماست</p>
+          <div className="flex justify-center items-center gap-2 mb-3">
+             <span className="w-8 h-px bg-[var(--neo-primary)]"></span>
+             <span className="text-[var(--neo-primary)] font-bold tracking-widest text-sm uppercase font-en">08 / Stories</span>
+             <span className="w-8 h-px bg-[var(--neo-primary)]"></span>
+          </div>
+          <h2 className="text-3xl md:text-4xl font-black text-white">نظرات دانشجویان</h2>
         </div>
+        
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          {data.slice(0,3).map((item: any) => (
-            <div key={item._id} className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100 relative">
-              <Quote className="w-10 h-10 text-blue-100 absolute top-6 left-6" />
-              <div className="flex items-center gap-1 mb-6">
+          {data.slice(0, 3).map((item: any, idx: number) => (
+            <div key={item._id || idx} className="bg-[var(--neo-surface)] border border-[var(--neo-border)] p-8 rounded-2xl relative neo-card">
+              <Quote className="absolute top-6 left-6 w-12 h-12 text-[var(--neo-primary)] opacity-10" />
+              
+              <div className="flex items-center gap-1 mb-6 text-[#FFB800]">
                 {[...Array(5)].map((_, i) => (
-                  <Star key={i} className={`w-4 h-4 ${i < (item.rating || 5) ? 'text-yellow-400 fill-current' : 'text-gray-200'}`} />
+                  <Star key={i} className={`w-4 h-4 ${i < (item.rating || 5) ? 'fill-current' : 'text-gray-300'}`} />
                 ))}
               </div>
-              <p className="text-gray-600 mb-8 relative z-10 leading-relaxed">"{item.content || item.text}"</p>
-              <div className="flex items-center gap-4 border-t border-gray-50 pt-6">
-                <img src={item.avatar || `https://ui-avatars.com/api/?name=${item.studentName || item.author}&background=random`} alt={item.studentName || item.author} className="w-12 h-12 rounded-full object-cover" />
+              
+              <p className="text-[var(--neo-text)] mb-8 leading-relaxed font-light">"{item.comment}"</p>
+              
+              <div className="flex items-center gap-4 mt-auto">
+                <div className="w-12 h-12 rounded-full border border-[var(--neo-border)] overflow-hidden bg-[var(--neo-surface-2)]">
+                  {item.user?.avatar ? (
+                    <img src={item.user.avatar} alt={item.user.firstName} className="w-full h-full object-cover grayscale" />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center text-[var(--neo-muted)] font-en text-sm">
+                      {item.user?.firstName?.charAt(0) || 'S'}
+                    </div>
+                  )}
+                </div>
                 <div>
-                  <h4 className="font-bold text-gray-900">{item.studentName || item.author}</h4>
-                  <p className="text-sm text-gray-500">{item.courseName || item.role}</p>
+                  <div className="font-bold text-white text-sm">{item.user?.firstName} {item.user?.lastName}</div>
+                  <div className="text-xs text-[var(--neo-muted)] mt-1">{item.course?.title || 'دانشجو'}</div>
                 </div>
               </div>
             </div>

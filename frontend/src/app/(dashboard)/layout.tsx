@@ -107,37 +107,40 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   return (
     <AuthGuard>
-      <div className="flex h-screen bg-gray-50 overflow-hidden">
+      <div className="flex h-screen bg-[var(--neo-bg)] overflow-hidden">
         
         {/* Mobile Sidebar Overlay */}
         {mobileMenuOpen && (
           <div 
-            className="fixed inset-0 bg-gray-900/50 z-40 lg:hidden backdrop-blur-sm"
+            className="fixed inset-0 bg-black/80 z-40 lg:hidden backdrop-blur-sm"
             onClick={closeMenu}
           />
         )}
 
         {/* Sidebar */}
         <aside className={`
-          fixed lg:static inset-y-0 right-0 z-50 ${isSidebarCollapsed ? 'w-20' : 'w-64'} bg-white border-l border-gray-200 flex flex-col transform transition-all duration-300 ease-in-out
+          fixed lg:static inset-y-0 right-0 z-50 ${isSidebarCollapsed ? 'w-20' : 'w-64'} bg-[var(--neo-surface)] border-l border-[var(--neo-border)] flex flex-col transform transition-all duration-300 ease-in-out
           ${mobileMenuOpen ? 'translate-x-0' : 'translate-x-full lg:translate-x-0'}
         `}>
-          <div className="p-6 border-b border-gray-100 flex items-center justify-between">
-            <Link href="/" className="text-2xl font-black text-blue-600 tracking-tight" onClick={closeMenu}>
-              {isSidebarCollapsed ? 'TY' : <>Tech<span className="text-gray-900">Yad</span></>}
+          <div className="p-6 border-b border-[var(--neo-border)] flex items-center justify-between">
+            <Link href="/" className="flex items-center gap-2" onClick={closeMenu}>
+              <div className="w-8 h-8 rounded-full border border-[var(--neo-secondary)] flex items-center justify-center relative overflow-hidden shrink-0">
+                 <div className="w-2 h-2 bg-[var(--neo-accent)] rounded-full shadow-[0_0_8px_#B8FF5A]"></div>
+              </div>
+              {!isSidebarCollapsed && <span className="font-bold text-xl text-white font-en tracking-wider neo-gradient-text">NeoAcademia</span>}
             </Link>
             <div className="flex items-center gap-2">
-              <button onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)} className="hidden lg:block text-gray-400 hover:text-gray-900 p-1">
+              <button onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)} className="hidden lg:block text-[var(--neo-muted)]/70 hover:text-white p-1">
                 {isSidebarCollapsed ? <ChevronLeft className="w-5 h-5" /> : <ChevronRight className="w-5 h-5" />}
               </button>
-              <button onClick={closeMenu} className="lg:hidden text-gray-500 hover:text-gray-900 p-1">
+              <button onClick={closeMenu} className="lg:hidden text-[var(--neo-muted)] hover:text-white p-1">
                 <X className="w-6 h-6" />
               </button>
             </div>
           </div>
           
-          <div className={`p-5 border-b border-gray-100 flex items-center gap-4 bg-gray-50/50 ${isSidebarCollapsed ? 'justify-center' : ''}`}>
-            <div className={`${isSidebarCollapsed ? 'w-10 h-10 rounded-xl text-lg' : 'w-12 h-12 rounded-2xl text-xl'} bg-blue-100 text-blue-600 flex items-center justify-center font-bold overflow-hidden shadow-inner shrink-0`}>
+          <div className={`p-5 border-b border-[var(--neo-border)] flex items-center gap-4 bg-[var(--neo-bg)] ${isSidebarCollapsed ? 'justify-center' : ''}`}>
+            <div className={`${isSidebarCollapsed ? 'w-10 h-10 rounded-xl text-lg' : 'w-12 h-12 rounded-2xl text-xl'} bg-[var(--neo-primary)]/20 text-[var(--neo-secondary)] flex items-center justify-center font-bold overflow-hidden shadow-inner shrink-0`}>
               {user?.avatar ? (
                 <img src={user.avatar} alt={user.firstName} className="w-full h-full object-cover" />
               ) : (
@@ -146,8 +149,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             </div>
             {!isSidebarCollapsed && (
               <div className="flex-1 min-w-0">
-                <div className="font-bold text-gray-900 truncate">{user?.firstName} {user?.lastName}</div>
-                <div className="text-xs font-medium text-blue-600 capitalize bg-blue-50 inline-block px-2 py-0.5 rounded-full mt-1">
+                <div className="font-bold text-white truncate">{user?.firstName} {user?.lastName}</div>
+                <div className="text-xs font-medium text-[var(--neo-secondary)] capitalize bg-[var(--neo-primary)]/10 inline-block px-2 py-0.5 rounded-full mt-1">
                   {user?.role === 'super-admin' || user?.role === 'admin' ? 'مدیریت' : user?.role === 'instructor' ? 'استاد' : 'دانشجو'}
                 </div>
               </div>
@@ -170,22 +173,22 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                   title={isSidebarCollapsed ? link.name : undefined}
                   className={`flex items-center ${isSidebarCollapsed ? 'justify-center px-0' : 'gap-3 px-4'} py-3 rounded-xl font-medium transition-all duration-200 ${
                     isActive 
-                      ? 'bg-blue-600 text-white shadow-md shadow-blue-600/20' 
-                      : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
+                      ? 'bg-[var(--neo-primary)] text-white shadow-md shadow-[var(--neo-primary)]/20' 
+                      : 'text-[var(--neo-muted)] hover:bg-[var(--neo-surface-2)] hover:text-white'
                   }`}
                 >
-                  <Icon className={`w-5 h-5 ${isActive ? 'text-white' : 'text-gray-500'}`} />
+                  <Icon className={`w-5 h-5 ${isActive ? 'text-white' : 'text-[var(--neo-muted)]'}`} />
                   {!isSidebarCollapsed && link.name}
                 </Link>
               );
             })}
           </nav>
 
-          <div className="p-4 border-t border-gray-100 bg-gray-50">
+          <div className="p-4 border-t border-[var(--neo-border)] bg-[var(--neo-bg)]">
             <button
               onClick={handleLogout}
               title={isSidebarCollapsed ? 'خروج' : undefined}
-              className={`flex items-center ${isSidebarCollapsed ? 'justify-center px-0' : 'gap-3 px-4'} py-3 w-full rounded-xl font-bold text-red-600 hover:bg-red-50 hover:text-red-700 transition-colors`}
+              className={`flex items-center ${isSidebarCollapsed ? 'justify-center px-0' : 'gap-3 px-4'} py-3 w-full rounded-xl font-bold text-red-600 hover:bg-red-500/10 hover:text-red-700 transition-colors`}
             >
               <LogOut className="w-5 h-5" />
               {!isSidebarCollapsed && 'خروج از حساب'}
@@ -196,22 +199,22 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         {/* Main Content */}
         <main className="flex-1 flex flex-col h-full overflow-hidden w-full relative">
           {/* Mobile Header */}
-          <header className="bg-white border-b border-gray-200 h-16 flex items-center justify-between px-4 sticky top-0 z-30 shadow-sm">
+          <header className="bg-[var(--neo-surface)] border-b border-[var(--neo-border)] h-16 flex items-center justify-between px-4 sticky top-0 z-30 shadow-sm">
             <div className="flex items-center gap-4">
-              <button onClick={() => setMobileMenuOpen(true)} className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg lg:hidden">
+              <button onClick={() => setMobileMenuOpen(true)} className="p-2 text-[var(--neo-muted)] hover:bg-[var(--neo-surface-2)] rounded-lg lg:hidden">
                 <Menu className="w-6 h-6" />
               </button>
               <div className="hidden lg:block">
-                <h2 className="font-bold text-gray-800 text-lg">پنل کاربری {user?.role === 'super-admin' || user?.role === 'admin' ? 'مدیریت' : user?.role === 'instructor' ? 'اساتید' : 'دانشجویان'}</h2>
+                <h2 className="font-bold text-white text-lg">پنل کاربری {user?.role === 'super-admin' || user?.role === 'admin' ? 'مدیریت' : user?.role === 'instructor' ? 'اساتید' : 'دانشجویان'}</h2>
               </div>
             </div>
             
             <div className="flex items-center gap-3 relative">
 <NotificationDropdown role={user?.role || 'student'} />
 
-              <Link href="/profile" className="flex items-center gap-2 p-1.5 pr-3 rounded-full border border-gray-100 hover:bg-gray-50 transition cursor-pointer">
-                <span className="text-sm font-medium text-gray-700 hidden sm:block">{user?.firstName}</span>
-                <div className="w-8 h-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center font-bold text-sm overflow-hidden shrink-0">
+              <Link href="/profile" className="flex items-center gap-2 p-1.5 pr-3 rounded-full border border-[var(--neo-border)] hover:bg-[var(--neo-bg)] transition cursor-pointer">
+                <span className="text-sm font-medium text-[var(--neo-text)] hidden sm:block">{user?.firstName}</span>
+                <div className="w-8 h-8 rounded-full bg-[var(--neo-primary)]/20 text-[var(--neo-secondary)] flex items-center justify-center font-bold text-sm overflow-hidden shrink-0">
                   {user?.avatar ? (
                     <img src={user.avatar} alt={user.firstName} className="w-full h-full object-cover" />
                   ) : (
@@ -222,7 +225,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             </div>
           </header>
 
-          <div className="flex-1 overflow-y-auto bg-gray-50/50 p-4 md:p-8">
+          <div className="flex-1 overflow-y-auto bg-[var(--neo-bg)] p-4 md:p-8">
             <div className="max-w-7xl mx-auto">
               {children}
             </div>

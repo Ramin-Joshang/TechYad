@@ -1,18 +1,77 @@
-@import url('https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700;800;900&family=Inter:wght@400;500;600;700&display=swap');
 @import "tailwindcss";
 
 :root {
-  --background: #f9fafb;
-  --foreground: #111827;
+  --neo-bg: #080A12;
+  --neo-surface: #10131F;
+  --neo-surface-2: #171B2A;
+  --neo-primary: #7C5CFF;
+  --neo-secondary: #28D7FF;
+  --neo-accent: #B8FF5A;
+  --neo-text: #F5F7FF;
+  --neo-muted: #9097AB;
+  --neo-border: rgba(255, 255, 255, 0.08);
+  
+  --background: var(--neo-bg);
+  --foreground: var(--neo-text);
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
+  --color-neo-bg: var(--neo-bg);
+  --color-neo-surface: var(--neo-surface);
+  --color-neo-surface-2: var(--neo-surface-2);
+  --color-neo-primary: var(--neo-primary);
+  --color-neo-secondary: var(--neo-secondary);
+  --color-neo-accent: var(--neo-accent);
+  --color-neo-text: var(--neo-text);
+  --color-neo-muted: var(--neo-muted);
+  --color-neo-border: var(--neo-border);
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
+  background-color: var(--neo-bg);
+  color: var(--neo-text);
   font-family: 'Vazirmatn', sans-serif;
+}
+
+.font-en {
+  font-family: 'Inter', sans-serif;
+}
+
+.neo-gradient-text {
+  background: linear-gradient(to right, var(--neo-primary), var(--neo-secondary));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.neo-gradient-bg {
+  background: linear-gradient(to right, var(--neo-primary), var(--neo-secondary));
+}
+
+.neo-card {
+  background: var(--neo-surface);
+  border: 1px solid var(--neo-border);
+  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.5);
+  transition: all 0.3s ease;
+}
+.neo-card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(255, 255, 255, 0.15);
+  box-shadow: 0 8px 30px -4px rgba(124, 92, 255, 0.15);
+}
+
+/* Scrollbar customization for dark theme */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: var(--neo-bg);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--neo-surface-2);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--neo-muted);
 }

@@ -1,5 +1,4 @@
 'use client';
-
 import { useQuery } from '@tanstack/react-query';
 import { api } from '@/lib/api';
 import { Hero } from './Hero';
@@ -21,26 +20,26 @@ export function HomeDataView() {
   const d = data || {};
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col bg-[var(--neo-bg)]">
       <Hero />
       <Intro />
       
       {isLoading ? (
-        <div className="py-32 flex flex-col items-center justify-center gap-4 text-blue-600">
-          <div className="w-10 h-10 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
-          <p className="text-gray-500 font-bold">درحال بارگذاری دوره‌ها...</p>
+        <div className="py-32 flex flex-col items-center justify-center gap-4">
+          <div className="w-10 h-10 border-4 border-[var(--neo-primary)] border-t-transparent rounded-full animate-spin"></div>
+          <p className="text-[var(--neo-muted)] font-bold tracking-widest font-en uppercase text-sm">Loading Knowledge Network...</p>
         </div>
       ) : error ? (
-        <div className="py-32 flex items-center justify-center text-red-500 font-bold">خطا در دریافت اطلاعات سرور</div>
+        <div className="py-32 flex items-center justify-center text-red-500 font-bold">Error connecting to network.</div>
       ) : (
         <>
           <Categories data={d.categories} />
-          <CourseList title="دوره‌های محبوب" data={d.popularCourses} />
-          <CourseList title="جدیدترین دوره‌ها" data={d.newCourses} />
-          <CourseList title="دوره‌های رایگان" data={d.freeCourses} />
+          <CourseList title="Popular Courses" sectionId="02" data={d.popularCourses} />
+          <CourseList title="New Releases" sectionId="03" data={d.newCourses} />
+          <CourseList title="Free Access" sectionId="04" data={d.freeCourses} />
           <InstructorGrid data={d.topInstructors} />
-          <CourseList title="کلاس‌های آنلاین" data={d.onlineClasses} />
-          <CourseList title="کلاس‌های حضوری" data={d.inPersonClasses} />
+          <CourseList title="Live Sessions" sectionId="06" data={d.onlineClasses} />
+          <CourseList title="In-Person Classes" sectionId="07" data={d.inPersonClasses} />
         </>
       )}
 
