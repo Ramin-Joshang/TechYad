@@ -27,6 +27,15 @@ router.get('/super-admin/admins', isSuperAdmin, asyncHandler(Controller.getAdmin
 router.post('/super-admin/admins', isSuperAdmin, asyncHandler(Controller.createAdmin));
 router.patch('/super-admin/admins/:id/status', isSuperAdmin, asyncHandler(Controller.updateAdminStatus));
 router.get('/super-admin/roles', isSuperAdmin, asyncHandler(Controller.getRoles));
+router.get('/super-admin/roles/:id', isSuperAdmin, asyncHandler(Controller.getRoleById));
+router.post('/super-admin/roles', isSuperAdmin, asyncHandler(Controller.createRole));
+router.patch('/super-admin/roles/:id', isSuperAdmin, asyncHandler(Controller.updateRole));
+router.delete('/super-admin/roles/:id', isSuperAdmin, asyncHandler(Controller.deleteRole));
+
+
+// Global Settings
+router.get('/super-admin/settings', isSuperAdmin, asyncHandler(Controller.getSettings));
+router.patch('/super-admin/settings', isSuperAdmin, asyncHandler(Controller.updateSettings));
 
 export default router;
 

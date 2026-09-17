@@ -49,14 +49,14 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         { name: 'دوره‌ها', href: '/super-admin/courses', icon: BookOpen },
         { name: 'کلاس‌ها', href: '/super-admin/classes', icon: Video },
         { name: 'سفارشات', href: '/super-admin/orders', icon: List },
-        { name: 'پرداخت‌ها', href: '/super-admin/payments', icon: CreditCard },
+        
         { name: 'کد تخفیف', href: '/super-admin/coupons', icon: Tag },
-        { name: 'بلاگ', href: '/super-admin/blog', icon: FileText },
+        
         { name: 'پشتیبانی', href: '/super-admin/tickets', icon: Ticket },
         { name: 'گزارش‌ها', href: '/super-admin/reports', icon: BarChart },
-        { name: 'لاگ‌های سیستم', href: '/super-admin/audit-logs', icon: Activity },
+        
         { name: 'تنظیمات سیستم', href: '/super-admin/settings', icon: Settings },
-        { name: 'امنیت', href: '/super-admin/security', icon: Shield },
+        
         profileLink
       ];
     } else if (user?.role === 'admin') {

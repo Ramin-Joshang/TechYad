@@ -73,3 +73,33 @@ export const getRoles = async (req: Request, res: Response) => {
   const result = await AdminService.getRoles();
   sendSuccess(res, result, 'Roles retrieved');
 };
+
+export const getRoleById = async (req: Request, res: Response) => {
+  const result = await AdminService.getRoleById((req.params.id as any as string) as any as string);
+  sendSuccess(res, result, 'Role retrieved');
+};
+
+export const createRole = async (req: Request, res: Response) => {
+  const result = await AdminService.createRole(req.body);
+  sendSuccess(res, result, 'Role created successfully', 201);
+};
+
+export const updateRole = async (req: Request, res: Response) => {
+  const result = await AdminService.updateRole((req.params.id as any as string) as any as string, req.body);
+  sendSuccess(res, result, 'Role updated successfully');
+};
+
+export const deleteRole = async (req: Request, res: Response) => {
+  const result = await AdminService.deleteRole((req.params.id as any as string) as any as string);
+  sendSuccess(res, result, 'Role deleted successfully');
+};
+
+export const getSettings = async (req: Request, res: Response) => {
+  const result = await AdminService.getSettings();
+  sendSuccess(res, result, 'Settings retrieved');
+};
+
+export const updateSettings = async (req: Request, res: Response) => {
+  const result = await AdminService.updateSettings(req.body);
+  sendSuccess(res, result, 'Settings updated successfully');
+};

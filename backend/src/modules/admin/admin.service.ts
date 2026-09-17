@@ -1,3 +1,4 @@
+import { Setting } from './setting.model.js';
 import { User } from '../auth/user.model.js';
 import { Order } from '../commerce/order.model.js';
 import { Course } from '../courses/course.model.js';
@@ -9,6 +10,30 @@ import { Ticket } from '../support/ticket.model.js';
 
 
 export class AdminService {
+  
+  // --- Global Settings ---
+  static async getSettings() {
+    const settings = await Setting.find().lean();
+    return settings.reduce((acc, curr) => {
+       acc[curr.key] = curr.value;
+       return acc;
+    }, {} as Record<string, any>);
+  }
+
+  static async updateSettings(data: Record<string, any>) {
+    const operations = Object.entries(data).map(([key, value]) => ({
+      updateOne: {
+        filter: { key },
+        update: { $set: { value } },
+        upsert: true
+      }
+    }));
+    if (operations.length > 0) {
+      await Setting.bulkWrite(operations);
+    }
+    return this.getSettings();
+  }
+  
   static async getDashboardStats() {
     
     
@@ -148,7 +173,70 @@ export class AdminService {
   }
 
   static async getRoles() {
-    return await Role.find().sort({ createdAt: 1 });
+    // Add user count to each role
+    const roles = await Role.find().lean();
+    const rolesWithCounts = await Promise.all(roles.map(async (role) => {
+      const count = await User.countDocuments({ role: role._id });
+      return { ...role, userCount: count };
+    }));
+    return rolesWithCounts.sort((a: any, b: any) => (a.createdAt > b.createdAt ? 1 : -1));
+  }
+
+  static async getRoleById(id: string) {
+    const role = await Role.findById(id);
+    if (!role) throw new AppError('Role not found', 404);
+    return role;
+  }
+
+  static async createRole(data: any) {
+    if (['super-admin', 'admin', 'instructor', 'student', 'support'].includes(data.slug)) {
+       throw new AppError('Cannot create system reserved roles', 400);
+    }
+    
+    if (data.permissions && data.permissions.includes('super_admin.access')) {
+        throw new AppError('Cannot grant super_admin access to new roles', 403);
+    }
+    return await Role.create(data);
+  }
+
+  static async updateRole(id: string, data: any) {
+    const role = await Role.findById(id);
+    if (!role) throw new AppError('Role not found', 404);
+    
+    // Protection
+    if (['super-admin', 'admin', 'instructor', 'student'].includes(role.slug)) {
+       // Allow updating description and permissions (except super-admin which has all), but not slug/name
+       if (role.slug === 'super-admin') {
+           throw new AppError('Cannot modify super-admin role', 403);
+       }
+       delete data.slug; // prevent slug change
+       delete data.name; // prevent name change
+    }
+    
+    
+    if (role.slug !== 'super-admin' && data.permissions && data.permissions.includes('super_admin.access')) {
+        throw new AppError('Cannot grant super_admin access to non-super-admin roles', 403);
+    }
+    Object.assign(role, data);
+    await role.save();
+    return role;
+  }
+
+  static async deleteRole(id: string) {
+    const role = await Role.findById(id);
+    if (!role) throw new AppError('Role not found', 404);
+    
+    if (['super-admin', 'admin', 'instructor', 'student', 'support'].includes(role.slug)) {
+       throw new AppError('Cannot delete system roles', 403);
+    }
+    
+    const usersWithRole = await User.countDocuments({ role: id });
+    if (usersWithRole > 0) {
+       throw new AppError('Cannot delete role that is assigned to users', 400);
+    }
+    
+    await role.deleteOne();
+    return { success: true };
   }
 
   static async getCoupons() {

@@ -13,6 +13,18 @@ export const adminApi = {
   getOrders: async (params?: any) => {
     return api.get<any, any>('/admin/orders', { params });
   },
+  
+  // Coupons
+  getCoupons: async () => {
+    return api.get<any, any>('/admin/coupons');
+  },
+  createCoupon: async (data: any) => {
+    return api.post<any, any>('/admin/coupons', data);
+  },
+  deleteCoupon: async (id: string) => {
+    return api.delete<any, any>(`/admin/coupons/${id}`);
+  },
+
   getTickets: async (params?: any) => {
     return api.get<any, any>('/admin/tickets', { params });
   },

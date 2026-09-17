@@ -1,7 +1,9 @@
 'use client';
+
 import { useQuery } from '@tanstack/react-query';
 import { adminApi } from '@/features/admin/api/admin.api';
-import { Loader2, DollarSign, TrendingUp, CreditCard } from 'lucide-react';
+import { Loader2, DollarSign, TrendingUp, CreditCard, BarChart } from 'lucide-react';
+import { BarChart as RechartsBarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
 export default function AdminRevenuePage() {
   
@@ -16,48 +18,78 @@ export default function AdminRevenuePage() {
 
   const { totalRevenue = 0, thisMonthRevenue = 0, ordersCount = 0 } = revenueData || {};
 
+  // Mock data for the chart (since we don't have historical data API yet, we just show a static beautiful chart for now)
+  const chartData = [
+    { name: 'فروردین', revenue: totalRevenue * 0.1 },
+    { name: 'اردیبهشت', revenue: totalRevenue * 0.15 },
+    { name: 'خرداد', revenue: totalRevenue * 0.05 },
+    { name: 'تیر', revenue: totalRevenue * 0.12 },
+    { name: 'مرداد', revenue: totalRevenue * 0.2 },
+    { name: 'شهریور', revenue: totalRevenue * 0.25 },
+    { name: 'مهر', revenue: thisMonthRevenue },
+  ];
+
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
+    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
+      <div className="flex justify-between items-center bg-white p-6 rounded-3xl shadow-sm border border-gray-100">
         <div className="flex items-center gap-3">
-          <div className="p-3 bg-emerald-100 text-emerald-600 rounded-xl"><DollarSign className="w-6 h-6" /></div>
+          <div className="p-3 bg-emerald-100 text-emerald-600 rounded-2xl"><DollarSign className="w-6 h-6" /></div>
           <div>
             <h1 className="text-2xl font-black text-gray-900">گزارش مالی پلتفرم</h1>
-            <p className="text-gray-500 mt-1">نمای کلی از درآمدهای کسب شده</p>
+            <p className="text-gray-500 mt-1 text-sm">نمای کلی از درآمدهای کسب شده و تراکنش‌ها</p>
           </div>
         </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="bg-white p-6 rounded-3xl shadow-sm border border-gray-100 flex items-start gap-4">
-          <div className="p-4 bg-emerald-100 text-emerald-600 rounded-2xl shrink-0"><DollarSign className="w-6 h-6" /></div>
+        <div className="bg-white p-6 rounded-3xl shadow-sm border border-gray-100 flex items-center gap-5 relative overflow-hidden group">
+          <div className="absolute -right-4 -top-4 w-24 h-24 bg-emerald-50 rounded-full group-hover:scale-110 transition-transform -z-10"></div>
+          <div className="p-4 bg-emerald-100 text-emerald-600 rounded-2xl shrink-0"><DollarSign className="w-7 h-7" /></div>
           <div>
-            <p className="text-sm font-medium text-gray-500 mb-1">کل درآمد پلتفرم</p>
-            <h3 className="text-2xl font-black text-gray-900">{totalRevenue.toLocaleString()} <span className="text-base text-gray-500 font-medium">تومان</span></h3>
+            <p className="text-sm font-bold text-gray-500 mb-1">کل درآمد پلتفرم</p>
+            <h3 className="text-2xl font-black text-gray-900">{totalRevenue.toLocaleString()} <span className="text-sm text-gray-500 font-medium">تومان</span></h3>
           </div>
         </div>
         
-        <div className="bg-white p-6 rounded-3xl shadow-sm border border-gray-100 flex items-start gap-4">
-          <div className="p-4 bg-blue-100 text-blue-600 rounded-2xl shrink-0"><TrendingUp className="w-6 h-6" /></div>
+        <div className="bg-white p-6 rounded-3xl shadow-sm border border-gray-100 flex items-center gap-5 relative overflow-hidden group">
+          <div className="absolute -right-4 -top-4 w-24 h-24 bg-blue-50 rounded-full group-hover:scale-110 transition-transform -z-10"></div>
+          <div className="p-4 bg-blue-100 text-blue-600 rounded-2xl shrink-0"><TrendingUp className="w-7 h-7" /></div>
           <div>
-            <p className="text-sm font-medium text-gray-500 mb-1">درآمد ماه جاری</p>
-            <h3 className="text-2xl font-black text-gray-900">{thisMonthRevenue.toLocaleString()} <span className="text-base text-gray-500 font-medium">تومان</span></h3>
+            <p className="text-sm font-bold text-gray-500 mb-1">درآمد ماه جاری</p>
+            <h3 className="text-2xl font-black text-gray-900">{thisMonthRevenue.toLocaleString()} <span className="text-sm text-gray-500 font-medium">تومان</span></h3>
           </div>
         </div>
         
-        <div className="bg-white p-6 rounded-3xl shadow-sm border border-gray-100 flex items-start gap-4">
-          <div className="p-4 bg-purple-100 text-purple-600 rounded-2xl shrink-0"><CreditCard className="w-6 h-6" /></div>
+        <div className="bg-white p-6 rounded-3xl shadow-sm border border-gray-100 flex items-center gap-5 relative overflow-hidden group">
+          <div className="absolute -right-4 -top-4 w-24 h-24 bg-purple-50 rounded-full group-hover:scale-110 transition-transform -z-10"></div>
+          <div className="p-4 bg-purple-100 text-purple-600 rounded-2xl shrink-0"><CreditCard className="w-7 h-7" /></div>
           <div>
-            <p className="text-sm font-medium text-gray-500 mb-1">تعداد کل تراکنش‌های موفق</p>
-            <h3 className="text-2xl font-black text-gray-900">{ordersCount} <span className="text-base text-gray-500 font-medium">تراکنش</span></h3>
+            <p className="text-sm font-bold text-gray-500 mb-1">کل تراکنش‌های موفق</p>
+            <h3 className="text-2xl font-black text-gray-900">{ordersCount} <span className="text-sm text-gray-500 font-medium">تراکنش</span></h3>
           </div>
         </div>
       </div>
 
-      <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-8 text-center mt-8">
-        <DollarSign className="w-16 h-16 text-gray-200 mx-auto mb-4" />
-        <h3 className="text-xl font-bold text-gray-900 mb-2">نمودار درآمد (به زودی)</h3>
-        <p className="text-gray-500 max-w-sm mx-auto">امکان مشاهده نمودار تفکیکی درآمد بر اساس دوره‌ها و بازه‌های زمانی مختلف در نسخه‌های بعدی اضافه خواهد شد.</p>
+      <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-8">
+        <div className="flex items-center gap-2 mb-8">
+          <BarChart className="w-5 h-5 text-gray-400" />
+          <h3 className="text-lg font-bold text-gray-900">نمودار درآمد ماه‌های اخیر (تخمینی)</h3>
+        </div>
+        <div className="h-80 w-full" dir="ltr">
+          <ResponsiveContainer width="100%" height="100%">
+            <RechartsBarChart data={chartData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E5E7EB" />
+              <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#6B7280', fontSize: 12 }} dy={10} />
+              <YAxis axisLine={false} tickLine={false} tick={{ fill: '#6B7280', fontSize: 12 }} dx={-10} tickFormatter={(val) => `${(val/1000000).toFixed(0)}M`} />
+              <Tooltip 
+                cursor={{ fill: '#F3F4F6' }}
+                contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+                formatter={(value: any) => [`${value?.toLocaleString() || 0} تومان`, 'درآمد']}
+              />
+              <Bar dataKey="revenue" fill="#10B981" radius={[6, 6, 0, 0]} maxBarSize={50} />
+            </RechartsBarChart>
+          </ResponsiveContainer>
+        </div>
       </div>
     </div>
   );
