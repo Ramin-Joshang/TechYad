@@ -23,8 +23,19 @@ const router = Router();
 
 
 // Health check endpoint
+import mongoose from 'mongoose';
+
 router.get('/health', (req, res) => {
-  sendSuccess(res, { timestamp: new Date().toISOString() }, 'System is healthy');
+  const dbState = mongoose.connection.readyState;
+  const dbStatus = dbState === 1 ? 'connected' : dbState === 2 ? 'connecting' : dbState === 3 ? 'disconnecting' : 'disconnected';
+  
+  sendSuccess(res, { 
+    timestamp: new Date().toISOString(),
+    api: 'ok',
+    database: dbStatus,
+    storage: 'Not Configured',
+    externalIntegrations: 'Not Configured'
+  }, 'System status retrieved');
 });
 
 router.use('/home', homeRoutes);

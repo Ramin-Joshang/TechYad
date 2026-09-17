@@ -13,7 +13,7 @@ import {
   GraduationCap, CreditCard, Heart, Ticket, Bell,
   Users, DollarSign, List, Shield, Menu, X, Video, Activity,
   Briefcase, ChevronRight, ChevronLeft
-} from 'lucide-react';
+  , ShieldAlert, Key, Tag } from 'lucide-react';
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const { user, logout } = useAuthStore();
@@ -39,7 +39,27 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const getNavLinks = () => {
     const profileLink = { name: 'تنظیمات پروفایل', href: '/profile', icon: Settings };
 
-    if (user?.role === 'super-admin' || user?.role === 'admin') {
+    if (user?.role === 'super-admin') {
+      return [
+        { name: 'داشبورد کلان', href: '/super-admin', icon: LayoutDashboard },
+        { name: 'مدیران و کارکنان', href: '/super-admin/admins', icon: ShieldAlert },
+        { name: 'نقش‌ها و دسترسی‌ها', href: '/super-admin/roles', icon: Key },
+        { name: 'کاربران', href: '/super-admin/users', icon: Users },
+        { name: 'اساتید', href: '/super-admin/instructors', icon: Briefcase },
+        { name: 'دوره‌ها', href: '/super-admin/courses', icon: BookOpen },
+        { name: 'کلاس‌ها', href: '/super-admin/classes', icon: Video },
+        { name: 'سفارشات', href: '/super-admin/orders', icon: List },
+        { name: 'پرداخت‌ها', href: '/super-admin/payments', icon: CreditCard },
+        { name: 'کد تخفیف', href: '/super-admin/coupons', icon: Tag },
+        { name: 'بلاگ', href: '/super-admin/blog', icon: FileText },
+        { name: 'پشتیبانی', href: '/super-admin/tickets', icon: Ticket },
+        { name: 'گزارش‌ها', href: '/super-admin/reports', icon: BarChart },
+        { name: 'لاگ‌های سیستم', href: '/super-admin/audit-logs', icon: Activity },
+        { name: 'تنظیمات سیستم', href: '/super-admin/settings', icon: Settings },
+        { name: 'امنیت', href: '/super-admin/security', icon: Shield },
+        profileLink
+      ];
+    } else if (user?.role === 'admin') {
       return [
         { name: 'داشبورد', href: '/admin', icon: LayoutDashboard },
         { name: 'مدیریت کاربران', href: '/admin/users', icon: Users },
@@ -136,7 +156,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             {navLinks.map((link) => {
               const Icon = link.icon;
               // Strict exact match for root dashboard paths, partial for others
-              const isActive = (link.href === '/student' || link.href === '/admin' || link.href === '/instructor')
+              const isActive = (link.href === '/student' || link.href === '/admin' || link.href === '/instructor' || link.href === '/super-admin')
                 ? pathname === link.href
                 : pathname.startsWith(link.href);
                 
