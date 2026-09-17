@@ -45,7 +45,7 @@ export function Intro() {
             
             {/* Minimalist image container */}
             <div className="aspect-[4/3] rounded-[24px] overflow-hidden bg-[var(--neo-surface-2)] border border-[var(--neo-border)] relative group shadow-xl shadow-[var(--neo-primary)]/5">
-              <img src="https://images.unsplash.com/photo-1522202176988-66273c2fd55f?q=80&w=800&auto=format&fit=crop" alt="دانشجویان در حال یادگیری" className="w-full h-full object-cover transition duration-700 group-hover:scale-105" />
+              <img src="/hero-image.png" alt="دانشجویان در حال یادگیری" className="w-full h-full object-cover transition duration-700 group-hover:scale-105" />
               
               <div className="absolute bottom-6 right-6 z-20 flex gap-2">
                  <div className="w-2.5 h-2.5 rounded-full bg-[var(--neo-primary)] shadow-sm"></div>

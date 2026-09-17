@@ -12,7 +12,7 @@ export function InstructorsList() {
   
   const { data: instructors, isLoading } = useQuery({
     queryKey: ['instructors'],
-    queryFn: () => api.get('/instructors').then(res => res.data.data)
+    queryFn: () => api.get('/instructors').then((res: any) => res.data)
   });
 
   if (isLoading) {

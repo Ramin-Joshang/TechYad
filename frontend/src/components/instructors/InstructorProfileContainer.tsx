@@ -8,7 +8,7 @@ import Link from 'next/link';
 export function InstructorProfileContainer({ id }: { id: string }) {
   const { data: profile, isLoading } = useQuery({
     queryKey: ['instructor', id],
-    queryFn: () => api.get(`/instructors/${id}`).then(res => res.data.data)
+    queryFn: () => api.get(`/instructors/${id}`).then((res: any) => res.data)
   });
 
   // Since backend doesn't specifically filter classes by instructorId natively in a public route easily, 

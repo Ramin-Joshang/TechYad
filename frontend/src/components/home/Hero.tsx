@@ -61,26 +61,33 @@ export function Hero() {
           </div>
           
           <div className="hidden lg:block relative h-[600px] w-full">
-             <div className="absolute inset-0 flex items-center justify-center">
-                <div className="relative w-[400px] h-[400px]">
-                   <div className="absolute top-0 right-10 px-5 py-2 bg-white border border-[var(--neo-border)] rounded-full text-sm font-en text-[var(--neo-secondary)] font-semibold shadow-sm animate-bounce" style={{ animationDuration: '4s' }}>AI Models</div>
-                   <div className="absolute bottom-10 left-0 px-5 py-2 bg-white border border-[var(--neo-border)] rounded-full text-sm font-en text-[var(--neo-primary)] font-semibold shadow-sm animate-bounce" style={{ animationDuration: '5s' }}>Calculus</div>
-                   <div className="absolute top-1/2 left-10 px-5 py-2 bg-white border border-[var(--neo-border)] rounded-full text-sm font-en text-[var(--neo-success)] font-semibold shadow-sm animate-bounce" style={{ animationDuration: '4.5s' }}>Python</div>
-                   <div className="absolute bottom-1/3 right-0 px-5 py-2 bg-white border border-[var(--neo-border)] rounded-full text-sm font-en text-[var(--neo-warning)] font-semibold shadow-sm animate-bounce" style={{ animationDuration: '6s' }}>Mechanics</div>
-                   <div className="absolute top-1/4 left-1/4 px-5 py-2 bg-white border border-[var(--neo-border)] rounded-full text-sm font-en text-[#FF6B6B] font-semibold shadow-sm animate-bounce" style={{ animationDuration: '3.5s' }}>MATLAB</div>
-                   
-                   {/* Center node */}
-                   <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-32 h-32 rounded-full border border-[var(--neo-border)] bg-white flex items-center justify-center shadow-xl shadow-[var(--neo-primary)]/10 z-20">
-                     <span className="font-black tracking-widest text-lg neo-gradient-text text-center">شبکه<br/>دانش</span>
-                   </div>
-                   
-                   {/* Connection lines */}
-                   <svg className="absolute inset-0 w-full h-full -z-10 opacity-40">
-                     <line x1="50%" y1="50%" x2="10%" y2="20%" stroke="var(--neo-primary)" strokeWidth="1.5" strokeDasharray="4 4" />
-                     <line x1="50%" y1="50%" x2="90%" y2="80%" stroke="var(--neo-secondary)" strokeWidth="1.5" strokeDasharray="4 4" />
-                     <line x1="50%" y1="50%" x2="20%" y2="80%" stroke="var(--neo-primary)" strokeWidth="1.5" strokeDasharray="4 4" />
-                     <line x1="50%" y1="50%" x2="80%" y2="20%" stroke="var(--neo-secondary)" strokeWidth="1.5" strokeDasharray="4 4" />
-                   </svg>
+             <div className="absolute inset-0 bg-gradient-to-tr from-[var(--neo-primary)]/10 to-transparent rounded-[40px] border border-[var(--neo-border)] -rotate-3 transition-transform duration-500 hover:rotate-0"></div>
+             <div className="absolute inset-0 bg-white rounded-[40px] border border-[var(--neo-border)] shadow-xl overflow-hidden p-8 flex flex-col items-center justify-center rotate-3 transition-transform duration-500 hover:rotate-0 group">
+                <div className="w-full max-w-sm mx-auto relative">
+                  {/* Decorative elements representing academic UI */}
+                  <div className="space-y-4">
+                     <div className="h-20 bg-[var(--neo-surface-1)] rounded-2xl border border-[var(--neo-border)] p-4 flex gap-4 items-center group-hover:-translate-y-2 transition-transform duration-500">
+                        <div className="w-12 h-12 rounded-xl bg-[var(--neo-primary)]/10 flex-shrink-0"></div>
+                        <div className="space-y-2 flex-1">
+                          <div className="h-3 w-3/4 bg-gray-200 rounded-full"></div>
+                          <div className="h-2 w-1/2 bg-gray-100 rounded-full"></div>
+                        </div>
+                     </div>
+                     <div className="h-20 bg-[var(--neo-surface-1)] rounded-2xl border border-[var(--neo-border)] p-4 flex gap-4 items-center -translate-x-4 group-hover:-translate-y-1 transition-transform duration-500 delay-75">
+                        <div className="w-12 h-12 rounded-xl bg-[var(--neo-secondary)]/10 flex-shrink-0"></div>
+                        <div className="space-y-2 flex-1">
+                          <div className="h-3 w-2/3 bg-gray-200 rounded-full"></div>
+                          <div className="h-2 w-1/2 bg-gray-100 rounded-full"></div>
+                        </div>
+                     </div>
+                     <div className="h-20 bg-[var(--neo-surface-1)] rounded-2xl border border-[var(--neo-border)] p-4 flex gap-4 items-center translate-x-4 group-hover:translate-y-1 transition-transform duration-500 delay-150">
+                        <div className="w-12 h-12 rounded-xl bg-[var(--neo-accent)]/10 flex-shrink-0"></div>
+                        <div className="space-y-2 flex-1">
+                          <div className="h-3 w-5/6 bg-gray-200 rounded-full"></div>
+                          <div className="h-2 w-1/3 bg-gray-100 rounded-full"></div>
+                        </div>
+                     </div>
+                  </div>
                 </div>
              </div>
           </div>
