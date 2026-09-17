@@ -1,3 +1,4 @@
+import * as argon2 from 'argon2';
 import { Setting } from './setting.model.js';
 import { User } from '../auth/user.model.js';
 import { Order } from '../commerce/order.model.js';
@@ -80,6 +81,16 @@ export class AdminService {
     return await User.find().populate('role', 'name slug').select('-passwordHash');
   }
 
+  static async updateUser(id: string, data: any) {
+    if (data.password) {
+      data.passwordHash = await argon2.hash(data.password);
+      delete data.password;
+    }
+    const userToUpdate = await User.findByIdAndUpdate(id, data, { new: true });
+    if (!userToUpdate) throw new AppError('User not found', 404);
+    return userToUpdate;
+  }
+
   static async updateUserStatus(userId: string, status: 'active' | 'blocked' | 'pending') {
     const user = await User.findByIdAndUpdate(userId, { status }, { new: true });
     if (!user) throw new AppError('User not found', 404, 'NOT_FOUND');
@@ -153,9 +164,25 @@ export class AdminService {
        throw new AppError('Invalid role for admin creation', 400);
     }
     
-    // Hash password (should be handled by pre-save hook in User model)
+    // Hash password manually
+    if (data.password) {
+      data.passwordHash = await argon2.hash(data.password);
+      delete data.password;
+    } else {
+      throw new AppError('Password is required', 400);
+    }
     const newUser = await User.create(data);
     return newUser;
+  }
+
+  static async updateAdmin(id: string, data: any) {
+    if (data.password) {
+      data.passwordHash = await argon2.hash(data.password);
+      delete data.password;
+    }
+    const userToUpdate = await User.findByIdAndUpdate(id, data, { new: true });
+    if (!userToUpdate) throw new AppError('Admin not found', 404);
+    return userToUpdate;
   }
 
   static async updateAdminStatus(adminId: string, status: string) {

@@ -168,9 +168,9 @@ export default function AdminsManagementPage() {
                             {admin.status === 'active' ? <XCircle className="w-5 h-5" /> : <CheckCircle className="w-5 h-5" />}
                           </button>
                         )}
-                        <button className="p-2 text-gray-400 hover:text-gray-900 hover:bg-gray-100 rounded-xl transition-colors">
+                        <Link href={`/super-admin/admins/${admin._id}`} className="p-2 text-gray-400 hover:text-gray-900 hover:bg-gray-100 rounded-xl transition-colors">
                           <Edit className="w-5 h-5" />
-                        </button>
+                        </Link>
                       </div>
                     </td>
                   </tr>

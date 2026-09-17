@@ -1,24 +1,22 @@
 'use client';
-
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/lib/api';
-import { Loader2, Plus, Video, Calendar, Users, ArrowRight } from 'lucide-react';
+import { Loader2, Search, Video, Calendar, Users, Plus, Edit, Trash2, Save, X } from 'lucide-react';
+import Link from 'next/link';
+import toast from 'react-hot-toast';
 
 export default function InstructorClassesPage() {
   const queryClient = useQueryClient();
+  const [search, setSearch] = useState('');
   const [showForm, setShowForm] = useState(false);
+  const [editId, setEditId] = useState<string | null>(null);
+  
   const [formData, setFormData] = useState({
-    title: '',
-    slug: '',
-    shortDescription: '',
-    mode: 'online',
-    startDate: '',
-    price: 0,
-    maxStudents: 50
+    title: '', slug: '', shortDescription: '', mode: 'online', startDate: '', price: 0, maxStudents: 50
   });
 
-  const { data: classes, isLoading } = useQuery({
+  const { data: classesData, isLoading } = useQuery({
     queryKey: ['instructor-classes'],
     queryFn: () => api.get('/instructor/classes').then(res => res.data)
   });
@@ -26,159 +24,186 @@ export default function InstructorClassesPage() {
   const createMutation = useMutation({
     mutationFn: (data: any) => api.post('/instructor/classes', data),
     onSuccess: () => {
+      toast.success('کلاس با موفقیت ایجاد شد');
       queryClient.invalidateQueries({ queryKey: ['instructor-classes'] });
-      setShowForm(false);
-      setFormData({
-        title: '',
-        slug: '',
-        shortDescription: '',
-        mode: 'online',
-        startDate: '',
-        price: 0,
-        maxStudents: 50
-      });
+      resetForm();
     }
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    createMutation.mutate(formData);
+  const updateMutation = useMutation({
+    mutationFn: (data: any) => api.patch(`/instructor/classes/${editId}`, data),
+    onSuccess: () => {
+      toast.success('کلاس با موفقیت ویرایش شد');
+      queryClient.invalidateQueries({ queryKey: ['instructor-classes'] });
+      resetForm();
+    }
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: (id: string) => api.delete(`/instructor/classes/${id}`),
+    onSuccess: () => {
+      toast.success('کلاس با موفقیت حذف شد');
+      queryClient.invalidateQueries({ queryKey: ['instructor-classes'] });
+    }
+  });
+
+  const resetForm = () => {
+    setShowForm(false);
+    setEditId(null);
+    setFormData({ title: '', slug: '', shortDescription: '', mode: 'online', startDate: '', price: 0, maxStudents: 50 });
   };
 
-  return (
-    <div className="space-y-6 max-w-5xl mx-auto">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white p-6 rounded-3xl shadow-sm border border-gray-100">
-        <div>
-          <h1 className="text-2xl font-black text-gray-900">کلاس‌های زنده</h1>
-          <p className="text-gray-500 mt-1">مدیریت کلاس‌های آنلاین شما</p>
-        </div>
-        {!showForm && (
-          <button 
-            onClick={() => setShowForm(true)}
-            className="px-5 py-2.5 bg-blue-600 text-white font-bold rounded-xl flex items-center gap-2 hover:bg-blue-700 transition-colors shadow-md"
-          >
-            <Plus className="w-5 h-5" />
-            ایجاد کلاس جدید
-          </button>
-        )}
-      </div>
+  const handleEdit = (cls: any) => {
+    setEditId(cls._id);
+    setFormData({
+      title: cls.title,
+      slug: cls.slug,
+      shortDescription: cls.shortDescription || '',
+      mode: cls.mode || 'online',
+      startDate: cls.startDate ? cls.startDate.substring(0, 16) : '',
+      price: cls.price || 0,
+      maxStudents: cls.capacity || cls.maxStudents || 50
+    });
+    setShowForm(true);
+  };
 
-      {showForm && (
-        <form onSubmit={handleSubmit} className="bg-white rounded-3xl p-6 md:p-8 shadow-sm border border-gray-100 space-y-6 animate-in fade-in slide-in-from-top-4">
-          <div className="flex justify-between items-center pb-4 border-b border-gray-100">
-            <h2 className="text-lg font-bold text-gray-900">ایجاد کلاس زنده جدید</h2>
-            <button type="button" onClick={() => setShowForm(false)} className="p-2 hover:bg-gray-100 rounded-xl transition-colors">
-              <ArrowRight className="w-5 h-5 text-gray-500" />
-            </button>
-          </div>
-          
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (editId) updateMutation.mutate(formData);
+    else createMutation.mutate(formData);
+  };
+
+  const classes = classesData?.classes || [];
+  const filteredClasses = classes.filter((c: any) => 
+    c.title?.toLowerCase().includes(search.toLowerCase())
+  );
+
+  if (showForm) {
+    return (
+      <div className="max-w-3xl mx-auto bg-white p-6 md:p-8 rounded-3xl shadow-sm border border-gray-100 animate-in fade-in slide-in-from-bottom-4 duration-500">
+        <div className="flex justify-between items-center mb-6">
+          <h2 className="text-xl font-bold text-gray-900">{editId ? 'ویرایش کلاس' : 'ایجاد کلاس جدید'}</h2>
+          <button onClick={resetForm} className="p-2 text-gray-400 hover:text-gray-900 rounded-xl bg-gray-50"><X className="w-5 h-5" /></button>
+        </div>
+        <form onSubmit={handleSubmit} className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <label className="block text-sm font-bold text-gray-700 mb-2">عنوان کلاس</label>
-              <input 
-                required type="text" 
-                value={formData.title} onChange={e => setFormData({...formData, title: e.target.value})}
-                className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none"
-              />
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">عنوان کلاس</label>
+              <input required type="text" value={formData.title} onChange={e => setFormData({...formData, title: e.target.value})} className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-emerald-500 outline-none" />
             </div>
             <div>
-              <label className="block text-sm font-bold text-gray-700 mb-2">شناسه URL (انگلیسی)</label>
-              <input 
-                required type="text" dir="ltr"
-                value={formData.slug} onChange={e => setFormData({...formData, slug: e.target.value})}
-                className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-left"
-              />
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">شناسه (Slug)</label>
+              <input required type="text" value={formData.slug} onChange={e => setFormData({...formData, slug: e.target.value})} className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-emerald-500 outline-none dir-ltr text-left" />
             </div>
-          </div>
-          
-          <div>
-            <label className="block text-sm font-bold text-gray-700 mb-2">توضیح کوتاه</label>
-            <textarea 
-              required rows={2}
-              value={formData.shortDescription} onChange={e => setFormData({...formData, shortDescription: e.target.value})}
-              className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none resize-none"
-            ></textarea>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div>
-              <label className="block text-sm font-bold text-gray-700 mb-2">تاریخ شروع</label>
-              <input 
-                required type="datetime-local" dir="ltr"
-                value={formData.startDate} onChange={e => setFormData({...formData, startDate: e.target.value})}
-                className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-left"
-              />
+            <div className="md:col-span-2">
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">توضیح کوتاه</label>
+              <textarea value={formData.shortDescription} onChange={e => setFormData({...formData, shortDescription: e.target.value})} rows={3} className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-emerald-500 outline-none resize-none" />
             </div>
             <div>
-              <label className="block text-sm font-bold text-gray-700 mb-2">قیمت (تومان)</label>
-              <input 
-                required type="number" min="0"
-                value={formData.price} onChange={e => setFormData({...formData, price: Number(e.target.value)})}
-                className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none"
-              />
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">نوع برگزاری</label>
+              <select value={formData.mode} onChange={e => setFormData({...formData, mode: e.target.value})} className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-emerald-500 outline-none">
+                <option value="online">آنلاین</option>
+                <option value="in-person">حضوری</option>
+              </select>
             </div>
             <div>
-              <label className="block text-sm font-bold text-gray-700 mb-2">ظرفیت</label>
-              <input 
-                required type="number" min="1"
-                value={formData.maxStudents} onChange={e => setFormData({...formData, maxStudents: Number(e.target.value)})}
-                className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none"
-              />
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">تاریخ شروع</label>
+              <input type="datetime-local" value={formData.startDate} onChange={e => setFormData({...formData, startDate: e.target.value})} className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-emerald-500 outline-none" />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">هزینه ثبت‌نام (تومان)</label>
+              <input type="number" value={formData.price} onChange={e => setFormData({...formData, price: Number(e.target.value)})} className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-emerald-500 outline-none dir-ltr text-left" />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">ظرفیت</label>
+              <input type="number" value={formData.maxStudents} onChange={e => setFormData({...formData, maxStudents: Number(e.target.value)})} className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-emerald-500 outline-none dir-ltr text-left" />
             </div>
           </div>
-          
-          <div className="pt-4 flex justify-end">
-            <button 
-              type="submit" disabled={createMutation.isPending}
-              className="px-6 py-3 bg-blue-600 text-white font-bold rounded-xl flex items-center gap-2 hover:bg-blue-700 transition-colors shadow-md disabled:opacity-50"
-            >
-              {createMutation.isPending ? <Loader2 className="w-5 h-5 animate-spin"/> : <Video className="w-5 h-5"/>}
-              ثبت کلاس
-            </button>
-          </div>
+          <button type="submit" disabled={createMutation.isPending || updateMutation.isPending} className="w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl flex items-center justify-center gap-2 transition disabled:opacity-70">
+            {(createMutation.isPending || updateMutation.isPending) ? <Loader2 className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />}
+            ذخیره اطلاعات
+          </button>
         </form>
-      )}
+      </div>
+    );
+  }
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {isLoading ? (
-          <div className="col-span-2 py-12 flex justify-center text-blue-600"><Loader2 className="w-8 h-8 animate-spin" /></div>
-        ) : classes?.length === 0 ? (
-          <div className="col-span-2 p-12 text-center text-gray-500 font-medium bg-white rounded-3xl border border-dashed border-gray-200">
-            هیچ کلاس زنده‌ای ندارید.
+  return (
+    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white p-6 rounded-3xl shadow-sm border border-gray-100">
+        <div className="flex items-center gap-3">
+          <div className="p-3 bg-emerald-100 text-emerald-600 rounded-xl"><Video className="w-6 h-6" /></div>
+          <div>
+            <h1 className="text-xl font-black text-gray-900">مدیریت کلاس‌ها</h1>
+            <p className="text-gray-500 mt-1 text-sm">برنامه‌ریزی و مدیریت کلاس‌های آنلاین و حضوری</p>
           </div>
-        ) : (
-          classes?.map((cls: any) => (
-            <div key={cls._id} className="bg-white rounded-3xl p-6 border border-gray-100 shadow-sm hover:shadow-md transition-shadow relative overflow-hidden group">
-              <div className="flex justify-between items-start mb-4">
-                <div className="w-12 h-12 bg-purple-100 text-purple-600 rounded-2xl flex items-center justify-center shrink-0">
-                  <Video className="w-6 h-6" />
+        </div>
+        <button onClick={() => setShowForm(true)} className="flex items-center justify-center gap-2 bg-emerald-600 text-white px-5 py-2.5 rounded-xl font-medium hover:bg-emerald-700 transition w-full sm:w-auto">
+          <Plus className="w-5 h-5" /> ایجاد کلاس جدید
+        </button>
+      </div>
+      {isLoading ? (
+        <div className="p-12 flex justify-center"><Loader2 className="w-8 h-8 animate-spin text-emerald-600" /></div>
+      ) : filteredClasses.length === 0 ? (
+        <div className="p-12 bg-white rounded-3xl border border-gray-100 text-center text-gray-500 font-medium">
+          شما هنوز کلاسی ایجاد نکرده‌اید.
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {filteredClasses.map((cls: any) => (
+            <div key={cls._id} className="bg-white rounded-3xl overflow-hidden border border-gray-100 shadow-sm flex flex-col hover:shadow-md transition-shadow relative group">
+              
+              <div className="absolute top-2 left-2 z-10 flex flex-col gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                <button onClick={() => handleEdit(cls)} className="p-2 bg-white text-blue-600 hover:bg-blue-50 rounded-lg shadow-sm" title="ویرایش">
+                  <Edit className="w-4 h-4" />
+                </button>
+                <button onClick={() => { if(window.confirm('حذف شود؟')) deleteMutation.mutate(cls._id); }} className="p-2 bg-white text-rose-600 hover:bg-rose-50 rounded-lg shadow-sm" title="حذف">
+                  <Trash2 className="w-4 h-4" />
+                </button>
+              </div>
+
+              <div className="aspect-video bg-gray-100 relative">
+                <img src={cls.thumbnail || `https://picsum.photos/seed/${cls._id}/400/250`} alt={cls.title} className="w-full h-full object-cover" />
+                <div className="absolute top-3 right-3 bg-white/90 backdrop-blur text-xs font-bold px-2 py-1 rounded-md shadow-sm">
+                  {cls.mode === 'online' ? 'آنلاین' : 'حضوری'}
                 </div>
-                <span className={`px-3 py-1 text-xs font-bold rounded-full ${
-                  cls.status === 'published' ? 'bg-emerald-100 text-emerald-700' : 'bg-gray-100 text-gray-700'
-                }`}>
-                  {cls.status === 'published' ? 'منتشر شده' : 'پیش‌نویس'}
-                </span>
               </div>
-              <h3 className="font-bold text-gray-900 text-lg mb-2">{cls.title}</h3>
-              <p className="text-sm text-gray-500 line-clamp-2 mb-4">{cls.shortDescription}</p>
-              
-              <div className="flex flex-wrap gap-4 text-sm font-medium text-gray-600">
-                <div className="flex items-center gap-1.5"><Calendar className="w-4 h-4 text-gray-400" /> {new Date(cls.startDate).toLocaleDateString('fa-IR')}</div>
-                <div className="flex items-center gap-1.5"><Users className="w-4 h-4 text-gray-400" /> ظرفیت: {cls.maxStudents} نفر</div>
-              </div>
-              
-              <div className="mt-6 pt-4 border-t border-gray-50 flex justify-between items-center">
-                <span className="font-bold text-blue-600">{cls.price === 0 ? 'رایگان' : `${cls.price.toLocaleString()} تومان`}</span>
-                {cls.meetingLink && (
-                  <a href={cls.meetingLink} target="_blank" rel="noopener noreferrer" className="px-4 py-2 bg-gray-900 text-white text-sm font-bold rounded-xl hover:bg-black transition-colors">
-                    ورود به اتاق
-                  </a>
-                )}
+              <div className="p-5 flex-1 flex flex-col">
+                <h3 className="font-bold text-lg text-gray-900 mb-2 line-clamp-1">{cls.title}</h3>
+                <p className="text-sm text-gray-500 mb-4 line-clamp-2">{cls.shortDescription || 'توضیحاتی ثبت نشده است'}</p>
+                
+                <div className="mt-auto space-y-2 mb-4">
+                  <div className="flex items-center gap-2 text-sm text-gray-600">
+                    <Calendar className="w-4 h-4 text-emerald-500" />
+                    <span className="font-medium dir-ltr text-right">
+                      {cls.startDate ? new Date(cls.startDate).toLocaleString('fa-IR') : 'نامشخص'}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2 text-sm text-gray-600">
+                    <Users className="w-4 h-4 text-emerald-500" />
+                    <span>ظرفیت: {cls.capacity || cls.maxStudents || 'نامحدود'} نفر</span>
+                  </div>
+                </div>
+                
+                <div className="grid grid-cols-2 gap-2 mt-auto">
+                  <Link href={`/classes/${cls.slug || cls._id}`} className="text-center py-2 bg-gray-50 hover:bg-gray-100 text-gray-700 text-sm font-bold rounded-xl transition-colors">
+                    مشاهده صفحه
+                  </Link>
+                  {cls.meetingLink ? (
+                    <a href={cls.meetingLink} target="_blank" rel="noreferrer" className="text-center py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 text-sm font-bold rounded-xl transition-colors">
+                      ورود به کلاس
+                    </a>
+                  ) : (
+                    <button disabled className="text-center py-2 bg-gray-50 text-gray-400 text-sm font-bold rounded-xl">
+                      حضوری
+                    </button>
+                  )}
+                </div>
               </div>
             </div>
-          ))
-        )}
-      </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

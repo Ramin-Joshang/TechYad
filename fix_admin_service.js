@@ -1,21 +1,20 @@
 const fs = require('fs');
-let code = fs.readFileSync('backend/src/modules/admin/admin.service.ts', 'utf8');
+const path = 'backend/src/modules/admin/admin.service.ts';
+let code = fs.readFileSync(path, 'utf8');
 
-if (!code.includes('const adminRole = await Role.findOne({ slug: \'admin\' })')) {
-  code = code.replace(
-    'const instructorRole = await Role.findOne({ slug: \'instructor\' });',
-    'const instructorRole = await Role.findOne({ slug: \'instructor\' });\n    const adminRole = await Role.findOne({ slug: \'admin\' });\n    const superAdminRole = await Role.findOne({ slug: \'super-admin\' });'
-  );
-  
-  code = code.replace(
-    'const instructors = instructorRole ? await User.countDocuments({ role: instructorRole._id }) : 0;',
-    'const instructors = instructorRole ? await User.countDocuments({ role: instructorRole._id }) : 0;\n    const admins = (adminRole ? await User.countDocuments({ role: adminRole._id }) : 0) + (superAdminRole ? await User.countDocuments({ role: superAdminRole._id }) : 0);'
-  );
-  
-  code = code.replace(
-    '      tickets\n    };',
-    '      tickets,\n      admins\n    };'
-  );
-  fs.writeFileSync('backend/src/modules/admin/admin.service.ts', code);
-  console.log('Added admins count to getDashboardStats');
+if (!code.includes('import bcrypt')) {
+    code = code.replace("import { AppError } from '../../common/utils/AppError.js';", "import { AppError } from '../../common/utils/AppError.js';\nimport bcrypt from 'bcrypt';");
 }
+
+code = code.replace(
+    '// Hash password (should be handled by pre-save hook in User model)\n    const newUser = await User.create(data);',
+    `// Hash password manually
+    if (data.password) {
+      data.passwordHash = await bcrypt.hash(data.password, 12);
+      delete data.password;
+    } else {
+      throw new AppError('Password is required', 400);
+    }
+    const newUser = await User.create(data);`
+);
+fs.writeFileSync(path, code);

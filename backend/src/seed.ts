@@ -15,7 +15,7 @@ async function seed() {
     const adminPermissions = [
       'admin.access',
       'users.read', 'users.manage',
-      'courses.read', 'courses.manage', 'courses.publish',
+      'courses.read', 'courses.manage', 'courses.publish', 'create_course', 'create_class',
       'orders.read', 'orders.manage',
       'coupons.manage',
       'blog.manage',

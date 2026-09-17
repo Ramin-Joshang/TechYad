@@ -19,7 +19,7 @@ export const getCourseBySlug = async (req: Request, res: Response) => {
 };
 
 export const getRelatedCourses = async (req: Request, res: Response) => {
-  const result = await CourseService.getRelatedCourses((req.params.id as any as string) as any as string);
+  const result = await CourseService.getRelatedCourses(((req.params.id as string) as any as string) as any as string);
   sendSuccess(res, result, 'Related courses retrieved successfully');
 };
 
@@ -34,13 +34,13 @@ export const getInstructorStats = async (req: AuthRequest, res: Response) => {
 };
 
 export const updateCourse = async (req: AuthRequest, res: Response) => {
-  const result = await CourseService.updateCourse((req.params.id as any as string) as any as string, req.user._id, req.body);
+  const result = await CourseService.updateCourse(((req.params.id as string) as any as string) as any as string, req.user._id, req.body);
   sendSuccess(res, result, 'Course updated successfully');
 };
 
 // Workflows
 export const requestReview = async (req: AuthRequest, res: Response) => {
-  const result = await CourseService.requestReview((req.params.id as any as string) as any as string, req.user._id);
+  const result = await CourseService.requestReview(((req.params.id as string) as any as string) as any as string, req.user._id);
   sendSuccess(res, result, 'Course submitted for review');
 };
 
@@ -50,12 +50,12 @@ export const getAdminCourses = async (req: AuthRequest, res: Response) => {
 };
 
 export const publishCourse = async (req: Request, res: Response) => {
-  const result = await CourseService.publishCourse((req.params.id as any as string) as any as string);
+  const result = await CourseService.publishCourse(((req.params.id as string) as any as string) as any as string);
   sendSuccess(res, result, 'Course published successfully');
 };
 
 export const rejectCourse = async (req: Request, res: Response) => {
-  const result = await CourseService.rejectCourse((req.params.id as any as string) as any as string, req.body.reason);
+  const result = await CourseService.rejectCourse(((req.params.id as string) as any as string) as any as string, req.body.reason);
   sendSuccess(res, result, 'Course rejected');
 };
 
@@ -87,7 +87,7 @@ export const getCourseStudents = async (req: AuthRequest, res: Response) => {
 };
 
   export const getInstructorCourseById = async (req: AuthRequest, res: Response) => {
-    const course = await CourseService.getInstructorCourseById((req.params.id as any as string) as any as string, req.user._id as string);
+    const course = await CourseService.getInstructorCourseById(((req.params.id as string) as any as string) as any as string, req.user._id as string);
     sendSuccess(res, course, 'Course retrieved successfully');
   };
   
@@ -106,4 +106,13 @@ export const updateLesson = async (req: AuthRequest, res: Response) => {
 export const deleteLesson = async (req: AuthRequest, res: Response) => {
   const result = await CourseService.deleteLesson((req.params.lessonId as any as string) as any as string, req.user._id as string);
   sendSuccess(res, result, 'Lesson deleted successfully');
+};
+
+export const adminUpdateCourse = async (req: Request, res: Response) => {
+  const result = await CourseService.updateCourse((req.params.id as string), '', req.body, true);
+  sendSuccess(res, result, 'Course updated by admin successfully');
+};
+export const adminDeleteCourse = async (req: Request, res: Response) => {
+  await CourseService.deleteCourse((req.params.id as string));
+  sendSuccess(res, null, 'Course deleted successfully');
 };

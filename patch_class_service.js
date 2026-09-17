@@ -1,9 +1,30 @@
 const fs = require('fs');
-let svcCode = fs.readFileSync('backend/src/modules/classes/class.service.ts', 'utf8');
+let code = fs.readFileSync('backend/src/modules/classes/class.service.ts', 'utf8');
 
-svcCode = svcCode.replace(
-  "return await Class.create({",
-  "return await Class.create({\n      capacity: data.capacity || data.maxStudents,"
+code = code.replace(
+  'instructors: [userId] // By default, the creator is the instructor',
+  'instructors: data.instructors?.length > 0 ? data.instructors : [userId]'
 );
 
-fs.writeFileSync('backend/src/modules/classes/class.service.ts', svcCode);
+if (!code.includes('static async updateClass')) {
+  code = code.replace(
+    'static async getMyClasses(userId: string) {',
+    `static async updateClass(id: string, userId: string, data: any, overrideAuth: boolean = false) {
+    const query = overrideAuth ? { _id: id } : { _id: id, instructors: userId };
+    const cls = await Class.findOneAndUpdate(query, data, { new: true });
+    if (!cls) throw new AppError('Class not found or unauthorized', 404);
+    return cls;
+  }
+  
+  static async deleteClass(id: string, userId: string, overrideAuth: boolean = false) {
+    const query = overrideAuth ? { _id: id } : { _id: id, instructors: userId };
+    const cls = await Class.findOneAndDelete(query);
+    if (!cls) throw new AppError('Class not found or unauthorized', 404);
+    return cls;
+  }
+  
+  static async getMyClasses(userId: string) {`
+  );
+}
+
+fs.writeFileSync('backend/src/modules/classes/class.service.ts', code);

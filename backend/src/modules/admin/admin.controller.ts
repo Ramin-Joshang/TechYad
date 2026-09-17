@@ -12,8 +12,13 @@ export const getUsers = async (req: Request, res: Response) => {
   sendSuccess(res, result, 'Users retrieved');
 };
 
+export const updateUser = async (req: Request, res: Response) => {
+  const result = await AdminService.updateUser((req.params.id as string), req.body);
+  res.status(200).json({ success: true, data: result });
+};
+
 export const updateUserStatus = async (req: Request, res: Response) => {
-  const result = await AdminService.updateUserStatus((req.params.id as any as string) as any as string, req.body.status);
+  const result = await AdminService.updateUserStatus(((req.params.id as string) as any as string) as any as string, req.body.status);
   sendSuccess(res, result, 'User status updated');
 };
 
@@ -28,7 +33,7 @@ export const getCoupons = async (req: Request, res: Response) => {
 };
 
 export const deleteCoupon = async (req: Request, res: Response) => {
-  const result = await AdminService.deleteCoupon((req.params.id as any as string) as any as string);
+  const result = await AdminService.deleteCoupon(((req.params.id as string) as any as string) as any as string);
   sendSuccess(res, result, 'Coupon deleted');
 };
 
@@ -41,7 +46,7 @@ export const getTickets = async (req: Request, res: Response) => {
   sendSuccess(res, result, 'Tickets retrieved');
 };
 export const updateTicketStatus = async (req: Request, res: Response) => {
-  const result = await AdminService.updateTicketStatus((req.params.id as any as string) as any as string, req.body.status);
+  const result = await AdminService.updateTicketStatus(((req.params.id as string) as any as string) as any as string, req.body.status);
   sendSuccess(res, result, 'Ticket status updated');
 };
 export const getClasses = async (req: Request, res: Response) => {
@@ -64,8 +69,13 @@ export const createAdmin = async (req: Request, res: Response) => {
   sendSuccess(res, result, 'Admin created successfully', 201);
 };
 
+export const updateAdmin = async (req: Request, res: Response) => {
+  const result = await AdminService.updateAdmin((req.params.id as string), req.body);
+  res.status(200).json({ success: true, data: result });
+};
+
 export const updateAdminStatus = async (req: Request, res: Response) => {
-  const result = await AdminService.updateAdminStatus((req.params.id as any as string) as any as string, req.body.status);
+  const result = await AdminService.updateAdminStatus(((req.params.id as string) as any as string) as any as string, req.body.status);
   sendSuccess(res, result, 'Admin status updated');
 };
 
@@ -75,7 +85,7 @@ export const getRoles = async (req: Request, res: Response) => {
 };
 
 export const getRoleById = async (req: Request, res: Response) => {
-  const result = await AdminService.getRoleById((req.params.id as any as string) as any as string);
+  const result = await AdminService.getRoleById(((req.params.id as string) as any as string) as any as string);
   sendSuccess(res, result, 'Role retrieved');
 };
 
@@ -85,12 +95,12 @@ export const createRole = async (req: Request, res: Response) => {
 };
 
 export const updateRole = async (req: Request, res: Response) => {
-  const result = await AdminService.updateRole((req.params.id as any as string) as any as string, req.body);
+  const result = await AdminService.updateRole(((req.params.id as string) as any as string) as any as string, req.body);
   sendSuccess(res, result, 'Role updated successfully');
 };
 
 export const deleteRole = async (req: Request, res: Response) => {
-  const result = await AdminService.deleteRole((req.params.id as any as string) as any as string);
+  const result = await AdminService.deleteRole(((req.params.id as string) as any as string) as any as string);
   sendSuccess(res, result, 'Role deleted successfully');
 };
 

@@ -12,6 +12,7 @@ router.get('/admin/dashboard', isAdmin, asyncHandler(Controller.getDashboardStat
 
 // Users
 router.get('/admin/users', isAdmin, asyncHandler(Controller.getUsers));
+router.patch('/admin/users/:id', isAdmin, asyncHandler(Controller.updateUser));
 router.patch('/admin/users/:id/status', isAdmin, asyncHandler(Controller.updateUserStatus));
 
 // Coupons
@@ -25,8 +26,10 @@ const isSuperAdmin = [requireAuth, authorize('super_admin.access')];
 
 router.get('/super-admin/admins', isSuperAdmin, asyncHandler(Controller.getAdmins));
 router.post('/super-admin/admins', isSuperAdmin, asyncHandler(Controller.createAdmin));
+router.patch('/super-admin/admins/:id', isSuperAdmin, asyncHandler(Controller.updateAdmin));
 router.patch('/super-admin/admins/:id/status', isSuperAdmin, asyncHandler(Controller.updateAdminStatus));
 router.get('/super-admin/roles', isSuperAdmin, asyncHandler(Controller.getRoles));
+router.get('/admin/roles', isAdmin, asyncHandler(Controller.getRoles));
 router.get('/super-admin/roles/:id', isSuperAdmin, asyncHandler(Controller.getRoleById));
 router.post('/super-admin/roles', isSuperAdmin, asyncHandler(Controller.createRole));
 router.patch('/super-admin/roles/:id', isSuperAdmin, asyncHandler(Controller.updateRole));

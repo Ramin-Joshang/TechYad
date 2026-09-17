@@ -1,4 +1,8 @@
-'use client';
+const fs = require('fs');
+let code = fs.readFileSync('frontend/src/app/(dashboard)/admin/classes/page.tsx', 'utf8');
+
+// I'll rewrite the entire file since it's easier and cleaner.
+const newCode = `'use client';
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { adminApi } from '@/features/admin/api/admin.api';
@@ -175,7 +179,7 @@ export default function AdminClassesPage() {
               </div>
 
               <div className="aspect-video bg-gray-100 relative">
-                <img src={cls.thumbnail || `https://picsum.photos/seed/${cls._id}/400/250`} alt={cls.title} className="w-full h-full object-cover" />
+                <img src={cls.thumbnail || \`https://picsum.photos/seed/\${cls._id}/400/250\`} alt={cls.title} className="w-full h-full object-cover" />
                 <div className="absolute top-3 right-3 bg-white/90 backdrop-blur text-xs font-bold px-2 py-1 rounded-md shadow-sm">
                   {cls.mode === 'online' ? 'آنلاین' : 'حضوری'}
                 </div>
@@ -197,7 +201,7 @@ export default function AdminClassesPage() {
                   </div>
                 </div>
                 
-                <Link href={`/classes/${cls.slug || cls._id}`} className="w-full text-center py-2 bg-gray-50 hover:bg-gray-100 text-gray-700 font-bold rounded-xl transition-colors">
+                <Link href={\`/classes/\${cls.slug || cls._id}\`} className="w-full text-center py-2 bg-gray-50 hover:bg-gray-100 text-gray-700 font-bold rounded-xl transition-colors">
                   مشاهده صفحه کلاس
                 </Link>
               </div>
@@ -208,3 +212,5 @@ export default function AdminClassesPage() {
     </div>
   );
 }
+`;
+fs.writeFileSync('frontend/src/app/(dashboard)/admin/classes/page.tsx', newCode);

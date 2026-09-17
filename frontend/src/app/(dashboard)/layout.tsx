@@ -47,6 +47,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         { name: 'کاربران', href: '/super-admin/users', icon: Users },
         { name: 'اساتید', href: '/super-admin/instructors', icon: Briefcase },
         { name: 'دوره‌ها', href: '/super-admin/courses', icon: BookOpen },
+        { name: 'دسته‌بندی‌ها', href: '/super-admin/categories', icon: List },
         { name: 'کلاس‌ها', href: '/super-admin/classes', icon: Video },
         { name: 'سفارشات', href: '/super-admin/orders', icon: List },
         
@@ -65,6 +66,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         { name: 'مدیریت کاربران', href: '/admin/users', icon: Users },
         { name: 'دانشجویان', href: '/admin/students', icon: GraduationCap },
         { name: 'اساتید', href: '/admin/instructors', icon: Briefcase },
+        { name: 'دسته‌بندی‌ها', href: '/admin/categories', icon: List },
         { name: 'کل دوره‌ها', href: '/admin/courses', icon: BookOpen },
         { name: 'دوره‌های منتشر شده', href: '/admin/courses/published', icon: CheckSquare },
         { name: 'دوره‌های در انتظار', href: '/admin/courses/pending', icon: Activity },

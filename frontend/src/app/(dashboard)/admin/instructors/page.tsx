@@ -2,7 +2,8 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { adminApi } from '@/features/admin/api/admin.api';
-import { Loader2, Search, Briefcase } from 'lucide-react';
+import { Loader2, Search, Briefcase, Edit } from 'lucide-react';
+import Link from 'next/link';
 
 export default function AdminInstructorsPage() {
   const [search, setSearch] = useState('');
@@ -60,6 +61,7 @@ export default function AdminInstructorsPage() {
                   <th className="p-4 font-bold text-gray-600 text-sm">ایمیل</th>
                   <th className="p-4 font-bold text-gray-600 text-sm">تخصص</th>
                   <th className="p-4 font-bold text-gray-600 text-sm">وضعیت</th>
+                  <th className="p-4 font-bold text-gray-600 text-sm text-center">عملیات</th>
                 </tr>
               </thead>
               <tbody>
@@ -87,6 +89,13 @@ export default function AdminInstructorsPage() {
                       }`}>
                         {user.status === 'active' ? 'فعال' : 'غیرفعال'}
                       </span>
+                    </td>
+                    <td className="p-4">
+                      <div className="flex justify-center items-center gap-2">
+                        <Link href={`/admin/users/${user._id}`} className="p-2 text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors" title="ویرایش">
+                          <Edit className="w-4 h-4" />
+                        </Link>
+                      </div>
                     </td>
                   </tr>
                 ))}

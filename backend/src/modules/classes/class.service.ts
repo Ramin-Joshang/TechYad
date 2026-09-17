@@ -29,10 +29,24 @@ export class ClassService {
       ...data,
       meetingLink: mockRoomLink,
       createdBy: userId,
-      instructors: [userId] // By default, the creator is the instructor
+      instructors: data.instructors?.length > 0 ? data.instructors : [userId]
     });
   }
 
+  static async updateClass(id: string, userId: string, data: any, overrideAuth: boolean = false) {
+    const query = overrideAuth ? { _id: id } : { _id: id, instructors: userId };
+    const cls = await Class.findOneAndUpdate(query, data, { new: true });
+    if (!cls) throw new AppError('Class not found or unauthorized', 404);
+    return cls;
+  }
+  
+  static async deleteClass(id: string, userId: string, overrideAuth: boolean = false) {
+    const query = overrideAuth ? { _id: id } : { _id: id, instructors: userId };
+    const cls = await Class.findOneAndDelete(query);
+    if (!cls) throw new AppError('Class not found or unauthorized', 404);
+    return cls;
+  }
+  
   static async getMyClasses(userId: string) {
     const enrollments = await ClassEnrollment.find({ userId, status: 'active' })
       .populate('classId');

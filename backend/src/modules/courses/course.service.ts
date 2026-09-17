@@ -11,7 +11,7 @@ export class CourseService {
   static async createCourse(instructorId: string, data: any) {
     return await Course.create({
       ...data,
-      instructors: [instructorId],
+      instructors: data.instructors?.length > 0 ? data.instructors : [instructorId],
       createdBy: instructorId,
       status: 'draft'
     });
@@ -166,9 +166,10 @@ static async getInstructorCourses(instructorId: string, query: any) {
     };
   }
 
-  static async updateCourse(id: string, instructorId: string, data: any) {
+  static async updateCourse(id: string, instructorId: string, data: any, overrideAuth: boolean = false) {
+    const query = overrideAuth ? { _id: id } : { _id: id, instructors: instructorId };
     const course = await Course.findOneAndUpdate(
-      { _id: id, instructors: instructorId },
+      query,
       data,
       { new: true, runValidators: true }
     );
@@ -216,6 +217,12 @@ static async getInstructorCourses(instructorId: string, query: any) {
     return { courses, total, page, pages: Math.ceil(total / limit) };
   }
 
+  static async deleteCourse(id: string) {
+    const course = await Course.findByIdAndDelete(id);
+    if (!course) throw new AppError('Course not found', 404);
+    // TODO: cleanup chapters, lessons, etc.
+    return course;
+  }
   static async publishCourse(id: string) {
     const course = await Course.findByIdAndUpdate(id, { status: 'published', publishedAt: new Date() }, { new: true });
     if (!course) throw new AppError('Course not found', 404, 'NOT_FOUND');

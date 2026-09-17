@@ -1,8 +1,10 @@
 'use client';
+import toast from 'react-hot-toast';
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { adminApi } from '@/features/admin/api/admin.api';
-import { Loader2, Search, BookOpen, CheckCircle, XCircle } from 'lucide-react';
+import { Loader2, Search, BookOpen, CheckCircle, XCircle, Plus, Edit, Trash2 } from 'lucide-react';
+import Link from 'next/link';
 
 export default function AdminCoursesPage() {
   const queryClient = useQueryClient();
@@ -16,6 +18,14 @@ export default function AdminCoursesPage() {
   const publishMutation = useMutation({
     mutationFn: (id: string) => adminApi.publishCourse(id),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['adminCourses'] })
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: (id: string) => adminApi.deleteCourse(id),
+    onSuccess: () => {
+      toast.success('دوره با موفقیت حذف شد');
+      queryClient.invalidateQueries({ queryKey: ['adminCourses'] });
+    }
   });
 
   const rejectMutation = useMutation({
@@ -87,7 +97,13 @@ export default function AdminCoursesPage() {
                       </span>
                     </td>
                     <td className="p-4">
-                      <div className="flex justify-center gap-2">
+                      <div className="flex justify-center items-center gap-2">
+                        <Link href={`/instructor/courses/${course._id}/edit`} className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors" title="ویرایش">
+                          <Edit className="w-4 h-4" />
+                        </Link>
+                        <button onClick={() => { if(window.confirm('آیا از حذف اطمینان دارید؟')) deleteMutation.mutate(course._id) }} className="p-2 text-rose-600 hover:bg-rose-50 rounded-lg transition-colors" title="حذف">
+                          <Trash2 className="w-4 h-4" />
+                        </button>
                         {course.status === 'pending' && (
                           <>
                             <button 

@@ -1,56 +1,58 @@
-'use client';
+const fs = require('fs');
+
+const code = `'use client';
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { adminApi } from '@/features/admin/api/admin.api';
+import { api } from '@/lib/api';
 import { Loader2, Search, Video, Calendar, Users, Plus, Edit, Trash2, Save, X } from 'lucide-react';
 import Link from 'next/link';
 import toast from 'react-hot-toast';
 
-export default function AdminClassesPage() {
+export default function InstructorClassesPage() {
   const queryClient = useQueryClient();
   const [search, setSearch] = useState('');
   const [showForm, setShowForm] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
   
   const [formData, setFormData] = useState({
-    title: '', slug: '', shortDescription: '', mode: 'online', startDate: '', price: 0, capacity: 50
+    title: '', slug: '', shortDescription: '', mode: 'online', startDate: '', price: 0, maxStudents: 50
   });
 
   const { data: classesData, isLoading } = useQuery({
-    queryKey: ['adminClasses'],
-    queryFn: () => adminApi.getClasses().then(res => res.data)
+    queryKey: ['instructor-classes'],
+    queryFn: () => api.get('/instructor/classes').then(res => res.data)
   });
 
   const createMutation = useMutation({
-    mutationFn: (data: any) => adminApi.createClass(data),
+    mutationFn: (data: any) => api.post('/instructor/classes', data),
     onSuccess: () => {
       toast.success('کلاس با موفقیت ایجاد شد');
-      queryClient.invalidateQueries({ queryKey: ['adminClasses'] });
+      queryClient.invalidateQueries({ queryKey: ['instructor-classes'] });
       resetForm();
     }
   });
 
   const updateMutation = useMutation({
-    mutationFn: (data: any) => adminApi.updateClass(editId!, data),
+    mutationFn: (data: any) => api.patch(\`/instructor/classes/\${editId}\`, data),
     onSuccess: () => {
       toast.success('کلاس با موفقیت ویرایش شد');
-      queryClient.invalidateQueries({ queryKey: ['adminClasses'] });
+      queryClient.invalidateQueries({ queryKey: ['instructor-classes'] });
       resetForm();
     }
   });
 
   const deleteMutation = useMutation({
-    mutationFn: (id: string) => adminApi.deleteClass(id),
+    mutationFn: (id: string) => api.delete(\`/instructor/classes/\${id}\`),
     onSuccess: () => {
       toast.success('کلاس با موفقیت حذف شد');
-      queryClient.invalidateQueries({ queryKey: ['adminClasses'] });
+      queryClient.invalidateQueries({ queryKey: ['instructor-classes'] });
     }
   });
 
   const resetForm = () => {
     setShowForm(false);
     setEditId(null);
-    setFormData({ title: '', slug: '', shortDescription: '', mode: 'online', startDate: '', price: 0, capacity: 50 });
+    setFormData({ title: '', slug: '', shortDescription: '', mode: 'online', startDate: '', price: 0, maxStudents: 50 });
   };
 
   const handleEdit = (cls: any) => {
@@ -62,7 +64,7 @@ export default function AdminClassesPage() {
       mode: cls.mode || 'online',
       startDate: cls.startDate ? cls.startDate.substring(0, 16) : '',
       price: cls.price || 0,
-      capacity: cls.capacity || cls.maxStudents || 50
+      maxStudents: cls.capacity || cls.maxStudents || 50
     });
     setShowForm(true);
   };
@@ -80,7 +82,7 @@ export default function AdminClassesPage() {
 
   if (showForm) {
     return (
-      <div className="max-w-3xl mx-auto bg-white p-6 md:p-8 rounded-3xl shadow-sm border border-gray-100">
+      <div className="max-w-3xl mx-auto bg-white p-6 md:p-8 rounded-3xl shadow-sm border border-gray-100 animate-in fade-in slide-in-from-bottom-4 duration-500">
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-xl font-bold text-gray-900">{editId ? 'ویرایش کلاس' : 'ایجاد کلاس جدید'}</h2>
           <button onClick={resetForm} className="p-2 text-gray-400 hover:text-gray-900 rounded-xl bg-gray-50"><X className="w-5 h-5" /></button>
@@ -116,7 +118,7 @@ export default function AdminClassesPage() {
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1.5">ظرفیت</label>
-              <input type="number" value={formData.capacity} onChange={e => setFormData({...formData, capacity: Number(e.target.value)})} className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-emerald-500 outline-none dir-ltr text-left" />
+              <input type="number" value={formData.maxStudents} onChange={e => setFormData({...formData, maxStudents: Number(e.target.value)})} className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-emerald-500 outline-none dir-ltr text-left" />
             </div>
           </div>
           <button type="submit" disabled={createMutation.isPending || updateMutation.isPending} className="w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl flex items-center justify-center gap-2 transition disabled:opacity-70">
@@ -129,36 +131,24 @@ export default function AdminClassesPage() {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white p-6 rounded-3xl shadow-sm border border-gray-100">
         <div className="flex items-center gap-3">
           <div className="p-3 bg-emerald-100 text-emerald-600 rounded-xl"><Video className="w-6 h-6" /></div>
           <div>
-            <h1 className="text-2xl font-black text-gray-900">کلاس‌های زنده و حضوری</h1>
-            <p className="text-gray-500 mt-1">مشاهده و مدیریت کلاس‌های ایجاد شده در پلتفرم</p>
+            <h1 className="text-xl font-black text-gray-900">مدیریت کلاس‌ها</h1>
+            <p className="text-gray-500 mt-1 text-sm">برنامه‌ریزی و مدیریت کلاس‌های آنلاین و حضوری</p>
           </div>
         </div>
-        <button onClick={() => setShowForm(true)} className="flex items-center gap-2 bg-emerald-600 text-white px-4 py-2.5 rounded-xl font-medium hover:bg-emerald-700 transition">
+        <button onClick={() => setShowForm(true)} className="flex items-center justify-center gap-2 bg-emerald-600 text-white px-5 py-2.5 rounded-xl font-medium hover:bg-emerald-700 transition w-full sm:w-auto">
           <Plus className="w-5 h-5" /> ایجاد کلاس جدید
         </button>
-      </div>
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4">
-        <div className="relative max-w-md">
-          <Search className="w-5 h-5 text-gray-400 absolute right-3 top-1/2 -translate-y-1/2" />
-          <input 
-            type="text"
-            placeholder="جستجوی کلاس..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-4 pr-10 py-2 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none"
-          />
-        </div>
       </div>
       {isLoading ? (
         <div className="p-12 flex justify-center"><Loader2 className="w-8 h-8 animate-spin text-emerald-600" /></div>
       ) : filteredClasses.length === 0 ? (
         <div className="p-12 bg-white rounded-3xl border border-gray-100 text-center text-gray-500 font-medium">
-          کلاسی برای نمایش وجود ندارد.
+          شما هنوز کلاسی ایجاد نکرده‌اید.
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -175,7 +165,7 @@ export default function AdminClassesPage() {
               </div>
 
               <div className="aspect-video bg-gray-100 relative">
-                <img src={cls.thumbnail || `https://picsum.photos/seed/${cls._id}/400/250`} alt={cls.title} className="w-full h-full object-cover" />
+                <img src={cls.thumbnail || \`https://picsum.photos/seed/\${cls._id}/400/250\`} alt={cls.title} className="w-full h-full object-cover" />
                 <div className="absolute top-3 right-3 bg-white/90 backdrop-blur text-xs font-bold px-2 py-1 rounded-md shadow-sm">
                   {cls.mode === 'online' ? 'آنلاین' : 'حضوری'}
                 </div>
@@ -197,9 +187,20 @@ export default function AdminClassesPage() {
                   </div>
                 </div>
                 
-                <Link href={`/classes/${cls.slug || cls._id}`} className="w-full text-center py-2 bg-gray-50 hover:bg-gray-100 text-gray-700 font-bold rounded-xl transition-colors">
-                  مشاهده صفحه کلاس
-                </Link>
+                <div className="grid grid-cols-2 gap-2 mt-auto">
+                  <Link href={\`/classes/\${cls.slug || cls._id}\`} className="text-center py-2 bg-gray-50 hover:bg-gray-100 text-gray-700 text-sm font-bold rounded-xl transition-colors">
+                    مشاهده صفحه
+                  </Link>
+                  {cls.meetingLink ? (
+                    <a href={cls.meetingLink} target="_blank" rel="noreferrer" className="text-center py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 text-sm font-bold rounded-xl transition-colors">
+                      ورود به کلاس
+                    </a>
+                  ) : (
+                    <button disabled className="text-center py-2 bg-gray-50 text-gray-400 text-sm font-bold rounded-xl">
+                      حضوری
+                    </button>
+                  )}
+                </div>
               </div>
             </div>
           ))}
@@ -208,3 +209,5 @@ export default function AdminClassesPage() {
     </div>
   );
 }
+`;
+fs.writeFileSync('frontend/src/app/(dashboard)/instructor/classes/page.tsx', code);

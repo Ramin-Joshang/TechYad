@@ -2,7 +2,8 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { adminApi } from '@/features/admin/api/admin.api';
-import { Loader2, Search, Shield, UserX, UserCheck, MoreVertical } from 'lucide-react';
+import { Loader2, Search, Shield, UserX, UserCheck, MoreVertical, Edit } from 'lucide-react';
+import Link from 'next/link';
 
 export default function AdminUsersPage() {
   const queryClient = useQueryClient();
@@ -96,7 +97,10 @@ export default function AdminUsersPage() {
                       </span>
                     </td>
                     <td className="p-4">
-                      <div className="flex justify-center gap-2">
+                      <div className="flex justify-center items-center gap-2">
+                        <Link href={`/admin/users/${user._id}`} className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors" title="ویرایش">
+                          <Edit className="w-4 h-4" />
+                        </Link>
                         {user.status !== 'blocked' ? (
                           <button 
                             onClick={() => updateStatusMutation.mutate({ id: user._id, status: 'blocked' })}
