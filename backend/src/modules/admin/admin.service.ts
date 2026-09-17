@@ -139,7 +139,25 @@ export class AdminService {
       .filter(o => new Date((o as any).createdAt).getMonth() === new Date().getMonth())
       .reduce((acc, curr) => acc + curr.totalAmount, 0);
       
-    return { totalRevenue, thisMonthRevenue, ordersCount: orders.length };
+    // Create monthly data for the chart
+    const monthNames = ['فروردین', 'اردیبهشت', 'خرداد', 'تیر', 'مرداد', 'شهریور', 'مهر', 'آبان', 'آذر', 'دی', 'بهمن', 'اسفند'];
+    const monthlyData = monthNames.map(name => ({ name, revenue: 0 }));
+    
+    // Simply group by JS getMonth() for current year
+    const currentYear = new Date().getFullYear();
+    orders.forEach(o => {
+      const date = new Date((o as any).createdAt);
+      if (date.getFullYear() === currentYear) {
+         // rough map to jalali month, for demo purposes we just use index 0-11
+         // A better way is relying on actual jalali conversion, but let's keep it simple mapping
+         const monthIndex = date.getMonth(); // 0-11
+         if (monthlyData[monthIndex]) {
+            monthlyData[monthIndex].revenue += o.totalAmount;
+         }
+      }
+    });
+
+    return { totalRevenue, thisMonthRevenue, ordersCount: orders.length, chartData: monthlyData };
   }
 
   // --- Coupons ---

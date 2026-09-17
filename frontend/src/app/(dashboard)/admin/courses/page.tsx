@@ -45,6 +45,10 @@ export default function AdminCoursesPage() {
           <h1 className="text-2xl font-black text-gray-900">مدیریت دوره‌ها</h1>
           <p className="text-gray-500 mt-1">نمایش و مدیریت وضعیت دوره‌های آموزشی</p>
         </div>
+        <Link href="/instructor/courses/new" className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 transition">
+          <Plus className="w-5 h-5" />
+          افزودن دوره جدید
+        </Link>
       </div>
 
       <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4">
@@ -104,23 +108,23 @@ export default function AdminCoursesPage() {
                         <button onClick={() => { if(window.confirm('آیا از حذف اطمینان دارید؟')) deleteMutation.mutate(course._id) }} className="p-2 text-rose-600 hover:bg-rose-50 rounded-lg transition-colors" title="حذف">
                           <Trash2 className="w-4 h-4" />
                         </button>
+                        {course.status !== 'published' && (
+                          <button 
+                            onClick={() => publishMutation.mutate(course._id)}
+                            className="p-2 text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors"
+                            title="تایید و انتشار"
+                          >
+                            <CheckCircle className="w-4 h-4" />
+                          </button>
+                        )}
                         {course.status === 'pending' && (
-                          <>
-                            <button 
-                              onClick={() => publishMutation.mutate(course._id)}
-                              className="p-2 text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors"
-                              title="تایید و انتشار"
-                            >
-                              <CheckCircle className="w-4 h-4" />
-                            </button>
-                            <button 
+                           <button 
                               onClick={() => rejectMutation.mutate(course._id)}
                               className="p-2 text-rose-600 hover:bg-rose-50 rounded-lg transition-colors"
                               title="رد کردن"
                             >
                               <XCircle className="w-4 h-4" />
-                            </button>
-                          </>
+                           </button>
                         )}
                       </div>
                     </td>

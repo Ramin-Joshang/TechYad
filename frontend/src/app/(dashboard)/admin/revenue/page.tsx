@@ -16,18 +16,7 @@ export default function AdminRevenuePage() {
     return <div className="flex justify-center p-20"><Loader2 className="w-10 h-10 animate-spin text-emerald-600" /></div>;
   }
 
-  const { totalRevenue = 0, thisMonthRevenue = 0, ordersCount = 0 } = revenueData || {};
-
-  // Mock data for the chart (since we don't have historical data API yet, we just show a static beautiful chart for now)
-  const chartData = [
-    { name: 'فروردین', revenue: totalRevenue * 0.1 },
-    { name: 'اردیبهشت', revenue: totalRevenue * 0.15 },
-    { name: 'خرداد', revenue: totalRevenue * 0.05 },
-    { name: 'تیر', revenue: totalRevenue * 0.12 },
-    { name: 'مرداد', revenue: totalRevenue * 0.2 },
-    { name: 'شهریور', revenue: totalRevenue * 0.25 },
-    { name: 'مهر', revenue: thisMonthRevenue },
-  ];
+  const { totalRevenue = 0, thisMonthRevenue = 0, ordersCount = 0, chartData = [] } = revenueData || {};
 
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
