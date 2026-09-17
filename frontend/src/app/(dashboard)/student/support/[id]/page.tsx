@@ -5,12 +5,13 @@ import { supportApi } from '@/features/support/api/support.api';
 import { Ticket, Loader2, ArrowRight, Clock, MessageSquare, CheckCircle, Send, ShieldAlert, User } from 'lucide-react';
 import Link from 'next/link';
 import { use, useState, useEffect, useRef } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useParams } from 'next/navigation';
 import { useAuthStore } from '@/features/auth/stores/auth.store';
 
-export default function TicketDetailsPage({ params }: { params: Promise<{ id: string }> }) {
+export default function Page() {
   const router = useRouter();
-  const { id } = use(params);
+  const params = useParams();
+  const id = (useParams().id as string) as string;
   const queryClient = useQueryClient();
   const { user } = useAuthStore();
   const messagesEndRef = useRef<HTMLDivElement>(null);

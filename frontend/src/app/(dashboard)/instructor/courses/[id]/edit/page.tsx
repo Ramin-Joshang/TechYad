@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useEffect, use } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect, } from 'react';
+import { useRouter, useParams } from 'next/navigation';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { coursesApi } from '@/features/courses/api/courses.api';
 import { adminApi } from '@/features/admin/api/admin.api';
@@ -14,12 +14,12 @@ import {
 } from 'lucide-react';
 import { CurriculumBuilder } from './CurriculumBuilder';
 
-export default function EditCoursePage({ params }: { params: Promise<{ id: string }> }) {
+export default function EditCoursePage() {
   const { user } = useAuthStore();
   const router = useRouter();
   const queryClient = useQueryClient();
-  const resolvedParams = use(params);
-  const courseId = resolvedParams.id;
+  const params = useParams();
+  const courseId = params.id as string;
   
   const [activeTab, setActiveTab] = useState<'info' | 'curriculum'>('info');
   const [loading, setLoading] = useState(false);
@@ -28,7 +28,12 @@ export default function EditCoursePage({ params }: { params: Promise<{ id: strin
   // Data Fetching
   const { data: course, isLoading: loadingCourse } = useQuery({
     queryKey: ['course', courseId],
-    queryFn: () => api.get(`/instructor/courses/${courseId}`).then(res => res.data)
+    queryFn: () => {
+      if (user?.role === 'admin' || user?.role === 'super-admin') {
+        return adminApi.getCourseById(courseId).then(res => res.data.data || res.data);
+      }
+      return api.get(`/instructor/courses/${courseId}`).then(res => res.data.data || res.data);
+    }
   });
 
   const { data: chapters, isLoading: loadingChapters } = useQuery({

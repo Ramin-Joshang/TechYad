@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useEffect, use } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect } from 'react';
+import { useRouter, useParams } from 'next/navigation';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { coursesApi } from '@/features/courses/api/courses.api';
 import { learningApi } from '@/features/learning/api/learning.api';
@@ -10,9 +10,10 @@ import { LessonComments } from '@/features/learning/components/LessonComments';
 import { Menu, X, CheckCircle2, PlayCircle, Lock, ChevronLeft, ChevronRight, Download, MessageSquare, ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 
-export default function CoursePlayerPage({ params }: { params: Promise<{ slug: string }> }) {
+export default function Page() {
   const router = useRouter();
-  const { slug } = use(params);
+  const params = useParams();
+  const slug = (useParams().slug as string) as string;
   
   const [activeLessonId, setActiveLessonId] = useState<string | null>(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);

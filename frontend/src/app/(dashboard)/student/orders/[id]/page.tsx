@@ -4,12 +4,13 @@ import { useQuery } from '@tanstack/react-query';
 import { commerceApi } from '@/features/commerce/api/commerce.api';
 import { Loader2, ArrowRight, Receipt, CheckCircle, XCircle, Clock } from 'lucide-react';
 import Link from 'next/link';
-import { use } from 'react';
-import { useRouter } from 'next/navigation';
 
-export default function OrderDetailsPage({ params }: { params: Promise<{ id: string }> }) {
+import { useRouter, useParams } from 'next/navigation';
+
+export default function Page() {
   const router = useRouter();
-  const { id } = use(params);
+  const params = useParams();
+  const id = (useParams().id as string) as string;
   
   const { data: order, isLoading, isError } = useQuery({
     queryKey: ['myOrder', id],

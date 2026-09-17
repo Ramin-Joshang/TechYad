@@ -5,11 +5,12 @@ import { quizzesApi } from '@/features/learning/api/quizzes.api';
 import { Target, Loader2, ArrowRight, Clock, AlertTriangle, CheckCircle2, ChevronRight, ChevronLeft } from 'lucide-react';
 import Link from 'next/link';
 import { use, useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useParams } from 'next/navigation';
 
-export default function QuizDetailsPage({ params }: { params: Promise<{ id: string }> }) {
+export default function Page() {
   const router = useRouter();
-  const { id } = use(params);
+  const params = useParams();
+  const id = (useParams().id as string) as string;
   const queryClient = useQueryClient();
   
   const [attemptStatus, setAttemptStatus] = useState<'intro' | 'active' | 'result'>('intro');

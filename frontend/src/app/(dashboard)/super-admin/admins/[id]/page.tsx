@@ -1,18 +1,18 @@
 'use client';
 
-import { useState, useEffect, use } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect, } from 'react';
+import { useRouter, useParams } from 'next/navigation';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { superAdminApi } from '@/features/admin/api/super-admin.api';
 import { ArrowRight, ShieldCheck, Loader2, Save } from 'lucide-react';
 import Link from 'next/link';
 import toast from 'react-hot-toast';
 
-export default function Page({ params }: { params: Promise<{ id: string }> }) {
+export default function Page() {
   const router = useRouter();
   const queryClient = useQueryClient();
-  const unwrappedParams = use(params) as any;
-  const id = unwrappedParams.id;
+  const params = useParams();
+  const id = params.id as string;
 
   const [formData, setFormData] = useState({
     firstName: '',
