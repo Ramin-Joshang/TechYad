@@ -10,7 +10,7 @@ interface TabsProps {
 
 export function Tabs({ tabs, activeTab, onChange, className }: TabsProps) {
   return (
-    <div className={cn("flex space-x-2 space-x-reverse border-b border-gray-100", className)}>
+    <div className={cn("flex space-x-2 space-x-reverse border-b border-[var(--neo-border)]", className)}>
       {tabs.map((tab) => (
         <button
           key={tab.id}
@@ -18,8 +18,8 @@ export function Tabs({ tabs, activeTab, onChange, className }: TabsProps) {
           className={cn(
             "px-4 py-3 text-sm font-bold border-b-2 transition-colors",
             activeTab === tab.id
-              ? "border-blue-600 text-blue-600"
-              : "border-transparent text-gray-500 hover:text-gray-900 hover:border-gray-300"
+              ? "border-[var(--neo-primary)] text-[var(--neo-primary)]"
+              : "border-transparent text-[var(--neo-text-muted)] hover:text-[var(--neo-text-main)] hover:border-[var(--neo-border)]"
           )}
         >
           {tab.label}

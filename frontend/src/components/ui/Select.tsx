@@ -10,10 +10,10 @@ const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
   ({ className, label, error, children, ...props }, ref) => {
     return (
       <div className="w-full flex flex-col gap-1.5">
-        {label && <label className="text-sm font-medium text-gray-700">{label}</label>}
+        {label && <label className="text-sm font-medium text-[var(--neo-text-secondary)]">{label}</label>}
         <select
           className={cn(
-            "flex w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-900 transition-colors focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:cursor-not-allowed disabled:opacity-50 appearance-none",
+            "flex w-full rounded-xl border border-[var(--neo-border)] bg-[var(--neo-bg)] px-4 py-3 text-sm text-[var(--neo-text-main)] transition-colors focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:cursor-not-allowed disabled:opacity-50 appearance-none",
             error && "border-red-500 focus:ring-red-500",
             className
           )}

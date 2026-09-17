@@ -34,33 +34,33 @@ function PaymentSuccessContent() {
   }
 
   return (
-    <main className="bg-gray-50 min-h-screen py-16 px-4">
-      <div className="max-w-xl mx-auto bg-white rounded-3xl shadow-sm border border-gray-100 p-8 sm:p-12 text-center">
+    <main className="bg-[var(--neo-bg)] min-h-screen py-16 px-4">
+      <div className="max-w-xl mx-auto bg-white rounded-3xl shadow-sm border border-[var(--neo-border)] p-8 sm:p-12 text-center">
         <div className="w-24 h-24 bg-emerald-50 text-emerald-500 rounded-full flex items-center justify-center mx-auto mb-6">
           <CheckCircle2 className="w-12 h-12" />
         </div>
         
-        <h1 className="text-3xl font-black text-gray-900 mb-2">پرداخت با موفقیت انجام شد</h1>
-        <p className="text-gray-500 mb-8">از خرید شما سپاسگزاریم. سفارش شما با موفقیت ثبت و دوره‌ها به حساب کاربری شما اضافه شدند.</p>
+        <h1 className="text-3xl font-black text-[var(--neo-text-main)] mb-2">پرداخت با موفقیت انجام شد</h1>
+        <p className="text-[var(--neo-text-muted)] mb-8">از خرید شما سپاسگزاریم. سفارش شما با موفقیت ثبت و دوره‌ها به حساب کاربری شما اضافه شدند.</p>
         
         {order && (
-          <div className="bg-gray-50 rounded-2xl p-6 mb-8 text-right border border-gray-100">
-            <div className="flex justify-between items-center mb-4 border-b border-gray-200 pb-4">
-              <span className="text-gray-500">شماره سفارش:</span>
-              <span className="font-bold text-gray-900 font-mono text-sm">{order._id}</span>
+          <div className="bg-[var(--neo-bg)] rounded-2xl p-6 mb-8 text-right border border-[var(--neo-border)]">
+            <div className="flex justify-between items-center mb-4 border-b border-[var(--neo-border)] pb-4">
+              <span className="text-[var(--neo-text-muted)]">شماره سفارش:</span>
+              <span className="font-bold text-[var(--neo-text-main)] font-mono text-sm">{order._id}</span>
             </div>
             <div className="flex justify-between items-center mb-6">
-              <span className="text-gray-500">مبلغ پرداخت شده:</span>
+              <span className="text-[var(--neo-text-muted)]">مبلغ پرداخت شده:</span>
               <span className="font-bold text-emerald-600 text-lg">{order.totalAmount?.toLocaleString('fa-IR')} تومان</span>
             </div>
             
-            <h3 className="font-bold text-gray-900 mb-3 flex items-center gap-2">
-              <BookOpen className="w-5 h-5 text-blue-500" />
+            <h3 className="font-bold text-[var(--neo-text-main)] mb-3 flex items-center gap-2">
+              <BookOpen className="w-5 h-5 text-[var(--neo-secondary)]" />
               دوره‌های خریداری شده:
             </h3>
             <ul className="space-y-2">
               {order.items?.map((item: any) => (
-                <li key={item.itemId} className="flex items-center gap-2 text-sm text-gray-700 bg-white p-3 rounded-xl border border-gray-100">
+                <li key={item.itemId} className="flex items-center gap-2 text-sm text-[var(--neo-text-secondary)] bg-white p-3 rounded-xl border border-[var(--neo-border)]">
                   <div className="w-2 h-2 rounded-full bg-emerald-400"></div>
                   {item.titleSnapshot}
                 </li>
@@ -70,11 +70,11 @@ function PaymentSuccessContent() {
         )}
 
         <div className="flex flex-col sm:flex-row gap-4">
-          <Link href="/student" className="flex-1 bg-blue-600 text-white px-6 py-4 rounded-xl font-bold hover:bg-blue-700 transition flex items-center justify-center gap-2 shadow-lg shadow-blue-600/20">
+          <Link href="/student" className="flex-1 bg-[var(--neo-primary)] text-white px-6 py-4 rounded-xl font-bold hover:bg-blue-700 transition flex items-center justify-center gap-2 shadow-lg shadow-[var(--neo-primary)]/20">
             شروع یادگیری
             <ArrowLeft className="w-5 h-5" />
           </Link>
-          <Link href="/student/orders" className="flex-1 bg-gray-100 text-gray-700 px-6 py-4 rounded-xl font-bold hover:bg-gray-200 transition text-center">
+          <Link href="/student/orders" className="flex-1 bg-[var(--neo-surface-2)] text-[var(--neo-text-secondary)] px-6 py-4 rounded-xl font-bold hover:bg-[var(--neo-border)] transition text-center">
             مشاهده سفارشات
           </Link>
         </div>

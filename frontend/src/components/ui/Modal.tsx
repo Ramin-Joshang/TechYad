@@ -18,20 +18,20 @@ export function Modal({ isOpen, onClose, title, children, footer, className }: M
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       {/* Backdrop */}
       <div 
-        className="absolute inset-0 bg-gray-900/50 backdrop-blur-sm"
+        className="absolute inset-0 bg-black/50 backdrop-blur-sm"
         onClick={onClose}
       />
       
       {/* Modal */}
       <div className={cn(
-        "relative w-full max-w-lg bg-white rounded-3xl shadow-xl border border-gray-100 flex flex-col max-h-[90vh]",
+        "relative w-full max-w-lg bg-white rounded-3xl shadow-xl border border-[var(--neo-border)] flex flex-col max-h-[90vh]",
         className
       )}>
-        <div className="flex items-center justify-between p-6 border-b border-gray-100 shrink-0">
-          <h2 className="text-xl font-bold text-gray-900">{title}</h2>
+        <div className="flex items-center justify-between p-6 border-b border-[var(--neo-border)] shrink-0">
+          <h2 className="text-xl font-bold text-[var(--neo-text-main)]">{title}</h2>
           <button 
             onClick={onClose}
-            className="p-2 text-gray-400 hover:text-gray-900 hover:bg-gray-100 rounded-xl transition-colors"
+            className="p-2 text-[var(--neo-text-muted)] hover:text-[var(--neo-text-main)] hover:bg-[var(--neo-surface-2)] rounded-xl transition-colors"
           >
             <X className="w-5 h-5" />
           </button>
@@ -42,7 +42,7 @@ export function Modal({ isOpen, onClose, title, children, footer, className }: M
         </div>
         
         {footer && (
-          <div className="p-6 border-t border-gray-100 bg-gray-50/50 rounded-b-3xl shrink-0">
+          <div className="p-6 border-t border-[var(--neo-border)] bg-[var(--neo-bg)]/50 rounded-b-3xl shrink-0">
             {footer}
           </div>
         )}

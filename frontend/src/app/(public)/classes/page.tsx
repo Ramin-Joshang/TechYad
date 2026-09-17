@@ -8,7 +8,7 @@ export const metadata = {
 
 export default function ClassesPage() {
   return (
-    <Suspense fallback={<div className="min-h-screen flex items-center justify-center text-gray-500">درحال بارگذاری کلاس‌ها...</div>}>
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center text-[var(--neo-text-muted)]">درحال بارگذاری کلاس‌ها...</div>}>
       <ClassesList />
     </Suspense>
   );

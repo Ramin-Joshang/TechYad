@@ -8,29 +8,29 @@ export const metadata = {
 
 export default function PrivacyPage() {
   return (
-    <main className="bg-gray-50 min-h-screen py-16">
+    <main className="bg-[var(--neo-bg)] min-h-screen py-16">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-12">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-blue-100 text-blue-600 mb-6">
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-[var(--neo-primary)]/10 text-[var(--neo-primary)] mb-6">
             <Shield className="w-8 h-8" />
           </div>
-          <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">حریم خصوصی کاربران</h1>
-          <p className="text-lg text-gray-600">
+          <h1 className="text-3xl md:text-4xl font-bold text-[var(--neo-text-main)] mb-4">حریم خصوصی کاربران</h1>
+          <p className="text-lg text-[var(--neo-text-secondary)]">
             حفظ امنیت و حریم خصوصی شما اولویت اصلی ما در تک‌یاد است.
           </p>
         </div>
 
-        <div className="bg-white rounded-3xl p-8 md:p-12 shadow-sm border border-gray-100 relative">
+        <div className="bg-white rounded-3xl p-8 md:p-12 shadow-sm border border-[var(--neo-border)] relative">
           {/* Last updated */}
-          <div className="absolute top-8 left-8 text-xs font-medium text-gray-400 bg-gray-50 px-3 py-1.5 rounded-lg border border-gray-100">
+          <div className="absolute top-8 left-8 text-xs font-medium text-[var(--neo-text-muted)] bg-[var(--neo-bg)] px-3 py-1.5 rounded-lg border border-[var(--neo-border)]">
             آخرین بروزرسانی: ۱۵ شهریور ۱۴۰۳
           </div>
 
-          <div className="prose prose-blue prose-lg max-w-none prose-headings:text-gray-900 prose-headings:font-bold prose-p:text-gray-600 prose-p:leading-relaxed prose-li:text-gray-600 mt-8">
+          <div className="prose prose-blue prose-lg max-w-none prose-headings:text-[var(--neo-text-main)] prose-headings:font-bold prose-p:text-[var(--neo-text-secondary)] prose-p:leading-relaxed prose-li:text-[var(--neo-text-secondary)] mt-8">
             
             <section className="mb-12">
-              <h2 className="flex items-center gap-2 text-2xl border-b border-gray-100 pb-4">
-                <Eye className="w-6 h-6 text-blue-600" />
+              <h2 className="flex items-center gap-2 text-2xl border-b border-[var(--neo-border)] pb-4">
+                <Eye className="w-6 h-6 text-[var(--neo-primary)]" />
                 چه اطلاعاتی از شما دریافت می‌شود؟
               </h2>
               <p>
@@ -44,8 +44,8 @@ export default function PrivacyPage() {
             </section>
 
             <section className="mb-12">
-              <h2 className="flex items-center gap-2 text-2xl border-b border-gray-100 pb-4">
-                <Database className="w-6 h-6 text-blue-600" />
+              <h2 className="flex items-center gap-2 text-2xl border-b border-[var(--neo-border)] pb-4">
+                <Database className="w-6 h-6 text-[var(--neo-primary)]" />
                 نحوه استفاده از اطلاعات
               </h2>
               <p>
@@ -59,12 +59,12 @@ export default function PrivacyPage() {
               </ul>
             </section>
 
-            <section className="mb-12 bg-blue-50/50 p-6 rounded-2xl border border-blue-100">
+            <section className="mb-12 bg-[var(--neo-primary)]/5/50 p-6 rounded-2xl border border-blue-100">
               <h2 className="flex items-center gap-2 text-2xl border-b border-blue-200 pb-4 text-blue-900 mt-0">
-                <Lock className="w-6 h-6 text-blue-600" />
+                <Lock className="w-6 h-6 text-[var(--neo-primary)]" />
                 امنیت اطلاعات شما
               </h2>
-              <p className="font-medium text-gray-800">
+              <p className="font-medium text-[var(--neo-text-main)]">
                 ما متعهد به حفظ امنیت کامل اطلاعات شما هستیم.
               </p>
               <ul className="">
@@ -75,8 +75,8 @@ export default function PrivacyPage() {
             </section>
 
             <section className="mb-12">
-              <h2 className="flex items-center gap-2 text-2xl border-b border-gray-100 pb-4">
-                <FileText className="w-6 h-6 text-blue-600" />
+              <h2 className="flex items-center gap-2 text-2xl border-b border-[var(--neo-border)] pb-4">
+                <FileText className="w-6 h-6 text-[var(--neo-primary)]" />
                 تغییرات در سیاست حریم خصوصی
               </h2>
               <p>
@@ -85,11 +85,11 @@ export default function PrivacyPage() {
             </section>
           </div>
 
-          <div className="mt-12 pt-8 border-t border-gray-100 text-center">
-            <p className="text-gray-500 mb-4">
+          <div className="mt-12 pt-8 border-t border-[var(--neo-border)] text-center">
+            <p className="text-[var(--neo-text-muted)] mb-4">
               در صورت وجود هرگونه سوال درباره سیاست حفظ حریم خصوصی، می‌توانید با تیم پشتیبانی در تماس باشید.
             </p>
-            <Link href="/contact" className="text-blue-600 font-bold hover:underline">
+            <Link href="/contact" className="text-[var(--neo-primary)] font-bold hover:underline">
               ارتباط با پشتیبانی
             </Link>
           </div>

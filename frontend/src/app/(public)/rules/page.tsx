@@ -8,29 +8,29 @@ export const metadata = {
 
 export default function RulesPage() {
   return (
-    <main className="bg-gray-50 min-h-screen py-16">
+    <main className="bg-[var(--neo-bg)] min-h-screen py-16">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-12">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-blue-100 text-blue-600 mb-6">
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-[var(--neo-primary)]/10 text-[var(--neo-primary)] mb-6">
             <Scale className="w-8 h-8" />
           </div>
-          <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">قوانین و مقررات</h1>
-          <p className="text-lg text-gray-600">
+          <h1 className="text-3xl md:text-4xl font-bold text-[var(--neo-text-main)] mb-4">قوانین و مقررات</h1>
+          <p className="text-lg text-[var(--neo-text-secondary)]">
             لطفاً پیش از ثبت‌نام و استفاده از خدمات تک‌یاد، این قوانین را به دقت مطالعه فرمایید.
           </p>
         </div>
 
-        <div className="bg-white rounded-3xl p-8 md:p-12 shadow-sm border border-gray-100 relative">
+        <div className="bg-white rounded-3xl p-8 md:p-12 shadow-sm border border-[var(--neo-border)] relative">
           {/* Last updated */}
-          <div className="absolute top-8 left-8 text-xs font-medium text-gray-400 bg-gray-50 px-3 py-1.5 rounded-lg border border-gray-100">
+          <div className="absolute top-8 left-8 text-xs font-medium text-[var(--neo-text-muted)] bg-[var(--neo-bg)] px-3 py-1.5 rounded-lg border border-[var(--neo-border)]">
             آخرین بروزرسانی: ۱۵ شهریور ۱۴۰۳
           </div>
 
-          <div className="prose prose-blue prose-lg max-w-none prose-headings:text-gray-900 prose-headings:font-bold prose-p:text-gray-600 prose-p:leading-relaxed prose-li:text-gray-600 mt-8">
+          <div className="prose prose-blue prose-lg max-w-none prose-headings:text-[var(--neo-text-main)] prose-headings:font-bold prose-p:text-[var(--neo-text-secondary)] prose-p:leading-relaxed prose-li:text-[var(--neo-text-secondary)] mt-8">
             
             <section className="mb-12">
-              <h2 className="flex items-center gap-2 text-2xl border-b border-gray-100 pb-4">
-                <BookOpen className="w-6 h-6 text-blue-600" />
+              <h2 className="flex items-center gap-2 text-2xl border-b border-[var(--neo-border)] pb-4">
+                <BookOpen className="w-6 h-6 text-[var(--neo-primary)]" />
                 ۱. قوانین کلی سایت
               </h2>
               <p>
@@ -44,8 +44,8 @@ export default function RulesPage() {
             </section>
 
             <section className="mb-12">
-              <h2 className="flex items-center gap-2 text-2xl border-b border-gray-100 pb-4">
-                <CreditCard className="w-6 h-6 text-blue-600" />
+              <h2 className="flex items-center gap-2 text-2xl border-b border-[var(--neo-border)] pb-4">
+                <CreditCard className="w-6 h-6 text-[var(--neo-primary)]" />
                 ۲. قوانین خرید و پرداخت
               </h2>
               <p>
@@ -57,23 +57,23 @@ export default function RulesPage() {
               </ul>
             </section>
 
-            <section className="mb-12 bg-blue-50/50 p-6 rounded-2xl border border-blue-100">
+            <section className="mb-12 bg-[var(--neo-primary)]/5/50 p-6 rounded-2xl border border-blue-100">
               <h2 className="flex items-center gap-2 text-2xl border-b border-blue-200 pb-4 text-blue-900 mt-0">
-                <ShieldAlert className="w-6 h-6 text-blue-600" />
+                <ShieldAlert className="w-6 h-6 text-[var(--neo-primary)]" />
                 ۳. قوانین استفاده از محتوا (کپی‌رایت)
               </h2>
-              <p className="font-medium text-gray-800">
+              <p className="font-medium text-[var(--neo-text-main)]">
                 محتوای آموزشی تک‌یاد حاصل تلاش اساتید و تیم تولید است. هرگونه سوءاستفاده از آن شرعاً و قانوناً حرام و ممنوع است.
               </p>
               <ul className="marker:text-red-500">
-                <li><strong className="text-gray-900">اشتراک‌گذاری حساب ممنوع:</strong> هر حساب کاربری مختص یک نفر است. استفاده همزمان چند نفر از یک حساب موجب مسدود شدن دائم حساب بدون استرداد وجه خواهد شد.</li>
-                <li><strong className="text-gray-900">انتشار محتوا ممنوع:</strong> دانلود، ضبط صفحه نمایش، کپی‌برداری، فروش یا انتشار رایگان ویدئوها و جزوات در شبکه‌های اجتماعی تلگرام و... پیگرد قانونی و قضایی شدید به همراه دارد.</li>
+                <li><strong className="text-[var(--neo-text-main)]">اشتراک‌گذاری حساب ممنوع:</strong> هر حساب کاربری مختص یک نفر است. استفاده همزمان چند نفر از یک حساب موجب مسدود شدن دائم حساب بدون استرداد وجه خواهد شد.</li>
+                <li><strong className="text-[var(--neo-text-main)]">انتشار محتوا ممنوع:</strong> دانلود، ضبط صفحه نمایش، کپی‌برداری، فروش یا انتشار رایگان ویدئوها و جزوات در شبکه‌های اجتماعی تلگرام و... پیگرد قانونی و قضایی شدید به همراه دارد.</li>
               </ul>
             </section>
 
             <section className="mb-12">
-              <h2 className="flex items-center gap-2 text-2xl border-b border-gray-100 pb-4">
-                <Video className="w-6 h-6 text-blue-600" />
+              <h2 className="flex items-center gap-2 text-2xl border-b border-[var(--neo-border)] pb-4">
+                <Video className="w-6 h-6 text-[var(--neo-primary)]" />
                 ۴. قوانین کلاس‌های آنلاین و دوره‌های ضبط‌ شده
               </h2>
               <ul>
@@ -84,8 +84,8 @@ export default function RulesPage() {
             </section>
 
             <section className="mb-12">
-              <h2 className="flex items-center gap-2 text-2xl border-b border-gray-100 pb-4">
-                <Users className="w-6 h-6 text-blue-600" />
+              <h2 className="flex items-center gap-2 text-2xl border-b border-[var(--neo-border)] pb-4">
+                <Users className="w-6 h-6 text-[var(--neo-primary)]" />
                 ۵. قوانین کلاس‌های حضوری
               </h2>
               <ul>
@@ -104,8 +104,8 @@ export default function RulesPage() {
                 شرایط استرداد وجه با توجه به نوع دوره متفاوت است:
               </p>
               <ul>
-                <li><strong className="text-gray-900">دوره‌های ویدئویی (ضبط شده):</strong> به دلیل دسترسی آنی به محتوا، امکان استرداد وجه پس از خرید وجود ندارد. (مگر در صورت اثبات خرابی فایل‌ها از سمت سرور ما).</li>
-                <li><strong className="text-gray-900">کلاس‌های آنلاین و حضوری:</strong>
+                <li><strong className="text-[var(--neo-text-main)]">دوره‌های ویدئویی (ضبط شده):</strong> به دلیل دسترسی آنی به محتوا، امکان استرداد وجه پس از خرید وجود ندارد. (مگر در صورت اثبات خرابی فایل‌ها از سمت سرور ما).</li>
+                <li><strong className="text-[var(--neo-text-main)]">کلاس‌های آنلاین و حضوری:</strong>
                   <ul>
                     <li>تا <strong className="text-red-600">۴۸ ساعت قبل از شروع اولین جلسه</strong>: لغو ثبت‌نام با کسر ۱۰٪ کارمزد.</li>
                     <li>از ۴۸ ساعت قبل تا <strong className="text-red-600">پایان جلسه اول</strong>: لغو ثبت‌نام با کسر ۳۰٪ مبلغ کل دوره.</li>
@@ -117,11 +117,11 @@ export default function RulesPage() {
             </section>
           </div>
 
-          <div className="mt-12 pt-8 border-t border-gray-100 text-center">
-            <p className="text-gray-500 mb-4">
+          <div className="mt-12 pt-8 border-t border-[var(--neo-border)] text-center">
+            <p className="text-[var(--neo-text-muted)] mb-4">
               برای اطلاعات بیشتر در مورد نحوه نگهداری اطلاعات شما، لطفاً صفحه حریم خصوصی را مطالعه کنید.
             </p>
-            <Link href="/privacy" className="text-blue-600 font-bold hover:underline">
+            <Link href="/privacy" className="text-[var(--neo-primary)] font-bold hover:underline">
               مطالعه سیاست حفظ حریم خصوصی
             </Link>
           </div>

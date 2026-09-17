@@ -11,11 +11,11 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   ({ className, variant = 'primary', size = 'md', isLoading, children, ...props }, ref) => {
     
     const variants = {
-      primary: "bg-blue-600 text-white hover:bg-blue-700 shadow-md shadow-blue-600/20",
-      secondary: "bg-gray-100 text-gray-900 hover:bg-gray-200",
+      primary: "bg-[var(--neo-primary)] text-white hover:bg-blue-700 shadow-md shadow-[var(--neo-primary)]/20",
+      secondary: "bg-[var(--neo-surface-2)] text-[var(--neo-text-main)] hover:bg-[var(--neo-border)]",
       danger: "bg-red-600 text-white hover:bg-red-700 shadow-md shadow-red-600/20",
-      ghost: "bg-transparent text-gray-600 hover:bg-gray-100",
-      outline: "bg-transparent border-2 border-gray-200 text-gray-700 hover:border-gray-300 hover:bg-gray-50"
+      ghost: "bg-transparent text-[var(--neo-text-secondary)] hover:bg-[var(--neo-surface-2)]",
+      outline: "bg-transparent border-2 border-[var(--neo-border)] text-[var(--neo-text-secondary)] hover:border-[var(--neo-border)] hover:bg-[var(--neo-bg)]"
     };
 
     const sizes = {

@@ -2,18 +2,25 @@
 @import "tailwindcss";
 
 :root {
-  --neo-bg: #080A12;
-  --neo-surface: #10131F;
-  --neo-surface-2: #171B2A;
-  --neo-primary: #7C5CFF;
-  --neo-secondary: #28D7FF;
-  --neo-accent: #B8FF5A;
-  --neo-text: #F5F7FF;
-  --neo-muted: #9097AB;
-  --neo-border: rgba(255, 255, 255, 0.08);
+  --neo-bg: #F7F5FF;
+  --neo-surface: #FFFFFF;
+  --neo-surface-2: #F0EDFA;
+  --neo-primary: #6D4AFF;
+  --neo-secondary: #19B8D8;
+  --neo-accent: #B7D94C;
+  
+  --neo-text-main: #171522;
+  --neo-text-secondary: #5F5A6E;
+  --neo-text-muted: #898497;
+  
+  --neo-border: #E6E1F0;
+  
+  --neo-success: #38A169;
+  --neo-warning: #D69E2E;
+  --neo-error: #E05252;
   
   --background: var(--neo-bg);
-  --foreground: var(--neo-text);
+  --foreground: var(--neo-text-main);
 }
 
 @theme inline {
@@ -23,14 +30,18 @@
   --color-neo-primary: var(--neo-primary);
   --color-neo-secondary: var(--neo-secondary);
   --color-neo-accent: var(--neo-accent);
-  --color-neo-text: var(--neo-text);
-  --color-neo-muted: var(--neo-muted);
+  --color-neo-text-main: var(--neo-text-main);
+  --color-neo-text-secondary: var(--neo-text-secondary);
+  --color-neo-text-muted: var(--neo-text-muted);
   --color-neo-border: var(--neo-border);
+  --color-neo-success: var(--neo-success);
+  --color-neo-warning: var(--neo-warning);
+  --color-neo-error: var(--neo-error);
 }
 
 body {
   background-color: var(--neo-bg);
-  color: var(--neo-text);
+  color: var(--neo-text-main);
   font-family: 'Vazirmatn', sans-serif;
 }
 
@@ -51,16 +62,16 @@ body {
 .neo-card {
   background: var(--neo-surface);
   border: 1px solid var(--neo-border);
-  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 4px 20px -2px rgba(109, 74, 255, 0.04);
   transition: all 0.3s ease;
+  border-radius: 16px;
 }
 .neo-card:hover {
-  transform: translateY(-2px);
-  border-color: rgba(255, 255, 255, 0.15);
-  box-shadow: 0 8px 30px -4px rgba(124, 92, 255, 0.15);
+  transform: translateY(-3px);
+  border-color: rgba(109, 74, 255, 0.3);
+  box-shadow: 0 8px 30px -4px rgba(109, 74, 255, 0.12);
 }
 
-/* Scrollbar customization for dark theme */
 ::-webkit-scrollbar {
   width: 8px;
   height: 8px;
@@ -69,9 +80,9 @@ body {
   background: var(--neo-bg);
 }
 ::-webkit-scrollbar-thumb {
-  background: var(--neo-surface-2);
+  background: var(--neo-border);
   border-radius: 4px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--neo-muted);
+  background: var(--neo-text-muted);
 }

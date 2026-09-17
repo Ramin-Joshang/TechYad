@@ -112,7 +112,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         {/* Mobile Sidebar Overlay */}
         {mobileMenuOpen && (
           <div 
-            className="fixed inset-0 bg-black/80 z-40 lg:hidden backdrop-blur-sm"
+            className="fixed inset-0 bg-gray-900/50 z-40 lg:hidden backdrop-blur-sm"
             onClick={closeMenu}
           />
         )}
@@ -124,16 +124,16 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         `}>
           <div className="p-6 border-b border-[var(--neo-border)] flex items-center justify-between">
             <Link href="/" className="flex items-center gap-2" onClick={closeMenu}>
-              <div className="w-8 h-8 rounded-full border border-[var(--neo-secondary)] flex items-center justify-center relative overflow-hidden shrink-0">
-                 <div className="w-2 h-2 bg-[var(--neo-accent)] rounded-full shadow-[0_0_8px_#B8FF5A]"></div>
-              </div>
-              {!isSidebarCollapsed && <span className="font-bold text-xl text-white font-en tracking-wider neo-gradient-text">NeoAcademia</span>}
+              <div className="w-8 h-8 rounded-full border-2 border-[var(--neo-primary)] flex items-center justify-center relative overflow-hidden shrink-0">
+     <div className="w-2 h-2 bg-[var(--neo-secondary)] rounded-full"></div>
+  </div>
+              {!isSidebarCollapsed && <span className="font-bold text-xl text-[var(--neo-text-main)] tracking-tight">تک‌یاد</span>}
             </Link>
             <div className="flex items-center gap-2">
-              <button onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)} className="hidden lg:block text-[var(--neo-muted)]/70 hover:text-white p-1">
+              <button onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)} className="hidden lg:block text-[var(--neo-muted)]/70 hover:text-[var(--neo-primary)] p-1">
                 {isSidebarCollapsed ? <ChevronLeft className="w-5 h-5" /> : <ChevronRight className="w-5 h-5" />}
               </button>
-              <button onClick={closeMenu} className="lg:hidden text-[var(--neo-muted)] hover:text-white p-1">
+              <button onClick={closeMenu} className="lg:hidden text-[var(--neo-muted)] hover:text-[var(--neo-primary)] p-1">
                 <X className="w-6 h-6" />
               </button>
             </div>
@@ -149,7 +149,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             </div>
             {!isSidebarCollapsed && (
               <div className="flex-1 min-w-0">
-                <div className="font-bold text-white truncate">{user?.firstName} {user?.lastName}</div>
+                <div className="font-bold text-[var(--neo-text-main)] truncate">{user?.firstName} {user?.lastName}</div>
                 <div className="text-xs font-medium text-[var(--neo-secondary)] capitalize bg-[var(--neo-primary)]/10 inline-block px-2 py-0.5 rounded-full mt-1">
                   {user?.role === 'super-admin' || user?.role === 'admin' ? 'مدیریت' : user?.role === 'instructor' ? 'استاد' : 'دانشجو'}
                 </div>
@@ -174,7 +174,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                   className={`flex items-center ${isSidebarCollapsed ? 'justify-center px-0' : 'gap-3 px-4'} py-3 rounded-xl font-medium transition-all duration-200 ${
                     isActive 
                       ? 'bg-[var(--neo-primary)] text-white shadow-md shadow-[var(--neo-primary)]/20' 
-                      : 'text-[var(--neo-muted)] hover:bg-[var(--neo-surface-2)] hover:text-white'
+                      : 'text-[var(--neo-muted)] hover:bg-[var(--neo-surface-2)] hover:text-[var(--neo-primary)]'
                   }`}
                 >
                   <Icon className={`w-5 h-5 ${isActive ? 'text-white' : 'text-[var(--neo-muted)]'}`} />
@@ -205,7 +205,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 <Menu className="w-6 h-6" />
               </button>
               <div className="hidden lg:block">
-                <h2 className="font-bold text-white text-lg">پنل کاربری {user?.role === 'super-admin' || user?.role === 'admin' ? 'مدیریت' : user?.role === 'instructor' ? 'اساتید' : 'دانشجویان'}</h2>
+                <h2 className="font-bold text-[var(--neo-text-main)] text-lg">پنل کاربری {user?.role === 'super-admin' || user?.role === 'admin' ? 'مدیریت' : user?.role === 'instructor' ? 'اساتید' : 'دانشجویان'}</h2>
               </div>
             </div>
             
@@ -213,7 +213,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 <NotificationDropdown role={user?.role || 'student'} />
 
               <Link href="/profile" className="flex items-center gap-2 p-1.5 pr-3 rounded-full border border-[var(--neo-border)] hover:bg-[var(--neo-bg)] transition cursor-pointer">
-                <span className="text-sm font-medium text-[var(--neo-text)] hidden sm:block">{user?.firstName}</span>
+                <span className="text-sm font-medium text-[var(--neo-text-main)] hidden sm:block">{user?.firstName}</span>
                 <div className="w-8 h-8 rounded-full bg-[var(--neo-primary)]/20 text-[var(--neo-secondary)] flex items-center justify-center font-bold text-sm overflow-hidden shrink-0">
                   {user?.avatar ? (
                     <img src={user.avatar} alt={user.firstName} className="w-full h-full object-cover" />

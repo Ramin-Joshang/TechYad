@@ -45,7 +45,7 @@ export default function CareersPage() {
   };
 
   return (
-    <main className="bg-gray-50 min-h-screen pb-20">
+    <main className="bg-[var(--neo-bg)] min-h-screen pb-20">
       {/* Hero Section */}
       <div className="bg-slate-900 pt-24 pb-32 text-center text-white px-4 relative overflow-hidden">
         <div className="absolute inset-0 bg-[url('https://picsum.photos/seed/careers/1920/1080')] opacity-10 mix-blend-overlay object-cover"></div>
@@ -58,10 +58,10 @@ export default function CareersPage() {
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-16 relative z-10 mb-16">
-        <div className="bg-white rounded-3xl p-8 shadow-xl border border-gray-100 flex flex-col md:flex-row justify-between items-center gap-6">
+        <div className="bg-white rounded-3xl p-8 shadow-xl border border-[var(--neo-border)] flex flex-col md:flex-row justify-between items-center gap-6">
           <div>
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">مدرس هستید؟</h2>
-            <p className="text-gray-600">
+            <h2 className="text-2xl font-bold text-[var(--neo-text-main)] mb-2">مدرس هستید؟</h2>
+            <p className="text-[var(--neo-text-secondary)]">
               اگر سابقه تدریس موفق دارید و می‌خواهید دانش خود را با هزاران دانشجو به اشتراک بگذارید، تک‌یاد بهترین بستر برای شماست.
             </p>
           </div>
@@ -72,17 +72,17 @@ export default function CareersPage() {
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-16">
-        <h2 className="text-3xl font-bold text-gray-900 mb-8">فرصت‌های همکاری فعلی</h2>
+        <h2 className="text-3xl font-bold text-[var(--neo-text-main)] mb-8">فرصت‌های همکاری فعلی</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {OPPORTUNITIES.map(job => (
-            <div key={job.id} className="bg-white rounded-2xl p-6 border border-gray-100 hover:shadow-lg transition group">
-              <job.icon className="w-10 h-10 text-blue-600 mb-4 group-hover:scale-110 transition-transform" />
-              <h3 className="font-bold text-lg text-gray-900 mb-2">{job.title}</h3>
-              <div className="flex items-center gap-2 text-sm text-gray-500 mb-4">
+            <div key={job.id} className="bg-white rounded-2xl p-6 border border-[var(--neo-border)] hover:shadow-lg transition group">
+              <job.icon className="w-10 h-10 text-[var(--neo-primary)] mb-4 group-hover:scale-110 transition-transform" />
+              <h3 className="font-bold text-lg text-[var(--neo-text-main)] mb-2">{job.title}</h3>
+              <div className="flex items-center gap-2 text-sm text-[var(--neo-text-muted)] mb-4">
                 <MapPin className="w-4 h-4" />
                 {job.type}
               </div>
-              <a href="#apply-form" className="text-blue-600 text-sm font-bold flex items-center gap-1 group-hover:gap-2 transition-all">
+              <a href="#apply-form" className="text-[var(--neo-primary)] text-sm font-bold flex items-center gap-1 group-hover:gap-2 transition-all">
                 ارسال رزومه <ChevronLeft className="w-4 h-4" />
               </a>
             </div>
@@ -91,39 +91,39 @@ export default function CareersPage() {
       </div>
 
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8" id="apply-form">
-        <div className="bg-white rounded-3xl p-8 md:p-12 shadow-sm border border-gray-100">
+        <div className="bg-white rounded-3xl p-8 md:p-12 shadow-sm border border-[var(--neo-border)]">
           <div className="text-center mb-10">
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">فرم درخواست همکاری</h2>
-            <p className="text-gray-600">اطلاعات خود را به دقت وارد کنید تا تیم منابع انسانی ما در اسرع وقت بررسی کنند.</p>
+            <h2 className="text-3xl font-bold text-[var(--neo-text-main)] mb-4">فرم درخواست همکاری</h2>
+            <p className="text-[var(--neo-text-secondary)]">اطلاعات خود را به دقت وارد کنید تا تیم منابع انسانی ما در اسرع وقت بررسی کنند.</p>
           </div>
           
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <label className="block text-sm font-bold text-gray-700 mb-2">نام و نام خانوادگی <span className="text-red-500">*</span></label>
-                <input required type="text" value={formData.fullName} onChange={e => setFormData({...formData, fullName: e.target.value})} className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                <label className="block text-sm font-bold text-[var(--neo-text-secondary)] mb-2">نام و نام خانوادگی <span className="text-red-500">*</span></label>
+                <input required type="text" value={formData.fullName} onChange={e => setFormData({...formData, fullName: e.target.value})} className="w-full bg-[var(--neo-bg)] border border-[var(--neo-border)] rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500" />
               </div>
               <div>
-                <label className="block text-sm font-bold text-gray-700 mb-2">شماره موبایل <span className="text-red-500">*</span></label>
-                <input required type="tel" value={formData.mobile} onChange={e => setFormData({...formData, mobile: e.target.value})} className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 dir-ltr text-left" />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <label className="block text-sm font-bold text-gray-700 mb-2">ایمیل <span className="text-red-500">*</span></label>
-                <input required type="email" value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 dir-ltr text-left" />
-              </div>
-              <div>
-                <label className="block text-sm font-bold text-gray-700 mb-2">رشته / تخصص اصلی <span className="text-red-500">*</span></label>
-                <input required type="text" placeholder="مثال: برنامه‌نویسی وب، فیزیک کنکور" value={formData.specialty} onChange={e => setFormData({...formData, specialty: e.target.value})} className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                <label className="block text-sm font-bold text-[var(--neo-text-secondary)] mb-2">شماره موبایل <span className="text-red-500">*</span></label>
+                <input required type="tel" value={formData.mobile} onChange={e => setFormData({...formData, mobile: e.target.value})} className="w-full bg-[var(--neo-bg)] border border-[var(--neo-border)] rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 dir-ltr text-left" />
               </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <label className="block text-sm font-bold text-gray-700 mb-2">آخرین مدرک تحصیلی <span className="text-red-500">*</span></label>
-                <select required value={formData.degree} onChange={e => setFormData({...formData, degree: e.target.value})} className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 appearance-none">
+                <label className="block text-sm font-bold text-[var(--neo-text-secondary)] mb-2">ایمیل <span className="text-red-500">*</span></label>
+                <input required type="email" value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} className="w-full bg-[var(--neo-bg)] border border-[var(--neo-border)] rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 dir-ltr text-left" />
+              </div>
+              <div>
+                <label className="block text-sm font-bold text-[var(--neo-text-secondary)] mb-2">رشته / تخصص اصلی <span className="text-red-500">*</span></label>
+                <input required type="text" placeholder="مثال: برنامه‌نویسی وب، فیزیک کنکور" value={formData.specialty} onChange={e => setFormData({...formData, specialty: e.target.value})} className="w-full bg-[var(--neo-bg)] border border-[var(--neo-border)] rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label className="block text-sm font-bold text-[var(--neo-text-secondary)] mb-2">آخرین مدرک تحصیلی <span className="text-red-500">*</span></label>
+                <select required value={formData.degree} onChange={e => setFormData({...formData, degree: e.target.value})} className="w-full bg-[var(--neo-bg)] border border-[var(--neo-border)] rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 appearance-none">
                   <option value="">انتخاب کنید...</option>
                   <option value="diploma">دیپلم</option>
                   <option value="bachelor">کارشناسی</option>
@@ -132,8 +132,8 @@ export default function CareersPage() {
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-bold text-gray-700 mb-2">سابقه تدریس / کار مرتبط <span className="text-red-500">*</span></label>
-                <select required value={formData.experience} onChange={e => setFormData({...formData, experience: e.target.value})} className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 appearance-none">
+                <label className="block text-sm font-bold text-[var(--neo-text-secondary)] mb-2">سابقه تدریس / کار مرتبط <span className="text-red-500">*</span></label>
+                <select required value={formData.experience} onChange={e => setFormData({...formData, experience: e.target.value})} className="w-full bg-[var(--neo-bg)] border border-[var(--neo-border)] rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 appearance-none">
                   <option value="">انتخاب کنید...</option>
                   <option value="none">بدون سابقه</option>
                   <option value="1-3">۱ تا ۳ سال</option>
@@ -145,37 +145,37 @@ export default function CareersPage() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <label className="block text-sm font-bold text-gray-700 mb-2">لینک رزومه (Google Drive و...)</label>
+                <label className="block text-sm font-bold text-[var(--neo-text-secondary)] mb-2">لینک رزومه (Google Drive و...)</label>
                 <div className="relative">
-                  <Upload className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                  <input type="url" placeholder="https://..." value={formData.resumeUrl} onChange={e => setFormData({...formData, resumeUrl: e.target.value})} className="w-full bg-gray-50 border border-gray-200 rounded-xl pr-4 pl-12 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 dir-ltr text-left" />
+                  <Upload className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[var(--neo-text-muted)]" />
+                  <input type="url" placeholder="https://..." value={formData.resumeUrl} onChange={e => setFormData({...formData, resumeUrl: e.target.value})} className="w-full bg-[var(--neo-bg)] border border-[var(--neo-border)] rounded-xl pr-4 pl-12 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 dir-ltr text-left" />
                 </div>
               </div>
               <div>
-                <label className="block text-sm font-bold text-gray-700 mb-2">لینک نمونه تدریس (فقط برای اساتید)</label>
+                <label className="block text-sm font-bold text-[var(--neo-text-secondary)] mb-2">لینک نمونه تدریس (فقط برای اساتید)</label>
                 <div className="relative">
-                  <Upload className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                  <input type="url" placeholder="Aparat / YouTube / Drive" value={formData.demoUrl} onChange={e => setFormData({...formData, demoUrl: e.target.value})} className="w-full bg-gray-50 border border-gray-200 rounded-xl pr-4 pl-12 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 dir-ltr text-left" />
+                  <Upload className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[var(--neo-text-muted)]" />
+                  <input type="url" placeholder="Aparat / YouTube / Drive" value={formData.demoUrl} onChange={e => setFormData({...formData, demoUrl: e.target.value})} className="w-full bg-[var(--neo-bg)] border border-[var(--neo-border)] rounded-xl pr-4 pl-12 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 dir-ltr text-left" />
                 </div>
               </div>
             </div>
 
             <div>
-              <label className="block text-sm font-bold text-gray-700 mb-2">توضیحات تکمیلی</label>
+              <label className="block text-sm font-bold text-[var(--neo-text-secondary)] mb-2">توضیحات تکمیلی</label>
               <textarea 
                 rows={4}
                 value={formData.description}
                 onChange={e => setFormData({...formData, description: e.target.value})}
                 placeholder="اگر توضیح خاصی دارید، اینجا بنویسید..."
-                className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+                className="w-full bg-[var(--neo-bg)] border border-[var(--neo-border)] rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
               ></textarea>
             </div>
 
-            <div className="pt-4 border-t border-gray-100 flex justify-end">
+            <div className="pt-4 border-t border-[var(--neo-border)] flex justify-end">
               <button 
                 type="submit" 
                 disabled={isSubmitting}
-                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 rounded-xl font-bold transition disabled:opacity-70 shadow-md"
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-[var(--neo-primary)] hover:bg-blue-700 text-white px-8 py-4 rounded-xl font-bold transition disabled:opacity-70 shadow-md"
               >
                 <Send className="w-5 h-5 rotate-180" />
                 {isSubmitting ? 'در حال ارسال...' : 'ارسال درخواست همکاری'}

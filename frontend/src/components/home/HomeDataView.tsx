@@ -25,21 +25,21 @@ export function HomeDataView() {
       <Intro />
       
       {isLoading ? (
-        <div className="py-32 flex flex-col items-center justify-center gap-4">
+        <div className="py-32 flex flex-col items-center justify-center gap-4 bg-[var(--neo-surface-2)]">
           <div className="w-10 h-10 border-4 border-[var(--neo-primary)] border-t-transparent rounded-full animate-spin"></div>
-          <p className="text-[var(--neo-muted)] font-bold tracking-widest font-en uppercase text-sm">Loading Knowledge Network...</p>
+          <p className="text-[var(--neo-text-muted)] font-bold text-sm">در حال دریافت اطلاعات...</p>
         </div>
       ) : error ? (
-        <div className="py-32 flex items-center justify-center text-red-500 font-bold">Error connecting to network.</div>
+        <div className="py-32 flex items-center justify-center text-[var(--neo-error)] font-bold bg-[var(--neo-surface-2)]">خطا در برقراری ارتباط با سرور.</div>
       ) : (
         <>
           <Categories data={d.categories} />
-          <CourseList title="Popular Courses" sectionId="02" data={d.popularCourses} />
-          <CourseList title="New Releases" sectionId="03" data={d.newCourses} />
-          <CourseList title="Free Access" sectionId="04" data={d.freeCourses} />
+          <CourseList title="دوره‌های پرطرفدار" sectionName="محبوب‌ترین‌ها" data={d.popularCourses} />
+          <CourseList title="جدیدترین دوره‌ها" sectionName="تازه منتشر شده" data={d.newCourses} />
+          <CourseList title="دوره‌های رایگان" sectionName="شروع بدون هزینه" data={d.freeCourses} />
           <InstructorGrid data={d.topInstructors} />
-          <CourseList title="Live Sessions" sectionId="06" data={d.onlineClasses} />
-          <CourseList title="In-Person Classes" sectionId="07" data={d.inPersonClasses} />
+          <CourseList title="کلاس‌های زنده (Live)" sectionName="ارتباط مستقیم" data={d.onlineClasses} />
+          <CourseList title="کلاس‌های حضوری" sectionName="یادگیری فیزیکی" data={d.inPersonClasses} />
         </>
       )}
 

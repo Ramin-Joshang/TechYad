@@ -2,14 +2,14 @@ import * as React from "react";
 import { cn } from "@/lib/utils";
 
 const Table = React.forwardRef<HTMLTableElement, React.HTMLAttributes<HTMLTableElement>>(({ className, ...props }, ref) => (
-  <div className="relative w-full overflow-auto rounded-2xl border border-gray-100 bg-white">
+  <div className="relative w-full overflow-auto rounded-2xl border border-[var(--neo-border)] bg-white">
     <table ref={ref} className={cn("w-full caption-bottom text-sm", className)} {...props} />
   </div>
 ))
 Table.displayName = "Table"
 
 const TableHeader = React.forwardRef<HTMLTableSectionElement, React.HTMLAttributes<HTMLTableSectionElement>>(({ className, ...props }, ref) => (
-  <thead ref={ref} className={cn("bg-gray-50/50 border-b border-gray-100", className)} {...props} />
+  <thead ref={ref} className={cn("bg-[var(--neo-bg)]/50 border-b border-[var(--neo-border)]", className)} {...props} />
 ))
 TableHeader.displayName = "TableHeader"
 
@@ -19,17 +19,17 @@ const TableBody = React.forwardRef<HTMLTableSectionElement, React.HTMLAttributes
 TableBody.displayName = "TableBody"
 
 const TableRow = React.forwardRef<HTMLTableRowElement, React.HTMLAttributes<HTMLTableRowElement>>(({ className, ...props }, ref) => (
-  <tr ref={ref} className={cn("border-b border-gray-100 transition-colors hover:bg-gray-50/50", className)} {...props} />
+  <tr ref={ref} className={cn("border-b border-[var(--neo-border)] transition-colors hover:bg-[var(--neo-bg)]/50", className)} {...props} />
 ))
 TableRow.displayName = "TableRow"
 
 const TableHead = React.forwardRef<HTMLTableCellElement, React.ThHTMLAttributes<HTMLTableCellElement>>(({ className, ...props }, ref) => (
-  <th ref={ref} className={cn("h-12 px-4 text-right align-middle font-bold text-gray-500", className)} {...props} />
+  <th ref={ref} className={cn("h-12 px-4 text-right align-middle font-bold text-[var(--neo-text-muted)]", className)} {...props} />
 ))
 TableHead.displayName = "TableHead"
 
 const TableCell = React.forwardRef<HTMLTableCellElement, React.TdHTMLAttributes<HTMLTableCellElement>>(({ className, ...props }, ref) => (
-  <td ref={ref} className={cn("p-4 align-middle text-gray-700", className)} {...props} />
+  <td ref={ref} className={cn("p-4 align-middle text-[var(--neo-text-secondary)]", className)} {...props} />
 ))
 TableCell.displayName = "TableCell"
 

@@ -67,14 +67,14 @@ export function CourseListContainer() {
   });
 
   return (
-    <div className="bg-gray-50 min-h-screen py-12">
+    <div className="bg-[var(--neo-bg)] min-h-screen py-12">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* Header */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">دوره‌های آموزشی</h1>
-            <p className="text-gray-500 mt-2">بهترین دوره‌ها برای ارتقای مهارت‌های شما</p>
+            <h1 className="text-3xl font-bold text-[var(--neo-text-main)]">دوره‌های آموزشی</h1>
+            <p className="text-[var(--neo-text-muted)] mt-2">بهترین دوره‌ها برای ارتقای مهارت‌های شما</p>
           </div>
           
           <div className="flex items-center gap-4 w-full md:w-auto">
@@ -84,12 +84,12 @@ export function CourseListContainer() {
                 placeholder="جستجو..." 
                 value={filters.search}
                 onChange={(e) => handleFilterChange('search', e.target.value)}
-                className="w-full pl-10 pr-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full pl-10 pr-4 py-2 rounded-lg border border-[var(--neo-border)] focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
-              <Search className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
+              <Search className="absolute left-3 top-2.5 h-5 w-5 text-[var(--neo-text-muted)]" />
             </div>
             <button 
-              className="md:hidden p-2 rounded-lg border border-gray-300 text-gray-600"
+              className="md:hidden p-2 rounded-lg border border-[var(--neo-border)] text-[var(--neo-text-secondary)]"
               onClick={() => setIsMobileFiltersOpen(true)}
             >
               <Filter className="h-5 w-5" />
@@ -108,23 +108,23 @@ export function CourseListContainer() {
             <div className="flex justify-between items-center lg:hidden mb-6">
               <h2 className="text-xl font-bold">فیلترها</h2>
               <button onClick={() => setIsMobileFiltersOpen(false)}>
-                <X className="h-6 w-6 text-gray-500" />
+                <X className="h-6 w-6 text-[var(--neo-text-muted)]" />
               </button>
             </div>
 
-            <div className="bg-white lg:rounded-2xl lg:shadow-sm lg:border border-gray-200 p-6 space-y-8">
+            <div className="bg-white lg:rounded-2xl lg:shadow-sm lg:border border-[var(--neo-border)] p-6 space-y-8">
               <div className="flex justify-between items-center">
-                <h3 className="font-bold text-gray-900 flex items-center gap-2">
-                  <Filter className="w-5 h-5 text-blue-600" /> فیلترها
+                <h3 className="font-bold text-[var(--neo-text-main)] flex items-center gap-2">
+                  <Filter className="w-5 h-5 text-[var(--neo-primary)]" /> فیلترها
                 </h3>
-                <button onClick={clearFilters} className="text-sm text-blue-600 hover:underline">پاک کردن همه</button>
+                <button onClick={clearFilters} className="text-sm text-[var(--neo-primary)] hover:underline">پاک کردن همه</button>
               </div>
 
               {/* Categories */}
               <div>
-                <h4 className="font-semibold text-gray-800 mb-3 text-sm">دسته‌بندی</h4>
+                <h4 className="font-semibold text-[var(--neo-text-main)] mb-3 text-sm">دسته‌بندی</h4>
                 <select 
-                  className="w-full p-2 border border-gray-300 rounded-lg text-sm"
+                  className="w-full p-2 border border-[var(--neo-border)] rounded-lg text-sm"
                   value={filters.category}
                   onChange={(e) => handleFilterChange('category', e.target.value)}
                 >
@@ -137,9 +137,9 @@ export function CourseListContainer() {
 
               {/* Level */}
               <div>
-                <h4 className="font-semibold text-gray-800 mb-3 text-sm">سطح دوره</h4>
+                <h4 className="font-semibold text-[var(--neo-text-main)] mb-3 text-sm">سطح دوره</h4>
                 <select 
-                  className="w-full p-2 border border-gray-300 rounded-lg text-sm"
+                  className="w-full p-2 border border-[var(--neo-border)] rounded-lg text-sm"
                   value={filters.level}
                   onChange={(e) => handleFilterChange('level', e.target.value)}
                 >
@@ -152,9 +152,9 @@ export function CourseListContainer() {
 
               {/* Instructor */}
               <div>
-                <h4 className="font-semibold text-gray-800 mb-3 text-sm">مدرس</h4>
+                <h4 className="font-semibold text-[var(--neo-text-main)] mb-3 text-sm">مدرس</h4>
                 <select 
-                  className="w-full p-2 border border-gray-300 rounded-lg text-sm"
+                  className="w-full p-2 border border-[var(--neo-border)] rounded-lg text-sm"
                   value={filters.instructor}
                   onChange={(e) => handleFilterChange('instructor', e.target.value)}
                 >
@@ -167,19 +167,19 @@ export function CourseListContainer() {
 
               {/* Price Range */}
               <div>
-                <h4 className="font-semibold text-gray-800 mb-3 text-sm">محدوده قیمت (تومان)</h4>
+                <h4 className="font-semibold text-[var(--neo-text-main)] mb-3 text-sm">محدوده قیمت (تومان)</h4>
                 <div className="flex gap-2">
                   <input 
                     type="number" 
                     placeholder="از" 
-                    className="w-1/2 p-2 border border-gray-300 rounded-lg text-sm"
+                    className="w-1/2 p-2 border border-[var(--neo-border)] rounded-lg text-sm"
                     value={filters.minPrice}
                     onChange={(e) => handleFilterChange('minPrice', e.target.value)}
                   />
                   <input 
                     type="number" 
                     placeholder="تا" 
-                    className="w-1/2 p-2 border border-gray-300 rounded-lg text-sm"
+                    className="w-1/2 p-2 border border-[var(--neo-border)] rounded-lg text-sm"
                     value={filters.maxPrice}
                     onChange={(e) => handleFilterChange('maxPrice', e.target.value)}
                   />
@@ -188,8 +188,8 @@ export function CourseListContainer() {
 
               {/* Free courses only */}
               <div className="flex items-center gap-2 cursor-pointer" onClick={() => handleFilterChange('isFree', !filters.isFree)}>
-                {filters.isFree ? <CheckSquare className="w-5 h-5 text-blue-600" /> : <Square className="w-5 h-5 text-gray-400" />}
-                <span className="text-sm font-medium text-gray-700">فقط دوره‌های رایگان</span>
+                {filters.isFree ? <CheckSquare className="w-5 h-5 text-[var(--neo-primary)]" /> : <Square className="w-5 h-5 text-[var(--neo-text-muted)]" />}
+                <span className="text-sm font-medium text-[var(--neo-text-secondary)]">فقط دوره‌های رایگان</span>
               </div>
             </div>
           </div>
@@ -198,14 +198,14 @@ export function CourseListContainer() {
           <div className="lg:w-3/4 flex flex-col">
             
             {/* Top Bar */}
-            <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-200 mb-6 flex justify-between items-center">
-              <span className="text-sm text-gray-600">
+            <div className="bg-white p-4 rounded-xl shadow-sm border border-[var(--neo-border)] mb-6 flex justify-between items-center">
+              <span className="text-sm text-[var(--neo-text-secondary)]">
                 {coursesData?.total || 0} دوره یافت شد
               </span>
               <div className="flex items-center gap-2">
-                <span className="text-sm text-gray-600">مرتب‌سازی:</span>
+                <span className="text-sm text-[var(--neo-text-secondary)]">مرتب‌سازی:</span>
                 <select 
-                  className="text-sm border-none bg-transparent font-medium text-gray-800 cursor-pointer focus:ring-0"
+                  className="text-sm border-none bg-transparent font-medium text-[var(--neo-text-main)] cursor-pointer focus:ring-0"
                   value={filters.sort}
                   onChange={(e) => handleFilterChange('sort', e.target.value)}
                 >
@@ -221,19 +221,19 @@ export function CourseListContainer() {
             {isLoading ? (
               <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 animate-pulse">
                 {[...Array(6)].map((_, i) => (
-                  <div key={i} className="bg-white h-80 rounded-2xl border border-gray-200"></div>
+                  <div key={i} className="bg-white h-80 rounded-2xl border border-[var(--neo-border)]"></div>
                 ))}
               </div>
             ) : isError ? (
               <div className="bg-red-50 text-red-600 p-8 rounded-2xl text-center">خطا در دریافت اطلاعات. لطفا دوباره تلاش کنید.</div>
             ) : coursesData?.courses?.length === 0 ? (
-              <div className="bg-white p-12 rounded-2xl border border-gray-200 text-center flex flex-col items-center">
-                <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
-                  <Search className="w-8 h-8 text-gray-400" />
+              <div className="bg-white p-12 rounded-2xl border border-[var(--neo-border)] text-center flex flex-col items-center">
+                <div className="w-16 h-16 bg-[var(--neo-surface-2)] rounded-full flex items-center justify-center mb-4">
+                  <Search className="w-8 h-8 text-[var(--neo-text-muted)]" />
                 </div>
-                <h3 className="text-lg font-bold text-gray-900 mb-2">دوره‌ای یافت نشد</h3>
-                <p className="text-gray-500">با تغییر فیلترها دوباره تلاش کنید.</p>
-                <button onClick={clearFilters} className="mt-6 text-blue-600 font-medium hover:underline">حذف فیلترها</button>
+                <h3 className="text-lg font-bold text-[var(--neo-text-main)] mb-2">دوره‌ای یافت نشد</h3>
+                <p className="text-[var(--neo-text-muted)]">با تغییر فیلترها دوباره تلاش کنید.</p>
+                <button onClick={clearFilters} className="mt-6 text-[var(--neo-primary)] font-medium hover:underline">حذف فیلترها</button>
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
@@ -249,7 +249,7 @@ export function CourseListContainer() {
                 <button 
                   disabled={filters.page === 1}
                   onClick={() => handleFilterChange('page', filters.page - 1)}
-                  className="w-10 h-10 rounded-full flex items-center justify-center border border-gray-300 disabled:opacity-50 hover:bg-gray-50"
+                  className="w-10 h-10 rounded-full flex items-center justify-center border border-[var(--neo-border)] disabled:opacity-50 hover:bg-[var(--neo-bg)]"
                 >
                   <ChevronRight className="w-5 h-5" />
                 </button>
@@ -258,7 +258,7 @@ export function CourseListContainer() {
                   <button 
                     key={i}
                     onClick={() => handleFilterChange('page', i + 1)}
-                    className={`w-10 h-10 rounded-full flex items-center justify-center font-medium transition ${filters.page === i + 1 ? 'bg-blue-600 text-white' : 'border border-gray-300 text-gray-700 hover:bg-gray-50'}`}
+                    className={`w-10 h-10 rounded-full flex items-center justify-center font-medium transition ${filters.page === i + 1 ? 'bg-[var(--neo-primary)] text-white' : 'border border-[var(--neo-border)] text-[var(--neo-text-secondary)] hover:bg-[var(--neo-bg)]'}`}
                   >
                     {i + 1}
                   </button>
@@ -267,7 +267,7 @@ export function CourseListContainer() {
                 <button 
                   disabled={filters.page === coursesData.pages}
                   onClick={() => handleFilterChange('page', filters.page + 1)}
-                  className="w-10 h-10 rounded-full flex items-center justify-center border border-gray-300 disabled:opacity-50 hover:bg-gray-50"
+                  className="w-10 h-10 rounded-full flex items-center justify-center border border-[var(--neo-border)] disabled:opacity-50 hover:bg-[var(--neo-bg)]"
                 >
                   <ChevronLeft className="w-5 h-5" />
                 </button>
@@ -288,12 +288,12 @@ function CourseCard({ course }: { course: any }) {
   const instructorName = instructor ? `${instructor.firstName} ${instructor.lastName}` : 'نامشخص';
 
   return (
-    <Link href={`/courses/${course.slug}`} className="group flex flex-col bg-white rounded-2xl border border-gray-100 overflow-hidden hover:shadow-xl hover:shadow-blue-900/5 transition duration-300">
-      <div className="relative aspect-[16/10] overflow-hidden bg-gray-100">
+    <Link href={`/courses/${course.slug}`} className="group flex flex-col bg-white rounded-2xl border border-[var(--neo-border)] overflow-hidden hover:shadow-xl hover:shadow-[var(--neo-primary)]/5 transition duration-300">
+      <div className="relative aspect-[16/10] overflow-hidden bg-[var(--neo-surface-2)]">
         <img src={course.thumbnail || `https://picsum.photos/seed/${course.slug}/400/250`} alt={course.title} className="w-full h-full object-cover group-hover:scale-105 transition duration-500" />
         <div className="absolute top-4 right-4 flex gap-2">
           {course.categoryId?.name && (
-            <div className="bg-white/90 backdrop-blur text-gray-900 text-xs font-bold px-3 py-1 rounded-full">
+            <div className="bg-white/90 backdrop-blur text-[var(--neo-text-main)] text-xs font-bold px-3 py-1 rounded-full">
               {course.categoryId.name}
             </div>
           )}
@@ -310,26 +310,26 @@ function CourseCard({ course }: { course: any }) {
           <div className="flex items-center gap-1 text-amber-500 text-xs font-bold">
             <Star className="w-4 h-4 fill-current" />
             <span>{course.averageRating || 'جدید'}</span>
-            <span className="text-gray-400 font-normal">({course.reviewCount || 0})</span>
+            <span className="text-[var(--neo-text-muted)] font-normal">({course.reviewCount || 0})</span>
           </div>
           {course.levelId?.name && (
-             <span className="text-xs text-blue-600 bg-blue-50 px-2 py-1 rounded-md">{course.levelId.name}</span>
+             <span className="text-xs text-[var(--neo-primary)] bg-[var(--neo-primary)]/5 px-2 py-1 rounded-md">{course.levelId.name}</span>
           )}
         </div>
         
-        <h3 className="font-bold text-gray-900 mb-2 line-clamp-2 group-hover:text-blue-600 transition">{course.title}</h3>
+        <h3 className="font-bold text-[var(--neo-text-main)] mb-2 line-clamp-2 group-hover:text-[var(--neo-primary)] transition">{course.title}</h3>
         
-        <div className="flex items-center gap-2 mb-4 text-sm text-gray-500">
+        <div className="flex items-center gap-2 mb-4 text-sm text-[var(--neo-text-muted)]">
           <img src={instructor?.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(instructorName)}`} className="w-6 h-6 rounded-full" alt={instructorName} />
           <span className="truncate">{instructorName}</span>
         </div>
         
-        <div className="flex items-center gap-4 text-xs text-gray-500 mb-4">
+        <div className="flex items-center gap-4 text-xs text-[var(--neo-text-muted)] mb-4">
           <div className="flex items-center gap-1"><Clock className="w-4 h-4"/> {course.totalDuration ? Math.round(course.totalDuration / 60) + ' ساعت' : 'نامشخص'}</div>
           <div className="flex items-center gap-1"><User className="w-4 h-4"/> {course.studentCount || 0} دانشجو</div>
         </div>
 
-        <div className="mt-auto pt-4 border-t border-gray-100 flex flex-col">
+        <div className="mt-auto pt-4 border-t border-[var(--neo-border)] flex flex-col">
           <div className="flex items-center justify-between mb-3">
             <div className="font-bold text-lg">
               {isFree ? (
@@ -338,17 +338,17 @@ function CourseCard({ course }: { course: any }) {
                 <div className="flex flex-col">
                   {hasDiscount ? (
                     <>
-                      <span className="text-gray-400 text-xs line-through">{course.price.toLocaleString()} تومان</span>
-                      <span className="text-blue-600">{course.discountPrice.toLocaleString()} تومان</span>
+                      <span className="text-[var(--neo-text-muted)] text-xs line-through">{course.price.toLocaleString()} تومان</span>
+                      <span className="text-[var(--neo-primary)]">{course.discountPrice.toLocaleString()} تومان</span>
                     </>
                   ) : (
-                    <span className="text-blue-600">{course.price.toLocaleString()} تومان</span>
+                    <span className="text-[var(--neo-primary)]">{course.price.toLocaleString()} تومان</span>
                   )}
                 </div>
               )}
             </div>
           </div>
-          <button className="w-full py-2 bg-gray-50 hover:bg-blue-600 hover:text-white text-blue-600 font-medium rounded-lg transition-colors">
+          <button className="w-full py-2 bg-[var(--neo-bg)] hover:bg-[var(--neo-primary)] hover:text-white text-[var(--neo-primary)] font-medium rounded-lg transition-colors">
             مشاهده دوره
           </button>
         </div>

@@ -45,10 +45,10 @@ export function ClassesList() {
   if (isLoading) {
     return (
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 flex gap-8">
-        <div className="w-64 hidden lg:block flex-shrink-0 animate-pulse bg-white rounded-2xl h-[600px] border border-gray-100"></div>
+        <div className="w-64 hidden lg:block flex-shrink-0 animate-pulse bg-white rounded-2xl h-[600px] border border-[var(--neo-border)]"></div>
         <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-6">
           {[...Array(6)].map((_, i) => (
-            <div key={i} className="animate-pulse bg-white p-6 rounded-2xl border border-gray-100 shadow-sm h-80"></div>
+            <div key={i} className="animate-pulse bg-white p-6 rounded-2xl border border-[var(--neo-border)] shadow-sm h-80"></div>
           ))}
         </div>
       </div>
@@ -65,7 +65,7 @@ export function ClassesList() {
     const startDate = new Date(cls.startDate);
     const isStarted = startDate < now;
     // mock enrolled
-    const enrolled = cls.enrolledCount || Math.floor((cls.title.length * 7) % (cls.capacity + 1)); 
+    const enrolled = cls.enrolledCount || 0; 
     const isFull = enrolled >= cls.capacity;
     
     let clsStatus = 'open';
@@ -93,12 +93,12 @@ export function ClassesList() {
   });
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-20">
+    <div className="min-h-screen bg-[var(--neo-bg)] pb-20">
       {/* Hero Section */}
       <div className="bg-slate-900 py-16 text-white relative overflow-hidden">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center">
           <h1 className="text-4xl md:text-5xl font-bold mb-4">کلاس‌های آموزشی</h1>
-          <p className="text-lg text-gray-400 max-w-2xl mx-auto">
+          <p className="text-lg text-[var(--neo-text-muted)] max-w-2xl mx-auto">
             کلاس‌های حضوری، آنلاین، عمومی و خصوصی را پیدا و مقایسه کنید.
           </p>
         </div>
@@ -108,26 +108,26 @@ export function ClassesList() {
         <div className="flex flex-col lg:flex-row gap-8">
           
           {/* Mobile Filter Button */}
-          <div className="lg:hidden flex items-center justify-between bg-white p-4 rounded-xl border border-gray-200">
-            <span className="font-bold text-gray-900">فیلتر و جستجو</span>
-            <button onClick={() => setShowMobileFilters(!showMobileFilters)} className="p-2 bg-gray-100 rounded-lg text-gray-700">
+          <div className="lg:hidden flex items-center justify-between bg-white p-4 rounded-xl border border-[var(--neo-border)]">
+            <span className="font-bold text-[var(--neo-text-main)]">فیلتر و جستجو</span>
+            <button onClick={() => setShowMobileFilters(!showMobileFilters)} className="p-2 bg-[var(--neo-surface-2)] rounded-lg text-[var(--neo-text-secondary)]">
               <SlidersHorizontal className="w-5 h-5" />
             </button>
           </div>
 
           {/* Sidebar Filters */}
           <div className={`lg:w-72 flex-shrink-0 ${showMobileFilters ? 'block' : 'hidden lg:block'}`}>
-            <div className="bg-white p-6 rounded-2xl border border-gray-200 sticky top-24 space-y-8">
+            <div className="bg-white p-6 rounded-2xl border border-[var(--neo-border)] sticky top-24 space-y-8">
               
               {/* Search */}
               <div>
-                <h3 className="font-bold text-gray-900 mb-3 text-sm">جستجو</h3>
+                <h3 className="font-bold text-[var(--neo-text-main)] mb-3 text-sm">جستجو</h3>
                 <div className="relative">
-                  <Search className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
+                  <Search className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--neo-text-muted)] w-4 h-4" />
                   <input
                     type="text"
                     placeholder="نام کلاس..."
-                    className="w-full pl-3 pr-10 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+                    className="w-full pl-3 pr-10 py-2.5 bg-[var(--neo-bg)] border border-[var(--neo-border)] rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none"
                     value={searchTerm}
                     onChange={e => setSearchTerm(e.target.value)}
                   />
@@ -136,7 +136,7 @@ export function ClassesList() {
 
               {/* Mode Filter */}
               <div>
-                <h3 className="font-bold text-gray-900 mb-3 text-sm">نوع برگزاری</h3>
+                <h3 className="font-bold text-[var(--neo-text-main)] mb-3 text-sm">نوع برگزاری</h3>
                 <div className="space-y-2">
                   {[
                     { id: 'all', label: 'همه موارد' },
@@ -149,9 +149,9 @@ export function ClassesList() {
                         name="mode" 
                         checked={modeFilter === opt.id}
                         onChange={() => setModeFilter(opt.id)}
-                        className="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500" 
+                        className="w-4 h-4 text-[var(--neo-primary)] border-[var(--neo-border)] focus:ring-blue-500" 
                       />
-                      <span className="text-sm text-gray-600 group-hover:text-gray-900 transition">{opt.label}</span>
+                      <span className="text-sm text-[var(--neo-text-secondary)] group-hover:text-[var(--neo-text-main)] transition">{opt.label}</span>
                     </label>
                   ))}
                 </div>
@@ -159,7 +159,7 @@ export function ClassesList() {
 
               {/* Type Filter */}
               <div>
-                <h3 className="font-bold text-gray-900 mb-3 text-sm">عمومی / خصوصی</h3>
+                <h3 className="font-bold text-[var(--neo-text-main)] mb-3 text-sm">عمومی / خصوصی</h3>
                 <div className="space-y-2">
                   {[
                     { id: 'all', label: 'همه موارد' },
@@ -172,9 +172,9 @@ export function ClassesList() {
                         name="type" 
                         checked={typeFilter === opt.id}
                         onChange={() => setTypeFilter(opt.id)}
-                        className="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500" 
+                        className="w-4 h-4 text-[var(--neo-primary)] border-[var(--neo-border)] focus:ring-blue-500" 
                       />
-                      <span className="text-sm text-gray-600 group-hover:text-gray-900 transition">{opt.label}</span>
+                      <span className="text-sm text-[var(--neo-text-secondary)] group-hover:text-[var(--neo-text-main)] transition">{opt.label}</span>
                     </label>
                   ))}
                 </div>
@@ -182,7 +182,7 @@ export function ClassesList() {
 
               {/* Status Filter */}
               <div>
-                <h3 className="font-bold text-gray-900 mb-3 text-sm">وضعیت ثبت‌نام</h3>
+                <h3 className="font-bold text-[var(--neo-text-main)] mb-3 text-sm">وضعیت ثبت‌نام</h3>
                 <div className="space-y-2">
                   {[
                     { id: 'all', label: 'همه موارد' },
@@ -196,9 +196,9 @@ export function ClassesList() {
                         name="status" 
                         checked={statusFilter === opt.id}
                         onChange={() => setStatusFilter(opt.id)}
-                        className="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500" 
+                        className="w-4 h-4 text-[var(--neo-primary)] border-[var(--neo-border)] focus:ring-blue-500" 
                       />
-                      <span className="text-sm text-gray-600 group-hover:text-gray-900 transition">{opt.label}</span>
+                      <span className="text-sm text-[var(--neo-text-secondary)] group-hover:text-[var(--neo-text-main)] transition">{opt.label}</span>
                     </label>
                   ))}
                 </div>
@@ -211,14 +211,14 @@ export function ClassesList() {
           <div className="flex-1">
             
             {/* Top Bar: Sort & Results Count */}
-            <div className="bg-white p-4 rounded-xl border border-gray-200 mb-6 flex flex-col sm:flex-row justify-between items-center gap-4">
-              <div className="text-sm text-gray-500">
-                نمایش <span className="font-bold text-gray-900">{filteredClasses.length}</span> کلاس
+            <div className="bg-white p-4 rounded-xl border border-[var(--neo-border)] mb-6 flex flex-col sm:flex-row justify-between items-center gap-4">
+              <div className="text-sm text-[var(--neo-text-muted)]">
+                نمایش <span className="font-bold text-[var(--neo-text-main)]">{filteredClasses.length}</span> کلاس
               </div>
               <div className="flex items-center gap-3 w-full sm:w-auto">
-                <span className="text-sm text-gray-500 hidden sm:block">مرتب‌سازی:</span>
+                <span className="text-sm text-[var(--neo-text-muted)] hidden sm:block">مرتب‌سازی:</span>
                 <select 
-                  className="bg-gray-50 border border-gray-200 text-gray-700 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 outline-none"
+                  className="bg-[var(--neo-bg)] border border-[var(--neo-border)] text-[var(--neo-text-secondary)] text-sm rounded-lg focus:ring-blue-500 focus:border-[var(--neo-secondary)] block w-full p-2.5 outline-none"
                   value={sortParam}
                   onChange={(e) => setSortParam(e.target.value)}
                 >
@@ -233,15 +233,15 @@ export function ClassesList() {
 
             {/* Classes Grid */}
             {filteredClasses.length === 0 ? (
-              <div className="text-center py-24 bg-white rounded-2xl border border-gray-200 flex flex-col items-center">
-                <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mb-4">
+              <div className="text-center py-24 bg-white rounded-2xl border border-[var(--neo-border)] flex flex-col items-center">
+                <div className="w-16 h-16 bg-[var(--neo-bg)] rounded-full flex items-center justify-center mb-4">
                   <Search className="w-8 h-8 text-gray-300" />
                 </div>
-                <h3 className="text-lg font-bold text-gray-900 mb-2">نتیجه‌ای یافت نشد</h3>
-                <p className="text-gray-500">کلاسی با فیلترهای اعمال شده پیدا نشد. لطفاً فیلترها را تغییر دهید.</p>
+                <h3 className="text-lg font-bold text-[var(--neo-text-main)] mb-2">نتیجه‌ای یافت نشد</h3>
+                <p className="text-[var(--neo-text-muted)]">کلاسی با فیلترهای اعمال شده پیدا نشد. لطفاً فیلترها را تغییر دهید.</p>
                 <button 
                   onClick={() => { setSearchTerm(''); setModeFilter('all'); setTypeFilter('all'); setStatusFilter('all'); }}
-                  className="mt-6 px-6 py-2 bg-blue-50 text-blue-600 font-medium rounded-lg hover:bg-blue-100 transition"
+                  className="mt-6 px-6 py-2 bg-[var(--neo-primary)]/5 text-[var(--neo-primary)] font-medium rounded-lg hover:bg-[var(--neo-primary)]/10 transition"
                 >
                   پاک کردن فیلترها
                 </button>
@@ -257,12 +257,12 @@ export function ClassesList() {
             {/* Pagination Mock */}
             {filteredClasses.length > 0 && (
               <div className="mt-12 flex justify-center items-center gap-2">
-                <button className="w-10 h-10 rounded-lg border border-gray-200 flex items-center justify-center text-gray-500 hover:bg-gray-50 hover:text-gray-900 disabled:opacity-50">
+                <button className="w-10 h-10 rounded-lg border border-[var(--neo-border)] flex items-center justify-center text-[var(--neo-text-muted)] hover:bg-[var(--neo-bg)] hover:text-[var(--neo-text-main)] disabled:opacity-50">
                    <ArrowLeft className="w-4 h-4 rotate-180" />
                 </button>
-                <button className="w-10 h-10 rounded-lg bg-blue-600 text-white font-bold flex items-center justify-center">1</button>
-                <button className="w-10 h-10 rounded-lg border border-gray-200 flex items-center justify-center text-gray-600 hover:bg-gray-50">2</button>
-                <button className="w-10 h-10 rounded-lg border border-gray-200 flex items-center justify-center text-gray-500 hover:bg-gray-50 hover:text-gray-900">
+                <button className="w-10 h-10 rounded-lg bg-[var(--neo-primary)] text-white font-bold flex items-center justify-center">1</button>
+                <button className="w-10 h-10 rounded-lg border border-[var(--neo-border)] flex items-center justify-center text-[var(--neo-text-secondary)] hover:bg-[var(--neo-bg)]">2</button>
+                <button className="w-10 h-10 rounded-lg border border-[var(--neo-border)] flex items-center justify-center text-[var(--neo-text-muted)] hover:bg-[var(--neo-bg)] hover:text-[var(--neo-text-main)]">
                    <ArrowLeft className="w-4 h-4" />
                 </button>
               </div>
@@ -281,34 +281,34 @@ function ClassCard({ cls }: { cls: any }) {
   const startDate = cls.startDate ? new Date(cls.startDate) : new Date();
   
   // Mocks based on ID for consistency
-  const enrolled = cls.enrolledCount || Math.floor((cls.title.length * 7) % (cls.capacity + 1)); 
+  const enrolled = cls.enrolledCount || 0; 
   const isFull = enrolled >= cls.capacity;
   const isStarted = startDate < new Date();
   const remaining = cls.capacity - enrolled;
   
   // Rating mock
-  const rating = cls.rating || (4 + ((cls.title.length % 10) / 10));
+  const rating = cls.rating || 0;
   const sessions = cls.sessions || ((cls.title.length % 12) + 4); // 4 to 15 sessions
   
   let statusBadge = null;
-  if (cls.status === 'completed') statusBadge = <span className="bg-gray-100 text-gray-600 px-2 py-1 rounded text-xs font-bold">پایان یافته</span>;
+  if (cls.status === 'completed') statusBadge = <span className="bg-[var(--neo-surface-2)] text-[var(--neo-text-secondary)] px-2 py-1 rounded text-xs font-bold">پایان یافته</span>;
   else if (cls.status === 'cancelled') statusBadge = <span className="bg-red-100 text-red-600 px-2 py-1 rounded text-xs font-bold">لغو شده</span>;
   else if (isStarted) statusBadge = <span className="bg-amber-100 text-amber-700 px-2 py-1 rounded text-xs font-bold">شروع شده</span>;
   else if (isFull) statusBadge = <span className="bg-rose-100 text-rose-700 px-2 py-1 rounded text-xs font-bold">ثبت‌نام تکمیل شده</span>;
   else if (remaining <= 3) statusBadge = <span className="bg-orange-100 text-orange-700 px-2 py-1 rounded text-xs font-bold">ظرفیت رو به اتمام ({remaining} نفر)</span>;
   
   return (
-    <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden hover:shadow-xl transition flex flex-col h-full group">
-      <div className="relative h-48 bg-gray-100 overflow-hidden">
+    <div className="bg-white rounded-2xl border border-[var(--neo-border)] overflow-hidden hover:shadow-xl transition flex flex-col h-full group">
+      <div className="relative h-48 bg-[var(--neo-surface-2)] overflow-hidden">
         <img src={`https://picsum.photos/seed/${cls._id}/600/400`} alt={cls.title} className="w-full h-full object-cover group-hover:scale-105 transition duration-500" />
         <div className="absolute top-4 right-4">
-          <span className={`px-3 py-1 rounded-full text-xs font-bold shadow-sm backdrop-blur flex items-center gap-1 ${isOnline ? 'bg-blue-600/90 text-white' : 'bg-emerald-600/90 text-white'}`}>
+          <span className={`px-3 py-1 rounded-full text-xs font-bold shadow-sm backdrop-blur flex items-center gap-1 ${isOnline ? 'bg-[var(--neo-primary)]/90 text-white' : 'bg-emerald-600/90 text-white'}`}>
             {isOnline ? <Monitor className="w-3 h-3" /> : <MapPin className="w-3 h-3" />}
             {isOnline ? 'آنلاین' : 'حضوری'}
           </span>
         </div>
         <div className="absolute top-4 left-4 flex flex-col gap-2 items-end">
-          <span className="px-3 py-1 bg-white/90 text-gray-900 rounded-full text-xs font-bold shadow-sm backdrop-blur">
+          <span className="px-3 py-1 bg-white/90 text-[var(--neo-text-main)] rounded-full text-xs font-bold shadow-sm backdrop-blur">
             {cls.type === 'private' ? 'خصوصی' : 'عمومی'}
           </span>
         </div>
@@ -325,49 +325,49 @@ function ClassCard({ cls }: { cls: any }) {
             <Star className="w-4 h-4 fill-current" />
             <span>{rating.toFixed(1)}</span>
           </div>
-          <div className="text-xs text-gray-500 flex items-center gap-1">
+          <div className="text-xs text-[var(--neo-text-muted)] flex items-center gap-1">
             <Clock className="w-3 h-3" />
             <span>{sessions} جلسه</span>
           </div>
         </div>
 
-        <h3 className="font-bold text-lg text-gray-900 mb-3 line-clamp-2 leading-tight">{cls.title}</h3>
+        <h3 className="font-bold text-lg text-[var(--neo-text-main)] mb-3 line-clamp-2 leading-tight">{cls.title}</h3>
         
-        <div className="space-y-2.5 flex-grow text-sm text-gray-600">
+        <div className="space-y-2.5 flex-grow text-sm text-[var(--neo-text-secondary)]">
           <div className="flex items-center gap-2">
-             <Calendar className="w-4 h-4 text-gray-400 shrink-0" />
-             <span>شروع: <span className="font-medium text-gray-900">{format(startDate, 'd MMMM yyyy')}</span></span>
+             <Calendar className="w-4 h-4 text-[var(--neo-text-muted)] shrink-0" />
+             <span>شروع: <span className="font-medium text-[var(--neo-text-main)]">{format(startDate, 'd MMMM yyyy')}</span></span>
           </div>
           <div className="flex items-center gap-2">
-             <Clock className="w-4 h-4 text-gray-400 shrink-0" />
+             <Clock className="w-4 h-4 text-[var(--neo-text-muted)] shrink-0" />
              <span>روزهای فرد - ساعت ۱۷:۰۰</span>
           </div>
           <div className="flex items-center gap-2 pt-1 border-t border-gray-50">
-             <Users className="w-4 h-4 text-gray-400 shrink-0" />
+             <Users className="w-4 h-4 text-[var(--neo-text-muted)] shrink-0" />
              <div className="flex-1">
                 <div className="flex justify-between text-xs mb-1">
                   <span>ظرفیت: {cls.capacity}</span>
                   <span>{enrolled} ثبت‌نام</span>
                 </div>
-                <div className="w-full bg-gray-100 rounded-full h-1.5">
+                <div className="w-full bg-[var(--neo-surface-2)] rounded-full h-1.5">
                   <div className={`h-1.5 rounded-full ${isFull ? 'bg-rose-500' : remaining <= 3 ? 'bg-orange-500' : 'bg-green-500'}`} style={{ width: `${Math.min(100, (enrolled / cls.capacity) * 100)}%` }}></div>
                 </div>
              </div>
           </div>
         </div>
         
-        <div className="mt-4 pt-4 border-t border-gray-100">
+        <div className="mt-4 pt-4 border-t border-[var(--neo-border)]">
           {instructor && (
             <div className="flex items-center gap-2 mb-4">
               <img src={instructor.avatar || `https://ui-avatars.com/api/?name=${instructor.firstName}+${instructor.lastName}`} className="w-6 h-6 rounded-full" alt="instructor" />
-              <span className="text-xs font-medium text-gray-700">{instructor.firstName} {instructor.lastName}</span>
+              <span className="text-xs font-medium text-[var(--neo-text-secondary)]">{instructor.firstName} {instructor.lastName}</span>
             </div>
           )}
           <div className="flex items-center justify-between">
-            <div className="font-bold text-blue-600">
+            <div className="font-bold text-[var(--neo-primary)]">
               {cls.price === 0 ? 'رایگان' : `${cls.price.toLocaleString()} تومان`}
             </div>
-            <Link href={`/classes/${cls.slug}`} className="px-4 py-2 bg-blue-50 text-blue-600 rounded-lg text-sm font-bold hover:bg-blue-600 hover:text-white transition">
+            <Link href={`/classes/${cls.slug}`} className="px-4 py-2 bg-[var(--neo-primary)]/5 text-[var(--neo-primary)] rounded-lg text-sm font-bold hover:bg-[var(--neo-primary)] hover:text-white transition">
               مشاهده کلاس
             </Link>
           </div>

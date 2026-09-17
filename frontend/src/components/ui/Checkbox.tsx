@@ -19,15 +19,15 @@ const Checkbox = React.forwardRef<HTMLInputElement, CheckboxProps>(
           />
           <div className={cn(
             "w-5 h-5 border-2 rounded transition-all",
-            "border-gray-300 bg-white group-hover:border-blue-500",
+            "border-[var(--neo-border)] bg-white group-hover:border-[var(--neo-secondary)]",
             "peer-focus-visible:ring-2 peer-focus-visible:ring-blue-500 peer-focus-visible:ring-offset-2",
-            "peer-checked:border-blue-600 peer-checked:bg-blue-600",
+            "peer-checked:border-[var(--neo-primary)] peer-checked:bg-[var(--neo-primary)]",
             "peer-disabled:cursor-not-allowed peer-disabled:opacity-50",
             className
           )}></div>
           <Check className="absolute w-3.5 h-3.5 text-white pointer-events-none opacity-0 peer-checked:opacity-100 transition-opacity" strokeWidth={3} />
         </div>
-        {label && <span className="text-sm font-medium text-gray-700 peer-disabled:opacity-50">{label}</span>}
+        {label && <span className="text-sm font-medium text-[var(--neo-text-secondary)] peer-disabled:opacity-50">{label}</span>}
       </label>
     );
   }

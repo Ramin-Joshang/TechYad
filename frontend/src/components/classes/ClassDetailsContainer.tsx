@@ -14,7 +14,7 @@ export function ClassDetailsContainer({ slug }: { slug: string }) {
   });
 
   if (isLoading) {
-    return <div className="min-h-screen flex items-center justify-center text-gray-500">درحال بارگذاری اطلاعات کلاس...</div>;
+    return <div className="min-h-screen flex items-center justify-center text-[var(--neo-text-muted)]">درحال بارگذاری اطلاعات کلاس...</div>;
   }
 
   if (!cls) {
@@ -27,23 +27,23 @@ export function ClassDetailsContainer({ slug }: { slug: string }) {
   const endDate = cls.endDate ? new Date(cls.endDate) : new Date();
   
   // Mocks based on ID for consistency
-  const enrolled = cls.enrolledCount || Math.floor((cls.title.length * 7) % (cls.capacity + 1)); 
+  const enrolled = cls.enrolledCount || 0; 
   const isFull = enrolled >= cls.capacity;
   const isStarted = startDate < new Date();
   const remaining = cls.capacity - enrolled;
   
-  const rating = cls.rating || (4 + ((cls.title.length % 10) / 10));
-  const sessions = cls.sessions || ((cls.title.length % 12) + 4);
-  const sessionDuration = 90; // mock duration
+  const rating = cls.rating || 0;
+  const sessions = cls.sessions || 0;
+  const sessionDuration = cls.sessionDuration || 0;
 
   // Status CTA logic
   let ctaText = 'ثبت‌نام در کلاس';
-  let ctaClass = 'bg-blue-600 hover:bg-blue-700 text-white shadow-blue-600/30 shadow-lg';
+  let ctaClass = 'bg-[var(--neo-primary)] hover:bg-blue-700 text-white shadow-[var(--neo-primary)]/30 shadow-lg';
   let ctaDisabled = false;
 
   if (cls.status === 'completed') {
     ctaText = 'کلاس پایان یافته';
-    ctaClass = 'bg-gray-200 text-gray-500 cursor-not-allowed';
+    ctaClass = 'bg-[var(--neo-border)] text-[var(--neo-text-muted)] cursor-not-allowed';
     ctaDisabled = true;
   } else if (cls.status === 'cancelled') {
     ctaText = 'کلاس لغو شده';
@@ -51,22 +51,22 @@ export function ClassDetailsContainer({ slug }: { slug: string }) {
     ctaDisabled = true;
   } else if (isStarted) {
     ctaText = 'کلاس شروع شده';
-    ctaClass = 'bg-gray-200 text-gray-500 cursor-not-allowed';
+    ctaClass = 'bg-[var(--neo-border)] text-[var(--neo-text-muted)] cursor-not-allowed';
     ctaDisabled = true;
   } else if (isFull) {
     ctaText = 'ظرفیت تکمیل';
-    ctaClass = 'bg-gray-200 text-gray-500 cursor-not-allowed';
+    ctaClass = 'bg-[var(--neo-border)] text-[var(--neo-text-muted)] cursor-not-allowed';
     ctaDisabled = true;
   }
 
   return (
-    <div className="bg-gray-50 min-h-screen pb-32">
+    <div className="bg-[var(--neo-bg)] min-h-screen pb-32">
       {/* Hero */}
       <div className="bg-slate-900 text-white pt-16 pb-32">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row gap-12 items-center">
           <div className="flex-1 space-y-6">
             <div className="flex flex-wrap items-center gap-3">
-              <span className={`px-3 py-1 rounded-full text-sm font-bold flex items-center gap-2 ${isOnline ? 'bg-blue-500/20 text-blue-300' : 'bg-emerald-500/20 text-emerald-300'}`}>
+              <span className={`px-3 py-1 rounded-full text-sm font-bold flex items-center gap-2 ${isOnline ? 'bg-[var(--neo-secondary)]/20 text-blue-300' : 'bg-emerald-500/20 text-emerald-300'}`}>
                 {isOnline ? <Monitor className="w-4 h-4" /> : <MapPin className="w-4 h-4" />}
                 {isOnline ? 'کلاس آنلاین' : 'کلاس حضوری'}
               </span>
@@ -83,9 +83,9 @@ export function ClassDetailsContainer({ slug }: { slug: string }) {
             
             <div className="flex flex-wrap items-center gap-8 text-gray-300 bg-white/5 p-4 rounded-2xl">
                <div className="flex items-center gap-3">
-                 <div className="w-10 h-10 bg-blue-500/20 rounded-full flex items-center justify-center"><Calendar className="w-5 h-5 text-blue-400" /></div>
+                 <div className="w-10 h-10 bg-[var(--neo-secondary)]/20 rounded-full flex items-center justify-center"><Calendar className="w-5 h-5 text-blue-400" /></div>
                  <div>
-                   <div className="text-xs text-gray-400">تاریخ شروع</div>
+                   <div className="text-xs text-[var(--neo-text-muted)]">تاریخ شروع</div>
                    <div className="font-bold text-white">{format(startDate, 'd MMMM yyyy')}</div>
                  </div>
                </div>
@@ -93,7 +93,7 @@ export function ClassDetailsContainer({ slug }: { slug: string }) {
                <div className="flex items-center gap-3">
                  <div className="w-10 h-10 bg-purple-500/20 rounded-full flex items-center justify-center"><Clock className="w-5 h-5 text-purple-400" /></div>
                  <div>
-                   <div className="text-xs text-gray-400">تعداد جلسات</div>
+                   <div className="text-xs text-[var(--neo-text-muted)]">تعداد جلسات</div>
                    <div className="font-bold text-white">{sessions} جلسه</div>
                  </div>
                </div>
@@ -101,7 +101,7 @@ export function ClassDetailsContainer({ slug }: { slug: string }) {
                <div className="flex items-center gap-3">
                  <div className="w-10 h-10 bg-emerald-500/20 rounded-full flex items-center justify-center"><Users className="w-5 h-5 text-emerald-400" /></div>
                  <div>
-                   <div className="text-xs text-gray-400">ظرفیت</div>
+                   <div className="text-xs text-[var(--neo-text-muted)]">ظرفیت</div>
                    <div className="font-bold text-white">{cls.capacity} نفر</div>
                  </div>
                </div>
@@ -121,73 +121,73 @@ export function ClassDetailsContainer({ slug }: { slug: string }) {
           <div className="lg:col-span-2 space-y-8">
             
             {/* Overview */}
-            <section className="bg-white rounded-2xl shadow-xl border border-gray-100 p-8">
-              <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-2">
-                <FileText className="w-6 h-6 text-blue-600" />
+            <section className="bg-white rounded-2xl shadow-xl border border-[var(--neo-border)] p-8">
+              <h2 className="text-2xl font-bold text-[var(--neo-text-main)] mb-6 flex items-center gap-2">
+                <FileText className="w-6 h-6 text-[var(--neo-primary)]" />
                 معرفی کلاس
               </h2>
-              <div className="prose prose-blue max-w-none text-gray-600 leading-loose whitespace-pre-wrap">
+              <div className="prose prose-blue max-w-none text-[var(--neo-text-secondary)] leading-loose whitespace-pre-wrap">
                 {cls.description}
               </div>
             </section>
 
             {/* Target Audience & Prerequisites */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              <section className="bg-white rounded-2xl shadow-xl border border-gray-100 p-8">
-                <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
-                  <Target className="w-5 h-5 text-blue-600" />
+              <section className="bg-white rounded-2xl shadow-xl border border-[var(--neo-border)] p-8">
+                <h2 className="text-xl font-bold text-[var(--neo-text-main)] mb-4 flex items-center gap-2">
+                  <Target className="w-5 h-5 text-[var(--neo-primary)]" />
                   مناسب چه کسانی است؟
                 </h2>
-                <ul className="space-y-3 text-gray-600 text-sm">
+                <ul className="space-y-3 text-[var(--neo-text-secondary)] text-sm">
                   <li className="flex items-start gap-2"><CheckCircle className="w-4 h-4 text-green-500 mt-0.5 shrink-0" /> علاقه‌مندان به یادگیری عمیق و اصولی</li>
                   <li className="flex items-start gap-2"><CheckCircle className="w-4 h-4 text-green-500 mt-0.5 shrink-0" /> افرادی که به دنبال ارتقای مهارت‌های شغلی هستند</li>
                   <li className="flex items-start gap-2"><CheckCircle className="w-4 h-4 text-green-500 mt-0.5 shrink-0" /> دانشجویان و فارغ‌التحصیلان</li>
                 </ul>
               </section>
-              <section className="bg-white rounded-2xl shadow-xl border border-gray-100 p-8">
-                <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
-                  <BookOpen className="w-5 h-5 text-blue-600" />
+              <section className="bg-white rounded-2xl shadow-xl border border-[var(--neo-border)] p-8">
+                <h2 className="text-xl font-bold text-[var(--neo-text-main)] mb-4 flex items-center gap-2">
+                  <BookOpen className="w-5 h-5 text-[var(--neo-primary)]" />
                   پیش‌نیازها
                 </h2>
-                <ul className="space-y-3 text-gray-600 text-sm">
-                  <li className="flex items-start gap-2"><div className="w-1.5 h-1.5 bg-blue-600 rounded-full mt-2 shrink-0"></div> آشنایی اولیه با مفاهیم پایه</li>
-                  <li className="flex items-start gap-2"><div className="w-1.5 h-1.5 bg-blue-600 rounded-full mt-2 shrink-0"></div> کامپیوتر یا لپ‌تاپ مناسب (برای کلاس‌های عملی)</li>
-                  <li className="flex items-start gap-2"><div className="w-1.5 h-1.5 bg-blue-600 rounded-full mt-2 shrink-0"></div> تعهد به انجام تمرین‌ها</li>
+                <ul className="space-y-3 text-[var(--neo-text-secondary)] text-sm">
+                  <li className="flex items-start gap-2"><div className="w-1.5 h-1.5 bg-[var(--neo-primary)] rounded-full mt-2 shrink-0"></div> آشنایی اولیه با مفاهیم پایه</li>
+                  <li className="flex items-start gap-2"><div className="w-1.5 h-1.5 bg-[var(--neo-primary)] rounded-full mt-2 shrink-0"></div> کامپیوتر یا لپ‌تاپ مناسب (برای کلاس‌های عملی)</li>
+                  <li className="flex items-start gap-2"><div className="w-1.5 h-1.5 bg-[var(--neo-primary)] rounded-full mt-2 shrink-0"></div> تعهد به انجام تمرین‌ها</li>
                 </ul>
               </section>
             </div>
 
             {/* Logistics */}
-            <section className="bg-white rounded-2xl shadow-xl border border-gray-100 p-8">
-              <h2 className="text-2xl font-bold text-gray-900 mb-6">اطلاعات برگزاری</h2>
+            <section className="bg-white rounded-2xl shadow-xl border border-[var(--neo-border)] p-8">
+              <h2 className="text-2xl font-bold text-[var(--neo-text-main)] mb-6">اطلاعات برگزاری</h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                 <div className="flex items-start gap-4 p-4 bg-gray-50 rounded-xl">
-                   <div className="w-10 h-10 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center flex-shrink-0">
+                 <div className="flex items-start gap-4 p-4 bg-[var(--neo-bg)] rounded-xl">
+                   <div className="w-10 h-10 bg-[var(--neo-primary)]/10 text-[var(--neo-primary)] rounded-full flex items-center justify-center flex-shrink-0">
                      <Calendar className="w-5 h-5" />
                    </div>
                    <div>
-                     <h3 className="font-bold text-gray-900 mb-1">تاریخ‌ها</h3>
-                     <p className="text-sm text-gray-600">شروع: {format(startDate, 'yyyy/MM/dd')}</p>
-                     <p className="text-sm text-gray-600">پایان: {format(endDate, 'yyyy/MM/dd')}</p>
+                     <h3 className="font-bold text-[var(--neo-text-main)] mb-1">تاریخ‌ها</h3>
+                     <p className="text-sm text-[var(--neo-text-secondary)]">شروع: {format(startDate, 'yyyy/MM/dd')}</p>
+                     <p className="text-sm text-[var(--neo-text-secondary)]">پایان: {format(endDate, 'yyyy/MM/dd')}</p>
                    </div>
                  </div>
-                 <div className="flex items-start gap-4 p-4 bg-gray-50 rounded-xl">
+                 <div className="flex items-start gap-4 p-4 bg-[var(--neo-bg)] rounded-xl">
                    <div className="w-10 h-10 bg-purple-100 text-purple-600 rounded-full flex items-center justify-center flex-shrink-0">
                      <Clock className="w-5 h-5" />
                    </div>
                    <div>
-                     <h3 className="font-bold text-gray-900 mb-1">زمان‌بندی</h3>
-                     <p className="text-sm text-gray-600">تعداد: {sessions} جلسه</p>
-                     <p className="text-sm text-gray-600">مدت: {sessionDuration} دقیقه هر جلسه</p>
+                     <h3 className="font-bold text-[var(--neo-text-main)] mb-1">زمان‌بندی</h3>
+                     <p className="text-sm text-[var(--neo-text-secondary)]">تعداد: {sessions} جلسه</p>
+                     <p className="text-sm text-[var(--neo-text-secondary)]">مدت: {sessionDuration} دقیقه هر جلسه</p>
                    </div>
                  </div>
-                 <div className="flex items-start gap-4 p-4 bg-gray-50 rounded-xl sm:col-span-2">
+                 <div className="flex items-start gap-4 p-4 bg-[var(--neo-bg)] rounded-xl sm:col-span-2">
                    <div className="w-10 h-10 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center flex-shrink-0">
                      {isOnline ? <Monitor className="w-5 h-5" /> : <MapPin className="w-5 h-5" />}
                    </div>
                    <div>
-                     <h3 className="font-bold text-gray-900 mb-1">{isOnline ? 'مکان برگزاری: پلتفرم آنلاین (اسکای‌روم)' : 'مکان برگزاری: حضوری'}</h3>
-                     <p className="text-sm text-gray-600 mt-1">{isOnline ? 'لینک ورود به کلاس و نام کاربری پس از ثبت‌نام در پنل کاربری شما قرار می‌گیرد.' : (cls.location || 'تهران، مرکز نوآوری - ساختمان شماره ۲ - کلاس ۱۰۴')}</p>
+                     <h3 className="font-bold text-[var(--neo-text-main)] mb-1">{isOnline ? 'مکان برگزاری: پلتفرم آنلاین (اسکای‌روم)' : 'مکان برگزاری: حضوری'}</h3>
+                     <p className="text-sm text-[var(--neo-text-secondary)] mt-1">{isOnline ? 'لینک ورود به کلاس و نام کاربری پس از ثبت‌نام در پنل کاربری شما قرار می‌گیرد.' : (cls.location || 'تهران، مرکز نوآوری - ساختمان شماره ۲ - کلاس ۱۰۴')}</p>
                    </div>
                  </div>
               </div>
@@ -195,17 +195,17 @@ export function ClassDetailsContainer({ slug }: { slug: string }) {
 
             {/* Instructor */}
             {instructor && (
-              <section className="bg-white rounded-2xl shadow-xl border border-gray-100 p-8">
-                <h2 className="text-2xl font-bold text-gray-900 mb-6">درباره استاد</h2>
+              <section className="bg-white rounded-2xl shadow-xl border border-[var(--neo-border)] p-8">
+                <h2 className="text-2xl font-bold text-[var(--neo-text-main)] mb-6">درباره استاد</h2>
                 <div className="flex flex-col sm:flex-row gap-6 items-start">
                   <img src={instructor.avatar || `https://ui-avatars.com/api/?name=${instructor.firstName}+${instructor.lastName}`} className="w-24 h-24 rounded-2xl object-cover" alt="Instructor" />
                   <div className="flex-1">
-                    <h3 className="text-xl font-bold text-gray-900">{instructor.firstName} {instructor.lastName}</h3>
-                    <div className="text-sm font-medium text-blue-600 mb-4">متخصص و مدرس ارشد</div>
-                    <p className="text-gray-600 text-sm leading-relaxed mb-4">
+                    <h3 className="text-xl font-bold text-[var(--neo-text-main)]">{instructor.firstName} {instructor.lastName}</h3>
+                    <div className="text-sm font-medium text-[var(--neo-primary)] mb-4">متخصص و مدرس ارشد</div>
+                    <p className="text-[var(--neo-text-secondary)] text-sm leading-relaxed mb-4">
                       دارای سال‌ها تجربه درخشان در زمینه آموزش و اجرای پروژه‌های عملی. تمرکز بر انتقال مفاهیم به ساده‌ترین شکل و آماده‌سازی دانشجویان برای بازار کار.
                     </p>
-                    <Link href={`/instructors/${instructor._id}`} className="inline-flex items-center gap-2 text-blue-600 font-bold text-sm hover:text-blue-700">
+                    <Link href={`/instructors/${instructor._id}`} className="inline-flex items-center gap-2 text-[var(--neo-primary)] font-bold text-sm hover:text-blue-700">
                       مشاهده پروفایل کامل <ArrowLeft className="w-4 h-4" />
                     </Link>
                   </div>
@@ -217,39 +217,39 @@ export function ClassDetailsContainer({ slug }: { slug: string }) {
           
           {/* Sidebar CTA */}
           <div className="lg:col-span-1 hidden lg:block">
-             <div className="bg-white rounded-3xl shadow-2xl border border-gray-100 p-6 sticky top-24">
+             <div className="bg-white rounded-3xl shadow-2xl border border-[var(--neo-border)] p-6 sticky top-24">
                 <div className="text-center mb-6">
-                  <div className="text-sm text-gray-500 mb-2">هزینه ثبت‌نام</div>
-                  <div className="text-3xl font-bold text-blue-600">
+                  <div className="text-sm text-[var(--neo-text-muted)] mb-2">هزینه ثبت‌نام</div>
+                  <div className="text-3xl font-bold text-[var(--neo-primary)]">
                     {cls.price === 0 ? 'رایگان' : `${cls.price.toLocaleString()} تومان`}
                   </div>
                 </div>
                 
                 {/* Capacity UI */}
-                <div className="bg-gray-50 p-4 rounded-xl mb-6">
+                <div className="bg-[var(--neo-bg)] p-4 rounded-xl mb-6">
                    <div className="flex justify-between text-sm mb-2">
-                     <span className="text-gray-600 font-medium">وضعیت ظرفیت:</span>
-                     <span className="font-bold text-gray-900">{enrolled} نفر ثبت‌نام</span>
+                     <span className="text-[var(--neo-text-secondary)] font-medium">وضعیت ظرفیت:</span>
+                     <span className="font-bold text-[var(--neo-text-main)]">{enrolled} نفر ثبت‌نام</span>
                    </div>
-                   <div className="w-full bg-gray-200 rounded-full h-2 mb-2">
-                     <div className={`h-2 rounded-full ${isFull ? 'bg-rose-500' : remaining <= 3 ? 'bg-orange-500' : 'bg-blue-600'}`} style={{ width: `${Math.min(100, (enrolled / cls.capacity) * 100)}%` }}></div>
+                   <div className="w-full bg-[var(--neo-border)] rounded-full h-2 mb-2">
+                     <div className={`h-2 rounded-full ${isFull ? 'bg-rose-500' : remaining <= 3 ? 'bg-orange-500' : 'bg-[var(--neo-primary)]'}`} style={{ width: `${Math.min(100, (enrolled / cls.capacity) * 100)}%` }}></div>
                    </div>
-                   <div className="text-xs text-center text-gray-500">
+                   <div className="text-xs text-center text-[var(--neo-text-muted)]">
                      {isFull ? 'ظرفیت تکمیل شده' : `${remaining} جای خالی باقی مانده`}
                    </div>
                 </div>
 
                 <div className="space-y-4 mb-8">
-                  <div className="flex items-center gap-3 text-sm text-gray-600">
+                  <div className="flex items-center gap-3 text-sm text-[var(--neo-text-secondary)]">
                     <CheckCircle className="w-5 h-5 text-green-500" />
                     <span>دسترسی به گروه پشتیبانی کلاس</span>
                   </div>
-                  <div className="flex items-center gap-3 text-sm text-gray-600">
+                  <div className="flex items-center gap-3 text-sm text-[var(--neo-text-secondary)]">
                     <CheckCircle className="w-5 h-5 text-green-500" />
                     <span>دریافت فایل‌های ضبط شده (آنلاین)</span>
                   </div>
-                  <div className="flex items-center gap-3 text-sm text-gray-600">
-                    <ShieldCheck className="w-5 h-5 text-blue-500" />
+                  <div className="flex items-center gap-3 text-sm text-[var(--neo-text-secondary)]">
+                    <ShieldCheck className="w-5 h-5 text-[var(--neo-secondary)]" />
                     <span>تضمین کیفیت آموزش</span>
                   </div>
                 </div>
@@ -266,10 +266,10 @@ export function ClassDetailsContainer({ slug }: { slug: string }) {
       </div>
 
       {/* Mobile Sticky CTA */}
-      <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4 shadow-[0_-4px_20px_-10px_rgba(0,0,0,0.1)] z-50 flex items-center justify-between">
+      <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-[var(--neo-border)] p-4 shadow-[0_-4px_20px_-10px_rgba(0,0,0,0.1)] z-50 flex items-center justify-between">
         <div>
-          <div className="text-xs text-gray-500 mb-0.5">هزینه ثبت‌نام</div>
-          <div className="text-lg font-bold text-blue-600">
+          <div className="text-xs text-[var(--neo-text-muted)] mb-0.5">هزینه ثبت‌نام</div>
+          <div className="text-lg font-bold text-[var(--neo-primary)]">
             {cls.price === 0 ? 'رایگان' : `${cls.price.toLocaleString()} تومان`}
           </div>
         </div>

@@ -18,15 +18,15 @@ const Radio = React.forwardRef<HTMLInputElement, RadioProps>(
           />
           <div className={cn(
             "w-5 h-5 border-2 rounded-full transition-all",
-            "border-gray-300 bg-white group-hover:border-blue-500",
+            "border-[var(--neo-border)] bg-white group-hover:border-[var(--neo-secondary)]",
             "peer-focus-visible:ring-2 peer-focus-visible:ring-blue-500 peer-focus-visible:ring-offset-2",
-            "peer-checked:border-blue-600",
+            "peer-checked:border-[var(--neo-primary)]",
             "peer-disabled:cursor-not-allowed peer-disabled:opacity-50",
             className
           )}></div>
-          <div className="absolute w-2.5 h-2.5 rounded-full bg-blue-600 pointer-events-none opacity-0 scale-50 peer-checked:opacity-100 peer-checked:scale-100 transition-all"></div>
+          <div className="absolute w-2.5 h-2.5 rounded-full bg-[var(--neo-primary)] pointer-events-none opacity-0 scale-50 peer-checked:opacity-100 peer-checked:scale-100 transition-all"></div>
         </div>
-        {label && <span className="text-sm font-medium text-gray-700 peer-disabled:opacity-50">{label}</span>}
+        {label && <span className="text-sm font-medium text-[var(--neo-text-secondary)] peer-disabled:opacity-50">{label}</span>}
       </label>
     );
   }

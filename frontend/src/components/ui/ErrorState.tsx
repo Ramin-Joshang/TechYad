@@ -15,8 +15,8 @@ export function ErrorState({ className, title = "خطایی رخ داد", descri
       <div className="w-20 h-20 bg-red-50 rounded-full flex items-center justify-center mb-6 text-red-500">
         <AlertOctagon className="w-10 h-10" />
       </div>
-      <h3 className="text-xl font-bold text-gray-900 mb-2">{title}</h3>
-      {description && <p className="text-gray-500 max-w-sm mx-auto mb-6 leading-relaxed">{description}</p>}
+      <h3 className="text-xl font-bold text-[var(--neo-text-main)] mb-2">{title}</h3>
+      {description && <p className="text-[var(--neo-text-muted)] max-w-sm mx-auto mb-6 leading-relaxed">{description}</p>}
       {onRetry && (
         <Button onClick={onRetry} variant="outline" className="gap-2">
           <RefreshCw className="w-4 h-4" /> تلاش مجدد

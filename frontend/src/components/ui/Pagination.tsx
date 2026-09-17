@@ -28,14 +28,14 @@ export function Pagination({ currentPage, totalPages, onPageChange, className, .
       <button
         onClick={() => onPageChange(Math.max(1, currentPage - 1))}
         disabled={currentPage === 1}
-        className="p-2 rounded-xl text-gray-500 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition"
+        className="p-2 rounded-xl text-[var(--neo-text-muted)] hover:bg-[var(--neo-surface-2)] disabled:opacity-50 disabled:cursor-not-allowed transition"
       >
         <ChevronRight className="w-5 h-5" />
       </button>
       
       {visiblePages.map((page, index) => (
         page === -1 ? (
-          <span key={`dots-${index}`} className="px-3 py-2 text-gray-400">
+          <span key={`dots-${index}`} className="px-3 py-2 text-[var(--neo-text-muted)]">
             <MoreHorizontal className="w-5 h-5" />
           </span>
         ) : (
@@ -45,8 +45,8 @@ export function Pagination({ currentPage, totalPages, onPageChange, className, .
             className={cn(
               "w-10 h-10 rounded-xl font-bold transition-all",
               currentPage === page
-                ? "bg-blue-600 text-white shadow-md"
-                : "text-gray-600 hover:bg-gray-100"
+                ? "bg-[var(--neo-primary)] text-white shadow-md"
+                : "text-[var(--neo-text-secondary)] hover:bg-[var(--neo-surface-2)]"
             )}
           >
             {page}
@@ -57,7 +57,7 @@ export function Pagination({ currentPage, totalPages, onPageChange, className, .
       <button
         onClick={() => onPageChange(Math.min(totalPages, currentPage + 1))}
         disabled={currentPage === totalPages}
-        className="p-2 rounded-xl text-gray-500 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition"
+        className="p-2 rounded-xl text-[var(--neo-text-muted)] hover:bg-[var(--neo-surface-2)] disabled:opacity-50 disabled:cursor-not-allowed transition"
       >
         <ChevronLeft className="w-5 h-5" />
       </button>
