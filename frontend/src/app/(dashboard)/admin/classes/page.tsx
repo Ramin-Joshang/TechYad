@@ -103,7 +103,7 @@ export default function AdminClassesPage() {
               <label className="block text-sm font-medium text-gray-700 mb-1.5">نوع برگزاری</label>
               <select value={formData.mode} onChange={e => setFormData({...formData, mode: e.target.value})} className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-emerald-500 outline-none">
                 <option value="online">آنلاین</option>
-                <option value="in-person">حضوری</option>
+                <option value="in_person">حضوری</option>
               </select>
             </div>
             <div>

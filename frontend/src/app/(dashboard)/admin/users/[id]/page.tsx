@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, use } from 'react';
 import { useRouter } from 'next/navigation';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { adminApi } from '@/features/admin/api/admin.api';
@@ -8,10 +8,11 @@ import { ArrowRight, Loader2, Save } from 'lucide-react';
 import Link from 'next/link';
 import toast from 'react-hot-toast';
 
-export default function EditUserPage({ params }: { params: { id: string } }) {
+export default function Page({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter();
   const queryClient = useQueryClient();
-  const id = params.id;
+  const unwrappedParams = use(params) as any;
+  const id = unwrappedParams.id;
   const { data: rolesData } = useQuery({
     queryKey: ['superAdminRoles'],
     queryFn: () => adminApi.getRoles().then((res: any) => res?.data || res).catch(() => [])

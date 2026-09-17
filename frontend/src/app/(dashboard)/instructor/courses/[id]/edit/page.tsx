@@ -4,6 +4,8 @@ import { useState, useEffect, use } from 'react';
 import { useRouter } from 'next/navigation';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { coursesApi } from '@/features/courses/api/courses.api';
+import { adminApi } from '@/features/admin/api/admin.api';
+import { useAuthStore } from '@/features/auth/stores/auth.store';
 import { api } from '@/lib/api';
 import Link from 'next/link';
 import { 
@@ -13,6 +15,7 @@ import {
 import { CurriculumBuilder } from './CurriculumBuilder';
 
 export default function EditCoursePage({ params }: { params: Promise<{ id: string }> }) {
+  const { user } = useAuthStore();
   const router = useRouter();
   const queryClient = useQueryClient();
   const resolvedParams = use(params);

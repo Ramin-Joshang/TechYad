@@ -55,6 +55,9 @@ export const adminApi = {
   getCourses: async (params?: any) => {
     return api.get<any, any>('/admin/courses', { params });
   },
+  getCourseById: async (id: string) => {
+    return api.get<any, any>(`/admin/courses/${id}`);
+  },
   updateCourse: async (id: string, data: any) => {
     return api.patch<any, any>(`/admin/courses/${id}`, data);
   },

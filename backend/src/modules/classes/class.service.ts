@@ -24,9 +24,14 @@ export class ClassService {
   static async createClass(userId: string, data: any) {
     const mockRoomLink = data.mode === 'online' ? `https://www.skyroom.online/ch/techyad/${new Types.ObjectId().toString().substring(0, 8)}` : undefined;
     
+    const payload = { ...data };
+    if (!payload.capacity) payload.capacity = data.maxStudents || 50;
+    if (!payload.description) payload.description = data.shortDescription || 'توضیحاتی برای این کلاس وارد نشده است.';
+    if (!payload.endDate) payload.endDate = new Date(new Date(data.startDate || new Date()).getTime() + 7 * 24 * 60 * 60 * 1000).toISOString();
+    if (payload.mode === 'in-person') payload.mode = 'in_person';
+
     return await Class.create({
-      capacity: data.capacity || data.maxStudents,
-      ...data,
+      ...payload,
       meetingLink: mockRoomLink,
       createdBy: userId,
       instructors: data.instructors?.length > 0 ? data.instructors : [userId]

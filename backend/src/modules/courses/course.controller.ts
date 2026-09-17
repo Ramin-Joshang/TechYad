@@ -116,3 +116,8 @@ export const adminDeleteCourse = async (req: Request, res: Response) => {
   await CourseService.deleteCourse((req.params.id as string));
   sendSuccess(res, null, 'Course deleted successfully');
 };
+
+export const adminGetCourseById = async (req: Request, res: Response) => {
+  const result = await CourseService.getCourseById(req.params.id as string);
+  sendSuccess(res, result, 'Course retrieved successfully');
+};
