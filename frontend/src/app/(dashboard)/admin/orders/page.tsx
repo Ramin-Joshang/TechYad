@@ -9,7 +9,7 @@ export default function AdminOrdersPage() {
   
   const { data: ordersData, isLoading } = useQuery({
     queryKey: ['adminOrders'],
-    queryFn: () => adminApi.getOrders().then(res => res.data?.data)
+    queryFn: () => adminApi.getOrders().then(res => res.data)
   });
 
   const orders = ordersData?.orders || [];

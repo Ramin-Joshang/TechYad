@@ -20,7 +20,7 @@ export default function InstructorClassesPage() {
 
   const { data: classes, isLoading } = useQuery({
     queryKey: ['instructor-classes'],
-    queryFn: () => api.get('/instructor/classes').then(res => res.data?.data)
+    queryFn: () => api.get('/instructor/classes').then(res => res.data)
   });
 
   const createMutation = useMutation({

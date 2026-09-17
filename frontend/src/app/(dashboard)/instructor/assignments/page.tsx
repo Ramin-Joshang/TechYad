@@ -22,7 +22,7 @@ export default function InstructorAssignmentsPage() {
         page, 
         limit: 10 
       } 
-    }).then(res => res.data?.data)
+    }).then(res => res.data)
   });
 
   const gradeMutation = useMutation({

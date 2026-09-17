@@ -10,7 +10,7 @@ export default function AdminUsersPage() {
   
   const { data: usersData, isLoading } = useQuery({
     queryKey: ['adminUsers'],
-    queryFn: () => adminApi.getUsers().then(res => res.data?.data)
+    queryFn: () => adminApi.getUsers().then(res => res.data)
   });
 
   const updateStatusMutation = useMutation({

@@ -29,7 +29,7 @@ export default function InstructorStudentsPage() {
       if (!courseId || courseId === 'all') return { students: [] };
       
       return api.get(`/instructor/courses/${courseId}/students`, { params: { page, limit: 10 } })
-        .then(res => res.data?.data);
+        .then(res => res.data);
     },
     enabled: selectedCourse !== 'all' || (!!coursesData?.courses && coursesData.courses.length > 0)
   });

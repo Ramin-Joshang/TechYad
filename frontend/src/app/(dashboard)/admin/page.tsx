@@ -13,31 +13,31 @@ export default function AdminDashboard() {
   
   const { data: statsData, isLoading } = useQuery({
     queryKey: ['adminDashboardStats'],
-    queryFn: () => adminApi.getDashboardStats().then(res => res.data?.data)
+    queryFn: () => adminApi.getDashboardStats().then((res: any) => res.data)
   });
 
-  if (isLoading) {
+  if (isLoading || !statsData) {
     return <div className="flex justify-center p-20"><Loader2 className="w-10 h-10 animate-spin text-blue-600" /></div>;
   }
 
   
   const primaryStats = [
-    { label: 'کل کاربران', value: statsData.totalUsers.toLocaleString(), icon: Users, color: 'bg-blue-500', link: '/admin/users' },
-    { label: 'درآمد کل (تومان)', value: statsData.revenue.toLocaleString(), icon: DollarSign, color: 'bg-emerald-500', link: '/admin/revenue' },
-    { label: 'کل دوره‌ها', value: statsData.totalCourses, icon: BookOpen, color: 'bg-purple-500', link: '/admin/courses' },
-    { label: 'سفارشات موفق', value: statsData.orders.toLocaleString(), icon: List, color: 'bg-amber-500', link: '/admin/orders' },
+    { label: 'کل کاربران', value: (statsData?.totalUsers || 0).toLocaleString(), icon: Users, color: 'bg-blue-500', link: '/admin/users' },
+    { label: 'درآمد کل (تومان)', value: (statsData?.totalRevenue || 0).toLocaleString(), icon: DollarSign, color: 'bg-emerald-500', link: '/admin/revenue' },
+    { label: 'کل دوره‌ها', value: (statsData?.totalCourses || 0), icon: BookOpen, color: 'bg-purple-500', link: '/admin/courses' },
+    { label: 'سفارشات موفق', value: (statsData?.activeOrders || 0).toLocaleString(), icon: List, color: 'bg-amber-500', link: '/admin/orders' },
   ];
 
   const entityStats = [
-    { label: 'دانشجویان', value: statsData.students.toLocaleString(), icon: GraduationCap, color: 'text-blue-600 bg-blue-50', link: '/admin/students' },
-    { label: 'اساتید', value: statsData.instructors, icon: Briefcase, color: 'text-indigo-600 bg-indigo-50', link: '/admin/instructors' },
-    { label: 'کلاس‌های فعال', value: statsData.classes, icon: Video, color: 'text-emerald-600 bg-emerald-50', link: '/admin/classes' },
-    { label: 'تیکت‌های باز', value: statsData.tickets, icon: Ticket, color: 'text-rose-600 bg-rose-50', link: '/admin/tickets' },
+    { label: 'دانشجویان', value: (statsData?.students || 0).toLocaleString(), icon: GraduationCap, color: 'text-blue-600 bg-blue-50', link: '/admin/students' },
+    { label: 'اساتید', value: (statsData?.instructors || 0), icon: Briefcase, color: 'text-indigo-600 bg-indigo-50', link: '/admin/instructors' },
+    { label: 'کلاس‌های فعال', value: (statsData?.classes || 0), icon: Video, color: 'text-emerald-600 bg-emerald-50', link: '/admin/classes' },
+    { label: 'تیکت‌های باز', value: (statsData?.tickets || 0), icon: Ticket, color: 'text-rose-600 bg-rose-50', link: '/admin/tickets' },
   ];
 
   const courseStats = [
-    { label: 'دوره‌های منتشر شده', value: statsData.publishedCourses, icon: CheckSquare, color: 'text-emerald-600', bg: 'bg-emerald-50', link: '/admin/courses/published' },
-    { label: 'دوره‌های در انتظار تایید', value: statsData.pendingCourses, icon: Activity, color: 'text-amber-600', bg: 'bg-amber-50', link: '/admin/courses/pending' },
+    { label: 'دوره‌های منتشر شده', value: (statsData?.publishedCourses || 0), icon: CheckSquare, color: 'text-emerald-600', bg: 'bg-emerald-50', link: '/admin/courses/published' },
+    { label: 'دوره‌های در انتظار تایید', value: (statsData?.pendingCourses || 0), icon: Activity, color: 'text-amber-600', bg: 'bg-amber-50', link: '/admin/courses/pending' },
   ];
 
   return (

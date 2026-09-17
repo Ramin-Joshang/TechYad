@@ -25,7 +25,7 @@ export default function EditCoursePage({ params }: { params: Promise<{ id: strin
   // Data Fetching
   const { data: course, isLoading: loadingCourse } = useQuery({
     queryKey: ['course', courseId],
-    queryFn: () => api.get(`/instructor/courses/${courseId}`).then(res => res.data?.data)
+    queryFn: () => api.get(`/instructor/courses/${courseId}`).then(res => res.data)
   });
 
   const { data: chapters, isLoading: loadingChapters } = useQuery({

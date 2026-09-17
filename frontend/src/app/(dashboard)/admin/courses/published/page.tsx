@@ -9,7 +9,7 @@ export default function AdminPublishedCoursesPage() {
   
   const { data: coursesData, isLoading } = useQuery({
     queryKey: ['adminCourses'],
-    queryFn: () => adminApi.getCourses().then(res => res.data?.data)
+    queryFn: () => adminApi.getCourses().then(res => res.data)
   });
 
   const courses = coursesData?.courses || [];

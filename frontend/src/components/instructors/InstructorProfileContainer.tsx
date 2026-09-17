@@ -15,12 +15,12 @@ export function InstructorProfileContainer({ id }: { id: string }) {
   // we fetch all and filter in frontend for this specific requirement to make sure it works seamlessly.
   const { data: allClassesData } = useQuery({
     queryKey: ['classes'],
-    queryFn: () => api.get('/classes').then(res => res.data?.data || res.data)
+    queryFn: () => api.get('/classes').then(res => res.data || res.data)
   });
   
   const { data: allCoursesData } = useQuery({
     queryKey: ['courses'],
-    queryFn: () => api.get('/courses').then(res => res.data?.data || res.data)
+    queryFn: () => api.get('/courses').then(res => res.data || res.data)
   });
 
   if (isLoading) {

@@ -10,7 +10,7 @@ export default function AdminPendingCoursesPage() {
   
   const { data: coursesData, isLoading } = useQuery({
     queryKey: ['adminCourses'],
-    queryFn: () => adminApi.getCourses().then(res => res.data?.data)
+    queryFn: () => adminApi.getCourses().then(res => res.data)
   });
 
   const publishMutation = useMutation({

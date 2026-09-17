@@ -7,7 +7,7 @@ export default function AdminRevenuePage() {
   
   const { data: revenueData, isLoading } = useQuery({
     queryKey: ['adminRevenue'],
-    queryFn: () => adminApi.getRevenueStats().then(res => res.data?.data)
+    queryFn: () => adminApi.getRevenueStats().then(res => res.data)
   });
 
   if (isLoading) {

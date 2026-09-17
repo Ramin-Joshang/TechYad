@@ -25,7 +25,7 @@ export default function FAQPage() {
     queryKey: ['faqs'],
     queryFn: async () => {
       const res = await generalApi.getFaqs();
-      return res.data?.data || res.data; // Mongoose models have _id
+      return res.data || res.data; // Mongoose models have _id
     }
   });
 

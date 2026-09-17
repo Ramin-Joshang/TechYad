@@ -12,7 +12,7 @@ export default function InstructorCommentsPage() {
 
   const { data: comments, isLoading } = useQuery({
     queryKey: ['instructor-comments'],
-    queryFn: () => api.get('/instructor/comments').then(res => res.data?.data)
+    queryFn: () => api.get('/instructor/comments').then(res => res.data)
   });
 
   const replyMutation = useMutation({

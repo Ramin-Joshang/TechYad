@@ -20,7 +20,7 @@ export default function InstructorDashboard() {
   
   const { data: upcomingClasses } = useQuery({
     queryKey: ['instructor-upcoming-classes'],
-    queryFn: () => api.get('/instructor/classes').then(res => res.data?.data)
+    queryFn: () => api.get('/instructor/classes').then(res => res.data)
   });
 
   const stats = {

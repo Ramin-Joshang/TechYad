@@ -11,7 +11,7 @@ export default function InstructorSalesPage() {
 
   const { data, isLoading } = useQuery({
     queryKey: ['instructor-sales', month, year],
-    queryFn: () => api.get('/instructor/sales', { params: { month, year } }).then(res => res.data?.data)
+    queryFn: () => api.get('/instructor/sales', { params: { month, year } }).then(res => res.data)
   });
 
   return (

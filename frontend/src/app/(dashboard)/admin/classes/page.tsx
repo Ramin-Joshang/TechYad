@@ -10,7 +10,7 @@ export default function AdminClassesPage() {
   
   const { data: classesData, isLoading } = useQuery({
     queryKey: ['adminClasses'],
-    queryFn: () => adminApi.getClasses().then(res => res.data?.data)
+    queryFn: () => adminApi.getClasses().then(res => res.data)
   });
 
   const classes = classesData?.classes || [];

@@ -10,7 +10,7 @@ export default function AdminTicketsPage() {
   
   const { data: ticketsData, isLoading } = useQuery({
     queryKey: ['adminTickets'],
-    queryFn: () => adminApi.getTickets().then(res => res.data?.data)
+    queryFn: () => adminApi.getTickets().then(res => res.data)
   });
 
   const updateStatusMutation = useMutation({

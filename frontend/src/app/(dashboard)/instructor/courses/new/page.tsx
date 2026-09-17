@@ -23,7 +23,7 @@ export default function NewCoursePage() {
   // Fetch categories
   const { data: categories } = useQuery({
     queryKey: ['categories'],
-    queryFn: () => api.get('/categories').then(res => res.data?.data || [])
+    queryFn: () => api.get('/categories').then(res => res.data || [])
   });
 
   const generateSlug = (title: string) => {
