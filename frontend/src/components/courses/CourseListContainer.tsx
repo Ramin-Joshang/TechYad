@@ -38,7 +38,7 @@ export function CourseListContainer() {
   }, [filters, router]);
 
   const handleFilterChange = (key: string, value: any) => {
-    setFilters(prev => ({ ...prev, [key]: value, page: 1 }));
+    setFilters(prev => ({ ...prev, [key]: value, page: key === 'page' ? value : 1 }));
   };
 
   const clearFilters = () => {
@@ -64,15 +64,17 @@ export function CourseListContainer() {
     queryFn: () => api.get('/instructors').then((res: any) => res.data || [])
   });
 
-  // Fetch courses
+  // Fetch courses with backend pagination
   const { data: coursesData, isLoading, isError } = useQuery({
     queryKey: ['courses', filters],
-    queryFn: () => {
+    queryFn: async () => {
       const params = new URLSearchParams();
       Object.entries(filters).forEach(([key, value]) => {
         if (value) params.set(key, value.toString());
       });
-      return api.get(`/courses?${params.toString()}`).then((res: any) => res.data);
+      if (!params.has('limit')) params.set('limit', '9');
+      const res: any = await api.get(`/courses?${params.toString()}`);
+      return res.data;
     }
   });
 

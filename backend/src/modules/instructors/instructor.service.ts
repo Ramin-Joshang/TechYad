@@ -11,8 +11,23 @@ export class InstructorService {
   }
 
   static async getInstructorBySlug(id: string) {
-    const profile = await InstructorProfile.findOne({ userId: id, isApproved: true })
-      .populate('userId', 'firstName lastName avatar email');
+    let profile = await InstructorProfile.findOne({
+      $or: [
+        { userId: id },
+        { _id: id }
+      ],
+      isApproved: true
+    }).populate('userId', 'firstName lastName avatar email');
+
+    if (!profile) {
+      // Also try find by userId even if id might match either
+      try {
+        profile = await InstructorProfile.findById(id).populate('userId', 'firstName lastName avatar email');
+      } catch (e) {
+        // ignore invalid ObjectId format
+      }
+    }
+
     if (!profile) throw new AppError('Instructor not found', 404, 'NOT_FOUND');
     return profile;
   }

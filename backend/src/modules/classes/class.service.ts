@@ -8,10 +8,45 @@ export class ClassService {
     return await Class.find({ instructors: instructorId }).sort({ startDate: 1 });
   }
 
-  static async getClasses() {
-    return await Class.find({ status: { $in: ['published', 'completed'] } })
-      .populate('instructors', 'firstName lastName avatar')
-      .sort({ startDate: 1 });
+  static async getClasses(query: any = {}) {
+    const filter: any = { status: { $in: ['published', 'completed'] } };
+
+    if (query.mode && query.mode !== 'all') {
+      filter.mode = query.mode;
+    }
+    if (query.type && query.type !== 'all') {
+      filter.type = query.type;
+    }
+    if (query.search) {
+      filter.$or = [
+        { title: { $regex: query.search, $options: 'i' } },
+        { description: { $regex: query.search, $options: 'i' } }
+      ];
+    }
+
+    const page = parseInt(query.page as string) || 1;
+    const limit = parseInt(query.limit as string) || 9;
+    const skip = (page - 1) * limit;
+
+    let sortOption: any = { startDate: 1 };
+    if (query.sort === 'newest') sortOption = { createdAt: -1 };
+    if (query.sort === 'price_asc') sortOption = { price: 1 };
+    if (query.sort === 'price_desc') sortOption = { price: -1 };
+
+    const classes = await Class.find(filter)
+      .populate('instructors', 'firstName lastName avatar bio')
+      .sort(sortOption)
+      .skip(skip)
+      .limit(limit);
+
+    const total = await Class.countDocuments(filter);
+    return {
+      classes,
+      total,
+      page,
+      limit,
+      pages: Math.ceil(total / limit) || 1
+    };
   }
 
   static async getClassBySlug(slug: string) {

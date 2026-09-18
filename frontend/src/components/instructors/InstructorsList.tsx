@@ -17,11 +17,44 @@ export function InstructorsList() {
 
   if (isLoading) {
     return (
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {[...Array(6)].map((_, i) => (
-            <div key={i} className="animate-pulse bg-white p-6 rounded-2xl border border-[var(--neo-border)] shadow-sm h-64"></div>
-          ))}
+      <div className="bg-[var(--neo-bg)] min-h-screen pb-20 animate-pulse">
+        <div className="bg-slate-900 py-16">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center flex flex-col items-center">
+            <div className="h-10 bg-slate-800 rounded-xl w-64 mb-4"></div>
+            <div className="h-5 bg-slate-800 rounded-lg w-96 max-w-full"></div>
+          </div>
+        </div>
+
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-8 relative z-20">
+          <div className="bg-white p-4 rounded-2xl shadow-lg border border-[var(--neo-border)] flex flex-col md:flex-row gap-4 items-center">
+            <div className="h-12 bg-gray-100 rounded-xl flex-1 w-full"></div>
+            <div className="h-12 bg-gray-100 rounded-xl w-full md:w-64"></div>
+          </div>
+        </div>
+
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-12">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {[...Array(6)].map((_, i) => (
+              <div key={i} className="bg-white rounded-3xl p-6 border border-[var(--neo-border)] shadow-sm flex flex-col">
+                <div className="flex gap-5 items-center mb-5">
+                  <div className="w-20 h-20 rounded-2xl bg-gray-200 shrink-0"></div>
+                  <div className="space-y-2 flex-1">
+                    <div className="h-5 bg-gray-200 rounded w-3/4"></div>
+                    <div className="h-4 bg-gray-100 rounded w-1/2"></div>
+                  </div>
+                </div>
+                <div className="flex gap-2 mb-6">
+                  <div className="h-6 w-16 bg-gray-100 rounded-md"></div>
+                  <div className="h-6 w-20 bg-gray-100 rounded-md"></div>
+                </div>
+                <div className="grid grid-cols-3 gap-2 pt-4 border-t border-gray-100 mt-auto">
+                  <div className="h-8 bg-gray-100 rounded"></div>
+                  <div className="h-8 bg-gray-100 rounded"></div>
+                  <div className="h-8 bg-gray-100 rounded"></div>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     );

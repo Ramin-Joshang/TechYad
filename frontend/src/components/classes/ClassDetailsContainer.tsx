@@ -14,7 +14,45 @@ export function ClassDetailsContainer({ slug }: { slug: string }) {
   });
 
   if (isLoading) {
-    return <div className="min-h-screen flex items-center justify-center text-[var(--neo-text-muted)]">درحال بارگذاری اطلاعات کلاس...</div>;
+    return (
+      <div className="bg-[var(--neo-bg)] min-h-screen pb-32 animate-pulse">
+        <div className="bg-slate-900 text-white pt-16 pb-32">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row gap-12 items-center">
+            <div className="flex-1 space-y-6 w-full">
+              <div className="flex gap-3">
+                <div className="h-6 w-24 bg-slate-800 rounded-full"></div>
+                <div className="h-6 w-16 bg-slate-800 rounded-full"></div>
+              </div>
+              <div className="h-10 bg-slate-800 rounded-xl w-3/4"></div>
+              <div className="h-6 bg-slate-800 rounded-lg w-full"></div>
+              <div className="flex gap-4">
+                <div className="h-12 w-32 bg-slate-800 rounded-xl"></div>
+                <div className="h-12 w-32 bg-slate-800 rounded-xl"></div>
+              </div>
+            </div>
+            <div className="w-full md:w-96 aspect-video bg-slate-800 rounded-2xl"></div>
+          </div>
+        </div>
+
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-16 relative z-20">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div className="lg:col-span-2 space-y-8">
+              <div className="bg-white rounded-3xl p-8 border border-[var(--neo-border)] space-y-4">
+                <div className="h-6 bg-gray-200 rounded w-48"></div>
+                <div className="h-4 bg-gray-100 rounded w-full"></div>
+                <div className="h-4 bg-gray-100 rounded w-5/6"></div>
+              </div>
+            </div>
+            <div>
+              <div className="bg-white rounded-3xl p-6 border border-[var(--neo-border)] space-y-4">
+                <div className="h-8 bg-gray-200 rounded w-32"></div>
+                <div className="h-12 bg-gray-200 rounded-xl w-full"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   if (!cls) {

@@ -14,21 +14,73 @@ export function InstructorProfileContainer({ id }: { id: string }) {
   // Since backend doesn't specifically filter classes by instructorId natively in a public route easily, 
   // we fetch all and filter in frontend for this specific requirement to make sure it works seamlessly.
   const { data: allClassesData } = useQuery({
-    queryKey: ['classes'],
-    queryFn: () => api.get('/classes').then(res => res.data || res.data)
+    queryKey: ['classes-all'],
+    queryFn: () => api.get('/classes?limit=100').then((res: any) => res.data)
   });
   
   const { data: allCoursesData } = useQuery({
-    queryKey: ['courses'],
-    queryFn: () => api.get('/courses').then(res => res.data || res.data)
+    queryKey: ['courses-all'],
+    queryFn: () => api.get('/courses?limit=100').then((res: any) => res.data)
   });
 
   if (isLoading) {
-    return <div className="min-h-screen flex items-center justify-center text-[var(--neo-text-muted)]">درحال بارگذاری پروفایل...</div>;
+    return (
+      <div className="bg-[var(--neo-bg)] min-h-screen pb-20 animate-pulse">
+        {/* Skeleton Header */}
+        <div className="bg-slate-900 pt-20 pb-32">
+          <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center flex flex-col items-center">
+            <div className="w-32 h-32 rounded-3xl bg-slate-800 border-4 border-white/10 mb-6"></div>
+            <div className="h-8 bg-slate-800 rounded-lg w-56 mb-3"></div>
+            <div className="h-5 bg-slate-800 rounded-md w-72 mb-8"></div>
+            <div className="flex flex-wrap justify-center gap-4">
+              <div className="w-36 h-12 bg-slate-800 rounded-2xl"></div>
+              <div className="w-36 h-12 bg-slate-800 rounded-2xl"></div>
+              <div className="w-36 h-12 bg-slate-800 rounded-2xl"></div>
+            </div>
+          </div>
+        </div>
+
+        {/* Skeleton Content */}
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 -mt-16 relative z-20 space-y-8">
+          <div className="bg-white rounded-3xl p-8 border border-[var(--neo-border)] shadow-sm space-y-6">
+            <div className="h-6 bg-gray-200 rounded w-40"></div>
+            <div className="space-y-2">
+              <div className="h-4 bg-gray-100 rounded w-full"></div>
+              <div className="h-4 bg-gray-100 rounded w-5/6"></div>
+              <div className="h-4 bg-gray-100 rounded w-4/6"></div>
+            </div>
+            <div className="pt-6 border-t border-[var(--neo-border)]">
+              <div className="h-5 bg-gray-200 rounded w-32 mb-4"></div>
+              <div className="flex gap-2">
+                <div className="h-8 w-24 bg-gray-100 rounded-lg"></div>
+                <div className="h-8 w-28 bg-gray-100 rounded-lg"></div>
+                <div className="h-8 w-20 bg-gray-100 rounded-lg"></div>
+              </div>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="h-32 bg-white rounded-2xl border border-[var(--neo-border)]"></div>
+            <div className="h-32 bg-white rounded-2xl border border-[var(--neo-border)]"></div>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   if (!profile) {
-    return <div className="min-h-screen flex items-center justify-center text-red-500">استاد پیدا نشد</div>;
+    return (
+      <div className="min-h-[70vh] flex flex-col items-center justify-center px-4">
+        <div className="w-16 h-16 bg-red-50 text-red-500 rounded-full flex items-center justify-center mb-4 text-2xl font-bold">
+          !
+        </div>
+        <h2 className="text-xl font-bold text-[var(--neo-text-main)] mb-2">استاد مورد نظر یافت نشد</h2>
+        <p className="text-[var(--neo-text-muted)] text-sm mb-6">ممکن است این پروفایل حذف شده یا آدرس اشتباه باشد.</p>
+        <Link href="/instructors" className="px-6 py-2.5 bg-[var(--neo-primary)] text-white rounded-xl font-medium hover:bg-blue-700 transition">
+          بازگشت به لیست اساتید
+        </Link>
+      </div>
+    );
   }
 
   const { userId, title, bio, avatar, specialties, education } = profile;
@@ -36,15 +88,16 @@ export function InstructorProfileContainer({ id }: { id: string }) {
   const displayAvatar = avatar || `https://ui-avatars.com/api/?name=${userId?.firstName}+${userId?.lastName}&size=200`;
 
   // Mocks and filtering
-  const rating = profile.rating || (4 + (((userId?.firstName.length || 0) % 10) / 10));
+  const rating = profile.rating > 0 ? profile.rating : (4 + (((userId?.firstName?.length || 0) % 10) / 10));
   
-  const allClasses = allClassesData?.classes || allClassesData?.data || [];
-  const allCourses = allCoursesData?.courses || allCoursesData?.data || [];
+  const allClasses = Array.isArray(allClassesData?.classes) ? allClassesData.classes : (Array.isArray(allClassesData) ? allClassesData : (Array.isArray(allClassesData?.data) ? allClassesData.data : []));
+  const allCourses = Array.isArray(allCoursesData?.courses) ? allCoursesData.courses : (Array.isArray(allCoursesData) ? allCoursesData : (Array.isArray(allCoursesData?.data) ? allCoursesData.data : []));
   
-  const instructorClasses = allClasses?.filter((c: any) => c.instructors?.some((i: any) => i._id === userId?._id || i === userId?._id)) || [];
-  const instructorCourses = allCourses?.filter((c: any) => c.instructor?._id === userId?._id || c.instructor === userId?._id) || [];
+  const targetInstructorId = (userId?._id || profile.userId)?.toString();
+  const instructorClasses = allClasses.filter((c: any) => c.instructors?.some((i: any) => (i?._id || i)?.toString() === targetInstructorId));
+  const instructorCourses = allCourses.filter((c: any) => c.instructors?.some((i: any) => (i?._id || i)?.toString() === targetInstructorId) || (c.instructor?._id || c.instructor)?.toString() === targetInstructorId);
   
-  const studentsCount = profile.totalStudents || (instructorCourses.length * 120) + (instructorClasses.length * 15) || 420;
+  const studentsCount = profile.totalStudents > 0 ? profile.totalStudents : ((instructorCourses.length * 120) + (instructorClasses.length * 15) || 120);
 
   return (
     <div className="bg-[var(--neo-bg)] min-h-screen pb-20">

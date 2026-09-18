@@ -4,7 +4,7 @@ import { sendSuccess } from '../../common/utils/response.js';
 import { AuthRequest } from '../../common/middleware/auth.js';
 
 export const getClasses = async (req: Request, res: Response) => {
-  const result = await ClassService.getClasses();
+  const result = await ClassService.getClasses(req.query);
   sendSuccess(res, result, 'Classes retrieved successfully');
 };
 
