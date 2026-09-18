@@ -144,77 +144,86 @@ export function ClassesList() {
               {/* Mode Filter */}
               <div>
                 <h3 className="font-bold text-[var(--neo-text-main)] mb-3 text-sm">نوع برگزاری</h3>
-                <div className="space-y-2">
+                <div className="grid grid-cols-3 gap-2 p-1 bg-gray-100/80 rounded-xl">
                   {[
-                    { id: 'all', label: 'همه موارد' },
+                    { id: 'all', label: 'همه' },
                     { id: 'online', label: 'آنلاین' },
                     { id: 'in_person', label: 'حضوری' }
-                  ].map((opt) => (
-                    <label key={opt.id} className="flex items-center gap-3 cursor-pointer group">
-                      <input
-                        type="radio"
-                        name="mode"
-                        checked={modeFilter === opt.id}
-                        onChange={() => updateFilters({ mode: opt.id, page: 1 })}
-                        className="w-4 h-4 text-[var(--neo-primary)] border-[var(--neo-border)] focus:ring-blue-500"
-                      />
-                      <span className="text-sm text-[var(--neo-text-secondary)] group-hover:text-[var(--neo-text-main)] transition">
+                  ].map((opt) => {
+                    const isActive = modeFilter === opt.id;
+                    return (
+                      <button
+                        key={opt.id}
+                        type="button"
+                        onClick={() => updateFilters({ mode: opt.id, page: 1 })}
+                        className={`py-2 px-2 text-xs font-semibold rounded-lg transition text-center ${
+                          isActive
+                            ? 'bg-white text-[var(--neo-primary)] shadow-sm'
+                            : 'text-[var(--neo-text-secondary)] hover:text-[var(--neo-text-main)]'
+                        }`}
+                      >
                         {opt.label}
-                      </span>
-                    </label>
-                  ))}
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
 
               {/* Type Filter */}
               <div>
-                <h3 className="font-bold text-[var(--neo-text-main)] mb-3 text-sm">عمومی / خصوصی</h3>
-                <div className="space-y-2">
+                <h3 className="font-bold text-[var(--neo-text-main)] mb-3 text-sm">نوع کلاس</h3>
+                <div className="grid grid-cols-3 gap-2 p-1 bg-gray-100/80 rounded-xl">
                   {[
-                    { id: 'all', label: 'همه موارد' },
+                    { id: 'all', label: 'همه' },
                     { id: 'public', label: 'عمومی' },
                     { id: 'private', label: 'خصوصی' }
-                  ].map((opt) => (
-                    <label key={opt.id} className="flex items-center gap-3 cursor-pointer group">
-                      <input
-                        type="radio"
-                        name="type"
-                        checked={typeFilter === opt.id}
-                        onChange={() => updateFilters({ type: opt.id, page: 1 })}
-                        className="w-4 h-4 text-[var(--neo-primary)] border-[var(--neo-border)] focus:ring-blue-500"
-                      />
-                      <span className="text-sm text-[var(--neo-text-secondary)] group-hover:text-[var(--neo-text-main)] transition">
+                  ].map((opt) => {
+                    const isActive = typeFilter === opt.id;
+                    return (
+                      <button
+                        key={opt.id}
+                        type="button"
+                        onClick={() => updateFilters({ type: opt.id, page: 1 })}
+                        className={`py-2 px-2 text-xs font-semibold rounded-lg transition text-center ${
+                          isActive
+                            ? 'bg-white text-[var(--neo-primary)] shadow-sm'
+                            : 'text-[var(--neo-text-secondary)] hover:text-[var(--neo-text-main)]'
+                        }`}
+                      >
                         {opt.label}
-                      </span>
-                    </label>
-                  ))}
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
 
               {/* Status Filter */}
               <div>
                 <h3 className="font-bold text-[var(--neo-text-main)] mb-3 text-sm">وضعیت ثبت‌نام</h3>
-                <div className="space-y-2">
+                <div className="flex flex-wrap gap-1.5">
                   {[
                     { id: 'all', label: 'همه وضعیت‌ها' },
                     { id: 'open', label: 'در حال ثبت‌نام' },
                     { id: 'full', label: 'تکمیل ظرفیت' },
                     { id: 'started', label: 'شروع شده' },
                     { id: 'completed', label: 'پایان یافته' }
-                  ].map((opt) => (
-                    <label key={opt.id} className="flex items-center gap-3 cursor-pointer group">
-                      <input
-                        type="radio"
-                        name="status"
-                        checked={statusFilter === opt.id}
-                        onChange={() => updateFilters({ status: opt.id, page: 1 })}
-                        className="w-4 h-4 text-[var(--neo-primary)] border-[var(--neo-border)] focus:ring-blue-500"
-                      />
-                      <span className="text-sm text-[var(--neo-text-secondary)] group-hover:text-[var(--neo-text-main)] transition">
+                  ].map((opt) => {
+                    const isActive = statusFilter === opt.id;
+                    return (
+                      <button
+                        key={opt.id}
+                        type="button"
+                        onClick={() => updateFilters({ status: opt.id, page: 1 })}
+                        className={`px-3 py-1.5 rounded-lg text-xs font-medium transition border ${
+                          isActive
+                            ? 'bg-[var(--neo-primary)] text-white border-[var(--neo-primary)] shadow-sm'
+                            : 'bg-white text-[var(--neo-text-secondary)] border-[var(--neo-border)] hover:bg-gray-50'
+                        }`}
+                      >
                         {opt.label}
-                      </span>
-                    </label>
-                  ))}
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
 

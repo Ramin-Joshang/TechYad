@@ -50,8 +50,17 @@ export class ClassService {
   }
 
   static async getClassBySlug(slug: string) {
-    const classData = await Class.findOne({ slug })
-      .populate('instructors', 'firstName lastName bio avatar');
+    let classData = await Class.findOne({
+      $or: [
+        { slug },
+        { slug: decodeURIComponent(slug) }
+      ]
+    }).populate('instructors', 'firstName lastName bio avatar');
+
+    if (!classData && /^[0-9a-fA-F]{24}$/.test(slug)) {
+      classData = await Class.findById(slug).populate('instructors', 'firstName lastName bio avatar');
+    }
+
     if (!classData) throw new AppError('Class not found', 404, 'NOT_FOUND');
     return classData;
   }

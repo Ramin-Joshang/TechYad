@@ -169,10 +169,11 @@ function InstructorCard({ instructor, featured = false }: { instructor: any, fea
   const displayAvatar = avatar || `https://ui-avatars.com/api/?name=${userId?.firstName}+${userId?.lastName}&background=random`;
   
   // Consistent mock data
-  const rating = instructor.rating || (4 + (((userId?.firstName.length || 0) % 10) / 10));
-  const coursesCount = instructor.coursesCount || ((userId?.firstName.length || 5) + 2);
-  const classesCount = instructor.classesCount || ((userId?.lastName.length || 3) + 1);
-  const studentsCount = instructor.totalStudents || (coursesCount * 120 + classesCount * 15);
+  // Real accurate data from backend profile
+  const rating = instructor.rating !== undefined && instructor.rating > 0 ? Number(instructor.rating) : 5.0;
+  const coursesCount = instructor.coursesCount !== undefined ? instructor.coursesCount : 0;
+  const classesCount = instructor.classesCount !== undefined ? instructor.classesCount : 0;
+  const studentsCount = instructor.totalStudents !== undefined ? instructor.totalStudents : (coursesCount * 45);
 
   return (
     <Link href={`/instructors/${userId?._id}`} className="block group h-full">

@@ -19,7 +19,7 @@ export function Navbar() {
     { name: 'تماس با ما', href: '/contact' },
   ];
 
-  if (pathname?.startsWith('/admin') || pathname?.startsWith('/student') || pathname?.startsWith('/instructor') || pathname?.startsWith('/profile')) {
+  if (pathname?.startsWith('/admin') || pathname?.startsWith('/student') || (pathname?.startsWith('/instructor') && !pathname?.startsWith('/instructors')) || pathname?.startsWith('/profile')) {
     return null;
   }
 

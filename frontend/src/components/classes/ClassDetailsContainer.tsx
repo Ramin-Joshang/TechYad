@@ -10,7 +10,11 @@ import { useState, useEffect } from 'react';
 export function ClassDetailsContainer({ slug }: { slug: string }) {
   const { data: cls, isLoading } = useQuery({
     queryKey: ['class', slug],
-    queryFn: () => api.get(`/classes/${slug}`).then(res => res.data.data)
+    queryFn: async () => {
+      const res: any = await api.get(`/classes/${encodeURIComponent(slug)}`);
+      // If response was unwrapped by interceptor: res is { success: true, data: { ... } }
+      return res?.data !== undefined ? res.data : res;
+    }
   });
 
   if (isLoading) {
@@ -56,7 +60,18 @@ export function ClassDetailsContainer({ slug }: { slug: string }) {
   }
 
   if (!cls) {
-    return <div className="min-h-screen flex items-center justify-center text-red-500">کلاس پیدا نشد</div>;
+    return (
+      <div className="min-h-[70vh] flex flex-col items-center justify-center px-4">
+        <div className="w-16 h-16 bg-red-50 text-red-500 rounded-full flex items-center justify-center mb-4 text-2xl font-bold">
+          !
+        </div>
+        <h2 className="text-xl font-bold text-[var(--neo-text-main)] mb-2">کلاس مورد نظر یافت نشد</h2>
+        <p className="text-[var(--neo-text-muted)] text-sm mb-6">ممکن است این کلاس حذف شده یا آدرس اشتباه باشد.</p>
+        <Link href="/classes" className="px-6 py-2.5 bg-[var(--neo-primary)] text-white rounded-xl font-medium hover:bg-blue-700 transition">
+          بازگشت به لیست کلاس‌ها
+        </Link>
+      </div>
+    );
   }
 
   const isOnline = cls.mode === 'online';
