@@ -45,11 +45,84 @@ export default function BlogPostPage() {
   }, [article]);
 
   if (isLoading) {
-    return <div className="flex-1 flex items-center justify-center p-20"><div className="animate-pulse text-xl text-[var(--neo-text-muted)]">در حال بارگذاری مقاله...</div></div>;
+    return (
+      <div className="bg-[var(--neo-bg)] min-h-screen py-8 animate-pulse">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          {/* Breadcrumb skeleton */}
+          <div className="flex items-center gap-2 mb-8">
+            <div className="h-4 w-16 bg-gray-200 rounded"></div>
+            <div className="h-4 w-4 bg-gray-200 rounded"></div>
+            <div className="h-4 w-20 bg-gray-200 rounded"></div>
+            <div className="h-4 w-4 bg-gray-200 rounded"></div>
+            <div className="h-4 w-32 bg-gray-200 rounded"></div>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+            {/* Main content skeleton */}
+            <main className="lg:col-span-8 space-y-6">
+              <div className="bg-white rounded-3xl border border-[var(--neo-border)] p-6 sm:p-10 shadow-sm space-y-6">
+                <div className="flex items-center gap-3">
+                  <div className="h-6 w-24 bg-gray-200 rounded-full"></div>
+                  <div className="h-4 w-24 bg-gray-200 rounded"></div>
+                  <div className="h-4 w-20 bg-gray-200 rounded"></div>
+                </div>
+                <div className="h-10 bg-gray-200 rounded-xl w-4/5"></div>
+                <div className="flex items-center gap-4 py-4 border-y border-gray-100">
+                  <div className="w-12 h-12 rounded-full bg-gray-200"></div>
+                  <div className="space-y-2">
+                    <div className="h-4 w-32 bg-gray-200 rounded"></div>
+                    <div className="h-3 w-20 bg-gray-200 rounded"></div>
+                  </div>
+                </div>
+                <div className="aspect-[16/9] bg-gray-200 rounded-2xl w-full"></div>
+                <div className="space-y-4 pt-4">
+                  <div className="h-4 bg-gray-200 rounded w-full"></div>
+                  <div className="h-4 bg-gray-200 rounded w-11/12"></div>
+                  <div className="h-4 bg-gray-200 rounded w-full"></div>
+                  <div className="h-4 bg-gray-200 rounded w-4/5"></div>
+                  <div className="h-8 bg-gray-200 rounded-lg w-1/3 my-6"></div>
+                  <div className="h-4 bg-gray-200 rounded w-full"></div>
+                  <div className="h-4 bg-gray-200 rounded w-5/6"></div>
+                </div>
+              </div>
+            </main>
+
+            {/* Sidebar skeleton */}
+            <aside className="lg:col-span-4 space-y-6">
+              <div className="bg-white rounded-3xl border border-[var(--neo-border)] p-6 shadow-sm space-y-4">
+                <div className="h-6 bg-gray-200 rounded w-1/2"></div>
+                <div className="space-y-2.5">
+                  <div className="h-4 bg-gray-200 rounded w-4/5"></div>
+                  <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+                  <div className="h-4 bg-gray-200 rounded w-5/6"></div>
+                </div>
+              </div>
+              <div className="bg-white rounded-3xl border border-[var(--neo-border)] p-6 shadow-sm space-y-4">
+                <div className="h-6 bg-gray-200 rounded w-1/2"></div>
+                <div className="h-40 bg-gray-200 rounded-2xl"></div>
+              </div>
+            </aside>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   if (error || !article) {
-    return <div className="flex-1 flex items-center justify-center p-20"><div className="text-xl text-red-500">مقاله یافت نشد یا خطایی رخ داده است.</div></div>;
+    return (
+      <div className="bg-[var(--neo-bg)] min-h-screen flex items-center justify-center p-6">
+        <div className="max-w-md w-full bg-white rounded-3xl border border-[var(--neo-border)] p-8 text-center shadow-sm">
+          <div className="w-16 h-16 bg-rose-50 text-rose-500 rounded-2xl flex items-center justify-center mx-auto mb-4 font-bold text-2xl">
+            !
+          </div>
+          <h2 className="text-xl font-bold text-[var(--neo-text-main)] mb-2">مقاله یافت نشد</h2>
+          <p className="text-sm text-[var(--neo-text-muted)] mb-6">ممکن است آدرس مقاله تغییر کرده باشد یا موقتاً در دسترس نباشد.</p>
+          <Link href="/blog" className="inline-flex items-center justify-center gap-2 bg-[var(--neo-primary)] text-white px-6 py-2.5 rounded-xl font-bold text-sm hover:bg-blue-700 transition">
+            بازگشت به مقالات وبلاگ
+          </Link>
+        </div>
+      </div>
+    );
   }
 
   const relatedArticles = allArticles.filter(a => a.slug !== slug).slice(0, 4);

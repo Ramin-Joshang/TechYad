@@ -19,8 +19,22 @@ export class BlogService {
   }
 
   static async getArticleBySlug(slug: string) {
-    const article = await Article.findOne({ slug, status: 'published' })
-      .populate('authorId', 'firstName lastName avatar');
+    let decoded = slug;
+    try { decoded = decodeURIComponent(slug); } catch (e) {}
+
+    let article = await Article.findOne({
+      status: 'published',
+      $or: [
+        { slug },
+        { slug: decoded }
+      ]
+    }).populate('authorId', 'firstName lastName avatar');
+
+    if (!article && /^[0-9a-fA-F]{24}$/.test(slug)) {
+      article = await Article.findOne({ _id: slug, status: 'published' })
+        .populate('authorId', 'firstName lastName avatar');
+    }
+
     if (!article) throw new AppError('Article not found', 404, 'NOT_FOUND');
     return article;
   }

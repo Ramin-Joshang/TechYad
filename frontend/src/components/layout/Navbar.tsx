@@ -1,5 +1,7 @@
 'use client';
 import { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { commerceApi } from '@/features/commerce/api/commerce.api';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useAuthStore } from '@/features/auth/stores/auth.store';
@@ -8,6 +10,14 @@ import { LogOut, User, Search, ShoppingCart, Menu, X, LayoutDashboard } from 'lu
 export function Navbar() {
   const { user, isAuthenticated, logout } = useAuthStore();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  const { data: cartData } = useQuery({
+    queryKey: ['cart'],
+    queryFn: () => commerceApi.getCart().then(res => res.data),
+    enabled: !!isAuthenticated,
+    staleTime: 1000 * 30,
+  });
+  const cartItemCount = cartData?.items?.length || 0;
   const pathname = usePathname();
 
   const NAV_LINKS = [
@@ -60,8 +70,17 @@ export function Navbar() {
               <Search className="w-5 h-5" />
             </Link>
             
-            <Link href="/cart" className="text-[var(--neo-text-muted)] hover:text-[var(--neo-primary)] transition relative">
+            <Link 
+              href="/cart" 
+              className="text-[var(--neo-text-muted)] hover:text-[var(--neo-primary)] transition relative p-1.5 rounded-xl hover:bg-gray-100"
+              title="سبد خرید"
+            >
               <ShoppingCart className="w-5 h-5" />
+              {cartItemCount > 0 && (
+                <span className="absolute -top-1 -right-1 bg-rose-500 text-white text-[11px] font-bold w-5 h-5 rounded-full flex items-center justify-center shadow-sm ring-2 ring-white animate-in zoom-in-75">
+                  {cartItemCount > 9 ? '+9' : cartItemCount.toLocaleString('fa-IR')}
+                </span>
+              )}
             </Link>
 
             {isAuthenticated && user ? (
@@ -79,12 +98,13 @@ export function Navbar() {
                 </Link>
               </div>
             ) : (
-              <div className="flex items-center gap-2 sm:gap-3">
-                <Link href="/login" className="text-sm font-medium text-[var(--neo-text-secondary)] hover:text-[var(--neo-primary)] transition">
-                  ورود
-                </Link>
-                <Link href="/register" className="text-sm font-medium px-4 py-2 bg-[var(--neo-primary)] text-white rounded-xl hover:bg-opacity-90 transition shadow-sm">
-                  ثبت‌نام
+              <div className="flex items-center">
+                <Link 
+                  href="/login" 
+                  className="flex items-center gap-2 text-sm font-bold px-4 py-2 bg-[var(--neo-primary)] text-white rounded-xl hover:bg-blue-700 transition shadow-sm shadow-[var(--neo-primary)]/20"
+                >
+                  <User className="w-4 h-4" />
+                  <span>ورود / عضویت</span>
                 </Link>
               </div>
             )}
@@ -95,10 +115,10 @@ export function Navbar() {
       {isMobileMenuOpen && (
         <>
           <div 
-            className="fixed inset-0 bg-black/20 z-40 md:hidden backdrop-blur-sm" 
+            className="fixed inset-0 bg-black/50 z-[9999] md:hidden backdrop-blur-sm transition-opacity" 
             onClick={() => setIsMobileMenuOpen(false)}
           ></div>
-          <div className="fixed top-0 right-0 h-full w-64 bg-white z-50 shadow-2xl md:hidden flex flex-col transform transition-transform duration-300 ease-in-out">
+          <div className="fixed top-0 right-0 h-full w-72 bg-white z-[99999] shadow-2xl md:hidden flex flex-col transform transition-transform duration-300 ease-in-out border-l border-[var(--neo-border)]">
             <div className="p-4 border-b border-[var(--neo-border)] flex items-center justify-between">
               <Link href="/" className="flex items-center gap-2" onClick={() => setIsMobileMenuOpen(false)}>
                 <div className="w-8 h-8 rounded-full border-2 border-[var(--neo-primary)] flex items-center justify-center relative overflow-hidden">
@@ -140,6 +160,18 @@ export function Navbar() {
               </div>
             )}
 
+            {!isAuthenticated && (
+              <div className="p-4 border-b border-[var(--neo-border)] bg-gray-50/80">
+                <Link 
+                  href="/login" 
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="w-full flex items-center justify-center gap-2 py-2.5 bg-[var(--neo-primary)] text-white rounded-xl text-sm font-bold shadow-sm"
+                >
+                  <User className="w-4 h-4" />
+                  <span>ورود یا ثبت‌نام</span>
+                </Link>
+              </div>
+            )}
             <div className="flex-1 overflow-y-auto py-4">
               <nav className="flex flex-col px-3 space-y-1">
                 {NAV_LINKS.map(link => (

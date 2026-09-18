@@ -107,7 +107,56 @@ export default function BlogPage() {
         </div>
 
         {isLoading ? (
-          <div className="flex justify-center py-20 text-[var(--neo-text-muted)]">درحال بارگذاری مقالات...</div>
+          <div className="space-y-12">
+            {/* Featured Article Skeleton */}
+            <div className="bg-white rounded-3xl border border-[var(--neo-border)] overflow-hidden shadow-sm animate-pulse flex flex-col lg:flex-row">
+              <div className="lg:w-1/2 bg-gray-200 min-h-[300px]"></div>
+              <div className="lg:w-1/2 p-8 lg:p-12 flex flex-col justify-center space-y-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-20 h-6 bg-gray-200 rounded-md"></div>
+                  <div className="w-24 h-4 bg-gray-200 rounded"></div>
+                  <div className="w-20 h-4 bg-gray-200 rounded"></div>
+                </div>
+                <div className="h-8 bg-gray-200 rounded-xl w-3/4"></div>
+                <div className="space-y-2">
+                  <div className="h-4 bg-gray-200 rounded w-full"></div>
+                  <div className="h-4 bg-gray-200 rounded w-5/6"></div>
+                  <div className="h-4 bg-gray-200 rounded w-2/3"></div>
+                </div>
+                <div className="flex items-center gap-3 pt-4">
+                  <div className="w-10 h-10 rounded-full bg-gray-200"></div>
+                  <div className="space-y-1.5">
+                    <div className="w-28 h-4 bg-gray-200 rounded"></div>
+                    <div className="w-16 h-3 bg-gray-200 rounded"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Grid Skeleton */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {[1, 2, 3, 4, 5, 6].map((i) => (
+                <div key={i} className="bg-white border border-[var(--neo-border)] rounded-3xl overflow-hidden shadow-sm animate-pulse flex flex-col">
+                  <div className="aspect-[16/10] bg-gray-200 w-full"></div>
+                  <div className="p-6 flex flex-col flex-1 space-y-4">
+                    <div className="h-6 bg-gray-200 rounded-lg w-4/5"></div>
+                    <div className="space-y-2 flex-1">
+                      <div className="h-3.5 bg-gray-200 rounded w-full"></div>
+                      <div className="h-3.5 bg-gray-200 rounded w-5/6"></div>
+                      <div className="h-3.5 bg-gray-200 rounded w-2/3"></div>
+                    </div>
+                    <div className="pt-4 border-t border-gray-100 flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <div className="w-6 h-6 rounded-full bg-gray-200"></div>
+                        <div className="w-20 h-3.5 bg-gray-200 rounded"></div>
+                      </div>
+                      <div className="w-16 h-3.5 bg-gray-200 rounded"></div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
         ) : error ? (
           <div className="text-center py-20 bg-white border border-[var(--neo-border)] rounded-2xl">
             <p className="text-red-500 font-medium">خطا در دریافت مقالات</p>

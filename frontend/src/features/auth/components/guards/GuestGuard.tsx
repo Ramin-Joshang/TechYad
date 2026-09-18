@@ -11,9 +11,11 @@ export function GuestGuard({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (!isInitializing && isAuthenticated) {
       if (user?.role === 'admin' || user?.role === 'super-admin') {
-        router.replace('/admin/dashboard');
+        router.replace('/admin');
+      } else if (user?.role === 'instructor') {
+        router.replace('/instructor');
       } else {
-        router.replace('/dashboard');
+        router.replace('/student');
       }
     }
   }, [isInitializing, isAuthenticated, user, router]);

@@ -25,6 +25,13 @@ export default function LoginPage() {
       if (response.success) {
         setAuth(response.data.user);
         
+        const params = new URLSearchParams(window.location.search);
+        const redirectUrl = params.get('redirect');
+        if (redirectUrl && !redirectUrl.startsWith('//') && redirectUrl.startsWith('/')) {
+          router.push(redirectUrl);
+          return;
+        }
+
         // Redirect based on role
         const role = response.data.user.role;
         if (role === 'super-admin' || role === 'admin') router.push('/admin');

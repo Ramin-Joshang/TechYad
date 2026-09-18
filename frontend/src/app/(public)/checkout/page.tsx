@@ -16,20 +16,50 @@ export default function CheckoutPage() {
   const [couponCode, setCouponCode] = useState('');
   const [appliedCoupon, setAppliedCoupon] = useState('');
   const [acceptedTerms, setAcceptedTerms] = useState(false);
+  const [isApplyingCoupon, setIsApplyingCoupon] = useState(false);
 
-  // Fetch Checkout Preview
-  const { data: previewData, isLoading, refetch, isRefetching } = useQuery({
-    queryKey: ['checkoutPreview', appliedCoupon],
-    queryFn: () => commerceApi.checkoutPreview(appliedCoupon).then(res => res.data),
+  // Base query: fetch standard cart preview once without coupon
+  const { data: baseData, isLoading: isBaseLoading } = useQuery({
+    queryKey: ['checkoutPreviewBase'],
+    queryFn: () => commerceApi.checkoutPreview().then(res => res.data),
     enabled: isAuthenticated && !isInitializing,
     retry: false,
   });
 
-  // Handle Coupon Submit
-  const handleApplyCoupon = (e: React.FormEvent) => {
+  // Preview data state that holds either base or coupon-applied preview
+  const [previewData, setPreviewData] = useState<any>(null);
+
+  // Synchronize base preview when loaded and no coupon is active
+  const effectivePreview = previewData || baseData;
+
+  // Handle Coupon Submit without breaking whole page loading or emptying cart
+  const handleApplyCoupon = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!couponCode.trim()) return;
-    setAppliedCoupon(couponCode);
+    const cleanCode = couponCode.trim();
+    if (!cleanCode) return;
+
+    setIsApplyingCoupon(true);
+    try {
+      const res = await commerceApi.checkoutPreview(cleanCode);
+      if (res.data) {
+        setPreviewData(res.data);
+        setAppliedCoupon(cleanCode);
+        toast.success(`کد تخفیف ${cleanCode} با موفقیت اعمال شد`);
+      }
+    } catch (err: any) {
+      const msg = err.response?.data?.message || 'کد تخفیف نامعتبر یا منقضی شده است';
+      toast.error(msg);
+      // Keep existing preview data and cart intact!
+    } finally {
+      setIsApplyingCoupon(false);
+    }
+  };
+
+  const handleRemoveCoupon = () => {
+    setAppliedCoupon('');
+    setCouponCode('');
+    setPreviewData(null);
+    toast.success('کد تخفیف حذف شد');
   };
 
   // Payment Mutation
@@ -60,7 +90,7 @@ export default function CheckoutPage() {
     paymentMutation.mutate();
   };
 
-  if (isInitializing || isLoading) {
+  if (isInitializing || isBaseLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[var(--neo-bg)]">
         <Loader2 className="w-12 h-12 text-[var(--neo-secondary)] animate-spin" />
@@ -79,7 +109,7 @@ export default function CheckoutPage() {
     );
   }
 
-  const items = previewData?.items || [];
+  const items = effectivePreview?.items || [];
   
   if (items.length === 0) {
     return (
@@ -159,42 +189,59 @@ export default function CheckoutPage() {
               <h3 className="text-xl font-bold text-[var(--neo-text-main)] mb-6 border-b border-[var(--neo-border)] pb-4">خلاصه پرداختی</h3>
               
               {/* Coupon */}
-              <form onSubmit={handleApplyCoupon} className="mb-6 relative">
+              <div className="mb-6 relative">
                 <label className="block text-sm font-medium text-[var(--neo-text-secondary)] mb-2">کد تخفیف</label>
-                <div className="flex gap-2">
-                  <div className="relative flex-1">
-                    <Tag className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-[var(--neo-text-muted)]" />
-                    <input 
-                      type="text" 
-                      value={couponCode}
-                      onChange={(e) => setCouponCode(e.target.value)}
-                      placeholder="کد تخفیف دارید؟" 
-                      className="w-full bg-[var(--neo-bg)] border border-[var(--neo-border)] focus:border-[var(--neo-secondary)] focus:ring-2 focus:ring-blue-200 rounded-xl py-3 pr-10 pl-4 outline-none transition text-left dir-ltr uppercase"
-                    />
+                {effectivePreview?.couponCode ? (
+                  <div className="flex items-center justify-between p-3.5 bg-emerald-50 border border-emerald-200 rounded-xl text-emerald-800">
+                    <div className="flex items-center gap-2">
+                      <Tag className="w-4 h-4 text-emerald-600" />
+                      <span className="font-mono font-bold text-sm uppercase">{effectivePreview.couponCode}</span>
+                      <span className="text-xs bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-md">اعمال شده</span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={handleRemoveCoupon}
+                      className="text-xs font-bold text-red-600 hover:text-red-700 hover:underline transition"
+                    >
+                      حذف کد
+                    </button>
                   </div>
-                  <button type="submit" disabled={isRefetching || !couponCode.trim()} className="bg-[var(--neo-text-main)] text-white px-4 py-3 rounded-xl font-bold hover:bg-[var(--neo-text-main)] transition disabled:opacity-50 shrink-0">
-                    {isRefetching ? <Loader2 className="w-5 h-5 animate-spin" /> : 'اعمال'}
-                  </button>
-                </div>
-                {previewData?.couponCode && (
-                  <p className="text-emerald-600 text-sm mt-2 font-medium flex items-center gap-1">
-                    کد تخفیف {previewData.couponCode} با موفقیت اعمال شد.
-                  </p>
+                ) : (
+                  <form onSubmit={handleApplyCoupon} className="flex gap-2">
+                    <div className="relative flex-1">
+                      <Tag className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-[var(--neo-text-muted)]" />
+                      <input 
+                        type="text" 
+                        value={couponCode}
+                        onChange={(e) => setCouponCode(e.target.value)}
+                        placeholder="کد تخفیف دارید؟" 
+                        disabled={isApplyingCoupon}
+                        className="w-full bg-[var(--neo-bg)] border border-[var(--neo-border)] focus:border-[var(--neo-secondary)] focus:ring-2 focus:ring-blue-200 rounded-xl py-3 pr-10 pl-4 outline-none transition text-left dir-ltr uppercase text-sm"
+                      />
+                    </div>
+                    <button 
+                      type="submit" 
+                      disabled={isApplyingCoupon || !couponCode.trim()} 
+                      className="bg-[var(--neo-text-main)] text-white px-5 py-3 rounded-xl font-bold hover:bg-slate-800 transition disabled:opacity-50 shrink-0 text-sm flex items-center justify-center min-w-[70px]"
+                    >
+                      {isApplyingCoupon ? <Loader2 className="w-4 h-4 animate-spin" /> : 'اعمال'}
+                    </button>
+                  </form>
                 )}
-              </form>
+              </div>
 
               <div className="space-y-4 mb-6 text-[var(--neo-text-secondary)]">
                 <div className="flex justify-between items-center">
                   <span>مبلغ کل</span>
-                  <span className="font-bold">{previewData?.subtotal?.toLocaleString('fa-IR')} تومان</span>
+                  <span className="font-bold">{effectivePreview?.subtotal?.toLocaleString('fa-IR')} تومان</span>
                 </div>
                 <div className="flex justify-between items-center text-emerald-600">
                   <span>تخفیف</span>
-                  <span className="font-bold">{previewData?.discountAmount?.toLocaleString('fa-IR')} تومان</span>
+                  <span className="font-bold">{effectivePreview?.discountAmount?.toLocaleString('fa-IR')} تومان</span>
                 </div>
                 <div className="pt-4 border-t border-[var(--neo-border)] flex justify-between items-center text-xl font-black text-[var(--neo-text-main)]">
                   <span>قابل پرداخت</span>
-                  <span className="text-[var(--neo-primary)]">{previewData?.totalAmount?.toLocaleString('fa-IR')} تومان</span>
+                  <span className="text-[var(--neo-primary)]">{effectivePreview?.totalAmount?.toLocaleString('fa-IR')} تومان</span>
                 </div>
               </div>
 
@@ -221,7 +268,7 @@ export default function CheckoutPage() {
                 ) : (
                   <>
                     <CreditCard className="w-5 h-5" />
-                    پرداخت {(previewData?.totalAmount || 0).toLocaleString('fa-IR')} تومان
+                    پرداخت {(effectivePreview?.totalAmount || 0).toLocaleString('fa-IR')} تومان
                   </>
                 )}
               </button>
