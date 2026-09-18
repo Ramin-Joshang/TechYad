@@ -24,18 +24,28 @@ api.interceptors.response.use(
   },
   async (error) => {
     const originalRequest = error.config as CustomAxiosRequestConfig;
-    
     const hideToast = originalRequest?.headers?.['X-Hide-Error-Toast'] === 'true';
 
     if (error.response) {
       const status = error.response.status;
       const message = error.response.data?.error?.message || error.response.data?.message || 'خطایی رخ داده است';
 
+      // Check if this request is /auth/me or /auth/refresh or auth checks where 401 is expected for guests
+      const isAuthCheck = originalRequest?.url?.includes('/auth/me') || originalRequest?.url?.includes('/auth/refresh');
+
+      if (status === 401 && isAuthCheck) {
+        // Silent rejection for initial auth check so guests don't see errors or refresh loops
+        if (typeof window !== 'undefined') {
+          window.dispatchEvent(new CustomEvent('auth:unauthorized'));
+        }
+        return Promise.reject(error);
+      }
+
       if (status === 401 && originalRequest && !originalRequest._retry) {
         if (isRefreshing) {
           return new Promise(function(resolve, reject) {
             failedQueue.push({resolve, reject});
-          }).then(token => {
+          }).then(() => {
             return api(originalRequest);
           }).catch(err => {
             return Promise.reject(err);
@@ -47,7 +57,10 @@ api.interceptors.response.use(
 
         try {
           // Call the refresh endpoint to get new cookies
-          await axios.post('/api/v1/auth/refresh', {}, { withCredentials: true });
+          await axios.post('/api/v1/auth/refresh', {}, {
+            withCredentials: true,
+            headers: { 'X-Hide-Error-Toast': 'true' }
+          });
           
           failedQueue.forEach(prom => prom.resolve());
           failedQueue = [];
@@ -68,7 +81,7 @@ api.interceptors.response.use(
         } finally {
           isRefreshing = false;
         }
-      } else if (!hideToast) {
+      } else if (!hideToast && status !== 401) {
         switch (status) {
           case 403:
             toast.error(message || 'شما دسترسی لازم برای این عملیات را ندارید');
@@ -86,9 +99,7 @@ api.interceptors.response.use(
             toast.error(message || 'خطای سرور. لطفا مجددا تلاش کنید');
             break;
           default:
-            if (status !== 401) {
-               toast.error(message);
-            }
+            toast.error(message);
         }
       }
     } else if (error.request) {

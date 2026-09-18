@@ -84,6 +84,14 @@ export class CourseService {
   }
 
   
+  static async getCourseById(courseId: string) {
+    const course = await Course.findById(courseId)
+      .populate('instructors', 'firstName lastName avatar bio')
+      .populate('categoryId', 'name slug');
+    if (!course) throw new AppError('Course not found', 404, 'NOT_FOUND');
+    return course;
+  }
+
   static async getInstructorCourseById(courseId: string, instructorId: string) {
     const course = await Course.findOne({ _id: courseId, instructors: instructorId });
     if (!course) throw new AppError('Course not found or you are not authorized', 404, 'NOT_FOUND');

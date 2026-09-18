@@ -26,7 +26,9 @@ export const authApi = {
   },
 
   getMe: async () => {
-    return api.get<any, ApiResponse<User>>('/auth/me');
+    return api.get<any, ApiResponse<User>>('/auth/me', {
+      headers: { 'X-Hide-Error-Toast': 'true' }
+    });
   },
   
   updateProfile: async (userData: any) => {

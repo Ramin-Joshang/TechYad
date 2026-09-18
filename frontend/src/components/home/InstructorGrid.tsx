@@ -1,9 +1,9 @@
 import Link from "next/link";
-import { Star, User, GraduationCap } from "lucide-react";
+import { User, GraduationCap } from "lucide-react";
 
-export function InstructorGrid({ data = [] }: { data: any[] }) {
-  if (!data?.length) return null;
-  
+export function InstructorGrid({ data = [], isLoading = false }: { data?: any[], isLoading?: boolean }) {
+  if (!isLoading && !data?.length) return null;
+
   return (
     <section className="py-24 bg-white border-b border-[var(--neo-border)]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -19,37 +19,49 @@ export function InstructorGrid({ data = [] }: { data: any[] }) {
             مشاهده همه اساتید
           </Link>
         </div>
-        
+
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {data.map((inst: any) => (
-            <Link key={inst._id} href={`/instructors/${inst.userId?._id}`} className="group bg-[var(--neo-bg)] rounded-[20px] border border-[var(--neo-border)] overflow-hidden hover:border-[var(--neo-primary)]/30 transition-all duration-300 relative neo-card">
-              <div className="aspect-square relative overflow-hidden bg-[var(--neo-surface-2)] m-4 rounded-[16px]">
-                {inst.userId?.avatar ? (
-                  <img src={inst.userId.avatar} alt={`${inst.userId.firstName} ${inst.userId.lastName}`} className="w-full h-full object-cover group-hover:scale-105 transition duration-500" />
-                ) : (
-                  <div className="w-full h-full flex flex-col items-center justify-center text-[var(--neo-text-muted)]">
-                    <User className="w-16 h-16 mb-2 opacity-50" />
+          {isLoading
+            ? [...Array(4)].map((_, idx) => (
+                <div key={idx} className="bg-[var(--neo-bg)] rounded-[20px] border border-[var(--neo-border)] p-5 animate-pulse flex flex-col items-center">
+                  <div className="w-32 h-32 rounded-2xl bg-gray-200 mb-4"></div>
+                  <div className="h-5 bg-gray-200 rounded w-28 mb-2"></div>
+                  <div className="h-4 bg-gray-100 rounded w-20 mb-4"></div>
+                  <div className="flex gap-2 justify-center">
+                    <div className="h-6 w-14 bg-gray-200 rounded-full"></div>
+                    <div className="h-6 w-14 bg-gray-200 rounded-full"></div>
                   </div>
-                )}
-              </div>
-              
-              <div className="p-5 text-center">
-                <h3 className="font-bold text-[var(--neo-text-main)] mb-1 text-lg group-hover:text-[var(--neo-primary)] transition-colors">{inst.userId?.firstName} {inst.userId?.lastName}</h3>
-                <div className="flex items-center justify-center gap-1 text-[var(--neo-text-secondary)] text-sm mb-3">
-                   <GraduationCap className="w-4 h-4" />
-                   <span>{inst.title || 'مدرس ارشد'}</span>
                 </div>
-                
-                <div className="flex flex-wrap items-center justify-center gap-2">
-                   {inst.expertise?.slice(0,2).map((exp: string, idx: number) => (
-                      <span key={idx} className="text-xs px-2.5 py-1 rounded-full border border-[var(--neo-border)] bg-white text-[var(--neo-text-secondary)]">
-                        {exp}
-                      </span>
-                   ))}
-                </div>
-              </div>
-            </Link>
-          ))}
+              ))
+            : data.map((inst: any) => (
+                <Link key={inst._id} href={`/instructors/${inst.userId?._id}`} className="group bg-[var(--neo-bg)] rounded-[20px] border border-[var(--neo-border)] overflow-hidden hover:border-[var(--neo-primary)]/30 transition-all duration-300 relative neo-card">
+                  <div className="aspect-square relative overflow-hidden bg-[var(--neo-surface-2)] m-4 rounded-[16px]">
+                    {inst.userId?.avatar ? (
+                      <img src={inst.userId.avatar} alt={`${inst.userId.firstName} ${inst.userId.lastName}`} className="w-full h-full object-cover group-hover:scale-105 transition duration-500" />
+                    ) : (
+                      <div className="w-full h-full flex flex-col items-center justify-center text-[var(--neo-text-muted)]">
+                        <User className="w-16 h-16 mb-2 opacity-50" />
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="p-5 text-center">
+                    <h3 className="font-bold text-[var(--neo-text-main)] mb-1 text-lg group-hover:text-[var(--neo-primary)] transition-colors">{inst.userId?.firstName} {inst.userId?.lastName}</h3>
+                    <div className="flex items-center justify-center gap-1 text-[var(--neo-text-secondary)] text-sm mb-3">
+                      <GraduationCap className="w-4 h-4" />
+                      <span>{inst.title || 'مدرس ارشد'}</span>
+                    </div>
+
+                    <div className="flex flex-wrap items-center justify-center gap-2">
+                      {inst.expertise?.slice(0, 2).map((exp: string, idx: number) => (
+                        <span key={idx} className="text-xs px-2.5 py-1 rounded-full border border-[var(--neo-border)] bg-white text-[var(--neo-text-secondary)]">
+                          {exp}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                </Link>
+              ))}
         </div>
       </div>
     </section>

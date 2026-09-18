@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/lib/api';
 import { commerceApi } from '@/features/commerce/api/commerce.api';
-import { PlayCircle, FileText, CheckCircle, Clock, Book, User, Star, ChevronDown, ChevronUp, Lock, ShoppingCart, Loader2 } from 'lucide-react';
+import { PlayCircle, FileText, CheckCircle, Clock, Book, User, Star, ChevronDown, ChevronUp, Lock, ShoppingCart, Loader2, Play } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/features/auth/stores/auth.store';
@@ -18,23 +18,23 @@ export function CourseDetailsContainer({ slug }: { slug: string }) {
   // Fetch Course
   const { data: course, isLoading: courseLoading } = useQuery({
     queryKey: ['course', slug],
-    queryFn: () => api.get(`/courses/${slug}`).then(res => res.data)
+    queryFn: () => api.get(`/courses/${slug}`).then((res: any) => res.data)
   });
 
   // Fetch Cart to check if item is in cart
   const { data: cartData } = useQuery({
     queryKey: ['cart'],
-    queryFn: () => commerceApi.getCart().then(res => res.data),
+    queryFn: () => commerceApi.getCart().then((res: any) => res.data),
     enabled: isAuthenticated && !isInitializing
   });
 
-  
-  // Check if enrolled
+  // Check if enrolled (purchased or enrolled in free course)
   const { data: enrollment, isLoading: enrollmentLoading } = useQuery({
     queryKey: ['enrollment', course?._id],
-    queryFn: () => api.get(`/learning/enrollments/${course._id}`).then(res => res.data).catch(() => null),
+    queryFn: () => api.get(`/enrollments/${course._id}`).then((res: any) => res.data).catch(() => null),
     enabled: isAuthenticated && !isInitializing && !!course?._id
   });
+
   const isEnrolled = !!enrollment;
 
   // Add to Cart Mutation
@@ -50,19 +50,46 @@ export function CourseDetailsContainer({ slug }: { slug: string }) {
     }
   });
 
+  // Enroll in Free Course Mutation
+  const enrollFreeMutation = useMutation({
+    mutationFn: () => api.post(`/enrollments/free/${course._id}`, {}),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['enrollment', course?._id] });
+      queryClient.invalidateQueries({ queryKey: ['myEnrollments'] });
+      toast.success('شما با موفقیت در این دوره ثبت‌نام شدید');
+      router.push('/student/courses');
+    },
+    onError: (error: any) => {
+      toast.error(error.response?.data?.message || 'خطا در ثبت‌نام رایگان');
+    }
+  });
+
   // Fetch Related Courses
   const { data: relatedCourses } = useQuery({
     queryKey: ['relatedCourses', course?._id],
-    queryFn: () => api.get(`/courses/${course._id}/related`).then(res => res.data),
+    queryFn: () => api.get(`/courses/${course._id}/related`).then((res: any) => res.data),
     enabled: !!course?._id
   });
 
   if (courseLoading) {
-    return <div className="min-h-screen flex items-center justify-center"><Loader2 className="w-10 h-10 text-[var(--neo-secondary)] animate-spin" /></div>;
+    return (
+      <div className="min-h-screen bg-[var(--neo-bg)] py-12">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 animate-pulse">
+          <div className="bg-gray-200 h-80 rounded-3xl mb-8"></div>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div className="lg:col-span-2 space-y-4">
+              <div className="bg-gray-200 h-10 w-1/3 rounded-xl"></div>
+              <div className="bg-gray-200 h-48 rounded-2xl"></div>
+            </div>
+            <div className="bg-gray-200 h-64 rounded-2xl"></div>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   if (!course) {
-    return <div className="min-h-screen flex items-center justify-center text-red-500">دوره پیدا نشد</div>;
+    return <div className="min-h-screen flex items-center justify-center text-red-500 font-bold">دوره پیدا نشد</div>;
   }
 
   const isFree = course.price === 0;
@@ -72,14 +99,18 @@ export function CourseDetailsContainer({ slug }: { slug: string }) {
   
   const isInCart = cartData?.items?.some((item: any) => item.itemId === course._id && item.itemType === 'course');
 
-  const handleAddToCart = () => {
+  const handleAction = () => {
+    if (isEnrolled) {
+      router.push('/student/courses');
+      return;
+    }
+
     if (isFree) {
       if (!isAuthenticated) {
-         router.push(`/login?redirect=/courses/${slug}`);
-         return;
+        router.push(`/login?redirect=/courses/${slug}`);
+        return;
       }
-      // For now, redirect to student dashboard (real enrollment logic needed for free courses later)
-      router.push('/student');
+      enrollFreeMutation.mutate();
       return;
     }
 
@@ -89,9 +120,7 @@ export function CourseDetailsContainer({ slug }: { slug: string }) {
       return;
     }
 
-    if (isEnrolled) {
-      router.push(`/student/courses`); // No /learn route yet maybe?
-    } else if (!isInCart) {
+    if (!isInCart) {
       addToCartMutation.mutate();
     } else {
       router.push('/cart');
@@ -143,8 +172,16 @@ export function CourseDetailsContainer({ slug }: { slug: string }) {
                 </div>
               </div>
               
+              {/* Pricing & Purchased Status */}
               <div className="mb-6 flex flex-col items-center justify-center">
-                {isFree ? (
+                {isEnrolled ? (
+                  <div className="text-center py-2">
+                    <div className="inline-flex items-center gap-2 bg-emerald-50 text-emerald-700 px-4 py-1.5 rounded-full font-bold text-sm mb-2 border border-emerald-200">
+                      <CheckCircle className="w-4 h-4" /> شما دانشجوی این دوره هستید
+                    </div>
+                    <p className="text-xs text-[var(--neo-text-muted)]">دسترسی کامل به ویدیوها و محتوای دوره فعال است</p>
+                  </div>
+                ) : isFree ? (
                   <div className="text-4xl font-black text-emerald-600 mb-2">رایگان</div>
                 ) : (
                   <>
@@ -156,28 +193,36 @@ export function CourseDetailsContainer({ slug }: { slug: string }) {
                 )}
               </div>
               
-              <button 
-                onClick={handleAddToCart}
-                disabled={addToCartMutation.isPending}
-                className="w-full py-4 rounded-xl font-bold text-lg transition shadow-xl flex items-center justify-center gap-2
-                  bg-[var(--neo-primary)] text-white hover:bg-blue-700 shadow-[var(--neo-primary)]/30 disabled:opacity-70"
-              >
-                {addToCartMutation.isPending ? (
-                  <Loader2 className="w-6 h-6 animate-spin" />
-                ) : isEnrolled ? (
-                  'شروع یادگیری'
-                ) : isFree ? (
-                  'شروع یادگیری (رایگان)'
-                ) : isInCart ? (
-                  <>
-                    <CheckCircle className="w-6 h-6" /> مشاهده در سبد خرید
-                  </>
-                ) : (
-                  <>
-                    <ShoppingCart className="w-6 h-6" /> ثبت‌نام در دوره
-                  </>
-                )}
-              </button>
+              {/* Primary Action Button: No Add to Cart when already enrolled */}
+              {isEnrolled ? (
+                <button 
+                  onClick={handleAction}
+                  className="w-full py-4 rounded-xl font-bold text-lg transition shadow-xl flex items-center justify-center gap-2 bg-emerald-600 text-white hover:bg-emerald-700 shadow-emerald-600/30"
+                >
+                  <Play className="w-5 h-5 fill-current" /> مشاهده دوره و شروع یادگیری
+                </button>
+              ) : (
+                <button 
+                  onClick={handleAction}
+                  disabled={addToCartMutation.isPending || enrollFreeMutation.isPending}
+                  className="w-full py-4 rounded-xl font-bold text-lg transition shadow-xl flex items-center justify-center gap-2
+                    bg-[var(--neo-primary)] text-white hover:bg-blue-700 shadow-[var(--neo-primary)]/30 disabled:opacity-70"
+                >
+                  {addToCartMutation.isPending || enrollFreeMutation.isPending ? (
+                    <Loader2 className="w-6 h-6 animate-spin" />
+                  ) : isFree ? (
+                    'شروع یادگیری (رایگان)'
+                  ) : isInCart ? (
+                    <>
+                      <CheckCircle className="w-6 h-6" /> مشاهده در سبد خرید
+                    </>
+                  ) : (
+                    <>
+                      <ShoppingCart className="w-6 h-6" /> ثبت‌نام در دوره
+                    </>
+                  )}
+                </button>
+              )}
             </div>
           </div>
         </div>
@@ -199,7 +244,7 @@ export function CourseDetailsContainer({ slug }: { slug: string }) {
              <h2 className="text-2xl font-bold text-[var(--neo-text-main)] mb-6 flex items-center gap-2">
                <Book className="w-6 h-6 text-[var(--neo-primary)]" /> سرفصل‌های دوره
              </h2>
-             <CourseCurriculum courseId={course._id} />
+             <CourseCurriculum courseId={course._id} isEnrolled={isEnrolled} />
            </div>
         </div>
 
@@ -221,12 +266,15 @@ export function CourseDetailsContainer({ slug }: { slug: string }) {
                  <span className="font-medium text-[var(--neo-text-main)]">{course.levelId?.name || 'همه سطوح'}</span>
                </div>
                <div className="flex justify-between items-center py-2">
-                 <div className="flex items-center gap-2 text-[var(--neo-text-secondary)]"><FileText className="w-4 h-4"/> پشتیبانی</div>
-                 <span className="font-medium text-[var(--neo-text-main)]">دارد</span>
+                 <div className="flex items-center gap-2 text-[var(--neo-text-secondary)]"><FileText className="w-4 h-4"/> وضعیت خرید</div>
+                 <span className={`font-bold ${isEnrolled ? 'text-emerald-600' : 'text-[var(--neo-text-main)]'}`}>
+                   {isEnrolled ? 'خریداری شده' : isFree ? 'رایگان' : 'نیازمند ثبت‌نام'}
+                 </span>
                </div>
              </div>
           </div>
         </div>
+
       </div>
       
       {/* Related Courses */}
@@ -240,15 +288,16 @@ export function CourseDetailsContainer({ slug }: { slug: string }) {
           </div>
         </div>
       )}
+
     </div>
   );
 }
 
 // Child component to fetch and render Chapters and Lessons
-function CourseCurriculum({ courseId }: { courseId: string }) {
+function CourseCurriculum({ courseId, isEnrolled }: { courseId: string; isEnrolled: boolean }) {
   const { data: chapters, isLoading: chaptersLoading } = useQuery({
     queryKey: ['chapters', courseId],
-    queryFn: () => api.get(`/courses/${courseId}/chapters`).then(res => res.data)
+    queryFn: () => api.get(`/courses/${courseId}/chapters`).then((res: any) => res.data)
   });
 
   if (chaptersLoading) {
@@ -264,17 +313,18 @@ function CourseCurriculum({ courseId }: { courseId: string }) {
   return (
     <div className="space-y-4">
       {chapters.map((chapter: any, index: number) => (
-        <ChapterAccordion key={chapter._id} chapter={chapter} index={index + 1} />
+        <ChapterAccordion key={chapter._id} chapter={chapter} index={index + 1} isEnrolled={isEnrolled} />
       ))}
     </div>
   );
 }
 
-function ChapterAccordion({ chapter, index }: { chapter: any, index: number }) {
+function ChapterAccordion({ chapter, index, isEnrolled }: { chapter: any; index: number; isEnrolled: boolean }) {
   const [isOpen, setIsOpen] = useState(index === 1);
+  
   const { data: lessons, isLoading } = useQuery({
     queryKey: ['lessons', chapter._id],
-    queryFn: () => api.get(`/chapters/${chapter._id}/lessons`).then(res => res.data),
+    queryFn: () => api.get(`/chapters/${chapter._id}/lessons`).then((res: any) => res.data),
     enabled: isOpen
   });
 
@@ -282,7 +332,7 @@ function ChapterAccordion({ chapter, index }: { chapter: any, index: number }) {
     <div className="border border-[var(--neo-border)] rounded-xl overflow-hidden shadow-sm">
       <button 
         onClick={() => setIsOpen(!isOpen)}
-        className={`w-full flex items-center justify-between p-5 text-right transition-colors ${isOpen ? 'bg-[var(--neo-primary)]/5/50' : 'bg-white hover:bg-[var(--neo-bg)]'}`}
+        className={`w-full flex items-center justify-between p-5 text-right transition-colors ${isOpen ? 'bg-[var(--neo-primary)]/5' : 'bg-white hover:bg-[var(--neo-bg)]'}`}
       >
         <div className="flex items-center gap-4">
           <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm ${isOpen ? 'bg-[var(--neo-primary)] text-white' : 'bg-[var(--neo-surface-2)] text-[var(--neo-text-muted)]'}`}>
@@ -311,10 +361,10 @@ function ChapterAccordion({ chapter, index }: { chapter: any, index: number }) {
                     <span className="text-[var(--neo-text-secondary)] font-medium group-hover:text-blue-700 transition">{i + 1}. {lesson.title}</span>
                   </div>
                   <div className="flex items-center gap-3">
-                    {lesson.isFree ? (
-                      <button className="text-xs bg-emerald-100 text-emerald-700 px-3 py-1.5 rounded-full font-bold hover:bg-emerald-200 transition">
-                        پیش‌نمایش رایگان
-                      </button>
+                    {isEnrolled || lesson.isFree ? (
+                      <span className="text-xs bg-emerald-100 text-emerald-700 px-3 py-1.5 rounded-full font-bold">
+                        {isEnrolled ? 'در دسترس' : 'پیش‌نمایش رایگان'}
+                      </span>
                     ) : (
                       <Lock className="w-4 h-4 text-[var(--neo-text-muted)]" />
                     )}
@@ -338,62 +388,20 @@ function CourseCard({ course }: { course: any }) {
   const isFree = course.price === 0;
   const hasDiscount = course.discountPrice && course.discountPrice < course.price;
   const instructor = course.instructors?.[0];
-  const instructorName = instructor ? `${instructor.firstName} ${instructor.lastName}` : 'نامشخص';
 
   return (
-    <Link href={`/courses/${course.slug}`} className="group flex flex-col bg-white rounded-3xl border border-[var(--neo-border)] overflow-hidden hover:shadow-2xl hover:shadow-[var(--neo-primary)]/10 transition duration-300">
-      <div className="relative aspect-[16/10] overflow-hidden bg-[var(--neo-surface-2)] p-2">
-        <img src={course.thumbnail || `https://picsum.photos/seed/${course.slug}/400/250`} alt={course.title} className="w-full h-full object-cover rounded-2xl group-hover:scale-105 transition duration-500" />
-        <div className="absolute top-4 right-4 flex gap-2">
-          {course.categoryId?.name && (
-            <div className="bg-white/90 backdrop-blur text-[var(--neo-text-main)] text-xs font-bold px-3 py-1.5 rounded-full shadow-sm">
-              {course.categoryId.name}
-            </div>
-          )}
-        </div>
-        {hasDiscount && !isFree && (
-          <div className="absolute top-4 left-4 bg-rose-500 text-white text-xs font-bold px-3 py-1.5 rounded-full shadow-sm">
-            {Math.round((1 - course.discountPrice / course.price) * 100)}% تخفیف
-          </div>
-        )}
+    <Link href={`/courses/${course.slug}`} className="group flex flex-col bg-white rounded-2xl border border-[var(--neo-border)] overflow-hidden hover:shadow-lg transition">
+      <div className="aspect-[16/10] relative overflow-hidden bg-gray-100">
+        <img src={course.thumbnail || `https://picsum.photos/seed/${course.slug}/400/250`} alt={course.title} className="w-full h-full object-cover group-hover:scale-105 transition duration-500" />
       </div>
-      
-      <div className="p-6 flex flex-col flex-grow">
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-1 text-amber-500 text-sm font-bold bg-amber-50 px-2 py-1 rounded-lg">
-            <Star className="w-4 h-4 fill-current" />
-            <span>{course.averageRating || 'جدید'}</span>
-          </div>
-          {course.levelId?.name && (
-             <span className="text-xs text-[var(--neo-primary)] bg-[var(--neo-primary)]/5 px-3 py-1.5 rounded-lg font-medium">{course.levelId.name}</span>
-          )}
+      <div className="p-4 flex flex-col flex-grow">
+        <h4 className="font-bold text-[var(--neo-text-main)] mb-2 line-clamp-1">{course.title}</h4>
+        <div className="text-xs text-[var(--neo-text-muted)] mb-3">
+          {instructor ? `${instructor.firstName} ${instructor.lastName}` : 'مدرس تک‌یاد'}
         </div>
-        
-        <h3 className="font-bold text-[var(--neo-text-main)] text-lg mb-2 line-clamp-2 group-hover:text-[var(--neo-primary)] transition leading-snug">{course.title}</h3>
-        
-        <div className="mt-auto pt-5 border-t border-gray-50 flex items-end justify-between">
-          <div className="text-sm text-[var(--neo-text-muted)] flex items-center gap-2">
-            <div className="w-6 h-6 rounded-full bg-[var(--neo-border)] overflow-hidden">
-               <img src={`https://ui-avatars.com/api/?name=${instructorName}&background=random`} alt="" className="w-full h-full object-cover" />
-            </div>
-            {instructorName}
-          </div>
-          <div className="font-bold text-lg text-left">
-            {isFree ? (
-              <span className="text-emerald-600 bg-emerald-50 px-3 py-1 rounded-lg">رایگان</span>
-            ) : (
-              <div className="flex flex-col items-end">
-                {hasDiscount ? (
-                  <>
-                    <span className="text-[var(--neo-text-muted)] text-xs line-through mb-0.5">{course.price.toLocaleString()}</span>
-                    <span className="text-[var(--neo-primary)]">{course.discountPrice.toLocaleString()} <span className="text-xs text-[var(--neo-text-muted)] font-normal">تومان</span></span>
-                  </>
-                ) : (
-                  <span className="text-[var(--neo-primary)]">{course.price.toLocaleString()} <span className="text-xs text-[var(--neo-text-muted)] font-normal">تومان</span></span>
-                )}
-              </div>
-            )}
-          </div>
+        <div className="mt-auto pt-3 border-t border-gray-100 flex justify-between items-center text-sm font-bold text-[var(--neo-primary)]">
+          <span>{isFree ? 'رایگان' : `${(hasDiscount ? course.discountPrice : course.price).toLocaleString()} تومان`}</span>
+          <span className="text-xs text-[var(--neo-text-secondary)] font-normal">مشاهده ←</span>
         </div>
       </div>
     </Link>
