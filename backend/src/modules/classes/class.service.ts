@@ -118,4 +118,33 @@ export class ClassService {
     // In a real app, generate a single-use join token or similar
     return { meetingUrl: classData.meetingLink };
   }
+
+  static async getClassEnrollmentStatus(userId: string, classId: string) {
+    const enrollment = await ClassEnrollment.findOne({ userId, classId, status: 'active' });
+    return enrollment || null;
+  }
+
+  static async enrollFreeClass(userId: string, classId: string) {
+    const classData = await Class.findById(classId);
+    if (!classData) throw new AppError('Class not found', 404, 'NOT_FOUND');
+    if (classData.status !== 'published') throw new AppError('Class is not active', 400, 'BAD_REQUEST');
+    if (classData.price > 0) throw new AppError('This class is not free', 400, 'NOT_FREE');
+
+    const existing = await ClassEnrollment.findOne({ userId, classId, status: 'active' });
+    if (existing) throw new AppError('Already enrolled in this class', 400, 'ALREADY_ENROLLED');
+
+    if (classData.capacity && (classData.enrolledCount || 0) >= classData.capacity) {
+      throw new AppError('Class capacity reached', 400, 'CAPACITY_REACHED');
+    }
+
+    const enrollment = await ClassEnrollment.create({
+      userId,
+      classId,
+      status: 'active',
+      enrolledAt: new Date()
+    });
+
+    await Class.findByIdAndUpdate(classId, { $inc: { enrolledCount: 1 } });
+    return enrollment;
+  }
 }

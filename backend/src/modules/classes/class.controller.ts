@@ -49,3 +49,13 @@ export const adminDeleteClass = async (req: Request, res: Response) => {
   await ClassService.deleteClass((req.params.id as string), '', true);
   sendSuccess(res, null, 'Class deleted successfully');
 };
+
+export const getClassEnrollmentStatus = async (req: AuthRequest, res: Response) => {
+  const result = await ClassService.getClassEnrollmentStatus(req.user._id as string, req.params.id as string);
+  sendSuccess(res, result, 'Enrollment status retrieved successfully');
+};
+
+export const enrollFreeClass = async (req: AuthRequest, res: Response) => {
+  const result = await ClassService.enrollFreeClass(req.user._id as string, req.params.id as string);
+  sendSuccess(res, result, 'Successfully enrolled in free class', 201);
+};

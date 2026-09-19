@@ -1,6 +1,11 @@
 'use client';
 
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useRouter } from 'next/navigation';
+import { useAuthStore } from '@/features/auth/stores/auth.store';
+import { commerceApi } from '@/features/commerce/api/commerce.api';
+import toast from 'react-hot-toast';
+import { Loader2 } from 'lucide-react';
 import { api } from '@/lib/api';
 import { Monitor, MapPin, Calendar, Clock, Users, ShieldCheck, CheckCircle, Star, ArrowLeft, BookOpen, Target, FileText } from 'lucide-react';
 import { format } from 'date-fns-jalali';
@@ -8,14 +13,75 @@ import Link from 'next/link';
 import { useState, useEffect } from 'react';
 
 export function ClassDetailsContainer({ slug }: { slug: string }) {
+  const router = useRouter();
+  const queryClient = useQueryClient();
+  const { isAuthenticated, isInitializing } = useAuthStore();
+
   const { data: cls, isLoading } = useQuery({
     queryKey: ['class', slug],
     queryFn: async () => {
       const res: any = await api.get(`/classes/${encodeURIComponent(slug)}`);
-      // If response was unwrapped by interceptor: res is { success: true, data: { ... } }
       return res?.data !== undefined ? res.data : res;
     }
   });
+
+  // Check enrollment in class
+  const { data: enrollmentData } = useQuery({
+    queryKey: ['classEnrollment', cls?._id],
+    queryFn: async () => {
+      const res: any = await api.get(`/classes/${cls._id}/enrollment`, { headers: { 'X-Hide-Error-Toast': 'true' } });
+      return res?.data !== undefined ? res.data : res;
+    },
+    enabled: !!isAuthenticated && !isInitializing && !!cls?._id,
+  });
+
+  const isEnrolled = !!enrollmentData;
+
+  // Add to cart mutation for paid classes
+  const addToCartMutation = useMutation({
+    mutationFn: () => commerceApi.addToCart('class', cls._id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['cart'] });
+      toast.success('کلاس به سبد خرید اضافه شد');
+      router.push('/cart');
+    },
+    onError: (err: any) => {
+      toast.error(err.response?.data?.message || 'خطا در افزودن به سبد خرید');
+    }
+  });
+
+  // Free class instant enrollment mutation
+  const enrollFreeMutation = useMutation({
+    mutationFn: () => api.post(`/classes/${cls._id}/enroll-free`, {}),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['classEnrollment', cls?._id] });
+      queryClient.invalidateQueries({ queryKey: ['class', slug] });
+      toast.success('ثبت‌نام شما در این کلاس با موفقیت انجام شد!');
+      router.push('/student/classes');
+    },
+    onError: (err: any) => {
+      toast.error(err.response?.data?.message || 'خطا در ثبت‌نام کلاس');
+    }
+  });
+
+  const handleEnrollClick = () => {
+    if (!isAuthenticated) {
+      toast('برای ثبت‌نام در کلاس، لطفاً ابتدا وارد حساب کاربری شوید', { icon: '🔒' });
+      router.push(`/login?redirect=/classes/${encodeURIComponent(slug)}`);
+      return;
+    }
+
+    if (isEnrolled) {
+      router.push('/student/classes');
+      return;
+    }
+
+    if (cls.price === 0) {
+      enrollFreeMutation.mutate();
+    } else {
+      addToCartMutation.mutate();
+    }
+  };
 
   if (isLoading) {
     return (
@@ -308,10 +374,18 @@ export function ClassDetailsContainer({ slug }: { slug: string }) {
                 </div>
 
                 <button 
-                  disabled={ctaDisabled}
-                  className={`w-full py-4 rounded-xl font-bold text-lg transition-all mb-4 ${ctaClass}`}
+                  onClick={handleEnrollClick}
+                  disabled={ctaDisabled || isPendingAction}
+                  className={`w-full py-4 rounded-xl font-bold text-lg transition-all mb-4 flex items-center justify-center gap-2 ${ctaClass} disabled:opacity-60 disabled:cursor-not-allowed`}
                 >
-                  {ctaText}
+                  {isPendingAction ? (
+                    <>
+                      <Loader2 className="w-5 h-5 animate-spin" />
+                      <span>در حال انجام...</span>
+                    </>
+                  ) : (
+                    ctaText
+                  )}
                 </button>
              </div>
           </div>
@@ -327,10 +401,18 @@ export function ClassDetailsContainer({ slug }: { slug: string }) {
           </div>
         </div>
         <button 
-          disabled={ctaDisabled}
-          className={`px-8 py-3 rounded-xl font-bold transition-all ${ctaClass}`}
+          onClick={handleEnrollClick}
+          disabled={ctaDisabled || isPendingAction}
+          className={`px-6 py-3 rounded-xl font-bold transition-all flex items-center justify-center gap-2 ${ctaClass} disabled:opacity-60 disabled:cursor-not-allowed text-sm`}
         >
-          {ctaText}
+          {isPendingAction ? (
+            <>
+              <Loader2 className="w-4 h-4 animate-spin" />
+              <span>در حال ثبت...</span>
+            </>
+          ) : (
+            ctaText
+          )}
         </button>
       </div>
     </div>

@@ -1,6 +1,6 @@
 {
   "name": "TechYad Backend",
-  "description": "Backend API for TechYad",
+  "description": "Full-stack learning management system with global search",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

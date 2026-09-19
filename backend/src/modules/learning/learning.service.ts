@@ -63,8 +63,7 @@ export class LearningService {
 
   static async getMyEnrollmentDetails(userId: string, courseId: string) {
     const enrollment = await Enrollment.findOne({ userId, courseId });
-    if (!enrollment) throw new AppError('Not enrolled in this course', 403, 'NOT_ENROLLED');
-    return enrollment;
+    return enrollment || null;
   }
 
   // --- Progress ---

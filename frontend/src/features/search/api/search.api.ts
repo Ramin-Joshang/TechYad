@@ -4,6 +4,7 @@ export interface SearchResult {
   courses: any[];
   classes: any[];
   articles: any[];
+  instructors: any[];
 }
 
 export const searchApi = {

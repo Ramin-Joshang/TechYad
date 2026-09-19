@@ -5,7 +5,7 @@ import { commerceApi } from '@/features/commerce/api/commerce.api';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useAuthStore } from '@/features/auth/stores/auth.store';
-import { LogOut, User, Search, ShoppingCart, Menu, X, LayoutDashboard } from 'lucide-react';
+import { LogOut, User, Search, ShoppingCart, Menu, X, LayoutDashboard, BookOpen, Users, GraduationCap, FileText, Info, Phone } from 'lucide-react';
 
 export function Navbar() {
   const { user, isAuthenticated, logout } = useAuthStore();
@@ -21,12 +21,12 @@ export function Navbar() {
   const pathname = usePathname();
 
   const NAV_LINKS = [
-    { name: 'دوره‌ها', href: '/courses' },
-    { name: 'کلاس‌ها', href: '/classes' },
-    { name: 'اساتید', href: '/instructors' },
-    { name: 'وبلاگ', href: '/blog' },
-    { name: 'درباره ما', href: '/about' },
-    { name: 'تماس با ما', href: '/contact' },
+    { name: 'دوره‌ها', href: '/courses', icon: BookOpen },
+    { name: 'کلاس‌ها', href: '/classes', icon: GraduationCap },
+    { name: 'اساتید', href: '/instructors', icon: Users },
+    { name: 'وبلاگ', href: '/blog', icon: FileText },
+    { name: 'درباره ما', href: '/about', icon: Info },
+    { name: 'تماس با ما', href: '/contact', icon: Phone },
   ];
 
   if (pathname?.startsWith('/admin') || pathname?.startsWith('/student') || (pathname?.startsWith('/instructor') && !pathname?.startsWith('/instructors')) || pathname?.startsWith('/profile')) {

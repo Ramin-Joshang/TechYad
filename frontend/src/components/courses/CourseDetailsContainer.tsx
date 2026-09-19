@@ -31,7 +31,7 @@ export function CourseDetailsContainer({ slug }: { slug: string }) {
   // Check if enrolled (purchased or enrolled in free course)
   const { data: enrollment, isLoading: enrollmentLoading } = useQuery({
     queryKey: ['enrollment', course?._id],
-    queryFn: () => api.get(`/enrollments/${course._id}`).then((res: any) => res.data).catch(() => null),
+    queryFn: () => api.get(`/enrollments/${course._id}`, { headers: { 'X-Hide-Error-Toast': 'true' } }).then((res: any) => res.data).catch(() => null),
     enabled: isAuthenticated && !isInitializing && !!course?._id
   });
 

@@ -19,6 +19,8 @@ router.delete('/instructor/classes/:id', isInstructor, asyncHandler(Controller.d
 
 // Student routes
 router.get('/me/classes', requireAuth, asyncHandler(Controller.getMyClasses));
+router.get('/classes/:id/enrollment', requireAuth, asyncHandler(Controller.getClassEnrollmentStatus));
+router.post('/classes/:id/enroll-free', requireAuth, asyncHandler(Controller.enrollFreeClass));
 router.get('/classes/:id/join', requireAuth, asyncHandler(Controller.joinOnlineClass));
 
 

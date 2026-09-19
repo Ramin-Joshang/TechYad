@@ -90,7 +90,7 @@ export default function CartPage() {
                     </div>
                     <p className="text-sm text-[var(--neo-text-muted)] mb-4">مدرس: {item.instructorName}</p>
                     <div className="text-[var(--neo-primary)] font-bold text-lg">
-                      {item.price.toLocaleString('fa-IR')} تومان
+                      {(item.finalPrice ?? item.price ?? 0) === 0 ? 'رایگان' : }
                     </div>
                   </div>
                   
@@ -113,7 +113,7 @@ export default function CartPage() {
                 <div className="space-y-4 mb-6 text-[var(--neo-text-secondary)]">
                   <div className="flex justify-between items-center">
                     <span>مبلغ کل ({items.length} مورد)</span>
-                    <span className="font-bold">{total.toLocaleString('fa-IR')} تومان</span>
+                    <span className="font-bold">{(total ?? 0).toLocaleString('fa-IR')} تومان</span>
                   </div>
                   <div className="flex justify-between items-center text-emerald-600">
                     <span>تخفیف</span>
@@ -121,7 +121,7 @@ export default function CartPage() {
                   </div>
                   <div className="pt-4 border-t border-[var(--neo-border)] flex justify-between items-center text-lg font-bold text-[var(--neo-text-main)]">
                     <span>مبلغ قابل پرداخت</span>
-                    <span className="text-[var(--neo-primary)]">{total.toLocaleString('fa-IR')} تومان</span>
+                    <span className="text-[var(--neo-primary)]">{(total ?? 0).toLocaleString('fa-IR')} تومان</span>
                   </div>
                 </div>
 
