@@ -18,6 +18,7 @@ export interface IClass extends Document {
   thumbnail?: string;
   location?: string;
   meetingLink?: string;
+  allowEnrollmentAfterStart?: boolean;
   status: "draft" | "published" | "completed" | "cancelled";
   createdBy: Types.ObjectId;
 }
@@ -41,6 +42,7 @@ const classSchema = new Schema<IClass>(
     thumbnail: { type: String },
     location: String,
     meetingLink: String,
+    allowEnrollmentAfterStart: { type: Boolean, default: true },
     status: { type: String, enum: ["draft", "published", "completed", "cancelled"], default: "draft" },
     createdBy: { type: Schema.Types.ObjectId, ref: "User", required: true },
   },

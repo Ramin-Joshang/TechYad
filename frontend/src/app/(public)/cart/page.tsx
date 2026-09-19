@@ -88,26 +88,34 @@ export default function CartPage() {
             <div className="lg:col-span-2 space-y-4">
               {items.map((item: any) => {
                 const itemPrice = item.finalPrice ?? item.price ?? 0;
+                const title = item.titleSnapshot || item.title || 'دوره آموزشی';
+                const instructor = item.instructorName || 'استاد تک‌یاد';
+                const thumb = item.thumbnail || `https://picsum.photos/seed/${item.itemId || 'cart'}/400/250`;
+                const isCourse = item.itemType === 'course';
+
                 return (
-                  <div key={item.itemId} className="bg-white p-4 rounded-2xl border border-[var(--neo-border)] shadow-sm flex flex-col sm:flex-row items-center gap-6">
+                  <div key={item.itemId || Math.random()} className="bg-white p-4 sm:p-5 rounded-2xl border border-[var(--neo-border)] shadow-sm flex flex-col sm:flex-row items-center gap-5">
                     <img 
-                      src={item.thumbnail || `https://picsum.photos/seed/${item.itemId}/400/250`} 
-                      alt={item.titleSnapshot} 
-                      className="w-full sm:w-40 h-28 object-cover rounded-xl shrink-0" 
+                      src={thumb} 
+                      alt={title} 
+                      className="w-full sm:w-36 h-28 object-cover rounded-xl shrink-0 bg-gray-100" 
+                      onError={(e: any) => {
+                        e.target.src = `https://picsum.photos/seed/techyad/400/250`;
+                      }}
                     />
                     
-                    <div className="flex-1 text-center sm:text-right min-w-0">
+                    <div className="flex-1 text-center sm:text-right min-w-0 w-full">
                       <div className="flex items-center gap-2 justify-center sm:justify-start mb-2 flex-wrap">
                         <span className={`text-xs px-2.5 py-1 rounded-md font-bold ${
-                          item.itemType === 'course' ? 'bg-blue-50 text-[var(--neo-primary)]' : 'bg-purple-50 text-purple-600'
+                          isCourse ? 'bg-blue-50 text-[var(--neo-primary)]' : 'bg-purple-50 text-purple-600'
                         }`}>
-                          {item.itemType === 'course' ? 'دوره آموزشی' : 'کلاس آنلاین / حضوری'}
+                          {isCourse ? 'دوره آموزشی' : 'کلاس آنلاین / حضوری'}
                         </span>
-                        <h3 className="font-bold text-[var(--neo-text-main)] text-base sm:text-lg truncate">{item.titleSnapshot}</h3>
+                        <h3 className="font-bold text-[var(--neo-text-main)] text-base sm:text-lg truncate max-w-full">
+                          {title}
+                        </h3>
                       </div>
-                      {item.instructorName && (
-                        <p className="text-sm text-[var(--neo-text-muted)] mb-3">مدرس: {item.instructorName}</p>
-                      )}
+                      <p className="text-sm text-[var(--neo-text-muted)] mb-3">مدرس: {instructor}</p>
                       <div className="text-[var(--neo-primary)] font-bold text-base sm:text-lg">
                         {itemPrice === 0 ? 'رایگان' : `${itemPrice.toLocaleString('fa-IR')} تومان`}
                       </div>
@@ -116,10 +124,11 @@ export default function CartPage() {
                     <button 
                       onClick={() => removeItemMutation.mutate(item.itemId)}
                       disabled={removeItemMutation.isPending}
-                      className="p-3 text-red-500 hover:bg-red-50 rounded-xl transition self-end sm:self-center shrink-0 disabled:opacity-50"
-                      title="حذف از سبد"
+                      className="p-3 text-red-500 hover:bg-red-50 rounded-xl transition self-end sm:self-center shrink-0 disabled:opacity-50 flex items-center gap-1.5 text-xs font-bold"
+                      title="حذف از سبد خرید"
                     >
                       <Trash2 className="w-5 h-5" />
+                      <span className="sm:hidden">حذف</span>
                     </button>
                   </div>
                 );

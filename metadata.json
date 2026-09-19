@@ -1,6 +1,6 @@
 {
-  "name": "TechYad Backend",
-  "description": "Full-stack learning management system with global search",
+  "name": "TechYad LMS",
+  "description": "Full-stack learning management system with course and class enrollment, shopping cart, and authenticated dashboards",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }
