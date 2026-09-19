@@ -1,4 +1,5 @@
 'use client';
+
 import Link from 'next/link';
 import { ShoppingCart, Trash2, ArrowLeft, ShieldCheck, Loader2 } from 'lucide-react';
 import { commerceApi } from '@/features/commerce/api/commerce.api';
@@ -13,7 +14,7 @@ export default function CartPage() {
   const { data: cartData, isLoading: cartLoading } = useQuery({
     queryKey: ['cart'],
     queryFn: () => commerceApi.checkoutPreview().then(res => res.data),
-    enabled: isAuthenticated && !isInitializing
+    enabled: !!isAuthenticated && !isInitializing
   });
 
   const removeItemMutation = useMutation({
@@ -69,41 +70,60 @@ export default function CartPage() {
             </div>
             <h2 className="text-2xl font-bold text-[var(--neo-text-main)] mb-4">سبد خرید شما خالی است!</h2>
             <p className="text-[var(--neo-text-muted)] mb-8 max-w-md mx-auto">
-              شما هنوز هیچ دوره‌ای به سبد خرید خود اضافه نکرده‌اید. با مراجعه به بخش دوره‌ها می‌توانید مهارت جدیدی یاد بگیرید.
+              شما هنوز هیچ دوره‌ای یا کلاسی به سبد خرید خود اضافه نکرده‌اید. با مراجعه به بخش دوره‌ها یا کلاس‌ها می‌توانید مهارت جدیدی یاد بگیرید.
             </p>
-            <Link href="/courses" className="inline-flex items-center gap-2 bg-[var(--neo-primary)] text-white px-6 py-3 rounded-xl font-bold hover:bg-blue-700 transition shadow-lg shadow-[var(--neo-primary)]/20">
-              مشاهده دوره‌های آموزشی
-              <ArrowLeft className="w-5 h-5" />
-            </Link>
+            <div className="flex flex-wrap items-center justify-center gap-4">
+              <Link href="/courses" className="inline-flex items-center gap-2 bg-[var(--neo-primary)] text-white px-6 py-3 rounded-xl font-bold hover:bg-blue-700 transition shadow-lg shadow-[var(--neo-primary)]/20">
+                مشاهده دوره‌های آموزشی
+                <ArrowLeft className="w-5 h-5" />
+              </Link>
+              <Link href="/classes" className="inline-flex items-center gap-2 bg-purple-600 text-white px-6 py-3 rounded-xl font-bold hover:bg-purple-700 transition shadow-lg shadow-purple-600/20">
+                مشاهده کلاس‌ها
+                <ArrowLeft className="w-5 h-5" />
+              </Link>
+            </div>
           </div>
         ) : (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             <div className="lg:col-span-2 space-y-4">
-              {items.map((item: any) => (
-                <div key={item.itemId} className="bg-white p-4 rounded-2xl border border-[var(--neo-border)] shadow-sm flex flex-col sm:flex-row items-center gap-6">
-                  <img src={item.thumbnail || `https://picsum.photos/seed/${item.itemId}/400/250`} alt={item.titleSnapshot} className="w-full sm:w-40 h-28 object-cover rounded-xl" />
-                  
-                  <div className="flex-1 text-center sm:text-right">
-                    <div className="flex items-center gap-2 justify-center sm:justify-start mb-2">
-                      <span className="text-xs bg-[var(--neo-surface-2)] text-[var(--neo-text-secondary)] px-2 py-1 rounded-md">{item.itemType === 'course' ? 'دوره آموزشی' : 'کلاس آنلاین'}</span>
-                      <h3 className="font-bold text-[var(--neo-text-main)] text-lg">{item.titleSnapshot}</h3>
+              {items.map((item: any) => {
+                const itemPrice = item.finalPrice ?? item.price ?? 0;
+                return (
+                  <div key={item.itemId} className="bg-white p-4 rounded-2xl border border-[var(--neo-border)] shadow-sm flex flex-col sm:flex-row items-center gap-6">
+                    <img 
+                      src={item.thumbnail || `https://picsum.photos/seed/${item.itemId}/400/250`} 
+                      alt={item.titleSnapshot} 
+                      className="w-full sm:w-40 h-28 object-cover rounded-xl shrink-0" 
+                    />
+                    
+                    <div className="flex-1 text-center sm:text-right min-w-0">
+                      <div className="flex items-center gap-2 justify-center sm:justify-start mb-2 flex-wrap">
+                        <span className={`text-xs px-2.5 py-1 rounded-md font-bold ${
+                          item.itemType === 'course' ? 'bg-blue-50 text-[var(--neo-primary)]' : 'bg-purple-50 text-purple-600'
+                        }`}>
+                          {item.itemType === 'course' ? 'دوره آموزشی' : 'کلاس آنلاین / حضوری'}
+                        </span>
+                        <h3 className="font-bold text-[var(--neo-text-main)] text-base sm:text-lg truncate">{item.titleSnapshot}</h3>
+                      </div>
+                      {item.instructorName && (
+                        <p className="text-sm text-[var(--neo-text-muted)] mb-3">مدرس: {item.instructorName}</p>
+                      )}
+                      <div className="text-[var(--neo-primary)] font-bold text-base sm:text-lg">
+                        {itemPrice === 0 ? 'رایگان' : `${itemPrice.toLocaleString('fa-IR')} تومان`}
+                      </div>
                     </div>
-                    <p className="text-sm text-[var(--neo-text-muted)] mb-4">مدرس: {item.instructorName}</p>
-                    <div className="text-[var(--neo-primary)] font-bold text-lg">
-                      {(item.finalPrice ?? item.price ?? 0) === 0 ? 'رایگان' : }
-                    </div>
+                    
+                    <button 
+                      onClick={() => removeItemMutation.mutate(item.itemId)}
+                      disabled={removeItemMutation.isPending}
+                      className="p-3 text-red-500 hover:bg-red-50 rounded-xl transition self-end sm:self-center shrink-0 disabled:opacity-50"
+                      title="حذف از سبد"
+                    >
+                      <Trash2 className="w-5 h-5" />
+                    </button>
                   </div>
-                  
-                  <button 
-                    onClick={() => removeItemMutation.mutate(item.itemId)}
-                    disabled={removeItemMutation.isPending}
-                    className="p-3 text-red-500 hover:bg-red-50 rounded-xl transition self-end sm:self-center shrink-0 disabled:opacity-50"
-                    title="حذف از سبد"
-                  >
-                    <Trash2 className="w-5 h-5" />
-                  </button>
-                </div>
-              ))}
+                );
+              })}
             </div>
 
             <div className="lg:col-span-1">

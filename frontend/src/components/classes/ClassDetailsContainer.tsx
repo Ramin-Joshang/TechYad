@@ -64,6 +64,8 @@ export function ClassDetailsContainer({ slug }: { slug: string }) {
     }
   });
 
+  const isPendingAction = addToCartMutation.isPending || enrollFreeMutation.isPending;
+
   const handleEnrollClick = () => {
     if (!isAuthenticated) {
       toast('برای ثبت‌نام در کلاس، لطفاً ابتدا وارد حساب کاربری شوید', { icon: '🔒' });
