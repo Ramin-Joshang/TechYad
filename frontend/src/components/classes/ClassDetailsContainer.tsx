@@ -37,6 +37,15 @@ export function ClassDetailsContainer({ slug }: { slug: string }) {
 
   const isEnrolled = !!enrollmentData;
 
+  // Fetch Cart to check if class is already in cart
+  const { data: cartData } = useQuery({
+    queryKey: ['cart'],
+    queryFn: () => commerceApi.getCart().then((res: any) => res.data),
+    enabled: !!isAuthenticated && !isInitializing
+  });
+
+  const isInCart = cartData?.items?.some((item: any) => item.itemId === cls?._id && item.itemType === 'class');
+
   // Add to cart mutation for paid classes
   const addToCartMutation = useMutation({
     mutationFn: () => commerceApi.addToCart('class', cls._id),
@@ -67,19 +76,29 @@ export function ClassDetailsContainer({ slug }: { slug: string }) {
   const isPendingAction = addToCartMutation.isPending || enrollFreeMutation.isPending;
 
   const handleEnrollClick = () => {
+    if (isEnrolled) {
+      router.push('/student/classes');
+      return;
+    }
+
+    if (cls?.price === 0) {
+      if (!isAuthenticated) {
+        toast('برای ثبت‌نام در کلاس، لطفاً ابتدا وارد حساب کاربری شوید', { icon: '🔒' });
+        router.push(`/login?redirect=/classes/${encodeURIComponent(slug)}`);
+        return;
+      }
+      enrollFreeMutation.mutate();
+      return;
+    }
+
     if (!isAuthenticated) {
       toast('برای ثبت‌نام در کلاس، لطفاً ابتدا وارد حساب کاربری شوید', { icon: '🔒' });
       router.push(`/login?redirect=/classes/${encodeURIComponent(slug)}`);
       return;
     }
 
-    if (isEnrolled) {
-      router.push('/student/classes');
-      return;
-    }
-
-    if (cls.price === 0) {
-      enrollFreeMutation.mutate();
+    if (isInCart) {
+      router.push('/cart');
     } else {
       addToCartMutation.mutate();
     }
@@ -158,11 +177,15 @@ export function ClassDetailsContainer({ slug }: { slug: string }) {
   const sessionDuration = cls.sessionDuration || 0;
 
   // Status CTA logic
-  let ctaText = 'ثبت‌نام در کلاس';
+  let ctaText = cls.price === 0 ? 'ثبت‌نام رایگان در کلاس' : 'افزودن به سبد خرید';
   let ctaClass = 'bg-[var(--neo-primary)] hover:bg-blue-700 text-white shadow-[var(--neo-primary)]/30 shadow-lg';
   let ctaDisabled = false;
 
-  if (cls.status === 'completed') {
+  if (isEnrolled) {
+    ctaText = 'مشاهده کلاس (ثبت‌نام شده)';
+    ctaClass = 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-emerald-600/30 shadow-lg';
+    ctaDisabled = false;
+  } else if (cls.status === 'completed') {
     ctaText = 'کلاس پایان یافته';
     ctaClass = 'bg-[var(--neo-border)] text-[var(--neo-text-muted)] cursor-not-allowed';
     ctaDisabled = true;
@@ -170,14 +193,18 @@ export function ClassDetailsContainer({ slug }: { slug: string }) {
     ctaText = 'کلاس لغو شده';
     ctaClass = 'bg-red-100 text-red-600 cursor-not-allowed';
     ctaDisabled = true;
-  } else if (isStarted) {
-    ctaText = 'کلاس شروع شده';
-    ctaClass = 'bg-[var(--neo-border)] text-[var(--neo-text-muted)] cursor-not-allowed';
-    ctaDisabled = true;
   } else if (isFull) {
-    ctaText = 'ظرفیت تکمیل';
+    ctaText = 'ظرفیت تکمیل شده';
     ctaClass = 'bg-[var(--neo-border)] text-[var(--neo-text-muted)] cursor-not-allowed';
     ctaDisabled = true;
+  } else if (isStarted && cls.allowEnrollmentAfterStart === false) {
+    ctaText = 'مهلت ثبت‌نام پایان یافته';
+    ctaClass = 'bg-[var(--neo-border)] text-[var(--neo-text-muted)] cursor-not-allowed';
+    ctaDisabled = true;
+  } else if (isInCart) {
+    ctaText = 'مشاهده در سبد خرید';
+    ctaClass = 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-emerald-600/30 shadow-lg';
+    ctaDisabled = false;
   }
 
   return (

@@ -8,7 +8,7 @@ import { useAuthStore } from '@/features/auth/stores/auth.store';
 import { LogOut, User, Search, ShoppingCart, Menu, X, LayoutDashboard, BookOpen, Users, GraduationCap, FileText, Info, Phone } from 'lucide-react';
 
 export function Navbar() {
-  const { user, isAuthenticated, logout } = useAuthStore();
+  const { user, isAuthenticated, isInitializing, logout } = useAuthStore();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const { data: cartData } = useQuery({
@@ -83,7 +83,11 @@ export function Navbar() {
               )}
             </Link>
 
-            {isAuthenticated && user ? (
+            {isInitializing ? (
+              <div className="flex items-center">
+                <div className="w-28 h-9 bg-gray-100 animate-pulse rounded-xl"></div>
+              </div>
+            ) : isAuthenticated && user ? (
               <div className="flex items-center gap-3 sm:gap-4">
                 <div className="w-px h-6 bg-[var(--neo-border)] mx-1 hidden sm:block"></div>
                 <Link href={user.role === 'student' ? '/student' : user.role === 'instructor' ? '/instructor' : '/admin'} className="flex items-center gap-2 p-1.5 pr-3 rounded-full border border-[var(--neo-border)] hover:bg-[var(--neo-surface-2)] transition cursor-pointer">
@@ -134,7 +138,11 @@ export function Navbar() {
               </button>
             </div>
             
-            {isAuthenticated && user && (
+            {isInitializing ? (
+              <div className="p-4 border-b border-[var(--neo-border)] bg-gray-50/80">
+                <div className="w-full h-10 bg-gray-200 animate-pulse rounded-xl"></div>
+              </div>
+            ) : isAuthenticated && user ? (
               <div className="p-4 border-b border-[var(--neo-border)] bg-[var(--neo-surface-2)]">
                 <div className="flex items-center gap-3 mb-3">
                   <div className="w-12 h-12 rounded-full bg-white text-[var(--neo-primary)] flex items-center justify-center font-bold text-lg overflow-hidden shrink-0 border border-[var(--neo-border)]">
@@ -158,9 +166,7 @@ export function Navbar() {
                   پنل کاربری
                 </Link>
               </div>
-            )}
-
-            {!isAuthenticated && (
+            ) : (
               <div className="p-4 border-b border-[var(--neo-border)] bg-gray-50/80">
                 <Link 
                   href="/login" 

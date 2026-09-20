@@ -9,6 +9,7 @@
   "scripts": {
     "dev": "concurrently \"npm run dev -w backend\" \"npm run dev -w frontend\"",
     "build": "NODE_ENV=production npm run build -w backend && NODE_ENV=production npm run build -w frontend",
+    "lint": "npm run lint -w frontend",
     "start": "npm run start -w backend & npm run start -w frontend",
     "seed": "npm run seed -w backend"
   },

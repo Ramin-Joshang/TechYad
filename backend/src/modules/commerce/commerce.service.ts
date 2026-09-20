@@ -7,6 +7,7 @@ import { Coupon } from './coupon.model.js';
 import { Class } from '../classes/class.model.js';
 import { Enrollment } from '../learning/enrollment.model.js';
 import { ClassEnrollment } from '../classes/class-enrollment.model.js';
+import { User } from '../auth/user.model.js';
 import { AppError } from '../../common/errors/AppError.js';
 
 export class CommerceService {

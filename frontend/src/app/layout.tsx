@@ -7,8 +7,8 @@ import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 
 export const metadata: Metadata = {
-  title: "TechYad - Online Education",
-  description: "Learn with the best online courses and classes.",
+  title: "TechYad LMS",
+  description: "Full-stack learning management system with course and class enrollment, shopping cart, and authenticated dashboards",
 };
 
 export default function RootLayout({
