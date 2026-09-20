@@ -4,7 +4,9 @@ import { useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { authApi } from '@/features/auth/api/auth.api';
 import { GuestGuard } from '@/features/auth/components/guards/GuestGuard';
+import { AuthCardLayout } from '@/features/auth/components/AuthCardLayout';
 import Link from 'next/link';
+import { Lock, Eye, EyeOff, Loader2, AlertCircle, CheckCircle2, ArrowLeft } from 'lucide-react';
 
 function ResetPasswordForm() {
   const router = useRouter();
@@ -13,6 +15,7 @@ function ResetPasswordForm() {
 
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
   const [message, setMessage] = useState('');
 
@@ -20,13 +23,19 @@ function ResetPasswordForm() {
     e.preventDefault();
     if (password !== confirmPassword) {
       setStatus('error');
-      setMessage('رمز عبور و تکرار آن مطابقت ندارند');
+      setMessage('رمز عبور جدید و تکرار آن یکسان نیستند.');
+      return;
+    }
+
+    if (password.length < 6) {
+      setStatus('error');
+      setMessage('رمز عبور باید حداقل ۶ کاراکتر باشد.');
       return;
     }
 
     if (!token) {
       setStatus('error');
-      setMessage('توکن بازیابی نامعتبر است');
+      setMessage('توکن بازیابی نامعتبر یا منقضی شده است.');
       return;
     }
 
@@ -44,18 +53,23 @@ function ResetPasswordForm() {
       }
     } catch (err: any) {
       setStatus('error');
-      setMessage(err.response?.data?.message || 'خطا در تغییر رمز عبور');
+      setMessage(err.response?.data?.message || 'خطا در تغییر رمز عبور. لطفاً دوباره تلاش کنید.');
     }
   };
 
   if (!token) {
     return (
-      <div className="text-center">
-        <div className="mb-6 p-4 bg-red-50 text-red-600 rounded-xl text-sm border border-red-100">
-          لینک بازیابی نامعتبر است یا منقضی شده است.
+      <div className="text-center py-6">
+        <div className="mb-6 p-4 bg-rose-50 border border-rose-200 text-rose-700 rounded-2xl text-xs sm:text-sm font-medium flex items-center gap-2">
+          <AlertCircle className="w-5 h-5 shrink-0 text-rose-500" />
+          <span>لینک بازیابی نامعتبر است یا منقضی شده است.</span>
         </div>
-        <Link href="/forgot-password" className="font-medium text-[var(--neo-primary)] hover:text-opacity-80">
-          درخواست مجدد لینک بازیابی
+        <Link 
+          href="/forgot-password" 
+          className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-[var(--neo-primary)] text-white font-bold rounded-xl hover:bg-blue-700 transition text-sm"
+        >
+          <span>درخواست مجدد لینک بازیابی</span>
+          <ArrowLeft className="w-4 h-4" />
         </Link>
       </div>
     );
@@ -64,53 +78,83 @@ function ResetPasswordForm() {
   return (
     <>
       {status === 'error' && (
-        <div className="mb-6 p-4 bg-red-50 text-red-600 rounded-xl text-sm border border-red-100">
-          {message}
+        <div className="mb-5 p-4 bg-rose-50 border border-rose-200 text-rose-700 rounded-2xl text-xs sm:text-sm font-medium flex items-center gap-2.5 animate-in fade-in duration-200">
+          <AlertCircle className="w-5 h-5 shrink-0 text-rose-500" />
+          <span>{message}</span>
         </div>
       )}
 
       {status === 'success' ? (
-        <div className="text-center">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-green-50 text-green-600 mb-6">
-            <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
-            </svg>
+        <div className="text-center py-6 animate-in zoom-in-95 duration-200">
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-600 mb-4">
+            <CheckCircle2 className="w-8 h-8" />
           </div>
-          <p className="text-[var(--neo-text-secondary)] mb-6">{message}</p>
-          <p className="text-sm text-[var(--neo-text-muted)]">در حال انتقال به صفحه ورود...</p>
+          <h3 className="text-lg font-bold text-[var(--neo-text-main)] mb-2">رمز عبور به‌روزرسانی شد</h3>
+          <p className="text-xs sm:text-sm text-[var(--neo-text-secondary)] mb-2 leading-relaxed">
+            {message}
+          </p>
+          <p className="text-xs text-[var(--neo-text-muted)]">در حال هدایت خودکار به صفحه ورود...</p>
         </div>
       ) : (
-        <form onSubmit={handleSubmit} className="space-y-5">
+        <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-[var(--neo-text-secondary)] mb-1.5">رمز عبور جدید</label>
-            <input 
-              type="password"
-              value={password}
-              onChange={e => setPassword(e.target.value)}
-              className="w-full px-4 py-2.5 rounded-xl border border-[var(--neo-border)] focus:outline-none focus:ring-2 focus:ring-[var(--neo-primary)] focus:border-transparent transition-all dir-ltr text-left"
-              placeholder="••••••••"
-              required 
-            />
+            <label className="block text-xs sm:text-sm font-bold text-[var(--neo-text-main)] mb-1.5">
+              رمز عبور جدید (حداقل ۶ کاراکتر)
+            </label>
+            <div className="relative">
+              <input 
+                type={showPassword ? 'text' : 'password'}
+                value={password}
+                onChange={e => setPassword(e.target.value)}
+                className="w-full pl-11 pr-11 py-3 rounded-xl border border-[var(--neo-border)] bg-[var(--neo-surface)] text-[var(--neo-text-main)] focus:outline-none focus:ring-2 focus:ring-[var(--neo-primary)] focus:border-transparent transition-all dir-ltr text-left text-sm"
+                placeholder="••••••••"
+                required 
+              />
+              <Lock className="w-5 h-5 text-[var(--neo-text-muted)] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[var(--neo-text-muted)] hover:text-[var(--neo-text-main)] transition"
+                tabIndex={-1}
+              >
+                {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+              </button>
+            </div>
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-[var(--neo-text-secondary)] mb-1.5">تکرار رمز عبور جدید</label>
-            <input 
-              type="password"
-              value={confirmPassword}
-              onChange={e => setConfirmPassword(e.target.value)}
-              className="w-full px-4 py-2.5 rounded-xl border border-[var(--neo-border)] focus:outline-none focus:ring-2 focus:ring-[var(--neo-primary)] focus:border-transparent transition-all dir-ltr text-left"
-              placeholder="••••••••"
-              required 
-            />
+            <label className="block text-xs sm:text-sm font-bold text-[var(--neo-text-main)] mb-1.5">
+              تکرار رمز عبور جدید
+            </label>
+            <div className="relative">
+              <input 
+                type={showPassword ? 'text' : 'password'}
+                value={confirmPassword}
+                onChange={e => setConfirmPassword(e.target.value)}
+                className="w-full pl-11 pr-11 py-3 rounded-xl border border-[var(--neo-border)] bg-[var(--neo-surface)] text-[var(--neo-text-main)] focus:outline-none focus:ring-2 focus:ring-[var(--neo-primary)] focus:border-transparent transition-all dir-ltr text-left text-sm"
+                placeholder="••••••••"
+                required 
+              />
+              <Lock className="w-5 h-5 text-[var(--neo-text-muted)] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+            </div>
           </div>
 
           <button 
             type="submit"
             disabled={status === 'loading'}
-            className="w-full py-3 px-4 bg-[var(--neo-primary)] text-white font-medium rounded-xl hover:bg-opacity-90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--neo-primary)] transition-all disabled:opacity-70 disabled:cursor-not-allowed"
+            className="w-full mt-2 py-3.5 px-4 bg-[var(--neo-primary)] hover:bg-blue-700 text-white font-bold rounded-xl transition-all shadow-md shadow-[var(--neo-primary)]/20 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--neo-primary)] disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2 text-sm"
           >
-            {status === 'loading' ? 'در حال ثبت...' : 'تغییر رمز عبور'}
+            {status === 'loading' ? (
+              <>
+                <Loader2 className="w-5 h-5 animate-spin" />
+                <span>در حال ثبت تغییرات...</span>
+              </>
+            ) : (
+              <>
+                <span>ثبت رمز عبور جدید</span>
+                <ArrowLeft className="w-4 h-4" />
+              </>
+            )}
           </button>
         </form>
       )}
@@ -121,17 +165,20 @@ function ResetPasswordForm() {
 export default function ResetPasswordPage() {
   return (
     <GuestGuard>
-      <main className="flex-1 flex items-center justify-center p-4">
-        <div className="w-full max-w-md bg-white rounded-2xl shadow-sm border border-[var(--neo-border)] p-8">
-          <div className="text-center mb-8">
-            <h1 className="text-2xl font-bold text-[var(--neo-text-main)] mb-2">تغییر رمز عبور</h1>
-            <p className="text-[var(--neo-text-muted)] text-sm">رمز عبور جدید خود را وارد کنید</p>
-          </div>
-          <Suspense fallback={<div className="text-center py-4">در حال بررسی...</div>}>
-            <ResetPasswordForm />
-          </Suspense>
+      <AuthCardLayout
+        title="تغییر رمز عبور"
+        subtitle="رمز عبور جدید و امن خود را وارد و تأیید نمایید"
+      >
+        <Suspense fallback={<div className="text-center py-6 text-sm text-[var(--neo-text-muted)]">در حال اعتبارسنجی توکن...</div>}>
+          <ResetPasswordForm />
+        </Suspense>
+
+        <div className="mt-8 text-center text-xs sm:text-sm text-[var(--neo-text-secondary)] pt-4 border-t border-[var(--neo-border)]">
+          <Link href="/login" className="font-bold text-[var(--neo-primary)] hover:underline">
+            بازگشت به صفحه ورود
+          </Link>
         </div>
-      </main>
+      </AuthCardLayout>
     </GuestGuard>
   );
 }

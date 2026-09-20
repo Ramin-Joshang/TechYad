@@ -93,8 +93,8 @@ export function Navbar() {
       <header className="bg-white/80 backdrop-blur-md border-b border-[var(--neo-border)] sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
-            {/* Right side: Mobile Menu Button, Logo, and Desktop Nav */}
-            <div className="flex items-center gap-4 md:gap-8">
+            {/* Right side: Mobile Menu Button & Logo */}
+            <div className="flex items-center gap-3">
               <button
                 type="button"
                 className="md:hidden p-2 -mr-2 text-[var(--neo-text-muted)] hover:text-[var(--neo-primary)] transition"
@@ -112,23 +112,27 @@ export function Navbar() {
                   تک‌یاد
                 </span>
               </Link>
-
-              <nav className="hidden md:flex items-center gap-6 text-sm font-medium text-[var(--neo-text-secondary)]">
-                {NAV_LINKS.map((link) => (
-                  <Link
-                    key={link.href}
-                    href={link.href}
-                    className={`transition ${
-                      pathname === link.href
-                        ? 'text-[var(--neo-primary)] font-bold'
-                        : 'hover:text-[var(--neo-primary)]'
-                    }`}
-                  >
-                    {link.name}
-                  </Link>
-                ))}
-              </nav>
             </div>
+
+            {/* Center: Desktop Navigation Links */}
+            <nav className="hidden md:flex items-center justify-center gap-8 text-sm font-medium text-[var(--neo-text-secondary)]">
+              {NAV_LINKS.map((link) => (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  className={`transition-colors py-1 relative ${
+                    pathname === link.href
+                      ? 'text-[var(--neo-primary)] font-bold'
+                      : 'hover:text-[var(--neo-primary)]'
+                  }`}
+                >
+                  {link.name}
+                  {pathname === link.href && (
+                    <span className="absolute -bottom-1 right-0 left-0 h-0.5 bg-[var(--neo-primary)] rounded-full"></span>
+                  )}
+                </Link>
+              ))}
+            </nav>
 
             {/* Left side: Search, Cart, User Profile / Login */}
             <div className="flex items-center gap-3 sm:gap-4">
@@ -229,13 +233,38 @@ export function Navbar() {
                 </button>
               </div>
 
+              {/* Navigation Links (placed above profile section) */}
+              <div className="flex-1 overflow-y-auto py-4">
+                <nav className="flex flex-col px-3 space-y-1">
+                  {NAV_LINKS.map((link) => {
+                    const Icon = link.icon;
+                    const isActive = pathname === link.href;
+                    return (
+                      <Link
+                        key={link.href}
+                        href={link.href}
+                        onClick={() => setIsMobileMenuOpen(false)}
+                        className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition ${
+                          isActive
+                            ? 'bg-[var(--neo-primary)]/10 text-[var(--neo-primary)]'
+                            : 'text-[var(--neo-text-secondary)] hover:bg-[var(--neo-surface-2)] hover:text-[var(--neo-primary)]'
+                        }`}
+                      >
+                        <Icon className="w-5 h-5 shrink-0" />
+                        <span>{link.name}</span>
+                      </Link>
+                    );
+                  })}
+                </nav>
+              </div>
+
               {/* User Section in Drawer */}
               {isInitializing && !user ? (
-                <div className="p-4 border-b border-[var(--neo-border)] bg-gray-50">
+                <div className="p-4 border-t border-[var(--neo-border)] bg-gray-50">
                   <div className="w-full h-12 bg-gray-200 animate-pulse rounded-xl"></div>
                 </div>
               ) : isAuthenticated && user ? (
-                <div className="p-4 border-b border-[var(--neo-border)] bg-[var(--neo-surface-2)]">
+                <div className="p-4 border-t border-[var(--neo-border)] bg-[var(--neo-surface-2)]">
                   <div className="flex items-center gap-3 mb-3">
                     <div className="w-12 h-12 rounded-full bg-white text-[var(--neo-primary)] flex items-center justify-center font-bold text-lg overflow-hidden shrink-0 border border-[var(--neo-border)]">
                       {user.avatar ? (
@@ -261,7 +290,7 @@ export function Navbar() {
                   </Link>
                 </div>
               ) : (
-                <div className="p-4 border-b border-[var(--neo-border)] bg-gray-50/80">
+                <div className="p-4 border-t border-[var(--neo-border)] bg-gray-50/80">
                   <Link
                     href="/login"
                     onClick={() => setIsMobileMenuOpen(false)}
@@ -272,31 +301,6 @@ export function Navbar() {
                   </Link>
                 </div>
               )}
-
-              {/* Navigation Links */}
-              <div className="flex-1 overflow-y-auto py-4">
-                <nav className="flex flex-col px-3 space-y-1">
-                  {NAV_LINKS.map((link) => {
-                    const Icon = link.icon;
-                    const isActive = pathname === link.href;
-                    return (
-                      <Link
-                        key={link.href}
-                        href={link.href}
-                        onClick={() => setIsMobileMenuOpen(false)}
-                        className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition ${
-                          isActive
-                            ? 'bg-[var(--neo-primary)]/10 text-[var(--neo-primary)]'
-                            : 'text-[var(--neo-text-secondary)] hover:bg-[var(--neo-surface-2)] hover:text-[var(--neo-primary)]'
-                        }`}
-                      >
-                        <Icon className="w-5 h-5 shrink-0" />
-                        <span>{link.name}</span>
-                      </Link>
-                    );
-                  })}
-                </nav>
-              </div>
 
               {/* Drawer Footer: Logout if authenticated */}
               {isAuthenticated && user && (

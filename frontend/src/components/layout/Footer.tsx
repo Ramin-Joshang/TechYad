@@ -1,7 +1,24 @@
+'use client';
+
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { Mail, Phone, MapPin, Camera, MessageCircle, Briefcase } from 'lucide-react';
 
 export function Footer() {
+  const pathname = usePathname();
+
+  // Hide footer completely inside user, instructor, and admin dashboards / panels
+  if (
+    pathname?.startsWith('/admin') ||
+    pathname?.startsWith('/super-admin') ||
+    pathname?.startsWith('/student') ||
+    (pathname?.startsWith('/instructor') && !pathname?.startsWith('/instructors')) ||
+    pathname?.startsWith('/profile') ||
+    pathname?.startsWith('/learn')
+  ) {
+    return null;
+  }
+
   return (
     <footer className="bg-white border-t border-[var(--neo-border)] pt-20 pb-10 text-[var(--neo-text-secondary)] relative overflow-hidden">
       {/* Background grid */}
