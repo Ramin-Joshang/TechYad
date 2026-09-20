@@ -40,16 +40,16 @@ export default function InstructorStudentsPage() {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-2xl font-black text-gray-900">دانشجویان من</h1>
-          <p className="text-gray-500 mt-1">لیست دانشجویان ثبت‌نام شده در دوره‌های شما</p>
+          <h1 className="text-2xl font-black text-[var(--neo-text-main)]">دانشجویان من</h1>
+          <p className="text-[var(--neo-text-secondary)] mt-1">لیست دانشجویان ثبت‌نام شده در دوره‌های شما</p>
         </div>
         
-        <div className="flex items-center gap-2 bg-white rounded-xl border border-gray-200 p-2 shadow-sm">
-          <BookOpen className="w-5 h-5 text-gray-400 ml-2" />
+        <div className="flex items-center gap-2 bg-[var(--neo-surface)] rounded-xl border border-[var(--neo-border)] p-2 shadow-sm">
+          <BookOpen className="w-5 h-5 text-[var(--neo-text-muted)] ml-2" />
           <select
             value={selectedCourse}
             onChange={(e) => { setSelectedCourse(e.target.value); setPage(1); }}
-            className="bg-transparent border-none focus:ring-0 text-sm font-bold text-gray-700 outline-none pr-8"
+            className="bg-transparent border-none focus:ring-0 text-sm font-bold text-[var(--neo-text-main)] outline-none pr-8"
           >
             <option value="all">انتخاب دوره (پیش‌فرض: اولین دوره)</option>
             {coursesData?.courses?.map((course: any) => (
@@ -59,50 +59,50 @@ export default function InstructorStudentsPage() {
         </div>
       </div>
 
-      <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
+      <div className="bg-[var(--neo-surface)] rounded-3xl shadow-sm border border-[var(--neo-border)] overflow-hidden">
         {isLoading ? (
-          <div className="p-12 flex justify-center text-blue-600"><Loader2 className="w-8 h-8 animate-spin" /></div>
+          <div className="p-12 flex justify-center text-[var(--neo-primary)]"><Loader2 className="w-8 h-8 animate-spin" /></div>
         ) : !data?.students?.length ? (
-          <div className="p-12 text-center text-gray-500 font-medium">هیچ دانشجویی یافت نشد.</div>
+          <div className="p-12 text-center text-[var(--neo-text-secondary)] font-medium">هیچ دانشجویی یافت نشد.</div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-right">
               <thead>
-                <tr className="border-b border-gray-100 bg-gray-50/50">
-                  <th className="p-4 font-bold text-gray-600 text-sm">دانشجو</th>
-                  <th className="p-4 font-bold text-gray-600 text-sm">ایمیل</th>
-                  <th className="p-4 font-bold text-gray-600 text-sm">تاریخ ثبت‌نام</th>
-                  <th className="p-4 font-bold text-gray-600 text-sm text-center">عملیات</th>
+                <tr className="border-b border-[var(--neo-border)] bg-[var(--neo-surface-2)]/50">
+                  <th className="p-4 font-bold text-[var(--neo-text-secondary)] text-sm">دانشجو</th>
+                  <th className="p-4 font-bold text-[var(--neo-text-secondary)] text-sm">ایمیل</th>
+                  <th className="p-4 font-bold text-[var(--neo-text-secondary)] text-sm">تاریخ ثبت‌نام</th>
+                  <th className="p-4 font-bold text-[var(--neo-text-secondary)] text-sm text-center">عملیات</th>
                 </tr>
               </thead>
               <tbody>
                 {data.students.map((enrollment: any) => (
-                  <tr key={enrollment._id} className="border-b border-gray-50 hover:bg-gray-50/50 transition-colors">
+                  <tr key={enrollment._id} className="border-b border-[var(--neo-border)] hover:bg-[var(--neo-surface-2)]/50 transition-colors">
                     <td className="p-4">
                       <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center font-bold overflow-hidden shrink-0">
+                        <div className="w-10 h-10 rounded-full bg-blue-100 text-[var(--neo-primary)] flex items-center justify-center font-bold overflow-hidden shrink-0">
                           {enrollment.userId?.avatar ? (
                             <img src={enrollment.userId.avatar} alt="Avatar" className="w-full h-full object-cover" />
                           ) : (
                             enrollment.userId?.firstName?.charAt(0) || 'U'
                           )}
                         </div>
-                        <div className="font-bold text-gray-900">
+                        <div className="font-bold text-[var(--neo-text-main)]">
                           {enrollment.userId?.firstName} {enrollment.userId?.lastName}
                         </div>
                       </div>
                     </td>
-                    <td className="p-4 font-medium text-gray-600 dir-ltr text-right">
+                    <td className="p-4 font-medium text-[var(--neo-text-secondary)] dir-ltr text-right">
                       {enrollment.userId?.email}
                     </td>
-                    <td className="p-4 font-medium text-gray-600">
+                    <td className="p-4 font-medium text-[var(--neo-text-secondary)]">
                       {new Date(enrollment.createdAt).toLocaleDateString('fa-IR')}
                     </td>
                     <td className="p-4">
                       <div className="flex justify-center">
                         <a 
                           href={`mailto:${enrollment.userId?.email}`}
-                          className="p-2 bg-blue-50 text-blue-600 hover:bg-blue-100 rounded-lg transition-colors"
+                          className="p-2 bg-[var(--neo-primary)]/10 text-[var(--neo-primary)] hover:bg-blue-100 rounded-lg transition-colors"
                           title="ارسال ایمیل"
                         >
                           <Mail className="w-5 h-5" />
@@ -125,7 +125,7 @@ export default function InstructorStudentsPage() {
                 key={i}
                 onClick={() => setPage(i + 1)}
                 className={`w-10 h-10 rounded-xl font-bold transition-colors ${
-                  page === i + 1 ? 'bg-blue-600 text-white shadow-md' : 'bg-white text-gray-600 hover:bg-gray-100 border border-gray-200'
+                  page === i + 1 ? 'bg-[var(--neo-primary)] text-white shadow-md' : 'bg-[var(--neo-surface)] text-[var(--neo-text-secondary)] hover:bg-[var(--neo-surface-2)] border border-[var(--neo-border)]'
                 }`}
               >
                 {i + 1}

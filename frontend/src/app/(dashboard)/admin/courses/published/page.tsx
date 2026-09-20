@@ -24,39 +24,39 @@ export default function AdminPublishedCoursesPage() {
         <div className="flex items-center gap-3">
           <div className="p-3 bg-emerald-100 text-emerald-600 rounded-xl"><CheckSquare className="w-6 h-6" /></div>
           <div>
-            <h1 className="text-2xl font-black text-gray-900">دوره‌های منتشر شده</h1>
-            <p className="text-gray-500 mt-1">نمایش دوره‌های فعال و در حال فروش</p>
+            <h1 className="text-2xl font-black text-[var(--neo-text-main)]">دوره‌های منتشر شده</h1>
+            <p className="text-[var(--neo-text-secondary)] mt-1">نمایش دوره‌های فعال و در حال فروش</p>
           </div>
         </div>
       </div>
 
-      <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
+      <div className="bg-[var(--neo-surface)] rounded-3xl shadow-sm border border-[var(--neo-border)] overflow-hidden">
         {isLoading ? (
           <div className="p-12 flex justify-center"><Loader2 className="w-8 h-8 animate-spin text-emerald-600" /></div>
         ) : filteredCourses.length === 0 ? (
-           <div className="p-12 text-center text-gray-500 font-medium">هیچ دوره فعالی یافت نشد.</div>
+           <div className="p-12 text-center text-[var(--neo-text-secondary)] font-medium">هیچ دوره فعالی یافت نشد.</div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-right">
               <thead>
-                <tr className="border-b border-gray-100 bg-gray-50/50">
-                  <th className="p-4 font-bold text-gray-600 text-sm">عنوان دوره</th>
-                  <th className="p-4 font-bold text-gray-600 text-sm">استاد</th>
-                  <th className="p-4 font-bold text-gray-600 text-sm">قیمت</th>
-                  <th className="p-4 font-bold text-gray-600 text-sm">تاریخ انتشار</th>
+                <tr className="border-b border-[var(--neo-border)] bg-[var(--neo-surface-2)]/50">
+                  <th className="p-4 font-bold text-[var(--neo-text-secondary)] text-sm">عنوان دوره</th>
+                  <th className="p-4 font-bold text-[var(--neo-text-secondary)] text-sm">استاد</th>
+                  <th className="p-4 font-bold text-[var(--neo-text-secondary)] text-sm">قیمت</th>
+                  <th className="p-4 font-bold text-[var(--neo-text-secondary)] text-sm">تاریخ انتشار</th>
                 </tr>
               </thead>
               <tbody>
                 {filteredCourses.map((course: any) => (
-                  <tr key={course._id} className="border-b border-gray-50 hover:bg-gray-50/50 transition-colors">
-                    <td className="p-4 font-bold text-gray-900">{course.title}</td>
-                    <td className="p-4 text-gray-600 font-medium">
+                  <tr key={course._id} className="border-b border-[var(--neo-border)] hover:bg-[var(--neo-surface-2)]/50 transition-colors">
+                    <td className="p-4 font-bold text-[var(--neo-text-main)]">{course.title}</td>
+                    <td className="p-4 text-[var(--neo-text-secondary)] font-medium">
                       {course.instructors?.[0]?.firstName} {course.instructors?.[0]?.lastName}
                     </td>
-                    <td className="p-4 text-gray-600 font-medium">
+                    <td className="p-4 text-[var(--neo-text-secondary)] font-medium">
                       {course.price === 0 ? 'رایگان' : `${course.price.toLocaleString()} تومان`}
                     </td>
-                    <td className="p-4 text-gray-600 text-sm font-medium">
+                    <td className="p-4 text-[var(--neo-text-secondary)] text-sm font-medium">
                       {new Date(course.updatedAt || course.createdAt).toLocaleDateString('fa-IR')}
                     </td>
                   </tr>

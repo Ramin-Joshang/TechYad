@@ -39,16 +39,16 @@ export default function InstructorAssignmentsPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-black text-gray-900">بررسی تکالیف</h1>
-        <p className="text-gray-500 mt-1">مدیریت و نمره‌دهی به تکالیف ارسالی دانشجویان</p>
+        <h1 className="text-2xl font-black text-[var(--neo-text-main)]">بررسی تکالیف</h1>
+        <p className="text-[var(--neo-text-secondary)] mt-1">مدیریت و نمره‌دهی به تکالیف ارسالی دانشجویان</p>
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-2 bg-white p-1.5 rounded-2xl border border-gray-100 shadow-sm w-fit">
+      <div className="flex gap-2 bg-[var(--neo-surface)] p-1.5 rounded-2xl border border-[var(--neo-border)] shadow-sm w-fit">
         <button
           onClick={() => { setActiveTab('pending'); setPage(1); }}
           className={`px-5 py-2 rounded-xl text-sm font-bold transition-all ${
-            activeTab === 'pending' ? 'bg-amber-50 text-amber-700 shadow-sm' : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
+            activeTab === 'pending' ? 'bg-amber-50 text-amber-700 shadow-sm' : 'text-[var(--neo-text-secondary)] hover:text-[var(--neo-text-main)] hover:bg-[var(--neo-surface-2)]'
           }`}
         >
           در انتظار نمره
@@ -56,41 +56,41 @@ export default function InstructorAssignmentsPage() {
         <button
           onClick={() => { setActiveTab('graded'); setPage(1); }}
           className={`px-5 py-2 rounded-xl text-sm font-bold transition-all ${
-            activeTab === 'graded' ? 'bg-emerald-50 text-emerald-700 shadow-sm' : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
+            activeTab === 'graded' ? 'bg-emerald-50 text-emerald-700 shadow-sm' : 'text-[var(--neo-text-secondary)] hover:text-[var(--neo-text-main)] hover:bg-[var(--neo-surface-2)]'
           }`}
         >
           نمره داده شده
         </button>
       </div>
 
-      <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
+      <div className="bg-[var(--neo-surface)] rounded-3xl shadow-sm border border-[var(--neo-border)] overflow-hidden">
         {isLoading ? (
-          <div className="p-12 flex justify-center text-blue-600"><Loader2 className="w-8 h-8 animate-spin" /></div>
+          <div className="p-12 flex justify-center text-[var(--neo-primary)]"><Loader2 className="w-8 h-8 animate-spin" /></div>
         ) : !data?.submissions?.length ? (
-          <div className="p-12 text-center text-gray-500 font-medium">هیچ تکلیفی یافت نشد.</div>
+          <div className="p-12 text-center text-[var(--neo-text-secondary)] font-medium">هیچ تکلیفی یافت نشد.</div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-right">
               <thead>
-                <tr className="border-b border-gray-100 bg-gray-50/50">
-                  <th className="p-4 font-bold text-gray-600 text-sm">دانشجو</th>
-                  <th className="p-4 font-bold text-gray-600 text-sm">تکلیف</th>
-                  <th className="p-4 font-bold text-gray-600 text-sm">تاریخ ارسال</th>
-                  <th className="p-4 font-bold text-gray-600 text-sm text-center">عملیات</th>
+                <tr className="border-b border-[var(--neo-border)] bg-[var(--neo-surface-2)]/50">
+                  <th className="p-4 font-bold text-[var(--neo-text-secondary)] text-sm">دانشجو</th>
+                  <th className="p-4 font-bold text-[var(--neo-text-secondary)] text-sm">تکلیف</th>
+                  <th className="p-4 font-bold text-[var(--neo-text-secondary)] text-sm">تاریخ ارسال</th>
+                  <th className="p-4 font-bold text-[var(--neo-text-secondary)] text-sm text-center">عملیات</th>
                 </tr>
               </thead>
               <tbody>
                 {data.submissions.map((sub: any) => (
-                  <tr key={sub._id} className="border-b border-gray-50 hover:bg-gray-50/50 transition-colors">
+                  <tr key={sub._id} className="border-b border-[var(--neo-border)] hover:bg-[var(--neo-surface-2)]/50 transition-colors">
                     <td className="p-4">
-                      <div className="font-bold text-gray-900">
+                      <div className="font-bold text-[var(--neo-text-main)]">
                         {sub.userId?.firstName} {sub.userId?.lastName}
                       </div>
                     </td>
-                    <td className="p-4 font-medium text-gray-600">
+                    <td className="p-4 font-medium text-[var(--neo-text-secondary)]">
                       {sub.assignmentId?.title || 'تکلیف بدون نام'}
                     </td>
-                    <td className="p-4 font-medium text-gray-600">
+                    <td className="p-4 font-medium text-[var(--neo-text-secondary)]">
                       {new Date(sub.submittedAt).toLocaleDateString('fa-IR')}
                     </td>
                     <td className="p-4">
@@ -100,7 +100,7 @@ export default function InstructorAssignmentsPage() {
                             href={sub.fileUrl} 
                             target="_blank" 
                             rel="noopener noreferrer"
-                            className="p-2 bg-blue-50 text-blue-600 hover:bg-blue-100 rounded-lg transition-colors"
+                            className="p-2 bg-[var(--neo-primary)]/10 text-[var(--neo-primary)] hover:bg-blue-100 rounded-lg transition-colors"
                             title="دانلود فایل"
                           >
                             <Download className="w-5 h-5" />
@@ -137,7 +137,7 @@ export default function InstructorAssignmentsPage() {
                 key={i}
                 onClick={() => setPage(i + 1)}
                 className={`w-10 h-10 rounded-xl font-bold transition-colors ${
-                  page === i + 1 ? 'bg-blue-600 text-white shadow-md' : 'bg-white text-gray-600 hover:bg-gray-100 border border-gray-200'
+                  page === i + 1 ? 'bg-[var(--neo-primary)] text-white shadow-md' : 'bg-[var(--neo-surface)] text-[var(--neo-text-secondary)] hover:bg-[var(--neo-surface-2)] border border-[var(--neo-border)]'
                 }`}
               >
                 {i + 1}
@@ -150,32 +150,32 @@ export default function InstructorAssignmentsPage() {
       {/* Grading Modal */}
       {gradingId && (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
-          <div className="bg-white rounded-3xl p-6 md:p-8 w-full max-w-md shadow-xl animate-in zoom-in-95 duration-200">
-            <h2 className="text-xl font-black text-gray-900 mb-6 flex items-center gap-2">
+          <div className="bg-[var(--neo-surface)] rounded-3xl p-6 md:p-8 w-full max-w-md shadow-xl animate-in zoom-in-95 duration-200">
+            <h2 className="text-xl font-black text-[var(--neo-text-main)] mb-6 flex items-center gap-2">
               <CheckCircle className="w-6 h-6 text-emerald-500" />
               ثبت نمره تکلیف
             </h2>
             
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-bold text-gray-700 mb-2">نمره (از ۱۰۰)</label>
+                <label className="block text-sm font-bold text-[var(--neo-text-main)] mb-2">نمره (از ۱۰۰)</label>
                 <input 
                   type="number"
                   min="0"
                   max="100"
                   value={grade}
                   onChange={(e) => setGrade(e.target.value)}
-                  className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none transition-all"
+                  className="w-full px-4 py-3 bg-[var(--neo-surface-2)] border border-[var(--neo-border)] rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none transition-all"
                   placeholder="مثال: 85"
                 />
               </div>
               
               <div>
-                <label className="block text-sm font-bold text-gray-700 mb-2">بازخورد (اختیاری)</label>
+                <label className="block text-sm font-bold text-[var(--neo-text-main)] mb-2">بازخورد (اختیاری)</label>
                 <textarea 
                   value={feedback}
                   onChange={(e) => setFeedback(e.target.value)}
-                  className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none transition-all resize-none"
+                  className="w-full px-4 py-3 bg-[var(--neo-surface-2)] border border-[var(--neo-border)] rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none transition-all resize-none"
                   rows={4}
                   placeholder="نکات مثبت و منفی تکلیف را بنویسید..."
                 ></textarea>
@@ -185,7 +185,7 @@ export default function InstructorAssignmentsPage() {
             <div className="flex justify-end gap-3 mt-8">
               <button 
                 onClick={() => setGradingId(null)}
-                className="px-5 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold rounded-xl transition-colors"
+                className="px-5 py-2.5 bg-[var(--neo-surface-2)] hover:bg-[var(--neo-border)] text-[var(--neo-text-main)] font-bold rounded-xl transition-colors"
               >
                 انصراف
               </button>

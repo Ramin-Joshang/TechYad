@@ -52,25 +52,25 @@ export default function CreateAdminPage() {
     <div className="max-w-3xl mx-auto space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
       
       {/* Header */}
-      <div className="flex items-center justify-between bg-white p-6 rounded-3xl shadow-sm border border-gray-100">
+      <div className="flex items-center justify-between bg-white p-6 rounded-3xl shadow-sm border border-[var(--neo-border)]">
         <div className="flex items-center gap-4">
-          <Link href="/super-admin/admins" className="p-2 text-gray-400 hover:text-gray-900 hover:bg-gray-100 rounded-xl transition-colors">
+          <Link href="/super-admin/admins" className="p-2 text-[var(--neo-text-muted)] hover:text-[var(--neo-text-main)] hover:bg-[var(--neo-surface-2)] rounded-xl transition-colors">
             <ArrowRight className="w-6 h-6" />
           </Link>
           <div>
-            <h1 className="text-xl font-black text-gray-900">افزودن مدیر جدید</h1>
-            <p className="text-gray-500 text-sm mt-1">ساخت حساب کاربری با دسترسی‌های مدیریتی</p>
+            <h1 className="text-xl font-black text-[var(--neo-text-main)]">افزودن مدیر جدید</h1>
+            <p className="text-[var(--neo-text-secondary)] text-sm mt-1">ساخت حساب کاربری با دسترسی‌های مدیریتی</p>
           </div>
         </div>
       </div>
 
       {/* Form */}
-      <form onSubmit={handleSubmit} className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
+      <form onSubmit={handleSubmit} className="bg-white rounded-3xl shadow-sm border border-[var(--neo-border)] overflow-hidden">
         <div className="p-8 space-y-8">
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-2">
-              <label className="text-sm font-bold text-gray-700 flex items-center gap-2">
+              <label className="text-sm font-bold text-[var(--neo-text-main)] flex items-center gap-2">
                 <User className="w-4 h-4 text-blue-500" />
                 نام
               </label>
@@ -79,13 +79,13 @@ export default function CreateAdminPage() {
                 required
                 value={formData.firstName}
                 onChange={e => setFormData(prev => ({ ...prev, firstName: e.target.value }))}
-                className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all"
+                className="w-full px-4 py-3 bg-[var(--neo-surface-2)] border border-[var(--neo-border)] rounded-xl focus:ring-2 focus:ring-[var(--neo-primary)]/20 focus:border-[var(--neo-primary)] outline-none transition-all"
                 placeholder="مثال: علی"
               />
             </div>
             
             <div className="space-y-2">
-              <label className="text-sm font-bold text-gray-700 flex items-center gap-2">
+              <label className="text-sm font-bold text-[var(--neo-text-main)] flex items-center gap-2">
                 <User className="w-4 h-4 text-blue-500" />
                 نام خانوادگی
               </label>
@@ -94,7 +94,7 @@ export default function CreateAdminPage() {
                 required
                 value={formData.lastName}
                 onChange={e => setFormData(prev => ({ ...prev, lastName: e.target.value }))}
-                className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all"
+                className="w-full px-4 py-3 bg-[var(--neo-surface-2)] border border-[var(--neo-border)] rounded-xl focus:ring-2 focus:ring-[var(--neo-primary)]/20 focus:border-[var(--neo-primary)] outline-none transition-all"
                 placeholder="مثال: محمدی"
               />
             </div>
@@ -102,7 +102,7 @@ export default function CreateAdminPage() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-2">
-              <label className="text-sm font-bold text-gray-700 flex items-center gap-2">
+              <label className="text-sm font-bold text-[var(--neo-text-main)] flex items-center gap-2">
                 <Mail className="w-4 h-4 text-blue-500" />
                 آدرس ایمیل
               </label>
@@ -111,14 +111,14 @@ export default function CreateAdminPage() {
                 required
                 value={formData.email}
                 onChange={e => setFormData(prev => ({ ...prev, email: e.target.value }))}
-                className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all text-left"
+                className="w-full px-4 py-3 bg-[var(--neo-surface-2)] border border-[var(--neo-border)] rounded-xl focus:ring-2 focus:ring-[var(--neo-primary)]/20 focus:border-[var(--neo-primary)] outline-none transition-all text-left"
                 dir="ltr"
                 placeholder="admin@example.com"
               />
             </div>
             
             <div className="space-y-2">
-              <label className="text-sm font-bold text-gray-700 flex items-center gap-2">
+              <label className="text-sm font-bold text-[var(--neo-text-main)] flex items-center gap-2">
                 <Phone className="w-4 h-4 text-blue-500" />
                 شماره موبایل
               </label>
@@ -127,7 +127,7 @@ export default function CreateAdminPage() {
                 required
                 value={formData.mobile}
                 onChange={e => setFormData(prev => ({ ...prev, mobile: e.target.value }))}
-                className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all text-left"
+                className="w-full px-4 py-3 bg-[var(--neo-surface-2)] border border-[var(--neo-border)] rounded-xl focus:ring-2 focus:ring-[var(--neo-primary)]/20 focus:border-[var(--neo-primary)] outline-none transition-all text-left"
                 dir="ltr"
                 placeholder="09123456789"
               />
@@ -135,7 +135,7 @@ export default function CreateAdminPage() {
           </div>
 
           <div className="space-y-2">
-            <label className="text-sm font-bold text-gray-700 flex items-center gap-2">
+            <label className="text-sm font-bold text-[var(--neo-text-main)] flex items-center gap-2">
               <Lock className="w-4 h-4 text-blue-500" />
               رمز عبور اولیه
             </label>
@@ -145,20 +145,20 @@ export default function CreateAdminPage() {
               minLength={8}
               value={formData.password}
               onChange={e => setFormData(prev => ({ ...prev, password: e.target.value }))}
-              className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all text-left"
+              className="w-full px-4 py-3 bg-[var(--neo-surface-2)] border border-[var(--neo-border)] rounded-xl focus:ring-2 focus:ring-[var(--neo-primary)]/20 focus:border-[var(--neo-primary)] outline-none transition-all text-left"
               dir="ltr"
               placeholder="حداقل ۸ کاراکتر"
             />
           </div>
 
           <div className="space-y-4">
-            <label className="text-sm font-bold text-gray-700 flex items-center gap-2">
+            <label className="text-sm font-bold text-[var(--neo-text-main)] flex items-center gap-2">
               <Key className="w-4 h-4 text-blue-500" />
               انتخاب نقش مدیریتی
             </label>
             
             {isLoadingRoles ? (
-              <div className="flex justify-center p-8"><Loader2 className="w-8 h-8 animate-spin text-blue-600" /></div>
+              <div className="flex justify-center p-8"><Loader2 className="w-8 h-8 animate-spin text-[var(--neo-primary)]" /></div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {adminRoles.map((role: any) => (
@@ -167,24 +167,24 @@ export default function CreateAdminPage() {
                     onClick={() => setFormData(prev => ({ ...prev, role: role._id }))}
                     className={`relative p-5 rounded-2xl border-2 cursor-pointer transition-all ${
                       formData.role === role._id 
-                        ? 'border-blue-600 bg-blue-50/50' 
-                        : 'border-gray-100 bg-white hover:border-gray-200 hover:bg-gray-50'
+                        ? 'border-[var(--neo-primary)] bg-[var(--neo-primary)]/10/50' 
+                        : 'border-[var(--neo-border)] bg-white hover:border-[var(--neo-border)] hover:bg-[var(--neo-surface-2)]'
                     }`}
                   >
                     <div className="flex items-center justify-between mb-2">
                       <div className="flex items-center gap-3">
-                        <div className={`p-2 rounded-xl ${role.slug === 'super-admin' ? 'bg-purple-100 text-purple-600' : 'bg-blue-100 text-blue-600'}`}>
+                        <div className={`p-2 rounded-xl ${role.slug === 'super-admin' ? 'bg-purple-100 text-purple-600' : 'bg-blue-100 text-[var(--neo-primary)]'}`}>
                           <Shield className="w-5 h-5" />
                         </div>
-                        <span className="font-bold text-gray-900">{role.name}</span>
+                        <span className="font-bold text-[var(--neo-text-main)]">{role.name}</span>
                       </div>
                       {formData.role === role._id && (
-                        <div className="w-6 h-6 rounded-full bg-blue-600 text-white flex items-center justify-center">
+                        <div className="w-6 h-6 rounded-full bg-[var(--neo-primary)] text-white flex items-center justify-center">
                           <Check className="w-4 h-4" />
                         </div>
                       )}
                     </div>
-                    <p className="text-xs text-gray-500 pr-11 leading-relaxed">
+                    <p className="text-xs text-[var(--neo-text-secondary)] pr-11 leading-relaxed">
                       {role.description || (role.slug === 'super-admin' 
                         ? 'دسترسی کامل به تمام بخش‌های سیستم شامل امنیت و گزارشات' 
                         : 'مدیریت کاربران، دوره‌ها و محتوای آموزشی')}
@@ -197,17 +197,17 @@ export default function CreateAdminPage() {
           
         </div>
         
-        <div className="p-6 bg-gray-50 border-t border-gray-100 flex justify-end gap-3">
+        <div className="p-6 bg-[var(--neo-surface-2)] border-t border-[var(--neo-border)] flex justify-end gap-3">
           <Link 
             href="/super-admin/admins"
-            className="px-6 py-3 text-gray-600 font-medium hover:bg-gray-200 rounded-xl transition-colors"
+            className="px-6 py-3 text-[var(--neo-text-secondary)] font-medium hover:bg-[var(--neo-border)] rounded-xl transition-colors"
           >
             انصراف
           </Link>
           <button
             type="submit"
             disabled={createMutation.isPending}
-            className="flex items-center gap-2 px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition-colors disabled:opacity-70"
+            className="flex items-center gap-2 px-8 py-3 bg-[var(--neo-primary)] hover:bg-blue-700 text-white font-bold rounded-xl transition-colors disabled:opacity-70"
           >
             {createMutation.isPending ? <Loader2 className="w-5 h-5 animate-spin" /> : <Check className="w-5 h-5" />}
             ثبت و ایجاد حساب

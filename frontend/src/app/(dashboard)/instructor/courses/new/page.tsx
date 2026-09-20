@@ -67,16 +67,16 @@ export default function NewCoursePage() {
   return (
     <div className="max-w-3xl mx-auto space-y-6">
       <div className="flex items-center gap-4">
-        <Link href="/instructor/courses" className="p-2 bg-white rounded-xl border border-gray-100 shadow-sm hover:bg-gray-50 transition-colors">
-          <ArrowRight className="w-5 h-5 text-gray-600" />
+        <Link href="/instructor/courses" className="p-2 bg-[var(--neo-surface)] rounded-xl border border-[var(--neo-border)] shadow-sm hover:bg-[var(--neo-surface-2)] transition-colors">
+          <ArrowRight className="w-5 h-5 text-[var(--neo-text-secondary)]" />
         </Link>
         <div>
-          <h1 className="text-2xl font-black text-gray-900">ایجاد دوره جدید</h1>
-          <p className="text-gray-500 mt-1">مشخصات اولیه دوره را وارد کنید</p>
+          <h1 className="text-2xl font-black text-[var(--neo-text-main)]">ایجاد دوره جدید</h1>
+          <p className="text-[var(--neo-text-secondary)] mt-1">مشخصات اولیه دوره را وارد کنید</p>
         </div>
       </div>
 
-      <div className="bg-white rounded-3xl p-6 md:p-8 shadow-sm border border-gray-100">
+      <div className="bg-[var(--neo-surface)] rounded-3xl p-6 md:p-8 shadow-sm border border-[var(--neo-border)]">
         {error && (
           <div className="mb-6 p-4 bg-red-50 text-red-700 rounded-xl text-sm border border-red-100 font-bold">
             {error}
@@ -85,42 +85,42 @@ export default function NewCoursePage() {
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <div>
-            <label className="block text-sm font-bold text-gray-700 mb-2">عنوان دوره *</label>
+            <label className="block text-sm font-bold text-[var(--neo-text-main)] mb-2">عنوان دوره *</label>
             <input 
               type="text" 
               name="title"
               required
               value={formData.title}
               onChange={handleChange}
-              className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
+              className="w-full px-4 py-3 bg-[var(--neo-surface-2)] border border-[var(--neo-border)] rounded-xl focus:ring-2 focus:ring-[var(--neo-primary)] focus:border-transparent outline-none transition-all"
               placeholder="مثال: آموزش جامع ری‌اکت"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-bold text-gray-700 mb-2">نامک (Slug) *</label>
+            <label className="block text-sm font-bold text-[var(--neo-text-main)] mb-2">نامک (Slug) *</label>
             <input 
               type="text" 
               name="slug"
               required
               value={formData.slug}
               onChange={handleChange}
-              className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all text-left"
+              className="w-full px-4 py-3 bg-[var(--neo-surface-2)] border border-[var(--neo-border)] rounded-xl focus:ring-2 focus:ring-[var(--neo-primary)] focus:border-transparent outline-none transition-all text-left"
               dir="ltr"
               placeholder="react-complete-course"
             />
-            <p className="text-xs text-gray-500 mt-1">از حروف انگلیسی، اعداد و خط تیره استفاده کنید.</p>
+            <p className="text-xs text-[var(--neo-text-secondary)] mt-1">از حروف انگلیسی، اعداد و خط تیره استفاده کنید.</p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <label className="block text-sm font-bold text-gray-700 mb-2">دسته‌بندی *</label>
+              <label className="block text-sm font-bold text-[var(--neo-text-main)] mb-2">دسته‌بندی *</label>
               <select 
                 name="categoryId"
                 required
                 value={formData.categoryId}
                 onChange={handleChange}
-                className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
+                className="w-full px-4 py-3 bg-[var(--neo-surface-2)] border border-[var(--neo-border)] rounded-xl focus:ring-2 focus:ring-[var(--neo-primary)] focus:border-transparent outline-none transition-all"
               >
                 <option value="">انتخاب دسته‌بندی</option>
                 {categories?.map((cat: any) => (
@@ -130,7 +130,7 @@ export default function NewCoursePage() {
             </div>
 
             <div>
-              <label className="block text-sm font-bold text-gray-700 mb-2">قیمت (تومان) *</label>
+              <label className="block text-sm font-bold text-[var(--neo-text-main)] mb-2">قیمت (تومان) *</label>
               <input 
                 type="number" 
                 name="price"
@@ -138,17 +138,17 @@ export default function NewCoursePage() {
                 min="0"
                 value={formData.price}
                 onChange={handleChange}
-                className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
+                className="w-full px-4 py-3 bg-[var(--neo-surface-2)] border border-[var(--neo-border)] rounded-xl focus:ring-2 focus:ring-[var(--neo-primary)] focus:border-transparent outline-none transition-all"
                 placeholder="0 برای رایگان"
               />
             </div>
           </div>
 
-          <div className="pt-4 border-t border-gray-100 flex justify-end">
+          <div className="pt-4 border-t border-[var(--neo-border)] flex justify-end">
             <button 
               type="submit" 
               disabled={loading}
-              className="px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-lg shadow-blue-600/20 transition-all flex items-center justify-center gap-2"
+              className="px-8 py-3 bg-[var(--neo-primary)] hover:bg-[var(--neo-primary)] text-white font-bold rounded-xl shadow-lg shadow-[var(--neo-primary)]/20 transition-all flex items-center justify-center gap-2"
             >
               {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : 'ذخیره و ادامه'}
             </button>

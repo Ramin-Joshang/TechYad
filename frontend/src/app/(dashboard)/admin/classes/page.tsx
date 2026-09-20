@@ -80,43 +80,43 @@ export default function AdminClassesPage() {
 
   if (showForm) {
     return (
-      <div className="max-w-3xl mx-auto bg-white p-6 md:p-8 rounded-3xl shadow-sm border border-gray-100">
+      <div className="max-w-3xl mx-auto bg-[var(--neo-surface)] p-6 md:p-8 rounded-3xl shadow-sm border border-[var(--neo-border)]">
         <div className="flex justify-between items-center mb-6">
-          <h2 className="text-xl font-bold text-gray-900">{editId ? 'ویرایش کلاس' : 'ایجاد کلاس جدید'}</h2>
-          <button onClick={resetForm} className="p-2 text-gray-400 hover:text-gray-900 rounded-xl bg-gray-50"><X className="w-5 h-5" /></button>
+          <h2 className="text-xl font-bold text-[var(--neo-text-main)]">{editId ? 'ویرایش کلاس' : 'ایجاد کلاس جدید'}</h2>
+          <button onClick={resetForm} className="p-2 text-[var(--neo-text-muted)] hover:text-[var(--neo-text-main)] rounded-xl bg-[var(--neo-surface-2)]"><X className="w-5 h-5" /></button>
         </div>
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">عنوان کلاس</label>
-              <input required type="text" value={formData.title} onChange={e => setFormData({...formData, title: e.target.value})} className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-emerald-500 outline-none" />
+              <label className="block text-sm font-medium text-[var(--neo-text-main)] mb-1.5">عنوان کلاس</label>
+              <input required type="text" value={formData.title} onChange={e => setFormData({...formData, title: e.target.value})} className="w-full px-4 py-2.5 rounded-xl border border-[var(--neo-border)] focus:ring-2 focus:ring-emerald-500 outline-none" />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">شناسه (Slug)</label>
-              <input required type="text" value={formData.slug} onChange={e => setFormData({...formData, slug: e.target.value})} className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-emerald-500 outline-none dir-ltr text-left" />
+              <label className="block text-sm font-medium text-[var(--neo-text-main)] mb-1.5">شناسه (Slug)</label>
+              <input required type="text" value={formData.slug} onChange={e => setFormData({...formData, slug: e.target.value})} className="w-full px-4 py-2.5 rounded-xl border border-[var(--neo-border)] focus:ring-2 focus:ring-emerald-500 outline-none dir-ltr text-left" />
             </div>
             <div className="md:col-span-2">
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">توضیح کوتاه</label>
-              <textarea value={formData.shortDescription} onChange={e => setFormData({...formData, shortDescription: e.target.value})} rows={3} className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-emerald-500 outline-none resize-none" />
+              <label className="block text-sm font-medium text-[var(--neo-text-main)] mb-1.5">توضیح کوتاه</label>
+              <textarea value={formData.shortDescription} onChange={e => setFormData({...formData, shortDescription: e.target.value})} rows={3} className="w-full px-4 py-2.5 rounded-xl border border-[var(--neo-border)] focus:ring-2 focus:ring-emerald-500 outline-none resize-none" />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">نوع برگزاری</label>
-              <select value={formData.mode} onChange={e => setFormData({...formData, mode: e.target.value})} className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-emerald-500 outline-none">
+              <label className="block text-sm font-medium text-[var(--neo-text-main)] mb-1.5">نوع برگزاری</label>
+              <select value={formData.mode} onChange={e => setFormData({...formData, mode: e.target.value})} className="w-full px-4 py-2.5 rounded-xl border border-[var(--neo-border)] focus:ring-2 focus:ring-emerald-500 outline-none">
                 <option value="online">آنلاین</option>
                 <option value="in_person">حضوری</option>
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">تاریخ شروع</label>
-              <input type="datetime-local" value={formData.startDate} onChange={e => setFormData({...formData, startDate: e.target.value})} className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-emerald-500 outline-none" />
+              <label className="block text-sm font-medium text-[var(--neo-text-main)] mb-1.5">تاریخ شروع</label>
+              <input type="datetime-local" value={formData.startDate} onChange={e => setFormData({...formData, startDate: e.target.value})} className="w-full px-4 py-2.5 rounded-xl border border-[var(--neo-border)] focus:ring-2 focus:ring-emerald-500 outline-none" />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">هزینه ثبت‌نام (تومان)</label>
-              <input type="number" value={formData.price} onChange={e => setFormData({...formData, price: Number(e.target.value)})} className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-emerald-500 outline-none dir-ltr text-left" />
+              <label className="block text-sm font-medium text-[var(--neo-text-main)] mb-1.5">هزینه ثبت‌نام (تومان)</label>
+              <input type="number" value={formData.price} onChange={e => setFormData({...formData, price: Number(e.target.value)})} className="w-full px-4 py-2.5 rounded-xl border border-[var(--neo-border)] focus:ring-2 focus:ring-emerald-500 outline-none dir-ltr text-left" />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">ظرفیت</label>
-              <input type="number" value={formData.capacity} onChange={e => setFormData({...formData, capacity: Number(e.target.value)})} className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-emerald-500 outline-none dir-ltr text-left" />
+              <label className="block text-sm font-medium text-[var(--neo-text-main)] mb-1.5">ظرفیت</label>
+              <input type="number" value={formData.capacity} onChange={e => setFormData({...formData, capacity: Number(e.target.value)})} className="w-full px-4 py-2.5 rounded-xl border border-[var(--neo-border)] focus:ring-2 focus:ring-emerald-500 outline-none dir-ltr text-left" />
             </div>
           </div>
           <button type="submit" disabled={createMutation.isPending || updateMutation.isPending} className="w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl flex items-center justify-center gap-2 transition disabled:opacity-70">
@@ -134,70 +134,70 @@ export default function AdminClassesPage() {
         <div className="flex items-center gap-3">
           <div className="p-3 bg-emerald-100 text-emerald-600 rounded-xl"><Video className="w-6 h-6" /></div>
           <div>
-            <h1 className="text-2xl font-black text-gray-900">کلاس‌های زنده و حضوری</h1>
-            <p className="text-gray-500 mt-1">مشاهده و مدیریت کلاس‌های ایجاد شده در پلتفرم</p>
+            <h1 className="text-2xl font-black text-[var(--neo-text-main)]">کلاس‌های زنده و حضوری</h1>
+            <p className="text-[var(--neo-text-secondary)] mt-1">مشاهده و مدیریت کلاس‌های ایجاد شده در پلتفرم</p>
           </div>
         </div>
         <button onClick={() => setShowForm(true)} className="flex items-center gap-2 bg-emerald-600 text-white px-4 py-2.5 rounded-xl font-medium hover:bg-emerald-700 transition">
           <Plus className="w-5 h-5" /> ایجاد کلاس جدید
         </button>
       </div>
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4">
+      <div className="bg-[var(--neo-surface)] rounded-2xl shadow-sm border border-[var(--neo-border)] p-4">
         <div className="relative max-w-md">
-          <Search className="w-5 h-5 text-gray-400 absolute right-3 top-1/2 -translate-y-1/2" />
+          <Search className="w-5 h-5 text-[var(--neo-text-muted)] absolute right-3 top-1/2 -translate-y-1/2" />
           <input 
             type="text"
             placeholder="جستجوی کلاس..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-4 pr-10 py-2 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none"
+            className="w-full pl-4 pr-10 py-2 bg-[var(--neo-surface-2)] border border-[var(--neo-border)] rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none"
           />
         </div>
       </div>
       {isLoading ? (
         <div className="p-12 flex justify-center"><Loader2 className="w-8 h-8 animate-spin text-emerald-600" /></div>
       ) : filteredClasses.length === 0 ? (
-        <div className="p-12 bg-white rounded-3xl border border-gray-100 text-center text-gray-500 font-medium">
+        <div className="p-12 bg-[var(--neo-surface)] rounded-3xl border border-[var(--neo-border)] text-center text-[var(--neo-text-secondary)] font-medium">
           کلاسی برای نمایش وجود ندارد.
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredClasses.map((cls: any) => (
-            <div key={cls._id} className="bg-white rounded-3xl overflow-hidden border border-gray-100 shadow-sm flex flex-col hover:shadow-md transition-shadow relative group">
+            <div key={cls._id} className="bg-[var(--neo-surface)] rounded-3xl overflow-hidden border border-[var(--neo-border)] shadow-sm flex flex-col hover:shadow-md transition-shadow relative group">
               
               <div className="absolute top-2 left-2 z-10 flex flex-col gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                <button onClick={() => handleEdit(cls)} className="p-2 bg-white text-blue-600 hover:bg-blue-50 rounded-lg shadow-sm" title="ویرایش">
+                <button onClick={() => handleEdit(cls)} className="p-2 bg-[var(--neo-surface)] text-[var(--neo-primary)] hover:bg-[var(--neo-primary)]/10 rounded-lg shadow-sm" title="ویرایش">
                   <Edit className="w-4 h-4" />
                 </button>
-                <button onClick={() => { if(window.confirm('حذف شود؟')) deleteMutation.mutate(cls._id); }} className="p-2 bg-white text-rose-600 hover:bg-rose-50 rounded-lg shadow-sm" title="حذف">
+                <button onClick={() => { if(window.confirm('حذف شود؟')) deleteMutation.mutate(cls._id); }} className="p-2 bg-[var(--neo-surface)] text-rose-600 hover:bg-rose-50 rounded-lg shadow-sm" title="حذف">
                   <Trash2 className="w-4 h-4" />
                 </button>
               </div>
 
-              <div className="aspect-video bg-gray-100 relative">
+              <div className="aspect-video bg-[var(--neo-surface-2)] relative">
                 <img src={cls.thumbnail || `https://picsum.photos/seed/${cls._id}/400/250`} alt={cls.title} className="w-full h-full object-cover" />
-                <div className="absolute top-3 right-3 bg-white/90 backdrop-blur text-xs font-bold px-2 py-1 rounded-md shadow-sm">
+                <div className="absolute top-3 right-3 bg-[var(--neo-surface)]/90 backdrop-blur text-xs font-bold px-2 py-1 rounded-md shadow-sm">
                   {cls.mode === 'online' ? 'آنلاین' : 'حضوری'}
                 </div>
               </div>
               <div className="p-5 flex-1 flex flex-col">
-                <h3 className="font-bold text-lg text-gray-900 mb-2 line-clamp-1">{cls.title}</h3>
-                <p className="text-sm text-gray-500 mb-4 line-clamp-2">{cls.shortDescription || 'توضیحاتی ثبت نشده است'}</p>
+                <h3 className="font-bold text-lg text-[var(--neo-text-main)] mb-2 line-clamp-1">{cls.title}</h3>
+                <p className="text-sm text-[var(--neo-text-secondary)] mb-4 line-clamp-2">{cls.shortDescription || 'توضیحاتی ثبت نشده است'}</p>
                 
                 <div className="mt-auto space-y-2 mb-4">
-                  <div className="flex items-center gap-2 text-sm text-gray-600">
+                  <div className="flex items-center gap-2 text-sm text-[var(--neo-text-secondary)]">
                     <Calendar className="w-4 h-4 text-emerald-500" />
                     <span className="font-medium dir-ltr text-right">
                       {cls.startDate ? new Date(cls.startDate).toLocaleString('fa-IR') : 'نامشخص'}
                     </span>
                   </div>
-                  <div className="flex items-center gap-2 text-sm text-gray-600">
+                  <div className="flex items-center gap-2 text-sm text-[var(--neo-text-secondary)]">
                     <Users className="w-4 h-4 text-emerald-500" />
                     <span>ظرفیت: {cls.capacity || cls.maxStudents || 'نامحدود'} نفر</span>
                   </div>
                 </div>
                 
-                <Link href={`/classes/${cls.slug || cls._id}`} className="w-full text-center py-2 bg-gray-50 hover:bg-gray-100 text-gray-700 font-bold rounded-xl transition-colors">
+                <Link href={`/classes/${cls.slug || cls._id}`} className="w-full text-center py-2 bg-[var(--neo-surface-2)] hover:bg-[var(--neo-surface-2)] text-[var(--neo-text-main)] font-bold rounded-xl transition-colors">
                   مشاهده صفحه کلاس
                 </Link>
               </div>

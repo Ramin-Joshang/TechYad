@@ -28,61 +28,61 @@ export default function AdminInstructorsPage() {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div className="flex items-center gap-3">
-          <div className="p-3 bg-indigo-100 text-indigo-600 rounded-xl"><Briefcase className="w-6 h-6" /></div>
+          <div className="p-3 bg-indigo-100 text-[var(--neo-primary)] rounded-xl"><Briefcase className="w-6 h-6" /></div>
           <div>
-            <h1 className="text-2xl font-black text-gray-900">اساتید</h1>
-            <p className="text-gray-500 mt-1">مدیریت اساتید سیستم</p>
+            <h1 className="text-2xl font-black text-[var(--neo-text-main)]">اساتید</h1>
+            <p className="text-[var(--neo-text-secondary)] mt-1">مدیریت اساتید سیستم</p>
           </div>
         </div>
       </div>
 
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4">
+      <div className="bg-[var(--neo-surface)] rounded-2xl shadow-sm border border-[var(--neo-border)] p-4">
         <div className="relative max-w-md">
-          <Search className="w-5 h-5 text-gray-400 absolute right-3 top-1/2 -translate-y-1/2" />
+          <Search className="w-5 h-5 text-[var(--neo-text-muted)] absolute right-3 top-1/2 -translate-y-1/2" />
           <input 
             type="text"
             placeholder="جستجوی استاد..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-4 pr-10 py-2 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none"
+            className="w-full pl-4 pr-10 py-2 bg-[var(--neo-surface-2)] border border-[var(--neo-border)] rounded-xl focus:ring-2 focus:ring-[var(--neo-primary)] outline-none"
           />
         </div>
       </div>
 
-      <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
+      <div className="bg-[var(--neo-surface)] rounded-3xl shadow-sm border border-[var(--neo-border)] overflow-hidden">
         {isLoading ? (
-          <div className="p-12 flex justify-center"><Loader2 className="w-8 h-8 animate-spin text-indigo-600" /></div>
+          <div className="p-12 flex justify-center"><Loader2 className="w-8 h-8 animate-spin text-[var(--neo-primary)]" /></div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-right">
               <thead>
-                <tr className="border-b border-gray-100 bg-gray-50/50">
-                  <th className="p-4 font-bold text-gray-600 text-sm">استاد</th>
-                  <th className="p-4 font-bold text-gray-600 text-sm">ایمیل</th>
-                  <th className="p-4 font-bold text-gray-600 text-sm">تخصص</th>
-                  <th className="p-4 font-bold text-gray-600 text-sm">وضعیت</th>
-                  <th className="p-4 font-bold text-gray-600 text-sm text-center">عملیات</th>
+                <tr className="border-b border-[var(--neo-border)] bg-[var(--neo-surface-2)]/50">
+                  <th className="p-4 font-bold text-[var(--neo-text-secondary)] text-sm">استاد</th>
+                  <th className="p-4 font-bold text-[var(--neo-text-secondary)] text-sm">ایمیل</th>
+                  <th className="p-4 font-bold text-[var(--neo-text-secondary)] text-sm">تخصص</th>
+                  <th className="p-4 font-bold text-[var(--neo-text-secondary)] text-sm">وضعیت</th>
+                  <th className="p-4 font-bold text-[var(--neo-text-secondary)] text-sm text-center">عملیات</th>
                 </tr>
               </thead>
               <tbody>
                 {filteredInstructors.map((user: any) => (
-                  <tr key={user._id} className="border-b border-gray-50 hover:bg-gray-50/50 transition-colors">
+                  <tr key={user._id} className="border-b border-[var(--neo-border)] hover:bg-[var(--neo-surface-2)]/50 transition-colors">
                     <td className="p-4">
                       <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center font-bold overflow-hidden shrink-0">
+                        <div className="w-10 h-10 rounded-full bg-indigo-100 text-[var(--neo-primary)] flex items-center justify-center font-bold overflow-hidden shrink-0">
                           {user.avatar ? (
                             <img src={user.avatar} alt="Avatar" className="w-full h-full object-cover" />
                           ) : (
                             user.firstName?.charAt(0) || 'U'
                           )}
                         </div>
-                        <div className="font-bold text-gray-900">
+                        <div className="font-bold text-[var(--neo-text-main)]">
                           {user.firstName} {user.lastName}
                         </div>
                       </div>
                     </td>
-                    <td className="p-4 text-gray-600 font-medium dir-ltr text-right">{user.email}</td>
-                    <td className="p-4 text-gray-600 font-medium">{user.bio?.substring(0, 50) || 'مشخص نشده'}</td>
+                    <td className="p-4 text-[var(--neo-text-secondary)] font-medium dir-ltr text-right">{user.email}</td>
+                    <td className="p-4 text-[var(--neo-text-secondary)] font-medium">{user.bio?.substring(0, 50) || 'مشخص نشده'}</td>
                     <td className="p-4">
                       <span className={`px-2 py-1 rounded-md text-xs font-bold ${
                         user.status === 'active' ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'
@@ -92,7 +92,7 @@ export default function AdminInstructorsPage() {
                     </td>
                     <td className="p-4">
                       <div className="flex justify-center items-center gap-2">
-                        <Link href={`/admin/users/${user._id}`} className="p-2 text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors" title="ویرایش">
+                        <Link href={`/admin/users/${user._id}`} className="p-2 text-[var(--neo-primary)] hover:bg-[var(--neo-primary)]/10 rounded-lg transition-colors" title="ویرایش">
                           <Edit className="w-4 h-4" />
                         </Link>
                       </div>

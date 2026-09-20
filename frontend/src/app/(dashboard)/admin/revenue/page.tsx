@@ -20,49 +20,49 @@ export default function AdminRevenuePage() {
 
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
-      <div className="flex justify-between items-center bg-white p-6 rounded-3xl shadow-sm border border-gray-100">
+      <div className="flex justify-between items-center bg-[var(--neo-surface)] p-6 rounded-3xl shadow-sm border border-[var(--neo-border)]">
         <div className="flex items-center gap-3">
           <div className="p-3 bg-emerald-100 text-emerald-600 rounded-2xl"><DollarSign className="w-6 h-6" /></div>
           <div>
-            <h1 className="text-2xl font-black text-gray-900">گزارش مالی پلتفرم</h1>
-            <p className="text-gray-500 mt-1 text-sm">نمای کلی از درآمدهای کسب شده و تراکنش‌ها</p>
+            <h1 className="text-2xl font-black text-[var(--neo-text-main)]">گزارش مالی پلتفرم</h1>
+            <p className="text-[var(--neo-text-secondary)] mt-1 text-sm">نمای کلی از درآمدهای کسب شده و تراکنش‌ها</p>
           </div>
         </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="bg-white p-6 rounded-3xl shadow-sm border border-gray-100 flex items-center gap-5 relative overflow-hidden group">
+        <div className="bg-[var(--neo-surface)] p-6 rounded-3xl shadow-sm border border-[var(--neo-border)] flex items-center gap-5 relative overflow-hidden group">
           <div className="absolute -right-4 -top-4 w-24 h-24 bg-emerald-50 rounded-full group-hover:scale-110 transition-transform -z-10"></div>
           <div className="p-4 bg-emerald-100 text-emerald-600 rounded-2xl shrink-0"><DollarSign className="w-7 h-7" /></div>
           <div>
-            <p className="text-sm font-bold text-gray-500 mb-1">کل درآمد پلتفرم</p>
-            <h3 className="text-2xl font-black text-gray-900">{totalRevenue.toLocaleString()} <span className="text-sm text-gray-500 font-medium">تومان</span></h3>
+            <p className="text-sm font-bold text-[var(--neo-text-secondary)] mb-1">کل درآمد پلتفرم</p>
+            <h3 className="text-2xl font-black text-[var(--neo-text-main)]">{totalRevenue.toLocaleString()} <span className="text-sm text-[var(--neo-text-secondary)] font-medium">تومان</span></h3>
           </div>
         </div>
         
-        <div className="bg-white p-6 rounded-3xl shadow-sm border border-gray-100 flex items-center gap-5 relative overflow-hidden group">
-          <div className="absolute -right-4 -top-4 w-24 h-24 bg-blue-50 rounded-full group-hover:scale-110 transition-transform -z-10"></div>
-          <div className="p-4 bg-blue-100 text-blue-600 rounded-2xl shrink-0"><TrendingUp className="w-7 h-7" /></div>
+        <div className="bg-[var(--neo-surface)] p-6 rounded-3xl shadow-sm border border-[var(--neo-border)] flex items-center gap-5 relative overflow-hidden group">
+          <div className="absolute -right-4 -top-4 w-24 h-24 bg-[var(--neo-primary)]/10 rounded-full group-hover:scale-110 transition-transform -z-10"></div>
+          <div className="p-4 bg-blue-100 text-[var(--neo-primary)] rounded-2xl shrink-0"><TrendingUp className="w-7 h-7" /></div>
           <div>
-            <p className="text-sm font-bold text-gray-500 mb-1">درآمد ماه جاری</p>
-            <h3 className="text-2xl font-black text-gray-900">{thisMonthRevenue.toLocaleString()} <span className="text-sm text-gray-500 font-medium">تومان</span></h3>
+            <p className="text-sm font-bold text-[var(--neo-text-secondary)] mb-1">درآمد ماه جاری</p>
+            <h3 className="text-2xl font-black text-[var(--neo-text-main)]">{thisMonthRevenue.toLocaleString()} <span className="text-sm text-[var(--neo-text-secondary)] font-medium">تومان</span></h3>
           </div>
         </div>
         
-        <div className="bg-white p-6 rounded-3xl shadow-sm border border-gray-100 flex items-center gap-5 relative overflow-hidden group">
+        <div className="bg-[var(--neo-surface)] p-6 rounded-3xl shadow-sm border border-[var(--neo-border)] flex items-center gap-5 relative overflow-hidden group">
           <div className="absolute -right-4 -top-4 w-24 h-24 bg-purple-50 rounded-full group-hover:scale-110 transition-transform -z-10"></div>
           <div className="p-4 bg-purple-100 text-purple-600 rounded-2xl shrink-0"><CreditCard className="w-7 h-7" /></div>
           <div>
-            <p className="text-sm font-bold text-gray-500 mb-1">کل تراکنش‌های موفق</p>
-            <h3 className="text-2xl font-black text-gray-900">{ordersCount} <span className="text-sm text-gray-500 font-medium">تراکنش</span></h3>
+            <p className="text-sm font-bold text-[var(--neo-text-secondary)] mb-1">کل تراکنش‌های موفق</p>
+            <h3 className="text-2xl font-black text-[var(--neo-text-main)]">{ordersCount} <span className="text-sm text-[var(--neo-text-secondary)] font-medium">تراکنش</span></h3>
           </div>
         </div>
       </div>
 
-      <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-8">
+      <div className="bg-[var(--neo-surface)] rounded-3xl shadow-sm border border-[var(--neo-border)] p-8">
         <div className="flex items-center gap-2 mb-8">
-          <BarChart className="w-5 h-5 text-gray-400" />
-          <h3 className="text-lg font-bold text-gray-900">نمودار درآمد ماه‌های اخیر (تخمینی)</h3>
+          <BarChart className="w-5 h-5 text-[var(--neo-text-muted)]" />
+          <h3 className="text-lg font-bold text-[var(--neo-text-main)]">نمودار درآمد ماه‌های اخیر (تخمینی)</h3>
         </div>
         <div className="h-80 w-full" dir="ltr">
           <ResponsiveContainer width="100%" height="100%">

@@ -18,23 +18,23 @@ export default function InstructorSalesPage() {
     <div className="space-y-6 max-w-6xl mx-auto pb-12">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-2xl font-black text-gray-900">گزارش مالی و فروش</h1>
-          <p className="text-gray-500 mt-1">مشاهده درآمد شما از دوره‌ها و کلاس‌ها (سهم ۷۰٪)</p>
+          <h1 className="text-2xl font-black text-[var(--neo-text-main)]">گزارش مالی و فروش</h1>
+          <p className="text-[var(--neo-text-secondary)] mt-1">مشاهده درآمد شما از دوره‌ها و کلاس‌ها (سهم ۷۰٪)</p>
         </div>
         
-        <div className="flex items-center gap-3 bg-white p-2 rounded-2xl border border-gray-200 shadow-sm">
+        <div className="flex items-center gap-3 bg-[var(--neo-surface)] p-2 rounded-2xl border border-[var(--neo-border)] shadow-sm">
           <select 
             value={month} onChange={e => setMonth(Number(e.target.value))}
-            className="bg-transparent border-none focus:ring-0 text-sm font-bold text-gray-700 outline-none pr-8 cursor-pointer"
+            className="bg-transparent border-none focus:ring-0 text-sm font-bold text-[var(--neo-text-main)] outline-none pr-8 cursor-pointer"
           >
             {[...Array(12)].map((_, i) => (
               <option key={i} value={i + 1}>ماه {i + 1}</option>
             ))}
           </select>
-          <div className="w-px h-6 bg-gray-200"></div>
+          <div className="w-px h-6 bg-[var(--neo-border)]"></div>
           <select 
             value={year} onChange={e => setYear(Number(e.target.value))}
-            className="bg-transparent border-none focus:ring-0 text-sm font-bold text-gray-700 outline-none pr-8 cursor-pointer"
+            className="bg-transparent border-none focus:ring-0 text-sm font-bold text-[var(--neo-text-main)] outline-none pr-8 cursor-pointer"
           >
             {[2024, 2025, 2026].map(y => (
               <option key={y} value={y}>{y}</option>
@@ -44,84 +44,84 @@ export default function InstructorSalesPage() {
       </div>
 
       {isLoading ? (
-        <div className="py-20 flex justify-center text-blue-600"><Loader2 className="w-10 h-10 animate-spin" /></div>
+        <div className="py-20 flex justify-center text-[var(--neo-primary)]"><Loader2 className="w-10 h-10 animate-spin" /></div>
       ) : (
         <>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm flex items-center gap-5">
+            <div className="bg-[var(--neo-surface)] p-6 rounded-3xl border border-[var(--neo-border)] shadow-sm flex items-center gap-5">
               <div className="w-14 h-14 bg-emerald-100 text-emerald-600 rounded-2xl flex items-center justify-center shrink-0">
                 <DollarSign className="w-7 h-7" />
               </div>
               <div>
-                <p className="text-sm font-medium text-gray-500 mb-1">درآمد این ماه (سهم شما)</p>
-                <h3 className="text-2xl font-black text-gray-900">{data?.totalSales?.toLocaleString() || 0} تومان</h3>
+                <p className="text-sm font-medium text-[var(--neo-text-secondary)] mb-1">درآمد این ماه (سهم شما)</p>
+                <h3 className="text-2xl font-black text-[var(--neo-text-main)]">{data?.totalSales?.toLocaleString() || 0} تومان</h3>
               </div>
             </div>
-            <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm flex items-center gap-5">
-              <div className="w-14 h-14 bg-blue-100 text-blue-600 rounded-2xl flex items-center justify-center shrink-0">
+            <div className="bg-[var(--neo-surface)] p-6 rounded-3xl border border-[var(--neo-border)] shadow-sm flex items-center gap-5">
+              <div className="w-14 h-14 bg-blue-100 text-[var(--neo-primary)] rounded-2xl flex items-center justify-center shrink-0">
                 <CreditCard className="w-7 h-7" />
               </div>
               <div>
-                <p className="text-sm font-medium text-gray-500 mb-1">تعداد فروش این ماه</p>
-                <h3 className="text-2xl font-black text-gray-900">{data?.sales?.length || 0} تراکنش</h3>
+                <p className="text-sm font-medium text-[var(--neo-text-secondary)] mb-1">تعداد فروش این ماه</p>
+                <h3 className="text-2xl font-black text-[var(--neo-text-main)]">{data?.sales?.length || 0} تراکنش</h3>
               </div>
             </div>
-            <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm flex items-center gap-5">
+            <div className="bg-[var(--neo-surface)] p-6 rounded-3xl border border-[var(--neo-border)] shadow-sm flex items-center gap-5">
               <div className="w-14 h-14 bg-amber-100 text-amber-600 rounded-2xl flex items-center justify-center shrink-0">
                 <TrendingUp className="w-7 h-7" />
               </div>
               <div>
-                <p className="text-sm font-medium text-gray-500 mb-1">وضعیت تسویه</p>
-                <h3 className="text-2xl font-black text-gray-900">پرداخت نشده</h3>
+                <p className="text-sm font-medium text-[var(--neo-text-secondary)] mb-1">وضعیت تسویه</p>
+                <h3 className="text-2xl font-black text-[var(--neo-text-main)]">پرداخت نشده</h3>
               </div>
             </div>
           </div>
 
-          <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden mt-8">
-            <div className="p-6 border-b border-gray-50">
-              <h2 className="text-lg font-bold text-gray-900">لیست تراکنش‌های اخیر</h2>
+          <div className="bg-[var(--neo-surface)] rounded-3xl shadow-sm border border-[var(--neo-border)] overflow-hidden mt-8">
+            <div className="p-6 border-b border-[var(--neo-border)]">
+              <h2 className="text-lg font-bold text-[var(--neo-text-main)]">لیست تراکنش‌های اخیر</h2>
             </div>
             
             {!data?.sales?.length ? (
-              <div className="p-12 text-center text-gray-500 font-medium">هیچ فروشی در این بازه زمانی یافت نشد.</div>
+              <div className="p-12 text-center text-[var(--neo-text-secondary)] font-medium">هیچ فروشی در این بازه زمانی یافت نشد.</div>
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full text-right">
                   <thead>
-                    <tr className="bg-gray-50/50">
-                      <th className="p-4 font-bold text-gray-600 text-sm">خریدار</th>
-                      <th className="p-4 font-bold text-gray-600 text-sm">آیتم خریداری شده</th>
-                      <th className="p-4 font-bold text-gray-600 text-sm">تاریخ</th>
-                      <th className="p-4 font-bold text-gray-600 text-sm">مبلغ کل</th>
-                      <th className="p-4 font-bold text-gray-600 text-sm text-left">سهم شما (۷۰٪)</th>
+                    <tr className="bg-[var(--neo-surface-2)]/50">
+                      <th className="p-4 font-bold text-[var(--neo-text-secondary)] text-sm">خریدار</th>
+                      <th className="p-4 font-bold text-[var(--neo-text-secondary)] text-sm">آیتم خریداری شده</th>
+                      <th className="p-4 font-bold text-[var(--neo-text-secondary)] text-sm">تاریخ</th>
+                      <th className="p-4 font-bold text-[var(--neo-text-secondary)] text-sm">مبلغ کل</th>
+                      <th className="p-4 font-bold text-[var(--neo-text-secondary)] text-sm text-left">سهم شما (۷۰٪)</th>
                     </tr>
                   </thead>
                   <tbody>
                     {data.sales.map((sale: any) => (
-                      <tr key={sale._id} className="border-t border-gray-50 hover:bg-gray-50/50 transition-colors">
+                      <tr key={sale._id} className="border-t border-[var(--neo-border)] hover:bg-[var(--neo-surface-2)]/50 transition-colors">
                         <td className="p-4">
                           <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center font-bold overflow-hidden shrink-0">
+                            <div className="w-10 h-10 rounded-full bg-blue-100 text-[var(--neo-primary)] flex items-center justify-center font-bold overflow-hidden shrink-0">
                               {sale.userId?.avatar ? (
                                 <img src={sale.userId.avatar} alt="Avatar" className="w-full h-full object-cover" />
                               ) : (
                                 sale.userId?.firstName?.charAt(0) || 'U'
                               )}
                             </div>
-                            <div className="font-bold text-gray-900">
+                            <div className="font-bold text-[var(--neo-text-main)]">
                               {sale.userId?.firstName} {sale.userId?.lastName}
                             </div>
                           </div>
                         </td>
-                        <td className="p-4 font-medium text-gray-700">
+                        <td className="p-4 font-medium text-[var(--neo-text-main)]">
                           {sale.items.map((item: any, idx: number) => (
                             <div key={idx}>{item.titleSnapshot}</div>
                           ))}
                         </td>
-                        <td className="p-4 font-medium text-gray-600">
+                        <td className="p-4 font-medium text-[var(--neo-text-secondary)]">
                           {new Date(sale.createdAt).toLocaleDateString('fa-IR')}
                         </td>
-                        <td className="p-4 font-bold text-gray-500">
+                        <td className="p-4 font-bold text-[var(--neo-text-secondary)]">
                           {sale.total.toLocaleString()} تومان
                         </td>
                         <td className="p-4 font-black text-emerald-600 text-left flex items-center justify-end gap-1">

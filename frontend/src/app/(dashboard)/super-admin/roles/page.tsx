@@ -43,20 +43,20 @@ export default function RolesManagementPage() {
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
       
       {/* Header */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white p-6 rounded-3xl shadow-sm border border-gray-100">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white p-6 rounded-3xl shadow-sm border border-[var(--neo-border)]">
         <div className="flex items-center gap-3">
           <div className="p-3 bg-amber-100 text-amber-600 rounded-2xl">
             <Key className="w-6 h-6" />
           </div>
           <div>
-            <h1 className="text-xl font-black text-gray-900">نقش‌ها و دسترسی‌ها</h1>
-            <p className="text-gray-500 text-sm mt-1">مدیریت پویای سطوح دسترسی (RBAC)</p>
+            <h1 className="text-xl font-black text-[var(--neo-text-main)]">نقش‌ها و دسترسی‌ها</h1>
+            <p className="text-[var(--neo-text-secondary)] text-sm mt-1">مدیریت پویای سطوح دسترسی (RBAC)</p>
           </div>
         </div>
         
         <Link 
           href="/super-admin/roles/create"
-          className="flex items-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-xl transition-colors w-full sm:w-auto justify-center"
+          className="flex items-center gap-2 px-5 py-2.5 bg-[var(--neo-primary)] hover:bg-blue-700 text-white font-medium rounded-xl transition-colors w-full sm:w-auto justify-center"
         >
           <Plus className="w-5 h-5" />
           افزودن نقش جدید
@@ -76,51 +76,51 @@ export default function RolesManagementPage() {
 
       {/* Search */}
       <div className="relative">
-        <Search className="w-5 h-5 absolute right-4 top-1/2 -translate-y-1/2 text-gray-400" />
+        <Search className="w-5 h-5 absolute right-4 top-1/2 -translate-y-1/2 text-[var(--neo-text-muted)]" />
         <input 
           type="text" 
           placeholder="جستجو در نام نقش‌ها..." 
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="w-full pl-4 pr-12 py-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all shadow-sm"
+          className="w-full pl-4 pr-12 py-3 bg-white border border-[var(--neo-border)] rounded-xl focus:ring-2 focus:ring-[var(--neo-primary)]/20 focus:border-[var(--neo-primary)] outline-none transition-all shadow-sm"
         />
       </div>
 
       {/* Table */}
-      <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
+      <div className="bg-white rounded-3xl shadow-sm border border-[var(--neo-border)] overflow-hidden">
         {isLoading ? (
-          <div className="flex justify-center p-20"><Loader2 className="w-10 h-10 animate-spin text-blue-600" /></div>
+          <div className="flex justify-center p-20"><Loader2 className="w-10 h-10 animate-spin text-[var(--neo-primary)]" /></div>
         ) : filteredRoles.length === 0 ? (
           <div className="p-20 text-center flex flex-col items-center justify-center">
-            <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center text-gray-400 mb-4">
+            <div className="w-20 h-20 bg-[var(--neo-surface-2)] rounded-full flex items-center justify-center text-[var(--neo-text-muted)] mb-4">
               <Key className="w-10 h-10" />
             </div>
-            <h3 className="text-lg font-bold text-gray-900 mb-1">نقشی یافت نشد</h3>
-            <p className="text-gray-500">موردی با جستجوی شما مطابقت نداشت.</p>
+            <h3 className="text-lg font-bold text-[var(--neo-text-main)] mb-1">نقشی یافت نشد</h3>
+            <p className="text-[var(--neo-text-secondary)]">موردی با جستجوی شما مطابقت نداشت.</p>
           </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-right">
               <thead>
-                <tr className="bg-gray-50/50 border-b border-gray-100 text-sm text-gray-500 font-medium">
+                <tr className="bg-[var(--neo-surface-2)]/50 border-b border-[var(--neo-border)] text-sm text-[var(--neo-text-secondary)] font-medium">
                   <th className="p-4 pl-0 whitespace-nowrap">عنوان نقش</th>
                   <th className="p-4 whitespace-nowrap">کاربران (تعداد)</th>
                   <th className="p-4 whitespace-nowrap">نوع</th>
                   <th className="p-4 text-left whitespace-nowrap">عملیات</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-100">
+              <tbody className="divide-y divide-[var(--neo-border)]">
                 {filteredRoles.map((role: any) => {
                   const isSystem = systemRoles.includes(role.slug);
                   
                   return (
-                    <tr key={role._id} className="hover:bg-gray-50/50 transition-colors">
+                    <tr key={role._id} className="hover:bg-[var(--neo-surface-2)]/50 transition-colors">
                       <td className="p-4">
-                        <div className="font-bold text-gray-900">{role.name}</div>
-                        <div className="text-xs text-gray-500 mt-0.5">{role.description || role.slug}</div>
+                        <div className="font-bold text-[var(--neo-text-main)]">{role.name}</div>
+                        <div className="text-xs text-[var(--neo-text-secondary)] mt-0.5">{role.description || role.slug}</div>
                       </td>
                       <td className="p-4">
-                        <div className="inline-flex items-center justify-center bg-gray-100 text-gray-700 px-3 py-1 rounded-full text-sm font-medium">
+                        <div className="inline-flex items-center justify-center bg-[var(--neo-surface-2)] text-[var(--neo-text-main)] px-3 py-1 rounded-full text-sm font-medium">
                           {role.userCount || 0} کاربر
                         </div>
                       </td>
@@ -131,7 +131,7 @@ export default function RolesManagementPage() {
                             سیستمی
                           </span>
                         ) : (
-                          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-medium bg-gray-100 text-gray-700">
+                          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-medium bg-[var(--neo-surface-2)] text-[var(--neo-text-main)]">
                             سفارشی
                           </span>
                         )}
@@ -140,14 +140,14 @@ export default function RolesManagementPage() {
                         <div className="flex justify-end items-center gap-2">
                           <Link 
                             href={`/super-admin/roles/create?clone=${role._id}`}
-                            className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-colors"
+                            className="p-2 text-[var(--neo-text-muted)] hover:text-[var(--neo-primary)] hover:bg-[var(--neo-primary)]/10 rounded-xl transition-colors"
                             title="کپی کردن نقش (Clone)"
                           >
                             <Copy className="w-5 h-5" />
                           </Link>
                           <Link 
                             href={`/super-admin/roles/${role._id}`}
-                            className="p-2 text-gray-400 hover:text-gray-900 hover:bg-gray-100 rounded-xl transition-colors"
+                            className="p-2 text-[var(--neo-text-muted)] hover:text-[var(--neo-text-main)] hover:bg-[var(--neo-surface-2)] rounded-xl transition-colors"
                             title="ویرایش"
                           >
                             <Edit className="w-5 h-5" />
@@ -156,7 +156,7 @@ export default function RolesManagementPage() {
                             <button 
                               onClick={() => handleDelete(role._id, role.name)}
                               disabled={deleteMutation.isPending}
-                              className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-colors disabled:opacity-50"
+                              className="p-2 text-[var(--neo-text-muted)] hover:text-red-600 hover:bg-red-50 rounded-xl transition-colors disabled:opacity-50"
                               title="حذف"
                             >
                               <Trash2 className="w-5 h-5" />

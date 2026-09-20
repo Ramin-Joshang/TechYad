@@ -47,13 +47,13 @@ export default function NotificationsPage() {
 
   const getIcon = (type: string) => {
     switch (type) {
-      case 'course': return <BookOpen className="w-5 h-5 text-blue-500" />;
+      case 'course': return <BookOpen className="w-5 h-5 text-[var(--neo-primary)]" />;
       case 'payment': return <CreditCard className="w-5 h-5 text-emerald-500" />;
       case 'class': return <Video className="w-5 h-5 text-purple-500" />;
       case 'assignment': return <FileText className="w-5 h-5 text-amber-500" />;
       case 'quiz': return <CheckSquare className="w-5 h-5 text-rose-500" />;
-      case 'system': return <Settings className="w-5 h-5 text-gray-500" />;
-      default: return <Bell className="w-5 h-5 text-blue-500" />;
+      case 'system': return <Settings className="w-5 h-5 text-[var(--neo-text-secondary)]" />;
+      default: return <Bell className="w-5 h-5 text-[var(--neo-primary)]" />;
     }
   };
 
@@ -69,30 +69,30 @@ export default function NotificationsPage() {
     <div className="space-y-8 pb-12 animate-in fade-in slide-in-from-bottom-4 duration-500 max-w-4xl mx-auto">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-black text-gray-900 mb-2 flex items-center gap-3">
-            <Bell className="w-8 h-8 text-blue-500" />
+          <h1 className="text-3xl font-black text-[var(--neo-text-main)] mb-2 flex items-center gap-3">
+            <Bell className="w-8 h-8 text-[var(--neo-primary)]" />
             اعلان‌ها
           </h1>
-          <p className="text-gray-500">مشاهده و مدیریت پیام‌های سیستم.</p>
+          <p className="text-[var(--neo-text-secondary)]">مشاهده و مدیریت پیام‌های سیستم.</p>
         </div>
         <button 
           onClick={() => markAllReadMutation.mutate()}
           disabled={markAllReadMutation.isPending || notifications.every((n: any) => n.readAt)}
-          className="flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold rounded-xl transition disabled:opacity-50 text-sm"
+          className="flex items-center gap-2 px-4 py-2 bg-[var(--neo-surface-2)] hover:bg-[var(--neo-border)] text-[var(--neo-text-main)] font-bold rounded-xl transition disabled:opacity-50 text-sm"
         >
           {markAllReadMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />}
           همه را خوانده‌ام
         </button>
       </div>
 
-      <div className="flex items-center gap-2 border-b border-gray-200 pb-4">
-        <button onClick={() => setFilter('all')} className={`px-4 py-2 text-sm font-bold rounded-full transition-colors ${filter === 'all' ? 'bg-gray-900 text-white' : 'text-gray-500 hover:bg-gray-100'}`}>
+      <div className="flex items-center gap-2 border-b border-[var(--neo-border)] pb-4">
+        <button onClick={() => setFilter('all')} className={`px-4 py-2 text-sm font-bold rounded-full transition-colors ${filter === 'all' ? 'bg-gray-900 text-white' : 'text-[var(--neo-text-secondary)] hover:bg-[var(--neo-surface-2)]'}`}>
           همه اعلان‌ها
         </button>
-        <button onClick={() => setFilter('unread')} className={`px-4 py-2 text-sm font-bold rounded-full transition-colors flex items-center gap-2 ${filter === 'unread' ? 'bg-blue-500 text-white' : 'text-gray-500 hover:bg-gray-100'}`}>
+        <button onClick={() => setFilter('unread')} className={`px-4 py-2 text-sm font-bold rounded-full transition-colors flex items-center gap-2 ${filter === 'unread' ? 'bg-[var(--neo-primary)] text-white' : 'text-[var(--neo-text-secondary)] hover:bg-[var(--neo-surface-2)]'}`}>
           خوانده نشده
           {notifications.filter((n: any) => !n.readAt).length > 0 && (
-            <span className={`px-1.5 py-0.5 rounded-full text-[10px] ${filter === 'unread' ? 'bg-white text-blue-500' : 'bg-blue-500 text-white'}`}>
+            <span className={`px-1.5 py-0.5 rounded-full text-[10px] ${filter === 'unread' ? 'bg-[var(--neo-surface)] text-[var(--neo-primary)]' : 'bg-[var(--neo-primary)] text-white'}`}>
               {notifications.filter((n: any) => !n.readAt).length}
             </span>
           )}
@@ -101,41 +101,41 @@ export default function NotificationsPage() {
 
       {isLoading ? (
         <div className="flex flex-col items-center justify-center py-20">
-          <Loader2 className="w-10 h-10 text-blue-500 animate-spin mb-4" />
-          <p className="text-gray-500">در حال بارگذاری اعلان‌ها...</p>
+          <Loader2 className="w-10 h-10 text-[var(--neo-primary)] animate-spin mb-4" />
+          <p className="text-[var(--neo-text-secondary)]">در حال بارگذاری اعلان‌ها...</p>
         </div>
       ) : filteredNotifications.length === 0 ? (
-        <div className="bg-white rounded-3xl p-16 text-center border border-gray-100 shadow-sm flex flex-col items-center justify-center">
-          <div className="w-24 h-24 bg-gray-50 rounded-full flex items-center justify-center mb-6">
+        <div className="bg-[var(--neo-surface)] rounded-3xl p-16 text-center border border-[var(--neo-border)] shadow-sm flex flex-col items-center justify-center">
+          <div className="w-24 h-24 bg-[var(--neo-surface-2)] rounded-full flex items-center justify-center mb-6">
             <Bell className="w-12 h-12 text-gray-300" />
           </div>
-          <h3 className="text-xl font-bold text-gray-900 mb-2">اعلان جدیدی ندارید</h3>
-          <p className="text-gray-500 max-w-sm mx-auto">در حال حاضر پیام یا اعلان بررسی نشده‌ای برای شما وجود ندارد.</p>
+          <h3 className="text-xl font-bold text-[var(--neo-text-main)] mb-2">اعلان جدیدی ندارید</h3>
+          <p className="text-[var(--neo-text-secondary)] max-w-sm mx-auto">در حال حاضر پیام یا اعلان بررسی نشده‌ای برای شما وجود ندارد.</p>
         </div>
       ) : (
-        <div className="bg-white rounded-3xl shadow-sm border border-gray-100 divide-y divide-gray-100">
+        <div className="bg-[var(--neo-surface)] rounded-3xl shadow-sm border border-[var(--neo-border)] divide-y divide-[var(--neo-border)]">
           {filteredNotifications.map((notif: any) => {
             const isUnread = !notif.readAt;
             const link = getLink(notif);
             
             const content = (
-              <div className={`p-6 flex items-start gap-4 transition-colors ${isUnread ? 'bg-blue-50/30' : 'hover:bg-gray-50/50'}`}>
-                <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 shadow-sm ${isUnread ? 'bg-white border-2 border-blue-100' : 'bg-gray-50 border border-gray-100'}`}>
+              <div className={`p-6 flex items-start gap-4 transition-colors ${isUnread ? 'bg-[var(--neo-primary)]/10/30' : 'hover:bg-[var(--neo-surface-2)]/50'}`}>
+                <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 shadow-sm ${isUnread ? 'bg-[var(--neo-surface)] border-2 border-[var(--neo-primary)]/20' : 'bg-[var(--neo-surface-2)] border border-[var(--neo-border)]'}`}>
                   {getIcon(notif.type)}
                 </div>
                 <div className="flex-1">
                   <div className="flex items-center justify-between gap-4 mb-1">
-                    <h4 className={`font-bold text-base ${isUnread ? 'text-gray-900' : 'text-gray-700'}`}>{notif.title}</h4>
-                    <span className="text-xs font-medium text-gray-400 whitespace-nowrap">
+                    <h4 className={`font-bold text-base ${isUnread ? 'text-[var(--neo-text-main)]' : 'text-[var(--neo-text-main)]'}`}>{notif.title}</h4>
+                    <span className="text-xs font-medium text-[var(--neo-text-muted)] whitespace-nowrap">
                       {new Date(notif.createdAt).toLocaleDateString('fa-IR')}
                     </span>
                   </div>
-                  <p className={`text-sm leading-relaxed ${isUnread ? 'text-gray-600 font-medium' : 'text-gray-500'}`}>
+                  <p className={`text-sm leading-relaxed ${isUnread ? 'text-[var(--neo-text-secondary)] font-medium' : 'text-[var(--neo-text-secondary)]'}`}>
                     {notif.message}
                   </p>
                 </div>
                 {isUnread && (
-                  <div className="w-3 h-3 bg-blue-500 rounded-full mt-2 shrink-0 shadow-sm shadow-blue-500/50"></div>
+                  <div className="w-3 h-3 bg-[var(--neo-primary)] rounded-full mt-2 shrink-0 shadow-sm shadow-blue-500/50"></div>
                 )}
               </div>
             );

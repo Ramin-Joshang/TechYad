@@ -77,46 +77,46 @@ export default function Page() {
   };
 
   if (adminLoading || rolesLoading) {
-    return <div className="flex justify-center py-20"><Loader2 className="w-10 h-10 animate-spin text-blue-600" /></div>;
+    return <div className="flex justify-center py-20"><Loader2 className="w-10 h-10 animate-spin text-[var(--neo-primary)]" /></div>;
   }
 
   return (
     <div className="max-w-3xl mx-auto space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
       <div className="flex items-center gap-4">
-        <Link href="/super-admin/admins" className="p-2 bg-white rounded-xl border border-gray-200 text-gray-500 hover:text-gray-900 transition-colors">
+        <Link href="/super-admin/admins" className="p-2 bg-white rounded-xl border border-[var(--neo-border)] text-[var(--neo-text-secondary)] hover:text-[var(--neo-text-main)] transition-colors">
           <ArrowRight className="w-5 h-5" />
         </Link>
         <div>
-          <h1 className="text-xl font-black text-gray-900">ویرایش مدیر</h1>
-          <p className="text-gray-500 text-sm mt-1">تغییر اطلاعات و دسترسی‌های مدیر</p>
+          <h1 className="text-xl font-black text-[var(--neo-text-main)]">ویرایش مدیر</h1>
+          <p className="text-[var(--neo-text-secondary)] text-sm mt-1">تغییر اطلاعات و دسترسی‌های مدیر</p>
         </div>
       </div>
 
-      <form onSubmit={handleSubmit} className="bg-white rounded-3xl p-6 md:p-8 shadow-sm border border-gray-100">
+      <form onSubmit={handleSubmit} className="bg-white rounded-3xl p-6 md:p-8 shadow-sm border border-[var(--neo-border)]">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">نام <span className="text-red-500">*</span></label>
-            <input required type="text" name="firstName" value={formData.firstName} onChange={handleChange} className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+            <label className="block text-sm font-medium text-[var(--neo-text-main)] mb-1.5">نام <span className="text-red-500">*</span></label>
+            <input required type="text" name="firstName" value={formData.firstName} onChange={handleChange} className="w-full px-4 py-2.5 rounded-xl border border-[var(--neo-border)] focus:outline-none focus:ring-2 focus:ring-[var(--neo-primary)]" />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">نام خانوادگی <span className="text-red-500">*</span></label>
-            <input required type="text" name="lastName" value={formData.lastName} onChange={handleChange} className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+            <label className="block text-sm font-medium text-[var(--neo-text-main)] mb-1.5">نام خانوادگی <span className="text-red-500">*</span></label>
+            <input required type="text" name="lastName" value={formData.lastName} onChange={handleChange} className="w-full px-4 py-2.5 rounded-xl border border-[var(--neo-border)] focus:outline-none focus:ring-2 focus:ring-[var(--neo-primary)]" />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">ایمیل <span className="text-red-500">*</span></label>
-            <input required type="email" name="email" value={formData.email} onChange={handleChange} className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 dir-ltr text-left" />
+            <label className="block text-sm font-medium text-[var(--neo-text-main)] mb-1.5">ایمیل <span className="text-red-500">*</span></label>
+            <input required type="email" name="email" value={formData.email} onChange={handleChange} className="w-full px-4 py-2.5 rounded-xl border border-[var(--neo-border)] focus:outline-none focus:ring-2 focus:ring-[var(--neo-primary)] dir-ltr text-left" />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">شماره موبایل <span className="text-red-500">*</span></label>
-            <input required type="tel" name="mobile" value={formData.mobile} onChange={handleChange} className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 dir-ltr text-left" />
+            <label className="block text-sm font-medium text-[var(--neo-text-main)] mb-1.5">شماره موبایل <span className="text-red-500">*</span></label>
+            <input required type="tel" name="mobile" value={formData.mobile} onChange={handleChange} className="w-full px-4 py-2.5 rounded-xl border border-[var(--neo-border)] focus:outline-none focus:ring-2 focus:ring-[var(--neo-primary)] dir-ltr text-left" />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">رمز عبور جدید (اختیاری)</label>
-            <input type="password" name="password" value={formData.password} onChange={handleChange} placeholder="در صورت عدم تغییر، خالی بگذارید" className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 dir-ltr text-left" />
+            <label className="block text-sm font-medium text-[var(--neo-text-main)] mb-1.5">رمز عبور جدید (اختیاری)</label>
+            <input type="password" name="password" value={formData.password} onChange={handleChange} placeholder="در صورت عدم تغییر، خالی بگذارید" className="w-full px-4 py-2.5 rounded-xl border border-[var(--neo-border)] focus:outline-none focus:ring-2 focus:ring-[var(--neo-primary)] dir-ltr text-left" />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">نقش <span className="text-red-500">*</span></label>
-            <select required name="role" value={formData.role} onChange={handleChange} className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <label className="block text-sm font-medium text-[var(--neo-text-main)] mb-1.5">نقش <span className="text-red-500">*</span></label>
+            <select required name="role" value={formData.role} onChange={handleChange} className="w-full px-4 py-2.5 rounded-xl border border-[var(--neo-border)] focus:outline-none focus:ring-2 focus:ring-[var(--neo-primary)]">
               <option value="">انتخاب نقش...</option>
               {rolesData?.filter((r:any) => ['super-admin', 'admin'].includes(r.slug)).map((role: any) => (
                 <option key={role._id} value={role._id}>{role.name}</option>
@@ -124,16 +124,16 @@ export default function Page() {
             </select>
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">وضعیت <span className="text-red-500">*</span></label>
-            <select required name="status" value={formData.status} onChange={handleChange} className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <label className="block text-sm font-medium text-[var(--neo-text-main)] mb-1.5">وضعیت <span className="text-red-500">*</span></label>
+            <select required name="status" value={formData.status} onChange={handleChange} className="w-full px-4 py-2.5 rounded-xl border border-[var(--neo-border)] focus:outline-none focus:ring-2 focus:ring-[var(--neo-primary)]">
               <option value="active">فعال</option>
               <option value="blocked">مسدود</option>
             </select>
           </div>
         </div>
         
-        <div className="flex justify-end pt-4 border-t border-gray-100">
-          <button type="submit" disabled={updateMutation.isPending} className="flex items-center gap-2 px-6 py-3 bg-blue-600 text-white font-medium rounded-xl hover:bg-blue-700 transition disabled:opacity-70">
+        <div className="flex justify-end pt-4 border-t border-[var(--neo-border)]">
+          <button type="submit" disabled={updateMutation.isPending} className="flex items-center gap-2 px-6 py-3 bg-[var(--neo-primary)] text-white font-medium rounded-xl hover:bg-blue-700 transition disabled:opacity-70">
             {updateMutation.isPending ? <Loader2 className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />}
             ذخیره تغییرات
           </button>

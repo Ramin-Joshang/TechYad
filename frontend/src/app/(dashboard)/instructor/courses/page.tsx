@@ -33,9 +33,9 @@ export default function InstructorCoursesPage() {
     switch(status) {
       case 'published': return <span className="px-3 py-1 bg-emerald-100 text-emerald-700 rounded-full text-xs font-bold flex items-center gap-1"><CheckCircle className="w-3 h-3"/> منتشر شده</span>;
       case 'pending_review': return <span className="px-3 py-1 bg-amber-100 text-amber-700 rounded-full text-xs font-bold flex items-center gap-1"><Clock className="w-3 h-3"/> در انتظار تایید</span>;
-      case 'draft': return <span className="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-xs font-bold flex items-center gap-1"><FileText className="w-3 h-3"/> پیش‌نویس</span>;
+      case 'draft': return <span className="px-3 py-1 bg-[var(--neo-surface-2)] text-[var(--neo-text-main)] rounded-full text-xs font-bold flex items-center gap-1"><FileText className="w-3 h-3"/> پیش‌نویس</span>;
       case 'rejected': return <span className="px-3 py-1 bg-red-100 text-red-700 rounded-full text-xs font-bold flex items-center gap-1"><AlertCircle className="w-3 h-3"/> رد شده</span>;
-      default: return <span className="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-xs font-bold">{status}</span>;
+      default: return <span className="px-3 py-1 bg-[var(--neo-surface-2)] text-[var(--neo-text-main)] rounded-full text-xs font-bold">{status}</span>;
     }
   };
 
@@ -43,10 +43,10 @@ export default function InstructorCoursesPage() {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-2xl font-black text-gray-900">دوره‌های من</h1>
-          <p className="text-gray-500 mt-1">مدیریت دوره‌های آموزشی، فصول و دروس</p>
+          <h1 className="text-2xl font-black text-[var(--neo-text-main)]">دوره‌های من</h1>
+          <p className="text-[var(--neo-text-secondary)] mt-1">مدیریت دوره‌های آموزشی، فصول و دروس</p>
         </div>
-        <Link href="/instructor/courses/new" className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl font-bold flex items-center gap-2 transition-colors">
+        <Link href="/instructor/courses/new" className="bg-[var(--neo-primary)] hover:bg-[var(--neo-primary)] text-white px-5 py-2.5 rounded-xl font-bold flex items-center gap-2 transition-colors">
           <Plus className="w-5 h-5" />
           ایجاد دوره جدید
         </Link>
@@ -54,15 +54,15 @@ export default function InstructorCoursesPage() {
 
       {/* Tabs */}
       <div className="flex overflow-x-auto pb-2 -mx-4 px-4 sm:mx-0 sm:px-0 scrollbar-hide">
-        <div className="flex gap-2 bg-white p-1.5 rounded-2xl border border-gray-100 shadow-sm min-w-max">
+        <div className="flex gap-2 bg-[var(--neo-surface)] p-1.5 rounded-2xl border border-[var(--neo-border)] shadow-sm min-w-max">
           {TABS.map(tab => (
             <button
               key={tab.id}
               onClick={() => { setActiveTab(tab.id as any); setPage(1); }}
               className={`px-5 py-2 rounded-xl text-sm font-bold transition-all ${
                 activeTab === tab.id 
-                  ? 'bg-blue-50 text-blue-700 shadow-sm' 
-                  : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
+                  ? 'bg-[var(--neo-primary)]/10 text-[var(--neo-primary)] shadow-sm' 
+                  : 'text-[var(--neo-text-secondary)] hover:text-[var(--neo-text-main)] hover:bg-[var(--neo-surface-2)]'
               }`}
             >
               {tab.label}
@@ -72,9 +72,9 @@ export default function InstructorCoursesPage() {
       </div>
 
       {/* List */}
-      <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
+      <div className="bg-[var(--neo-surface)] rounded-3xl shadow-sm border border-[var(--neo-border)] overflow-hidden">
         {isLoading ? (
-          <div className="p-12 flex justify-center items-center text-blue-600">
+          <div className="p-12 flex justify-center items-center text-[var(--neo-primary)]">
             <Loader2 className="w-8 h-8 animate-spin" />
           </div>
         ) : error ? (
@@ -83,12 +83,12 @@ export default function InstructorCoursesPage() {
           </div>
         ) : data?.courses.length === 0 ? (
           <div className="p-12 text-center flex flex-col items-center">
-            <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mb-4">
-              <BookOpen className="w-10 h-10 text-gray-400" />
+            <div className="w-20 h-20 bg-[var(--neo-surface-2)] rounded-full flex items-center justify-center mb-4">
+              <BookOpen className="w-10 h-10 text-[var(--neo-text-muted)]" />
             </div>
-            <h3 className="text-lg font-bold text-gray-900 mb-2">هنوز دوره‌ای ندارید</h3>
-            <p className="text-gray-500 mb-6">اولین دوره آموزشی خود را بسازید و کسب درآمد را شروع کنید.</p>
-            <Link href="/instructor/courses/new" className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-xl font-bold transition-colors">
+            <h3 className="text-lg font-bold text-[var(--neo-text-main)] mb-2">هنوز دوره‌ای ندارید</h3>
+            <p className="text-[var(--neo-text-secondary)] mb-6">اولین دوره آموزشی خود را بسازید و کسب درآمد را شروع کنید.</p>
+            <Link href="/instructor/courses/new" className="bg-[var(--neo-primary)] hover:bg-[var(--neo-primary)] text-white px-6 py-3 rounded-xl font-bold transition-colors">
               ایجاد اولین دوره
             </Link>
           </div>
@@ -96,29 +96,29 @@ export default function InstructorCoursesPage() {
           <div className="overflow-x-auto">
             <table className="w-full text-right">
               <thead>
-                <tr className="border-b border-gray-100 bg-gray-50/50">
-                  <th className="p-4 font-bold text-gray-600 text-sm">دوره</th>
-                  <th className="p-4 font-bold text-gray-600 text-sm">وضعیت</th>
-                  <th className="p-4 font-bold text-gray-600 text-sm">قیمت</th>
-                  <th className="p-4 font-bold text-gray-600 text-sm">عملیات</th>
+                <tr className="border-b border-[var(--neo-border)] bg-[var(--neo-surface-2)]/50">
+                  <th className="p-4 font-bold text-[var(--neo-text-secondary)] text-sm">دوره</th>
+                  <th className="p-4 font-bold text-[var(--neo-text-secondary)] text-sm">وضعیت</th>
+                  <th className="p-4 font-bold text-[var(--neo-text-secondary)] text-sm">قیمت</th>
+                  <th className="p-4 font-bold text-[var(--neo-text-secondary)] text-sm">عملیات</th>
                 </tr>
               </thead>
               <tbody>
                 {data?.courses.map((course: any) => (
-                  <tr key={course._id} className="border-b border-gray-50 hover:bg-gray-50/50 transition-colors">
+                  <tr key={course._id} className="border-b border-[var(--neo-border)] hover:bg-[var(--neo-surface-2)]/50 transition-colors">
                     <td className="p-4">
                       <div className="flex items-center gap-4">
-                        <div className="w-16 h-12 bg-gray-100 rounded-lg overflow-hidden shrink-0 border border-gray-200">
+                        <div className="w-16 h-12 bg-[var(--neo-surface-2)] rounded-lg overflow-hidden shrink-0 border border-[var(--neo-border)]">
                           {course.thumbnail ? (
                             <img src={course.thumbnail} alt={course.title} className="w-full h-full object-cover" />
                           ) : (
-                            <div className="w-full h-full flex items-center justify-center text-gray-400">
+                            <div className="w-full h-full flex items-center justify-center text-[var(--neo-text-muted)]">
                               <BookOpen className="w-5 h-5" />
                             </div>
                           )}
                         </div>
                         <div>
-                          <div className="font-bold text-gray-900 text-sm md:text-base line-clamp-1">{course.title}</div>
+                          <div className="font-bold text-[var(--neo-text-main)] text-sm md:text-base line-clamp-1">{course.title}</div>
                           {course.rejectionReason && course.status === 'rejected' && (
                             <div className="text-xs text-red-500 font-medium mt-1 truncate max-w-xs">
                               علت رد: {course.rejectionReason}
@@ -131,14 +131,14 @@ export default function InstructorCoursesPage() {
                       {getStatusBadge(course.status)}
                     </td>
                     <td className="p-4">
-                      <div className="font-bold text-gray-900">
+                      <div className="font-bold text-[var(--neo-text-main)]">
                         {course.price === 0 ? 'رایگان' : `${course.price.toLocaleString()} تومان`}
                       </div>
                     </td>
                     <td className="p-4">
                       <Link 
                         href={`/instructor/courses/${course._id}/edit`}
-                        className="inline-flex items-center justify-center p-2 text-gray-500 hover:bg-blue-50 hover:text-blue-600 rounded-lg transition-colors"
+                        className="inline-flex items-center justify-center p-2 text-[var(--neo-text-secondary)] hover:bg-[var(--neo-primary)]/10 hover:text-[var(--neo-primary)] rounded-lg transition-colors"
                         title="ویرایش / مدیریت دروس"
                       >
                         <Edit className="w-5 h-5" />
@@ -161,7 +161,7 @@ export default function InstructorCoursesPage() {
                 key={i}
                 onClick={() => setPage(i + 1)}
                 className={`w-10 h-10 rounded-xl font-bold transition-colors ${
-                  page === i + 1 ? 'bg-blue-600 text-white shadow-md' : 'bg-white text-gray-600 hover:bg-gray-100 border border-gray-200'
+                  page === i + 1 ? 'bg-[var(--neo-primary)] text-white shadow-md' : 'bg-[var(--neo-surface)] text-[var(--neo-text-secondary)] hover:bg-[var(--neo-surface-2)] border border-[var(--neo-border)]'
                 }`}
               >
                 {i + 1}

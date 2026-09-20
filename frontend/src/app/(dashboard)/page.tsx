@@ -18,5 +18,5 @@ export default function DashboardIndexPage() {
     }
   }, [user, router]);
 
-  return <div className="p-8 text-center text-gray-500">در حال انتقال...</div>;
+  return <div className="p-8 text-center text-[var(--neo-text-secondary)]">در حال انتقال...</div>;
 }

@@ -69,9 +69,9 @@ export default function ProfilePage() {
 
   return (
     <div className="max-w-2xl mx-auto">
-      <h1 className="text-2xl font-bold text-gray-900 mb-6">تنظیمات پروفایل</h1>
+      <h1 className="text-2xl font-bold text-[var(--neo-text-main)] mb-6">تنظیمات پروفایل</h1>
       
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 md:p-8">
+      <div className="bg-[var(--neo-surface)] rounded-2xl shadow-sm border border-[var(--neo-border)] p-6 md:p-8">
         {status === 'success' && (
           <div className="mb-6 p-4 bg-green-50 text-green-700 rounded-xl text-sm border border-green-100 flex items-center gap-2">
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path></svg>
@@ -86,8 +86,8 @@ export default function ProfilePage() {
         )}
 
         <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="flex items-center gap-6 pb-6 border-b border-gray-100">
-            <div className="w-20 h-20 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center font-bold text-3xl overflow-hidden shrink-0">
+          <div className="flex items-center gap-6 pb-6 border-b border-[var(--neo-border)]">
+            <div className="w-20 h-20 rounded-full bg-blue-100 text-[var(--neo-primary)] flex items-center justify-center font-bold text-3xl overflow-hidden shrink-0">
               {formData.avatar ? (
                 <img src={formData.avatar} alt="Avatar" className="w-full h-full object-cover" />
               ) : (
@@ -95,7 +95,7 @@ export default function ProfilePage() {
               )}
             </div>
             <div className="flex-1">
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">تصویر پروفایل</label>
+              <label className="block text-sm font-medium text-[var(--neo-text-main)] mb-1.5">تصویر پروفایل</label>
               <div className="flex items-center gap-4">
                 <input 
                   type="file" 
@@ -104,7 +104,7 @@ export default function ProfilePage() {
                   accept="image/*"
                   onChange={handleAvatarUpload}
                 />
-                <label htmlFor="avatar-upload" className="inline-flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 font-bold rounded-xl cursor-pointer hover:bg-gray-200 transition">
+                <label htmlFor="avatar-upload" className="inline-flex items-center gap-2 px-4 py-2 bg-[var(--neo-surface-2)] text-[var(--neo-text-main)] font-bold rounded-xl cursor-pointer hover:bg-[var(--neo-border)] transition">
                   {uploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
                   آپلود تصویر جدید
                 </label>
@@ -112,53 +112,53 @@ export default function ProfilePage() {
                    <button type="button" onClick={() => setFormData(prev => ({ ...prev, avatar: '' }))} className="text-sm text-red-500 hover:underline">حذف</button>
                 )}
               </div>
-              <p className="text-xs text-gray-500 mt-2">فرمت‌های مجاز: JPG, PNG</p>
+              <p className="text-xs text-[var(--neo-text-secondary)] mt-2">فرمت‌های مجاز: JPG, PNG</p>
             </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">نام</label>
+              <label className="block text-sm font-medium text-[var(--neo-text-main)] mb-1.5">نام</label>
               <input 
                 type="text"
                 name="firstName"
                 value={formData.firstName}
                 onChange={handleChange}
-                className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all text-right"
+                className="w-full px-4 py-2.5 rounded-xl border border-[var(--neo-border)] focus:outline-none focus:ring-2 focus:ring-[var(--neo-primary)] transition-all text-right"
                 required 
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">نام خانوادگی</label>
+              <label className="block text-sm font-medium text-[var(--neo-text-main)] mb-1.5">نام خانوادگی</label>
               <input 
                 type="text"
                 name="lastName"
                 value={formData.lastName}
                 onChange={handleChange}
-                className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all text-right"
+                className="w-full px-4 py-2.5 rounded-xl border border-[var(--neo-border)] focus:outline-none focus:ring-2 focus:ring-[var(--neo-primary)] transition-all text-right"
                 required 
               />
             </div>
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">ایمیل</label>
+            <label className="block text-sm font-medium text-[var(--neo-text-main)] mb-1.5">ایمیل</label>
             <input 
               type="email"
               value={user?.email || ''}
               disabled
-              className="w-full px-4 py-2.5 rounded-xl border border-gray-200 bg-gray-50 text-gray-500 dir-ltr text-left cursor-not-allowed"
+              className="w-full px-4 py-2.5 rounded-xl border border-[var(--neo-border)] bg-[var(--neo-surface-2)] text-[var(--neo-text-secondary)] dir-ltr text-left cursor-not-allowed"
             />
-            <p className="text-xs text-gray-500 mt-1.5">ایمیل قابل تغییر نیست.</p>
+            <p className="text-xs text-[var(--neo-text-secondary)] mt-1.5">ایمیل قابل تغییر نیست.</p>
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">نقش کاربری</label>
+            <label className="block text-sm font-medium text-[var(--neo-text-main)] mb-1.5">نقش کاربری</label>
             <input 
               type="text"
               value={user?.role || ''}
               disabled
-              className="w-full px-4 py-2.5 rounded-xl border border-gray-200 bg-gray-50 text-gray-500 dir-ltr text-left cursor-not-allowed uppercase"
+              className="w-full px-4 py-2.5 rounded-xl border border-[var(--neo-border)] bg-[var(--neo-surface-2)] text-[var(--neo-text-secondary)] dir-ltr text-left cursor-not-allowed uppercase"
             />
           </div>
 
@@ -166,7 +166,7 @@ export default function ProfilePage() {
             <button 
               type="submit"
               disabled={status === 'loading'}
-              className="px-6 py-3 bg-blue-600 text-white font-medium rounded-xl hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all disabled:opacity-70"
+              className="px-6 py-3 bg-[var(--neo-primary)] text-white font-medium rounded-xl hover:bg-[var(--neo-primary)] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--neo-primary)] transition-all disabled:opacity-70"
             >
               {status === 'loading' ? 'در حال ذخیره...' : 'ذخیره تغییرات'}
             </button>

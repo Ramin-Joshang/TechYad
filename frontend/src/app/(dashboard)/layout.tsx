@@ -130,10 +130,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               {!isSidebarCollapsed && <span className="font-bold text-xl text-[var(--neo-text-main)] tracking-tight">تک‌یاد</span>}
             </Link>
             <div className="flex items-center gap-2">
-              <button onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)} className="hidden lg:block text-[var(--neo-muted)]/70 hover:text-[var(--neo-primary)] p-1">
+              <button onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)} className="hidden lg:block text-[var(--neo-text-muted)] hover:text-[var(--neo-primary)] p-1">
                 {isSidebarCollapsed ? <ChevronLeft className="w-5 h-5" /> : <ChevronRight className="w-5 h-5" />}
               </button>
-              <button onClick={closeMenu} className="lg:hidden text-[var(--neo-muted)] hover:text-[var(--neo-primary)] p-1">
+              <button onClick={closeMenu} className="lg:hidden text-[var(--neo-text-muted)] hover:text-[var(--neo-primary)] p-1">
                 <X className="w-6 h-6" />
               </button>
             </div>
@@ -174,10 +174,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                   className={`flex items-center ${isSidebarCollapsed ? 'justify-center px-0' : 'gap-3 px-4'} py-3 rounded-xl font-medium transition-all duration-200 ${
                     isActive 
                       ? 'bg-[var(--neo-primary)] text-white shadow-md shadow-[var(--neo-primary)]/20' 
-                      : 'text-[var(--neo-muted)] hover:bg-[var(--neo-surface-2)] hover:text-[var(--neo-primary)]'
+                      : 'text-[var(--neo-text-secondary)] hover:bg-[var(--neo-surface-2)] hover:text-[var(--neo-primary)]'
                   }`}
                 >
-                  <Icon className={`w-5 h-5 ${isActive ? 'text-white' : 'text-[var(--neo-muted)]'}`} />
+                  <Icon className={`w-5 h-5 ${isActive ? 'text-white' : 'text-[var(--neo-text-muted)]'}`} />
                   {!isSidebarCollapsed && link.name}
                 </Link>
               );
@@ -201,7 +201,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           {/* Mobile Header */}
           <header className="bg-[var(--neo-surface)] border-b border-[var(--neo-border)] h-16 flex items-center justify-between px-4 sticky top-0 z-30 shadow-sm">
             <div className="flex items-center gap-4">
-              <button onClick={() => setMobileMenuOpen(true)} className="p-2 text-[var(--neo-muted)] hover:bg-[var(--neo-surface-2)] rounded-lg lg:hidden">
+              <button onClick={() => setMobileMenuOpen(true)} className="p-2 text-[var(--neo-text-muted)] hover:bg-[var(--neo-surface-2)] rounded-lg lg:hidden">
                 <Menu className="w-6 h-6" />
               </button>
               <div className="hidden lg:block">
