@@ -5,21 +5,34 @@ import { ShoppingCart, Trash2, ArrowLeft, ShieldCheck, Loader2 } from 'lucide-re
 import { commerceApi } from '@/features/commerce/api/commerce.api';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuthStore } from '@/features/auth/stores/auth.store';
+import { useCartStore } from '@/features/commerce/stores/cart.store';
 import toast from 'react-hot-toast';
 
 export default function CartPage() {
   const { isAuthenticated, isInitializing } = useAuthStore();
+  const { items: cachedItems, subtotal: cachedSubtotal, totalAmount: cachedTotal, discountAmount: cachedDiscount, setCart } = useCartStore();
   const queryClient = useQueryClient();
 
   const { data: cartData, isLoading: cartLoading } = useQuery({
     queryKey: ['cart'],
-    queryFn: () => commerceApi.checkoutPreview().then(res => res.data),
-    enabled: !!isAuthenticated && !isInitializing
+    queryFn: async () => {
+      const res = await commerceApi.getCart();
+      if (res.data) {
+        setCart(res.data);
+      }
+      return res.data;
+    },
+    enabled: !!isAuthenticated && !isInitializing,
+    staleTime: 1000 * 60 * 5,
   });
 
   const removeItemMutation = useMutation({
     mutationFn: (itemId: string) => commerceApi.removeFromCart(itemId),
-    onSuccess: () => {
+    onSuccess: (res) => {
+      if (res.data) {
+        setCart(res.data);
+      }
+      queryClient.setQueryData(['cart'], res.data);
       queryClient.invalidateQueries({ queryKey: ['cart'] });
       toast.success('مورد از سبد خرید حذف شد');
     },
@@ -28,7 +41,19 @@ export default function CartPage() {
     }
   });
 
-  if (isInitializing || cartLoading) {
+  const effectiveData = cartData || {
+    items: cachedItems,
+    subtotal: cachedSubtotal,
+    discountAmount: cachedDiscount,
+    totalAmount: cachedTotal || cachedSubtotal,
+  };
+
+  const items = effectiveData.items || [];
+  const subtotal = effectiveData.subtotal ?? 0;
+  const total = effectiveData.totalAmount ?? effectiveData.subtotal ?? 0;
+  const discount = effectiveData.discountAmount ?? (subtotal > total ? subtotal - total : 0);
+
+  if (isInitializing || (cartLoading && items.length === 0)) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[var(--neo-bg)]">
         <Loader2 className="w-12 h-12 text-[var(--neo-secondary)] animate-spin" />
@@ -51,9 +76,6 @@ export default function CartPage() {
       </main>
     );
   }
-
-  const items = cartData?.items || [];
-  const total = cartData?.subtotal || 0;
 
   return (
     <main className="bg-[var(--neo-bg)] min-h-screen py-12">
@@ -87,7 +109,9 @@ export default function CartPage() {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             <div className="lg:col-span-2 space-y-4">
               {items.map((item: any) => {
-                const itemPrice = item.finalPrice ?? item.price ?? 0;
+                const originalPrice = item.price ?? 0;
+                const finalPrice = item.finalPrice !== undefined ? item.finalPrice : originalPrice;
+                const hasDiscount = originalPrice > finalPrice;
                 const title = item.titleSnapshot || item.title || 'دوره آموزشی';
                 const instructor = item.instructorName || 'استاد تک‌یاد';
                 const thumb = item.thumbnail || `https://picsum.photos/seed/${item.itemId || 'cart'}/400/250`;
@@ -116,8 +140,15 @@ export default function CartPage() {
                         </h3>
                       </div>
                       <p className="text-sm text-[var(--neo-text-muted)] mb-3">مدرس: {instructor}</p>
-                      <div className="text-[var(--neo-primary)] font-bold text-base sm:text-lg">
-                        {itemPrice === 0 ? 'رایگان' : `${itemPrice.toLocaleString('fa-IR')} تومان`}
+                      <div className="flex items-center gap-2 justify-center sm:justify-start">
+                        <div className="text-[var(--neo-primary)] font-bold text-base sm:text-lg">
+                          {finalPrice === 0 ? 'رایگان' : `${finalPrice.toLocaleString('fa-IR')} تومان`}
+                        </div>
+                        {hasDiscount && (
+                          <span className="text-xs text-gray-400 line-through">
+                            {originalPrice.toLocaleString('fa-IR')} تومان
+                          </span>
+                        )}
                       </div>
                     </div>
                     
@@ -142,15 +173,17 @@ export default function CartPage() {
                 <div className="space-y-4 mb-6 text-[var(--neo-text-secondary)]">
                   <div className="flex justify-between items-center">
                     <span>مبلغ کل ({items.length} مورد)</span>
-                    <span className="font-bold">{(total ?? 0).toLocaleString('fa-IR')} تومان</span>
+                    <span className="font-bold">{subtotal.toLocaleString('fa-IR')} تومان</span>
                   </div>
-                  <div className="flex justify-between items-center text-emerald-600">
-                    <span>تخفیف</span>
-                    <span className="font-bold">۰ تومان</span>
-                  </div>
+                  {discount > 0 && (
+                    <div className="flex justify-between items-center text-emerald-600">
+                      <span>تخفیف</span>
+                      <span className="font-bold">{discount.toLocaleString('fa-IR')} تومان</span>
+                    </div>
+                  )}
                   <div className="pt-4 border-t border-[var(--neo-border)] flex justify-between items-center text-lg font-bold text-[var(--neo-text-main)]">
                     <span>مبلغ قابل پرداخت</span>
-                    <span className="text-[var(--neo-primary)]">{(total ?? 0).toLocaleString('fa-IR')} تومان</span>
+                    <span className="text-[var(--neo-primary)]">{total.toLocaleString('fa-IR')} تومان</span>
                   </div>
                 </div>
 

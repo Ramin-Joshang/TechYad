@@ -51,7 +51,7 @@ export class CommerceService {
   }
 
   // --- Cart ---
-  static async getCart(userId: string) {
+  static async getCartDoc(userId: string) {
     let cart = await Cart.findOne({ userId });
     if (!cart) {
       cart = await Cart.create({ userId, items: [] });
@@ -59,8 +59,93 @@ export class CommerceService {
     return cart;
   }
 
+  static async enrichCartItems(cart: any) {
+    const enrichedItems: any[] = [];
+    let subtotal = 0;
+    let itemsChanged = false;
+    const validRawItems: any[] = [];
+
+    for (const item of cart.items) {
+      if (item.itemType === 'course') {
+        const course = await Course.findById(item.itemId).populate('instructors', 'firstName lastName');
+        if (!course || course.status !== 'published') {
+          itemsChanged = true;
+          continue;
+        }
+        validRawItems.push(item);
+        const originalPrice = course.price ?? 0;
+        const finalPrice = (course.discountPrice !== undefined && course.discountPrice !== null && course.discountPrice < originalPrice)
+          ? course.discountPrice 
+          : originalPrice;
+        const discount = originalPrice - finalPrice;
+        subtotal += finalPrice;
+
+        const instructor = (course.instructors && course.instructors.length > 0)
+          ? `${(course.instructors[0] as any).firstName} ${(course.instructors[0] as any).lastName}`
+          : 'استاد تک‌یاد';
+
+        enrichedItems.push({
+          itemType: 'course',
+          itemId: course._id.toString(),
+          title: course.title,
+          titleSnapshot: course.title,
+          thumbnail: course.thumbnail || '',
+          instructorName: instructor,
+          price: originalPrice,
+          discount,
+          finalPrice,
+        });
+      } else if (item.itemType === 'class') {
+        const classItem = await Class.findById(item.itemId).populate('instructors', 'firstName lastName');
+        if (!classItem || classItem.status !== 'published') {
+          itemsChanged = true;
+          continue;
+        }
+        validRawItems.push(item);
+        const originalPrice = classItem.price ?? 0;
+        const finalPrice = originalPrice;
+        subtotal += finalPrice;
+
+        const instructor = (classItem.instructors && classItem.instructors.length > 0)
+          ? `${(classItem.instructors[0] as any).firstName} ${(classItem.instructors[0] as any).lastName}`
+          : 'استاد تک‌یاد';
+
+        enrichedItems.push({
+          itemType: 'class',
+          itemId: classItem._id.toString(),
+          title: classItem.title,
+          titleSnapshot: classItem.title,
+          thumbnail: classItem.thumbnail || '',
+          instructorName: instructor,
+          price: originalPrice,
+          discount: 0,
+          finalPrice,
+        });
+      }
+    }
+
+    if (itemsChanged) {
+      cart.items = validRawItems;
+      await cart.save();
+    }
+
+    return {
+      _id: cart._id,
+      userId: cart.userId,
+      items: enrichedItems,
+      subtotal,
+      discountAmount: 0,
+      totalAmount: subtotal,
+    };
+  }
+
+  static async getCart(userId: string) {
+    const cart = await this.getCartDoc(userId);
+    return await this.enrichCartItems(cart);
+  }
+
   static async addToCart(userId: string, data: { itemType: 'course' | 'class'; itemId: string }) {
-    const cart = await this.getCart(userId);
+    const cart = await this.getCartDoc(userId);
     
     // Check if already in cart
     const exists = cart.items.find(i => i.itemId.toString() === data.itemId && i.itemType === data.itemType);
@@ -88,77 +173,32 @@ export class CommerceService {
 
     cart.items.push({ itemType: data.itemType, itemId: data.itemId as any });
     await cart.save();
-    return cart;
+    return await this.getCart(userId);
   }
 
   static async removeFromCart(userId: string, itemId: string) {
-    const cart = await this.getCart(userId);
+    const cart = await this.getCartDoc(userId);
     cart.items = cart.items.filter(i => i.itemId.toString() !== itemId) as any;
     await cart.save();
-    return cart;
+    return await this.getCart(userId);
   }
 
   static async clearCart(userId: string) {
-    const cart = await this.getCart(userId);
+    const cart = await this.getCartDoc(userId);
     cart.items = [];
     await cart.save();
-    return cart;
+    return await this.getCart(userId);
   }
 
   // --- Checkout & Orders ---
   static async checkoutPreview(userId: string, couponCode?: string) {
-    const cart = await this.getCart(userId);
+    const enriched = await this.getCart(userId);
     // If cart is empty, return empty preview instead of throwing error so Cart page doesn't break
-    if (cart.items.length === 0) {
+    if (enriched.items.length === 0) {
       return { items: [], subtotal: 0, discountAmount: 0, totalAmount: 0, couponId: null };
     }
 
-    let subtotal = 0;
-    const previewItems: any[] = [];
-
-    for (const item of cart.items) {
-      if (item.itemType === 'course') {
-        const course = await Course.findById(item.itemId).populate('instructors', 'firstName lastName');
-        if (!course || course.status !== 'published') { 
-          throw new AppError(`Course with ID ${item.itemId} is no longer available`, 400, 'ITEM_UNAVAILABLE');
-        }
-        subtotal += course.price;
-        previewItems.push({
-          itemType: 'course',
-          itemId: course._id,
-          titleSnapshot: course.title,
-          thumbnail: course.thumbnail,
-          instructorName: course.instructors && course.instructors.length > 0 
-            ? `${(course.instructors[0] as any).firstName} ${(course.instructors[0] as any).lastName}` 
-            : 'استاد',
-          price: course.price,
-          discount: 0,
-          finalPrice: course.price
-        });
-      } else if (item.itemType === 'class') {
-        const classItem = await Class.findById(item.itemId).populate('instructors', 'firstName lastName');
-        if (!classItem || classItem.status !== 'published') {
-          throw new AppError(`Class with ID ${item.itemId} is no longer available`, 400, 'ITEM_UNAVAILABLE');
-        }
-        if (classItem.enrolledCount !== undefined && classItem.capacity !== undefined && classItem.enrolledCount >= classItem.capacity) {
-          throw new AppError(`Class ${classItem.title} is full`, 400, 'CLASS_FULL');
-        }
-        subtotal += classItem.price;
-        previewItems.push({
-          itemType: 'class',
-          itemId: classItem._id,
-          titleSnapshot: classItem.title,
-          thumbnail: classItem.thumbnail,
-          instructorName: classItem.instructors && classItem.instructors.length > 0 
-            ? `${(classItem.instructors[0] as any).firstName} ${(classItem.instructors[0] as any).lastName}` 
-            : 'استاد',
-          price: classItem.price,
-          discount: 0,
-          finalPrice: classItem.price
-        });
-      }
-    }
-
+    let subtotal = enriched.subtotal;
     let discountAmount = 0;
     let couponRecord = null;
 
@@ -188,7 +228,7 @@ export class CommerceService {
     const totalAmount = subtotal - discountAmount;
 
     return {
-      items: previewItems,
+      items: enriched.items,
       subtotal,
       discountAmount,
       totalAmount,

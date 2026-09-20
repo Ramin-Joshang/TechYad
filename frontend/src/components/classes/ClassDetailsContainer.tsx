@@ -26,16 +26,18 @@ export function ClassDetailsContainer({ slug }: { slug: string }) {
   });
 
   // Check enrollment in class
-  const { data: enrollmentData } = useQuery({
+  const { data: enrollmentData, isLoading: isEnrollmentLoading } = useQuery({
     queryKey: ['classEnrollment', cls?._id],
     queryFn: async () => {
       const res: any = await api.get(`/classes/${cls._id}/enrollment`, { headers: { 'X-Hide-Error-Toast': 'true' } });
       return res?.data !== undefined ? res.data : res;
     },
     enabled: !!isAuthenticated && !isInitializing && !!cls?._id,
+    staleTime: 1000 * 60 * 5,
   });
 
   const isEnrolled = !!enrollmentData;
+  const isCheckingEnrollment = isAuthenticated && (isEnrollmentLoading || isInitializing);
 
   // Fetch Cart to check if class is already in cart
   const { data: cartData } = useQuery({
@@ -181,7 +183,11 @@ export function ClassDetailsContainer({ slug }: { slug: string }) {
   let ctaClass = 'bg-[var(--neo-primary)] hover:bg-blue-700 text-white shadow-[var(--neo-primary)]/30 shadow-lg';
   let ctaDisabled = false;
 
-  if (isEnrolled) {
+  if (isCheckingEnrollment) {
+    ctaText = 'در حال بررسی وضعیت کلاس...';
+    ctaClass = 'bg-gray-100 text-gray-400 border border-gray-200 cursor-wait animate-pulse';
+    ctaDisabled = true;
+  } else if (isEnrolled) {
     ctaText = 'مشاهده کلاس (ثبت‌نام شده)';
     ctaClass = 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-emerald-600/30 shadow-lg';
     ctaDisabled = false;

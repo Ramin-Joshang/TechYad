@@ -32,10 +32,12 @@ export function CourseDetailsContainer({ slug }: { slug: string }) {
   const { data: enrollment, isLoading: enrollmentLoading } = useQuery({
     queryKey: ['enrollment', course?._id],
     queryFn: () => api.get(`/enrollments/${course._id}`, { headers: { 'X-Hide-Error-Toast': 'true' } }).then((res: any) => res.data).catch(() => null),
-    enabled: isAuthenticated && !isInitializing && !!course?._id
+    enabled: isAuthenticated && !isInitializing && !!course?._id,
+    staleTime: 1000 * 60 * 5,
   });
 
   const isEnrolled = !!enrollment;
+  const isCheckingEnrollment = isAuthenticated && (enrollmentLoading || isInitializing);
 
   // Add to Cart Mutation
   const addToCartMutation = useMutation({
@@ -194,7 +196,15 @@ export function CourseDetailsContainer({ slug }: { slug: string }) {
               </div>
               
               {/* Primary Action Button: No Add to Cart when already enrolled */}
-              {isEnrolled ? (
+              {isCheckingEnrollment ? (
+                <button 
+                  disabled
+                  className="w-full py-4 rounded-xl font-bold text-lg flex items-center justify-center gap-2 bg-gray-100 text-gray-500 border border-gray-200 animate-pulse cursor-wait"
+                >
+                  <Loader2 className="w-5 h-5 animate-spin text-[var(--neo-primary)]" />
+                  <span>در حال بررسی وضعیت دوره...</span>
+                </button>
+              ) : isEnrolled ? (
                 <button 
                   onClick={handleAction}
                   className="w-full py-4 rounded-xl font-bold text-lg transition shadow-xl flex items-center justify-center gap-2 bg-emerald-600 text-white hover:bg-emerald-700 shadow-emerald-600/30"

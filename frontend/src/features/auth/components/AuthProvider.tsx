@@ -19,8 +19,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         } else {
           logout();
         }
-      } catch (error) {
-        logout();
+      } catch (error: any) {
+        // Only log out if the backend explicitly reports 401 Unauthorized
+        if (error?.response?.status === 401) {
+          logout();
+        }
       } finally {
         setInitializing(false);
       }
