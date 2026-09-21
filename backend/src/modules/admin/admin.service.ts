@@ -8,6 +8,8 @@ import { AppError } from '../../common/errors/AppError.js';
 import { Role } from '../auth/role.model.js';
 import { Class } from '../classes/class.model.js';
 import { Ticket } from '../support/ticket.model.js';
+import { Enrollment } from '../learning/enrollment.model.js';
+import { InstructorProfile } from '../instructors/instructor-profile.model.js';
 
 
 export class AdminService {
@@ -78,16 +80,120 @@ export class AdminService {
   }
 
   static async getUsers() {
-    return await User.find().populate('role', 'name slug').select('-passwordHash');
+    const users = await User.find().populate('role', 'name slug').select('-passwordHash').sort({ createdAt: -1 }).lean();
+    
+    // Enrich users with enrollment count, paid orders count, total spent, and instructor details
+    const enrichedUsers = await Promise.all(users.map(async (u: any) => {
+      const enrollmentsCount = await Enrollment.countDocuments({ userId: u._id });
+      const userOrders = await Order.find({ userId: u._id, status: 'paid' }).select('totalAmount').lean();
+      const totalSpent = userOrders.reduce((sum, ord) => sum + (ord.totalAmount || 0), 0);
+      const ordersCount = userOrders.length;
+      
+      let instructorProfile: any = null;
+      let coursesCount = 0;
+      let totalStudentsCount = 0;
+      
+      const roleSlug = u.role?.slug || '';
+      if (roleSlug === 'instructor') {
+        instructorProfile = await InstructorProfile.findOne({ userId: u._id }).lean();
+        coursesCount = await Course.countDocuments({ instructors: u._id });
+        
+        // Count total unique students across this instructor's courses
+        const instructorCourses = await Course.find({ instructors: u._id }).select('_id').lean();
+        if (instructorCourses.length > 0) {
+          const courseIds = instructorCourses.map(c => c._id);
+          totalStudentsCount = await Enrollment.countDocuments({ courseId: { $in: courseIds } });
+        }
+      }
+
+      return {
+        ...u,
+        enrollmentsCount,
+        ordersCount,
+        totalSpent,
+        coursesCount,
+        totalStudentsCount,
+        bio: u.bio || instructorProfile?.bio || '',
+        specialty: u.specialty || instructorProfile?.title || (instructorProfile?.specialties && instructorProfile.specialties[0]) || '',
+        instructorProfile: instructorProfile ? {
+          title: instructorProfile.title,
+          bio: instructorProfile.bio,
+          specialties: instructorProfile.specialties || [],
+          rating: instructorProfile.rating || 5,
+          totalStudents: totalStudentsCount || instructorProfile.totalStudents || 0,
+          isApproved: instructorProfile.isApproved,
+          education: instructorProfile.education || [],
+          socialLinks: instructorProfile.socialLinks || {}
+        } : null
+      };
+    }));
+
+    return enrichedUsers;
   }
 
   static async updateUser(id: string, data: any) {
+    if (data.firstName && data.firstName.trim().length < 2) {
+      throw new AppError('نام باید حداقل ۲ کاراکتر باشد', 400);
+    }
+    if (data.lastName && data.lastName.trim().length < 2) {
+      throw new AppError('نام خانوادگی باید حداقل ۲ کاراکتر باشد', 400);
+    }
+    if (data.email) {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(data.email)) {
+        throw new AppError('فرمت ایمیل نامعتبر است', 400);
+      }
+      const existingEmail = await User.findOne({ email: data.email.toLowerCase().trim(), _id: { $ne: id } });
+      if (existingEmail) {
+        throw new AppError('این ایمیل قبلاً توسط کاربر دیگری ثبت شده است', 400);
+      }
+      data.email = data.email.toLowerCase().trim();
+    }
+    if (data.mobile) {
+      const mobileClean = data.mobile.trim();
+      const existingMobile = await User.findOne({ mobile: mobileClean, _id: { $ne: id } });
+      if (existingMobile) {
+        throw new AppError('این شماره موبایل قبلاً توسط کاربر دیگری ثبت شده است', 400);
+      }
+      data.mobile = mobileClean;
+    }
     if (data.password) {
+      if (data.password.length < 6) {
+        throw new AppError('رمز عبور باید حداقل ۶ کاراکتر باشد', 400);
+      }
       data.passwordHash = await argon2.hash(data.password);
       delete data.password;
     }
-    const userToUpdate = await User.findByIdAndUpdate(id, data, { new: true });
+
+    // Extract instructor profile fields if provided
+    const { title, specialties, education, socialLinks, ...userData } = data;
+    
+    // Also sync bio & specialty directly to User if provided
+    if (title && !userData.specialty) {
+      userData.specialty = title;
+    }
+
+    const userToUpdate = await User.findByIdAndUpdate(id, userData, { new: true }).populate('role', 'name slug');
     if (!userToUpdate) throw new AppError('User not found', 404);
+
+    // If bio or specialty or instructor fields were provided, update/upsert InstructorProfile
+    if (title !== undefined || data.bio !== undefined || specialties !== undefined || education !== undefined || socialLinks !== undefined) {
+      await InstructorProfile.findOneAndUpdate(
+        { userId: id },
+        { 
+          $set: {
+            title: title || userToUpdate.specialty || 'مدرس تک‌یاد',
+            bio: data.bio || userToUpdate.bio || '',
+            ...(specialties ? { specialties: Array.isArray(specialties) ? specialties : [specialties] } : {}),
+            ...(education ? { education } : {}),
+            ...(socialLinks ? { socialLinks } : {}),
+            isApproved: true
+          }
+        },
+        { upsert: true, new: true }
+      );
+    }
+
     return userToUpdate;
   }
 
@@ -176,30 +282,113 @@ export class AdminService {
   }
 
   static async createAdmin(data: any) {
+    if (!data.firstName || data.firstName.trim().length < 2) {
+      throw new AppError('نام باید حداقل ۲ کاراکتر باشد', 400);
+    }
+    if (!data.lastName || data.lastName.trim().length < 2) {
+      throw new AppError('نام خانوادگی باید حداقل ۲ کاراکتر باشد', 400);
+    }
+    if (!data.email) {
+      throw new AppError('ایمیل الزامی است', 400);
+    }
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(data.email)) {
+      throw new AppError('فرمت ایمیل نامعتبر است', 400);
+    }
+    const normalizedEmail = data.email.toLowerCase().trim();
+    const existingEmail = await User.findOne({ email: normalizedEmail });
+    if (existingEmail) {
+      throw new AppError('این ایمیل قبلاً در سیستم ثبت شده است', 400);
+    }
+    data.email = normalizedEmail;
+
+    if (data.mobile) {
+      const mobileClean = data.mobile.trim();
+      if (!/^09\d{9}$/.test(mobileClean) && !/^\+98\d{10}$/.test(mobileClean) && mobileClean.length < 10) {
+        throw new AppError('فرمت شماره موبایل نامعتبر است (مثال: ۰۹۱۲۳۴۵۶۷۸۹)', 400);
+      }
+      const existingMobile = await User.findOne({ mobile: mobileClean });
+      if (existingMobile) {
+        throw new AppError('این شماره موبایل قبلاً در سیستم ثبت شده است', 400);
+      }
+      data.mobile = mobileClean;
+    }
+
+    if (!data.password || data.password.length < 8) {
+      throw new AppError('رمز عبور باید حداقل ۸ کاراکتر باشد', 400);
+    }
+
     // Only super-admin or admin role should be assignable here
     const role = await Role.findById(data.role);
     if (!role || !['admin', 'super-admin'].includes(role.slug)) {
-       throw new AppError('Invalid role for admin creation', 400);
+       throw new AppError('نقش انتخاب شده برای ایجاد مدیر نامعتبر است', 400);
     }
     
     // Hash password manually
-    if (data.password) {
-      data.passwordHash = await argon2.hash(data.password);
-      delete data.password;
-    } else {
-      throw new AppError('Password is required', 400);
-    }
+    data.passwordHash = await argon2.hash(data.password);
+    delete data.password;
+
+    // Default status to 'active' if not explicitly blocked
+    data.status = data.status === 'blocked' ? 'blocked' : 'active';
+    data.emailVerified = true;
+    data.mobileVerified = true;
+
     const newUser = await User.create(data);
-    return newUser;
+    return await User.findById(newUser._id).populate('role', 'name slug').select('-passwordHash');
   }
 
   static async updateAdmin(id: string, data: any) {
+    if (data.firstName && data.firstName.trim().length < 2) {
+      throw new AppError('نام باید حداقل ۲ کاراکتر باشد', 400);
+    }
+    if (data.lastName && data.lastName.trim().length < 2) {
+      throw new AppError('نام خانوادگی باید حداقل ۲ کاراکتر باشد', 400);
+    }
+    if (data.email) {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(data.email)) {
+        throw new AppError('فرمت ایمیل نامعتبر است', 400);
+      }
+      const normalizedEmail = data.email.toLowerCase().trim();
+      const existingEmail = await User.findOne({ email: normalizedEmail, _id: { $ne: id } });
+      if (existingEmail) {
+        throw new AppError('این ایمیل قبلاً توسط کاربر دیگری ثبت شده است', 400);
+      }
+      data.email = normalizedEmail;
+    }
+    if (data.mobile) {
+      const mobileClean = data.mobile.trim();
+      const existingMobile = await User.findOne({ mobile: mobileClean, _id: { $ne: id } });
+      if (existingMobile) {
+        throw new AppError('این شماره موبایل قبلاً توسط کاربر دیگری ثبت شده است', 400);
+      }
+      data.mobile = mobileClean;
+    }
     if (data.password) {
+      if (data.password.length < 8) {
+        throw new AppError('رمز عبور باید حداقل ۸ کاراکتر باشد', 400);
+      }
       data.passwordHash = await argon2.hash(data.password);
       delete data.password;
     }
-    const userToUpdate = await User.findByIdAndUpdate(id, data, { new: true });
-    if (!userToUpdate) throw new AppError('Admin not found', 404);
+
+    if (data.role) {
+      const role = await Role.findById(data.role);
+      if (!role || !['admin', 'super-admin'].includes(role.slug)) {
+        throw new AppError('نقش نامعتبر است', 400);
+      }
+    }
+
+    // Safety: prevent blocking super-admin
+    if (data.status === 'blocked') {
+      const currentAdmin = await User.findById(id).populate('role');
+      if ((currentAdmin?.role as any)?.slug === 'super-admin') {
+        throw new AppError('امکان مسدود کردن مدیر کل وجود ندارد', 403);
+      }
+    }
+
+    const userToUpdate = await User.findByIdAndUpdate(id, data, { new: true }).populate('role', 'name slug').select('-passwordHash');
+    if (!userToUpdate) throw new AppError('مدیر یافت نشد', 404);
     return userToUpdate;
   }
 

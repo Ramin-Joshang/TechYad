@@ -17,6 +17,8 @@ export interface IUser extends Document {
   passwordHash: string;
 
   avatar?: string;
+  bio?: string;
+  specialty?: string;
 
   emailVerified: boolean;
   mobileVerified: boolean;
@@ -72,6 +74,18 @@ const userSchema = new Schema<IUser>(
 
     avatar: {
       type: String,
+    },
+
+    bio: {
+      type: String,
+      trim: true,
+      maxlength: 1000,
+    },
+
+    specialty: {
+      type: String,
+      trim: true,
+      maxlength: 200,
     },
 
     emailVerified: {

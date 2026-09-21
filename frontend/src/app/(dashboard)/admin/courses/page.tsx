@@ -9,6 +9,7 @@ import Link from 'next/link';
 export default function AdminCoursesPage() {
   const queryClient = useQueryClient();
   const [search, setSearch] = useState('');
+  const [updatingCourseId, setUpdatingCourseId] = useState<string | null>(null);
   
   const { data: coursesData, isLoading } = useQuery({
     queryKey: ['adminCourses'],
@@ -16,21 +17,48 @@ export default function AdminCoursesPage() {
   });
 
   const publishMutation = useMutation({
-    mutationFn: (id: string) => adminApi.publishCourse(id),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['adminCourses'] })
+    mutationFn: (id: string) => {
+      setUpdatingCourseId(id);
+      return adminApi.publishCourse(id);
+    },
+    onSuccess: () => {
+      toast.success('دوره با موفقیت تایید و منتشر شد');
+      queryClient.invalidateQueries({ queryKey: ['adminCourses'] });
+    },
+    onError: (err: any) => {
+      toast.error(err.response?.data?.message || 'خطا در انتشار دوره');
+    },
+    onSettled: () => setUpdatingCourseId(null)
   });
 
   const deleteMutation = useMutation({
-    mutationFn: (id: string) => adminApi.deleteCourse(id),
+    mutationFn: (id: string) => {
+      setUpdatingCourseId(id);
+      return adminApi.deleteCourse(id);
+    },
     onSuccess: () => {
       toast.success('دوره با موفقیت حذف شد');
       queryClient.invalidateQueries({ queryKey: ['adminCourses'] });
-    }
+    },
+    onError: (err: any) => {
+      toast.error(err.response?.data?.message || 'خطا در حذف دوره');
+    },
+    onSettled: () => setUpdatingCourseId(null)
   });
 
   const rejectMutation = useMutation({
-    mutationFn: (id: string) => adminApi.rejectCourse(id, 'رد شده توسط ادمین'),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['adminCourses'] })
+    mutationFn: (id: string) => {
+      setUpdatingCourseId(id);
+      return adminApi.rejectCourse(id, 'رد شده توسط ادمین');
+    },
+    onSuccess: () => {
+      toast.success('وضعیت دوره به رد شده تغییر یافت');
+      queryClient.invalidateQueries({ queryKey: ['adminCourses'] });
+    },
+    onError: (err: any) => {
+      toast.error(err.response?.data?.message || 'خطا در رد دوره');
+    },
+    onSettled: () => setUpdatingCourseId(null)
   });
 
   const courses = coursesData?.courses || [];
@@ -105,25 +133,44 @@ export default function AdminCoursesPage() {
                         <Link href={`/instructor/courses/${course._id}/edit`} className="p-2 text-[var(--neo-primary)] hover:bg-[var(--neo-primary)]/10 rounded-lg transition-colors" title="ویرایش">
                           <Edit className="w-4 h-4" />
                         </Link>
-                        <button onClick={() => { if(window.confirm('آیا از حذف اطمینان دارید؟')) deleteMutation.mutate(course._id) }} className="p-2 text-rose-600 hover:bg-rose-50 rounded-lg transition-colors" title="حذف">
-                          <Trash2 className="w-4 h-4" />
+                        <button 
+                          onClick={() => { if(window.confirm('آیا از حذف اطمینان دارید؟')) deleteMutation.mutate(course._id) }} 
+                          disabled={updatingCourseId === course._id}
+                          className="p-2 text-rose-600 hover:bg-rose-50 rounded-lg transition-colors disabled:opacity-50" 
+                          title="حذف"
+                        >
+                          {updatingCourseId === course._id && deleteMutation.isPending ? (
+                            <Loader2 className="w-4 h-4 animate-spin text-rose-600" />
+                          ) : (
+                            <Trash2 className="w-4 h-4" />
+                          )}
                         </button>
                         {course.status !== 'published' && (
                           <button 
                             onClick={() => publishMutation.mutate(course._id)}
-                            className="p-2 text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors"
+                            disabled={updatingCourseId === course._id}
+                            className="p-2 text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors disabled:opacity-50"
                             title="تایید و انتشار"
                           >
-                            <CheckCircle className="w-4 h-4" />
+                            {updatingCourseId === course._id && publishMutation.isPending ? (
+                              <Loader2 className="w-4 h-4 animate-spin text-emerald-600" />
+                            ) : (
+                              <CheckCircle className="w-4 h-4" />
+                            )}
                           </button>
                         )}
                         {course.status === 'pending' && (
                            <button 
                               onClick={() => rejectMutation.mutate(course._id)}
-                              className="p-2 text-rose-600 hover:bg-rose-50 rounded-lg transition-colors"
+                              disabled={updatingCourseId === course._id}
+                              className="p-2 text-rose-600 hover:bg-rose-50 rounded-lg transition-colors disabled:opacity-50"
                               title="رد کردن"
                             >
-                              <XCircle className="w-4 h-4" />
+                              {updatingCourseId === course._id && rejectMutation.isPending ? (
+                                <Loader2 className="w-4 h-4 animate-spin text-rose-600" />
+                              ) : (
+                                <XCircle className="w-4 h-4" />
+                              )}
                            </button>
                         )}
                       </div>

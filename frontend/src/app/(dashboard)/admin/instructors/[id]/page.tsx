@@ -12,18 +12,17 @@ import {
   Mail, 
   Phone, 
   Lock, 
-  Shield, 
+  Briefcase, 
+  FileText, 
+  Globe, 
   CheckCircle2, 
   AlertCircle, 
-  GraduationCap, 
-  ShoppingBag, 
-  CreditCard,
+  BookOpen, 
+  Users, 
+  Star, 
   Calendar,
-  Briefcase,
-  FileText,
-  Star
+  Sparkles
 } from 'lucide-react';
-import Link from 'next/link';
 import toast from 'react-hot-toast';
 
 interface FormErrors {
@@ -31,60 +30,56 @@ interface FormErrors {
   lastName?: string;
   email?: string;
   mobile?: string;
-  password?: string;
-  role?: string;
   specialty?: string;
   bio?: string;
+  password?: string;
 }
 
-export default function UserEditPage() {
+export default function InstructorEditPage() {
   const router = useRouter();
   const queryClient = useQueryClient();
   const params = useParams();
   const id = params.id as string;
-
-  const { data: rolesData, isLoading: rolesLoading } = useQuery({
-    queryKey: ['adminRoles'],
-    queryFn: () => adminApi.getRoles().then((res: any) => res?.data || res).catch(() => [])
-  });
 
   const { data: usersData, isLoading: userLoading } = useQuery({
     queryKey: ['adminUsers'],
     queryFn: () => adminApi.getUsers().then((res: any) => res?.data || res)
   });
 
-  const currentUser = usersData?.find((u: any) => u._id === id);
+  const currentInstructor = usersData?.find((u: any) => u._id === id);
 
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
     email: '',
     mobile: '',
-    password: '',
-    status: 'active',
-    role: '',
     specialty: '',
     bio: '',
+    status: 'active',
+    password: '',
+    linkedin: '',
+    website: '',
   });
 
   const [errors, setErrors] = useState<FormErrors>({});
   const [touched, setTouched] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
-    if (currentUser) {
+    if (currentInstructor) {
       setFormData({
-        firstName: currentUser.firstName || '',
-        lastName: currentUser.lastName || '',
-        email: currentUser.email || '',
-        mobile: currentUser.mobile || '',
+        firstName: currentInstructor.firstName || '',
+        lastName: currentInstructor.lastName || '',
+        email: currentInstructor.email || '',
+        mobile: currentInstructor.mobile || '',
+        specialty: currentInstructor.specialty || currentInstructor.instructorProfile?.title || '',
+        bio: currentInstructor.bio || currentInstructor.instructorProfile?.bio || '',
+        status: currentInstructor.status || 'active',
         password: '',
-        status: currentUser.status || 'active',
-        role: currentUser.role?._id || currentUser.role || '',
-        specialty: currentUser.specialty || currentUser.instructorProfile?.title || '',
-        bio: currentUser.bio || currentUser.instructorProfile?.bio || '',
+        linkedin: currentInstructor.instructorProfile?.socialLinks?.linkedin || '',
+        website: currentInstructor.instructorProfile?.socialLinks?.website || '',
       });
     }
-  }, [currentUser]);
+  }, [currentInstructor]);
 
   const validateField = (name: string, value: string): string | undefined => {
     switch (name) {
@@ -105,11 +100,17 @@ export default function UserEditPage() {
           return 'شماره موبایل باید با ۰۹ شروع شده و ۱۱ رقم باشد';
         }
         return undefined;
+      case 'specialty':
+        if (!value.trim()) return 'عنوان و تخصص تدریس الزامی است';
+        if (value.trim().length < 3) return 'عنوان تخصص باید حداقل ۳ کاراکتر باشد';
+        return undefined;
+      case 'bio':
+        if (value.trim() && value.trim().length < 10) {
+          return 'بیوگرافی باید حداقل ۱۰ کاراکتر باشد';
+        }
+        return undefined;
       case 'password':
         if (value && value.length < 6) return 'رمز عبور باید حداقل ۶ کاراکتر باشد';
-        return undefined;
-      case 'role':
-        if (!value) return 'انتخاب نقش الزامی است';
         return undefined;
       default:
         return undefined;
@@ -136,8 +137,9 @@ export default function UserEditPage() {
       lastName: validateField('lastName', formData.lastName),
       email: validateField('email', formData.email),
       mobile: validateField('mobile', formData.mobile),
+      specialty: validateField('specialty', formData.specialty),
+      bio: validateField('bio', formData.bio),
       password: validateField('password', formData.password),
-      role: validateField('role', formData.role),
     };
 
     setErrors(newErrors);
@@ -146,8 +148,9 @@ export default function UserEditPage() {
       lastName: true,
       email: true,
       mobile: true,
+      specialty: true,
+      bio: true,
       password: true,
-      role: true,
     });
 
     return !Object.values(newErrors).some(err => !!err);
@@ -156,12 +159,12 @@ export default function UserEditPage() {
   const updateMutation = useMutation({
     mutationFn: (data: any) => adminApi.updateUser(id, data),
     onSuccess: () => {
-      toast.success('اطلاعات کاربر با موفقیت بروزرسانی شد');
+      toast.success('مشخصات و پرونده استاد با موفقیت بروزرسانی شد');
       queryClient.invalidateQueries({ queryKey: ['adminUsers'] });
       router.back();
     },
     onError: (err: any) => {
-      toast.error(err.response?.data?.message || 'خطا در بروزرسانی اطلاعات کاربر');
+      toast.error(err.response?.data?.message || 'خطا در بروزرسانی اطلاعات استاد');
     }
   });
 
@@ -172,29 +175,41 @@ export default function UserEditPage() {
       return;
     }
 
-    const dataToSubmit: any = { ...formData };
-    if (!dataToSubmit.password) {
-      delete dataToSubmit.password;
+    const dataToSubmit: any = {
+      firstName: formData.firstName,
+      lastName: formData.lastName,
+      email: formData.email,
+      mobile: formData.mobile,
+      status: formData.status,
+      title: formData.specialty,
+      specialty: formData.specialty,
+      bio: formData.bio,
+      socialLinks: {
+        linkedin: formData.linkedin,
+        website: formData.website,
+      }
+    };
+
+    if (formData.password) {
+      dataToSubmit.password = formData.password;
     }
+
     updateMutation.mutate(dataToSubmit);
   };
 
-  if (userLoading || rolesLoading) {
+  if (userLoading) {
     return (
       <div className="flex flex-col items-center justify-center py-24 gap-3">
         <Loader2 className="w-10 h-10 animate-spin text-[var(--neo-primary)]" />
-        <span className="text-xs text-[var(--neo-text-secondary)]">در حال بارگذاری اطلاعات کاربر...</span>
+        <span className="text-xs text-[var(--neo-text-secondary)]">در حال دریافت پرونده استاد...</span>
       </div>
     );
   }
 
-  const selectedRoleObj = rolesData?.find((r: any) => r._id === formData.role);
-  const isInstructor = selectedRoleObj?.slug === 'instructor' || currentUser?.role?.slug === 'instructor';
-
   return (
     <div className="max-w-4xl mx-auto space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
       
-      {/* Top Header */}
+      {/* Header */}
       <div className="flex items-center justify-between bg-[var(--neo-surface)] p-6 rounded-3xl shadow-sm border border-[var(--neo-border)]">
         <div className="flex items-center gap-4">
           <button 
@@ -206,10 +221,10 @@ export default function UserEditPage() {
           </button>
           <div>
             <h1 className="text-xl font-black text-[var(--neo-text-main)]">
-              ویرایش مشخصات: {currentUser?.firstName} {currentUser?.lastName}
+              ویرایش پرونده استاد: {currentInstructor?.firstName} {currentInstructor?.lastName}
             </h1>
             <p className="text-[var(--neo-text-secondary)] text-sm mt-0.5">
-              مدیریت اطلاعات فردی، اطلاعات تماس، وضعیت و نقش کاربری
+              مدیریت عنوان تخصصی، رزومه، اطلاعات تماس و وضعیت فعالیت آموزشی
             </p>
           </div>
         </div>
@@ -219,7 +234,7 @@ export default function UserEditPage() {
             formData.status === 'active' ? 'bg-emerald-100 text-emerald-700' :
             formData.status === 'blocked' ? 'bg-rose-100 text-rose-700' : 'bg-amber-100 text-amber-700'
           }`}>
-            {formData.status === 'active' ? 'حساب فعال' : formData.status === 'blocked' ? 'حساب مسدود' : 'در انتظار تایید'}
+            {formData.status === 'active' ? 'استاد فعال' : 'حساب مسدود'}
           </span>
         </div>
       </div>
@@ -229,8 +244,8 @@ export default function UserEditPage() {
         {/* Main Edit Form */}
         <form onSubmit={handleSubmit} noValidate className="lg:col-span-2 bg-[var(--neo-surface)] rounded-3xl p-6 md:p-8 shadow-sm border border-[var(--neo-border)] space-y-6">
           <h2 className="text-base font-bold text-[var(--neo-text-main)] flex items-center gap-2 border-b border-[var(--neo-border)] pb-4">
-            <User className="w-5 h-5 text-[var(--neo-primary)]" />
-            مشخصات فردی و حساب
+            <Briefcase className="w-5 h-5 text-amber-600" />
+            مشخصات هویتی و حوزه تخصصی
           </h2>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
@@ -281,11 +296,35 @@ export default function UserEditPage() {
             </div>
           </div>
 
+          {/* Specialty / Title */}
+          <div className="space-y-1.5">
+            <label className="block text-xs font-bold text-[var(--neo-text-main)] flex items-center justify-between">
+              <span>عنوان شغلی و تخصص اصلی <span className="text-rose-500">*</span></span>
+              {touched.specialty && !errors.specialty && <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />}
+            </label>
+            <input 
+              type="text" 
+              value={formData.specialty} 
+              onChange={e => handleChange('specialty', e.target.value)} 
+              onBlur={() => handleBlur('specialty')}
+              placeholder="مثال: مدرس ارشد مهندسی نرم‌افزار، ریکت و نکست‌جی‌اس"
+              className={`w-full px-4 py-2.5 rounded-xl border bg-[var(--neo-surface-2)] text-sm outline-none transition-all ${
+                touched.specialty && errors.specialty ? 'border-rose-400 focus:ring-2 focus:ring-rose-200' : 'border-[var(--neo-border)] focus:ring-2 focus:ring-[var(--neo-primary)]/20 focus:border-[var(--neo-primary)]'
+              }`} 
+            />
+            {touched.specialty && errors.specialty && (
+              <p className="text-xs text-rose-500 flex items-center gap-1 mt-1">
+                <AlertCircle className="w-3 h-3" />
+                {errors.specialty}
+              </p>
+            )}
+          </div>
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
             {/* Email */}
             <div className="space-y-1.5">
               <label className="block text-xs font-bold text-[var(--neo-text-main)] flex items-center justify-between">
-                <span>ایمیل <span className="text-rose-500">*</span></span>
+                <span>ایمیل کاری <span className="text-rose-500">*</span></span>
                 {touched.email && !errors.email && <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />}
               </label>
               <input 
@@ -309,7 +348,7 @@ export default function UserEditPage() {
             {/* Mobile */}
             <div className="space-y-1.5">
               <label className="block text-xs font-bold text-[var(--neo-text-main)] flex items-center justify-between">
-                <span>شماره موبایل</span>
+                <span>شماره تماس</span>
                 {touched.mobile && !errors.mobile && formData.mobile && <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />}
               </label>
               <input 
@@ -333,103 +372,96 @@ export default function UserEditPage() {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-            {/* Role */}
+          {/* Bio & Resume */}
+          <div className="space-y-1.5">
+            <label className="block text-xs font-bold text-[var(--neo-text-main)]">
+              بیوگرافی، سوابق حرفه‌ای و مدارک علمی
+            </label>
+            <textarea 
+              rows={4}
+              value={formData.bio} 
+              onChange={e => handleChange('bio', e.target.value)}
+              onBlur={() => handleBlur('bio')}
+              placeholder="توضیحاتی کامل درباره سوابق تدریس، پروژه‌های شاخص، مدارک دانشگاهی و مهارت‌های تدریس..."
+              className="w-full px-4 py-2.5 rounded-xl border border-[var(--neo-border)] bg-[var(--neo-surface-2)] text-sm outline-none focus:ring-2 focus:ring-[var(--neo-primary)]/20 leading-relaxed"
+            />
+            {touched.bio && errors.bio && (
+              <p className="text-xs text-rose-500 mt-1">{errors.bio}</p>
+            )}
+          </div>
+
+          {/* Social Links */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5 pt-2">
             <div className="space-y-1.5">
-              <label className="block text-xs font-bold text-[var(--neo-text-main)]">
-                نقش کاربری <span className="text-rose-500">*</span>
+              <label className="block text-xs font-bold text-[var(--neo-text-main)] flex items-center gap-1.5">
+                <Globe className="w-3.5 h-3.5 text-blue-500" />
+                آدرس پروفایل لینکدین (اختیاری)
               </label>
-              <select 
-                value={formData.role} 
-                onChange={e => handleChange('role', e.target.value)}
-                onBlur={() => handleBlur('role')}
-                className="w-full px-4 py-2.5 rounded-xl border border-[var(--neo-border)] bg-[var(--neo-surface-2)] text-sm outline-none focus:ring-2 focus:ring-[var(--neo-primary)]/20"
-              >
-                <option value="">انتخاب نقش...</option>
-                {rolesData?.map((role: any) => (
-                  <option key={role._id} value={role._id}>{role.name} ({role.slug})</option>
-                ))}
-              </select>
-              {touched.role && errors.role && (
-                <p className="text-xs text-rose-500 mt-1">{errors.role}</p>
-              )}
+              <input 
+                type="url" 
+                dir="ltr"
+                value={formData.linkedin} 
+                onChange={e => handleChange('linkedin', e.target.value)}
+                placeholder="https://linkedin.com/in/username"
+                className="w-full px-4 py-2.5 rounded-xl border border-[var(--neo-border)] bg-[var(--neo-surface-2)] text-sm outline-none focus:ring-2 focus:ring-[var(--neo-primary)]/20 text-left"
+              />
             </div>
 
-            {/* Status */}
+            <div className="space-y-1.5">
+              <label className="block text-xs font-bold text-[var(--neo-text-main)] flex items-center gap-1.5">
+                <Globe className="w-3.5 h-3.5 text-emerald-500" />
+                وبسایت یا رزومه آنلاین (اختیاری)
+              </label>
+              <input 
+                type="url" 
+                dir="ltr"
+                value={formData.website} 
+                onChange={e => handleChange('website', e.target.value)}
+                placeholder="https://example.com"
+                className="w-full px-4 py-2.5 rounded-xl border border-[var(--neo-border)] bg-[var(--neo-surface-2)] text-sm outline-none focus:ring-2 focus:ring-[var(--neo-primary)]/20 text-left"
+              />
+            </div>
+          </div>
+
+          {/* Account Status & Password */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5 pt-2 border-t border-[var(--neo-border)]">
             <div className="space-y-1.5">
               <label className="block text-xs font-bold text-[var(--neo-text-main)]">
-                وضعیت حساب <span className="text-rose-500">*</span>
+                وضعیت حساب استاد <span className="text-rose-500">*</span>
               </label>
               <select 
                 value={formData.status} 
                 onChange={e => handleChange('status', e.target.value)}
                 className="w-full px-4 py-2.5 rounded-xl border border-[var(--neo-border)] bg-[var(--neo-surface-2)] text-sm outline-none focus:ring-2 focus:ring-[var(--neo-primary)]/20"
               >
-                <option value="active">فعال (دسترسی کامل)</option>
-                <option value="blocked">مسدود (عدم امکان ورود)</option>
-                <option value="pending">در انتظار تایید</option>
+                <option value="active">فعال (امکان تدریس و بارگذاری دوره)</option>
+                <option value="blocked">مسدود (تعلیق دسترسی)</option>
+                <option value="pending">در انتظار تایید مدارک</option>
               </select>
             </div>
-          </div>
 
-          {/* Password (Optional) */}
-          <div className="space-y-1.5">
-            <label className="block text-xs font-bold text-[var(--neo-text-main)]">
-              تغییر رمز عبور (اختیاری)
-            </label>
-            <input 
-              type="password" 
-              dir="ltr"
-              value={formData.password} 
-              onChange={e => handleChange('password', e.target.value)}
-              onBlur={() => handleBlur('password')}
-              placeholder="در صورت عدم تمایل به تغییر، خالی بگذارید" 
-              className={`w-full px-4 py-2.5 rounded-xl border bg-[var(--neo-surface-2)] text-sm outline-none transition-all text-left ${
-                touched.password && errors.password ? 'border-rose-400 focus:ring-2 focus:ring-rose-200' : 'border-[var(--neo-border)] focus:ring-2 focus:ring-[var(--neo-primary)]/20 focus:border-[var(--neo-primary)]'
-              }`} 
-            />
-            {touched.password && errors.password ? (
-              <p className="text-xs text-rose-500 mt-1">{errors.password}</p>
-            ) : (
-              <p className="text-[11px] text-[var(--neo-text-muted)]">حداقل ۶ کاراکتر برای تغییر رمز عبور</p>
-            )}
-          </div>
-
-          {/* Instructor Specific Fields */}
-          {isInstructor && (
-            <div className="p-5 rounded-2xl bg-amber-50/50 border border-amber-200/70 space-y-4">
-              <div className="flex items-center gap-2 text-amber-900 font-bold text-sm">
-                <Briefcase className="w-4 h-4 text-amber-600" />
-                اطلاعات تخصصی و پروفایل تدریس
-              </div>
-
-              <div className="space-y-1.5">
-                <label className="block text-xs font-bold text-amber-900">
-                  عنوان تخصص / سرفصل تدریس
-                </label>
-                <input 
-                  type="text" 
-                  value={formData.specialty} 
-                  onChange={e => handleChange('specialty', e.target.value)}
-                  placeholder="مثال: مدرس ارشد مهندسی نرم‌افزار و ری‌اکت"
-                  className="w-full px-4 py-2.5 rounded-xl border border-amber-200 bg-white text-sm outline-none focus:ring-2 focus:ring-amber-300"
-                />
-              </div>
-
-              <div className="space-y-1.5">
-                <label className="block text-xs font-bold text-amber-900">
-                  بیوگرافی و رزومه تدریس
-                </label>
-                <textarea 
-                  rows={3}
-                  value={formData.bio} 
-                  onChange={e => handleChange('bio', e.target.value)}
-                  placeholder="توضیحات کوتاه درباره سوابق کاری، مدارک و تجربیات آموزشی..."
-                  className="w-full px-4 py-2.5 rounded-xl border border-amber-200 bg-white text-sm outline-none focus:ring-2 focus:ring-amber-300"
-                />
-              </div>
+            <div className="space-y-1.5">
+              <label className="block text-xs font-bold text-[var(--neo-text-main)]">
+                تغییر رمز عبور (اختیاری)
+              </label>
+              <input 
+                type="password" 
+                dir="ltr"
+                value={formData.password} 
+                onChange={e => handleChange('password', e.target.value)}
+                onBlur={() => handleBlur('password')}
+                placeholder="در صورت عدم تغییر، خالی بگذارید" 
+                className={`w-full px-4 py-2.5 rounded-xl border bg-[var(--neo-surface-2)] text-sm outline-none transition-all text-left ${
+                  touched.password && errors.password ? 'border-rose-400 focus:ring-2 focus:ring-rose-200' : 'border-[var(--neo-border)] focus:ring-2 focus:ring-[var(--neo-primary)]/20 focus:border-[var(--neo-primary)]'
+                }`} 
+              />
+              {touched.password && errors.password ? (
+                <p className="text-xs text-rose-500 mt-1">{errors.password}</p>
+              ) : (
+                <p className="text-[11px] text-[var(--neo-text-muted)]">حداقل ۶ کاراکتر برای رمز عبور جدید</p>
+              )}
             </div>
-          )}
+          </div>
 
           {/* Form Actions */}
           <div className="flex items-center justify-between pt-4 border-t border-[var(--neo-border)]">
@@ -446,107 +478,83 @@ export default function UserEditPage() {
               className="flex items-center gap-2 px-6 py-2.5 bg-[var(--neo-primary)] text-white font-bold text-sm rounded-xl hover:opacity-95 transition disabled:opacity-70 shadow-md cursor-pointer"
             >
               {updateMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-              ذخیره تغییرات کاربر
+              ذخیره پرونده استاد
             </button>
           </div>
         </form>
 
-        {/* User Insights & Statistics Card */}
+        {/* Instructor Summary & Academic Records */}
         <div className="space-y-6">
           <div className="bg-[var(--neo-surface)] rounded-3xl p-6 shadow-sm border border-[var(--neo-border)] space-y-5">
             <h3 className="font-bold text-sm text-[var(--neo-text-main)] pb-3 border-b border-[var(--neo-border)]">
-              خلاصه وضعیت و پرونده کاربر
+              شناسنامه آموزشی استاد
             </h3>
 
-            {/* Profile Overview */}
+            {/* Profile Picture */}
             <div className="flex items-center gap-3">
-              <div className="w-14 h-14 rounded-2xl bg-blue-100 text-[var(--neo-primary)] flex items-center justify-center font-bold text-lg overflow-hidden border-2 border-blue-200">
-                {currentUser?.avatar ? (
-                  <img src={currentUser.avatar} alt="Avatar" className="w-full h-full object-cover" />
+              <div className="w-16 h-16 rounded-2xl bg-amber-100 text-amber-800 flex items-center justify-center font-bold text-xl overflow-hidden border-2 border-amber-300 shadow-sm">
+                {currentInstructor?.avatar ? (
+                  <img src={currentInstructor.avatar} alt="Avatar" className="w-full h-full object-cover" />
                 ) : (
-                  currentUser?.firstName?.charAt(0) || 'U'
+                  currentInstructor?.firstName?.charAt(0) || 'I'
                 )}
               </div>
               <div>
                 <div className="font-bold text-sm text-[var(--neo-text-main)]">
-                  {currentUser?.firstName} {currentUser?.lastName}
+                  {currentInstructor?.firstName} {currentInstructor?.lastName}
                 </div>
-                <div className="text-xs text-[var(--neo-text-muted)] mt-0.5 dir-ltr text-right">
-                  {currentUser?.email}
+                <div className="text-xs text-[var(--neo-text-muted)] mt-0.5">
+                  {formData.specialty || 'مدرس تک‌یاد'}
                 </div>
               </div>
             </div>
 
-            {/* Quick Metrics */}
+            {/* Metric Boxes */}
             <div className="space-y-3 pt-2">
               <div className="flex items-center justify-between p-3 rounded-xl bg-[var(--neo-surface-2)]/60 text-xs">
                 <span className="text-[var(--neo-text-secondary)] flex items-center gap-1.5">
-                  <Calendar className="w-4 h-4 text-blue-500" />
+                  <BookOpen className="w-4 h-4 text-indigo-500" />
+                  دوره‌های تحت تدریس:
+                </span>
+                <span className="font-bold text-[var(--neo-text-main)]">
+                  {currentInstructor?.coursesCount || 0} دوره فعال
+                </span>
+              </div>
+
+              <div className="flex items-center justify-between p-3 rounded-xl bg-[var(--neo-surface-2)]/60 text-xs">
+                <span className="text-[var(--neo-text-secondary)] flex items-center gap-1.5">
+                  <Users className="w-4 h-4 text-blue-500" />
+                  تعداد کل دانشجویان:
+                </span>
+                <span className="font-bold text-[var(--neo-text-main)]">
+                  {(currentInstructor?.totalStudentsCount || currentInstructor?.instructorProfile?.totalStudents || 0).toLocaleString('fa-IR')} دانشجو
+                </span>
+              </div>
+
+              <div className="flex items-center justify-between p-3 rounded-xl bg-[var(--neo-surface-2)]/60 text-xs">
+                <span className="text-[var(--neo-text-secondary)] flex items-center gap-1.5">
+                  <Star className="w-4 h-4 text-amber-500" />
+                  امتیاز ارزیابی:
+                </span>
+                <span className="font-bold text-amber-700 flex items-center gap-1">
+                  ۵ / {currentInstructor?.instructorProfile?.rating || 5}
+                </span>
+              </div>
+
+              <div className="flex items-center justify-between p-3 rounded-xl bg-[var(--neo-surface-2)]/60 text-xs">
+                <span className="text-[var(--neo-text-secondary)] flex items-center gap-1.5">
+                  <Calendar className="w-4 h-4 text-emerald-500" />
                   تاریخ عضویت:
                 </span>
                 <span className="font-bold text-[var(--neo-text-main)]">
-                  {currentUser?.createdAt ? new Date(currentUser.createdAt).toLocaleDateString('fa-IR') : 'نامشخص'}
+                  {currentInstructor?.createdAt ? new Date(currentInstructor.createdAt).toLocaleDateString('fa-IR') : 'نامشخص'}
                 </span>
               </div>
-
-              <div className="flex items-center justify-between p-3 rounded-xl bg-[var(--neo-surface-2)]/60 text-xs">
-                <span className="text-[var(--neo-text-secondary)] flex items-center gap-1.5">
-                  <GraduationCap className="w-4 h-4 text-indigo-500" />
-                  دوره‌های ثبت‌نامی:
-                </span>
-                <span className="font-bold text-[var(--neo-text-main)]">
-                  {currentUser?.enrollmentsCount || 0} دوره
-                </span>
-              </div>
-
-              <div className="flex items-center justify-between p-3 rounded-xl bg-[var(--neo-surface-2)]/60 text-xs">
-                <span className="text-[var(--neo-text-secondary)] flex items-center gap-1.5">
-                  <ShoppingBag className="w-4 h-4 text-emerald-500" />
-                  سفارشات موفق:
-                </span>
-                <span className="font-bold text-[var(--neo-text-main)]">
-                  {currentUser?.ordersCount || 0} سفارش
-                </span>
-              </div>
-
-              <div className="flex items-center justify-between p-3 rounded-xl bg-[var(--neo-surface-2)]/60 text-xs">
-                <span className="text-[var(--neo-text-secondary)] flex items-center gap-1.5">
-                  <CreditCard className="w-4 h-4 text-purple-500" />
-                  مجموع پرداخت‌ها:
-                </span>
-                <span className="font-bold text-[var(--neo-text-main)]">
-                  {(currentUser?.totalSpent || 0).toLocaleString('fa-IR')} تومان
-                </span>
-              </div>
-
-              {isInstructor && (
-                <>
-                  <div className="flex items-center justify-between p-3 rounded-xl bg-amber-50 text-xs border border-amber-100">
-                    <span className="text-amber-800 flex items-center gap-1.5">
-                      <Briefcase className="w-4 h-4 text-amber-600" />
-                      دوره‌های تحت تدریس:
-                    </span>
-                    <span className="font-bold text-amber-900">
-                      {currentUser?.coursesCount || 0} دوره
-                    </span>
-                  </div>
-
-                  <div className="flex items-center justify-between p-3 rounded-xl bg-amber-50 text-xs border border-amber-100">
-                    <span className="text-amber-800 flex items-center gap-1.5">
-                      <Star className="w-4 h-4 text-amber-500" />
-                      تعداد کل دانشجویان:
-                    </span>
-                    <span className="font-bold text-amber-900">
-                      {currentUser?.totalStudentsCount || currentUser?.instructorProfile?.totalStudents || 0} نفر
-                    </span>
-                  </div>
-                </>
-              )}
             </div>
 
-            {/* User ID Tag */}
+            {/* ID footer */}
             <div className="pt-2 text-[11px] text-[var(--neo-text-muted)] border-t border-[var(--neo-border)]">
-              شناسه کاربر: <span className="font-mono">{currentUser?._id}</span>
+              شناسه استاد: <span className="font-mono">{currentInstructor?._id}</span>
             </div>
           </div>
         </div>

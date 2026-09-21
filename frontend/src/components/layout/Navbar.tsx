@@ -78,9 +78,11 @@ export function Navbar() {
 
   if (
     pathname?.startsWith('/admin') ||
+    pathname?.startsWith('/super-admin') ||
     pathname?.startsWith('/student') ||
     (pathname?.startsWith('/instructor') && !pathname?.startsWith('/instructors')) ||
-    pathname?.startsWith('/profile')
+    pathname?.startsWith('/profile') ||
+    pathname?.startsWith('/learn')
   ) {
     return null;
   }

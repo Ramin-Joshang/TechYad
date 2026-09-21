@@ -9,6 +9,7 @@ import Link from 'next/link';
 
 export default function AdminsManagementPage() {
   const [search, setSearch] = useState('');
+  const [updatingId, setUpdatingId] = useState<string | null>(null);
   const queryClient = useQueryClient();
 
   const { data: adminsData, isLoading } = useQuery({
@@ -22,13 +23,19 @@ export default function AdminsManagementPage() {
   });
 
   const updateStatusMutation = useMutation({
-    mutationFn: ({ id, status }: { id: string, status: string }) => superAdminApi.updateAdminStatus(id, status),
+    mutationFn: ({ id, status }: { id: string, status: string }) => {
+      setUpdatingId(id);
+      return superAdminApi.updateAdminStatus(id, status);
+    },
     onSuccess: () => {
-      toast.success('وضعیت مدیر بروزرسانی شد');
+      toast.success('وضعیت حساب مدیر با موفقیت بروزرسانی شد');
       queryClient.invalidateQueries({ queryKey: ['superAdminAdmins'] });
     },
     onError: (err: any) => {
       toast.error(err.response?.data?.message || 'خطا در بروزرسانی وضعیت');
+    },
+    onSettled: () => {
+      setUpdatingId(null);
     }
   });
 
@@ -151,24 +158,49 @@ export default function AdminsManagementPage() {
                     </td>
                     <td className="p-4">
                       <div className="flex justify-end items-center gap-2">
-                        {admin.role?.slug !== 'super-admin' && (
+                        {/* Status Toggle / Activation Button */}
+                        {admin.status !== 'active' ? (
                           <button
                             onClick={() => updateStatusMutation.mutate({ 
                               id: admin._id, 
-                              status: admin.status === 'active' ? 'blocked' : 'active' 
+                              status: 'active' 
                             })}
                             disabled={updateStatusMutation.isPending}
-                            className={`p-2 rounded-xl transition-colors ${
-                              admin.status === 'active' 
-                                ? 'text-red-600 hover:bg-red-50' 
-                                : 'text-emerald-600 hover:bg-emerald-50'
-                            }`}
-                            title={admin.status === 'active' ? 'مسدود کردن' : 'فعال کردن'}
+                            className="p-2 rounded-xl transition-all text-emerald-600 hover:bg-emerald-50 disabled:opacity-60 flex items-center justify-center"
+                            title="فعال‌سازی حساب مدیر"
                           >
-                            {admin.status === 'active' ? <XCircle className="w-5 h-5" /> : <CheckCircle className="w-5 h-5" />}
+                            {updatingId === admin._id ? (
+                              <Loader2 className="w-5 h-5 animate-spin text-emerald-600" />
+                            ) : (
+                              <CheckCircle className="w-5 h-5" />
+                            )}
                           </button>
+                        ) : admin.role?.slug !== 'super-admin' ? (
+                          <button
+                            onClick={() => updateStatusMutation.mutate({ 
+                              id: admin._id, 
+                              status: 'blocked' 
+                            })}
+                            disabled={updateStatusMutation.isPending}
+                            className="p-2 rounded-xl transition-all text-rose-600 hover:bg-rose-50 disabled:opacity-60 flex items-center justify-center"
+                            title="مسدود کردن حساب مدیر"
+                          >
+                            {updatingId === admin._id ? (
+                              <Loader2 className="w-5 h-5 animate-spin text-rose-600" />
+                            ) : (
+                              <XCircle className="w-5 h-5" />
+                            )}
+                          </button>
+                        ) : (
+                          <span className="p-2 text-emerald-600/70" title="مدیر کل سیستم (فعال و مصون از مسدودسازی)">
+                            <CheckCircle className="w-5 h-5 opacity-40" />
+                          </span>
                         )}
-                        <Link href={`/super-admin/admins/${admin._id}`} className="p-2 text-[var(--neo-text-muted)] hover:text-[var(--neo-text-main)] hover:bg-[var(--neo-surface-2)] rounded-xl transition-colors">
+                        <Link 
+                          href={`/super-admin/admins/${admin._id}`} 
+                          className="p-2 text-[var(--neo-text-muted)] hover:text-[var(--neo-text-main)] hover:bg-[var(--neo-surface-2)] rounded-xl transition-colors"
+                          title="ویرایش اطلاعات مدیر"
+                        >
                           <Edit className="w-5 h-5" />
                         </Link>
                       </div>
