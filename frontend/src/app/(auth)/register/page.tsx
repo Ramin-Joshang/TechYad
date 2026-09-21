@@ -7,7 +7,7 @@ import { useAuthStore } from '@/features/auth/stores/auth.store';
 import { GuestGuard } from '@/features/auth/components/guards/GuestGuard';
 import { AuthCardLayout } from '@/features/auth/components/AuthCardLayout';
 import Link from 'next/link';
-import { Mail, Lock, User, Eye, EyeOff, Loader2, AlertCircle, ArrowLeft, CheckCircle2 } from 'lucide-react';
+import { Mail, Lock, User, Eye, EyeOff, Loader2, AlertCircle, ArrowLeft } from 'lucide-react';
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -59,18 +59,17 @@ export default function RegisterPage() {
   return (
     <GuestGuard>
       <AuthCardLayout
-        title="ایجاد حساب کاربری جدید"
-        subtitle="به جمع بزرگ دانشجویان و پژوهشگران پیشرو در تک‌یاد بپیوندید"
+        title="ایجاد حساب کاربری"
       >
         {error && (
-          <div className="mb-5 p-4 bg-rose-50 border border-rose-200 text-rose-700 rounded-2xl text-xs sm:text-sm font-medium flex items-center gap-2.5 animate-in fade-in duration-200">
-            <AlertCircle className="w-5 h-5 shrink-0 text-rose-500" />
+          <div className="mb-5 p-3.5 bg-rose-50 border border-rose-200 text-rose-700 rounded-xl text-xs sm:text-sm font-medium flex items-center gap-2">
+            <AlertCircle className="w-4 h-4 shrink-0 text-rose-500" />
             <span>{error}</span>
           </div>
         )}
 
         <form onSubmit={handleRegister} className="space-y-4">
-          <div className="grid grid-cols-2 gap-3 sm:gap-4">
+          <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="block text-xs sm:text-sm font-bold text-[var(--neo-text-main)] mb-1.5">
                 نام
@@ -81,7 +80,7 @@ export default function RegisterPage() {
                   name="firstName"
                   value={formData.firstName}
                   onChange={handleChange}
-                  className="w-full pl-3 pr-9 py-3 rounded-xl border border-[var(--neo-border)] bg-[var(--neo-surface)] text-[var(--neo-text-main)] focus:outline-none focus:ring-2 focus:ring-[var(--neo-primary)] focus:border-transparent transition-all text-right text-sm"
+                  className="w-full pl-3 pr-9 py-2.5 rounded-xl border border-[var(--neo-border)] bg-[var(--neo-surface)] text-[var(--neo-text-main)] focus:outline-none focus:ring-2 focus:ring-[var(--neo-primary)] focus:border-transparent transition text-right text-sm"
                   placeholder="علی"
                   required 
                 />
@@ -99,7 +98,7 @@ export default function RegisterPage() {
                   name="lastName"
                   value={formData.lastName}
                   onChange={handleChange}
-                  className="w-full pl-3 pr-9 py-3 rounded-xl border border-[var(--neo-border)] bg-[var(--neo-surface)] text-[var(--neo-text-main)] focus:outline-none focus:ring-2 focus:ring-[var(--neo-primary)] focus:border-transparent transition-all text-right text-sm"
+                  className="w-full pl-3 pr-9 py-2.5 rounded-xl border border-[var(--neo-border)] bg-[var(--neo-surface)] text-[var(--neo-text-main)] focus:outline-none focus:ring-2 focus:ring-[var(--neo-primary)] focus:border-transparent transition text-right text-sm"
                   placeholder="محمدی"
                   required 
                 />
@@ -118,17 +117,17 @@ export default function RegisterPage() {
                 name="email"
                 value={formData.email}
                 onChange={handleChange}
-                className="w-full pl-11 pr-4 py-3 rounded-xl border border-[var(--neo-border)] bg-[var(--neo-surface)] text-[var(--neo-text-main)] focus:outline-none focus:ring-2 focus:ring-[var(--neo-primary)] focus:border-transparent transition-all dir-ltr text-left text-sm"
+                className="w-full pl-11 pr-4 py-2.5 rounded-xl border border-[var(--neo-border)] bg-[var(--neo-surface)] text-[var(--neo-text-main)] focus:outline-none focus:ring-2 focus:ring-[var(--neo-primary)] focus:border-transparent transition dir-ltr text-left text-sm"
                 placeholder="name@example.com"
                 required 
               />
-              <Mail className="w-5 h-5 text-[var(--neo-text-muted)] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+              <Mail className="w-4 h-4 text-[var(--neo-text-muted)] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
             </div>
           </div>
 
           <div>
             <label className="block text-xs sm:text-sm font-bold text-[var(--neo-text-main)] mb-1.5">
-              رمز عبور (حداقل ۶ کاراکتر)
+              رمز عبور
             </label>
             <div className="relative">
               <input 
@@ -136,11 +135,11 @@ export default function RegisterPage() {
                 name="password"
                 value={formData.password}
                 onChange={handleChange}
-                className="w-full pl-11 pr-11 py-3 rounded-xl border border-[var(--neo-border)] bg-[var(--neo-surface)] text-[var(--neo-text-main)] focus:outline-none focus:ring-2 focus:ring-[var(--neo-primary)] focus:border-transparent transition-all dir-ltr text-left text-sm"
-                placeholder="••••••••"
+                className="w-full pl-11 pr-11 py-2.5 rounded-xl border border-[var(--neo-border)] bg-[var(--neo-surface)] text-[var(--neo-text-main)] focus:outline-none focus:ring-2 focus:ring-[var(--neo-primary)] focus:border-transparent transition dir-ltr text-left text-sm"
+                placeholder="حداقل ۶ کاراکتر"
                 required 
               />
-              <Lock className="w-5 h-5 text-[var(--neo-text-muted)] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+              <Lock className="w-4 h-4 text-[var(--neo-text-muted)] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
@@ -152,24 +151,19 @@ export default function RegisterPage() {
             </div>
           </div>
 
-          <div className="text-[11px] text-[var(--neo-text-muted)] leading-relaxed flex items-center gap-1.5 pt-1">
-            <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
-            <span>با ثبت‌نام، قوانین و مقررات حریم خصوصی تک‌یاد را می‌پذیرید.</span>
-          </div>
-
           <button 
             type="submit"
             disabled={loading}
-            className="w-full mt-2 py-3.5 px-4 bg-[var(--neo-primary)] hover:bg-blue-700 text-white font-bold rounded-xl transition-all shadow-md shadow-[var(--neo-primary)]/20 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--neo-primary)] disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            className="w-full mt-2 py-3 px-4 bg-[var(--neo-primary)] hover:bg-blue-700 text-white font-bold rounded-xl transition shadow-md shadow-[var(--neo-primary)]/20 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--neo-primary)] disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2 text-sm"
           >
             {loading ? (
               <>
-                <Loader2 className="w-5 h-5 animate-spin" />
-                <span>در حال ساخت حساب...</span>
+                <Loader2 className="w-4 h-4 animate-spin" />
+                <span>در حال ایجاد حساب...</span>
               </>
             ) : (
               <>
-                <span>تکمیل و ایجاد حساب کاربری</span>
+                <span>ثبت‌نام</span>
                 <ArrowLeft className="w-4 h-4" />
               </>
             )}
@@ -177,10 +171,10 @@ export default function RegisterPage() {
         </form>
 
         {/* Bottom login link */}
-        <div className="mt-8 text-center text-xs sm:text-sm text-[var(--neo-text-secondary)] pt-4 border-t border-[var(--neo-border)]">
-          قبلاً ثبت‌نام کرده‌اید؟{' '}
+        <div className="mt-6 text-center text-xs sm:text-sm text-[var(--neo-text-secondary)] pt-4 border-t border-[var(--neo-border)]">
+          قبلاً حساب ساخته‌اید؟{' '}
           <Link href="/login" className="font-bold text-[var(--neo-primary)] hover:underline">
-            وارد حساب خود شوید
+            وارد شوید
           </Link>
         </div>
       </AuthCardLayout>

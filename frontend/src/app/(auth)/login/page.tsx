@@ -7,7 +7,7 @@ import { useAuthStore } from '@/features/auth/stores/auth.store';
 import { GuestGuard } from '@/features/auth/components/guards/GuestGuard';
 import { AuthCardLayout } from '@/features/auth/components/AuthCardLayout';
 import Link from 'next/link';
-import { Mail, Lock, Eye, EyeOff, Loader2, AlertCircle, ArrowLeft, UserCheck } from 'lucide-react';
+import { Mail, Lock, Eye, EyeOff, Loader2, AlertCircle, ArrowLeft } from 'lucide-react';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -48,21 +48,14 @@ export default function LoginPage() {
     }
   };
 
-  const handleQuickFill = (demoEmail: string) => {
-    setEmail(demoEmail);
-    setPassword('password123');
-    setError('');
-  };
-
   return (
     <GuestGuard>
       <AuthCardLayout
         title="ورود به حساب کاربری"
-        subtitle="برای دسترسی به پنل و دوره‌ها، اطلاعات ورود خود را وارد نمایید"
       >
         {error && (
-          <div className="mb-6 p-4 bg-rose-50 border border-rose-200 text-rose-700 rounded-2xl text-xs sm:text-sm font-medium flex items-center gap-2.5 animate-in fade-in duration-200">
-            <AlertCircle className="w-5 h-5 shrink-0 text-rose-500" />
+          <div className="mb-5 p-3.5 bg-rose-50 border border-rose-200 text-rose-700 rounded-xl text-xs sm:text-sm font-medium flex items-center gap-2">
+            <AlertCircle className="w-4 h-4 shrink-0 text-rose-500" />
             <span>{error}</span>
           </div>
         )}
@@ -77,11 +70,11 @@ export default function LoginPage() {
                 type="email"
                 value={email}
                 onChange={e => setEmail(e.target.value)}
-                className="w-full pl-11 pr-4 py-3 rounded-xl border border-[var(--neo-border)] bg-[var(--neo-surface)] text-[var(--neo-text-main)] focus:outline-none focus:ring-2 focus:ring-[var(--neo-primary)] focus:border-transparent transition-all dir-ltr text-left text-sm"
+                className="w-full pl-11 pr-4 py-2.5 rounded-xl border border-[var(--neo-border)] bg-[var(--neo-surface)] text-[var(--neo-text-main)] focus:outline-none focus:ring-2 focus:ring-[var(--neo-primary)] focus:border-transparent transition dir-ltr text-left text-sm"
                 placeholder="name@example.com"
                 required 
               />
-              <Mail className="w-5 h-5 text-[var(--neo-text-muted)] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+              <Mail className="w-4 h-4 text-[var(--neo-text-muted)] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
             </div>
           </div>
 
@@ -92,7 +85,7 @@ export default function LoginPage() {
               </label>
               <Link 
                 href="/forgot-password" 
-                className="text-xs font-bold text-[var(--neo-primary)] hover:underline"
+                className="text-xs font-medium text-[var(--neo-primary)] hover:underline"
               >
                 فراموشی رمز عبور؟
               </Link>
@@ -102,11 +95,11 @@ export default function LoginPage() {
                 type={showPassword ? 'text' : 'password'}
                 value={password}
                 onChange={e => setPassword(e.target.value)}
-                className="w-full pl-11 pr-11 py-3 rounded-xl border border-[var(--neo-border)] bg-[var(--neo-surface)] text-[var(--neo-text-main)] focus:outline-none focus:ring-2 focus:ring-[var(--neo-primary)] focus:border-transparent transition-all dir-ltr text-left text-sm"
+                className="w-full pl-11 pr-11 py-2.5 rounded-xl border border-[var(--neo-border)] bg-[var(--neo-surface)] text-[var(--neo-text-main)] focus:outline-none focus:ring-2 focus:ring-[var(--neo-primary)] focus:border-transparent transition dir-ltr text-left text-sm"
                 placeholder="••••••••"
                 required 
               />
-              <Lock className="w-5 h-5 text-[var(--neo-text-muted)] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+              <Lock className="w-4 h-4 text-[var(--neo-text-muted)] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
@@ -121,12 +114,12 @@ export default function LoginPage() {
           <button 
             type="submit"
             disabled={loading}
-            className="w-full mt-2 py-3.5 px-4 bg-[var(--neo-primary)] hover:bg-blue-700 text-white font-bold rounded-xl transition-all shadow-md shadow-[var(--neo-primary)]/20 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--neo-primary)] disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            className="w-full mt-2 py-3 px-4 bg-[var(--neo-primary)] hover:bg-blue-700 text-white font-bold rounded-xl transition shadow-md shadow-[var(--neo-primary)]/20 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--neo-primary)] disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2 text-sm"
           >
             {loading ? (
               <>
-                <Loader2 className="w-5 h-5 animate-spin" />
-                <span>در حال تأیید اطلاعات...</span>
+                <Loader2 className="w-4 h-4 animate-spin" />
+                <span>در حال ورود...</span>
               </>
             ) : (
               <>
@@ -137,42 +130,11 @@ export default function LoginPage() {
           </button>
         </form>
 
-        {/* Fast Demo Accounts */}
-        <div className="mt-6 pt-5 border-t border-[var(--neo-border)]">
-          <div className="text-xs font-bold text-[var(--neo-text-muted)] mb-2 flex items-center gap-1">
-            <UserCheck className="w-3.5 h-3.5 text-[var(--neo-primary)]" />
-            <span>تست سریع با حساب‌های پیش‌فرض:</span>
-          </div>
-          <div className="grid grid-cols-3 gap-2">
-            <button
-              type="button"
-              onClick={() => handleQuickFill('student@tekyad.com')}
-              className="px-2 py-1.5 text-xs font-medium rounded-lg bg-[var(--neo-surface-2)] hover:bg-blue-50 hover:text-[var(--neo-primary)] border border-[var(--neo-border)] transition text-center truncate"
-            >
-              دانشجو
-            </button>
-            <button
-              type="button"
-              onClick={() => handleQuickFill('instructor@tekyad.com')}
-              className="px-2 py-1.5 text-xs font-medium rounded-lg bg-[var(--neo-surface-2)] hover:bg-blue-50 hover:text-[var(--neo-primary)] border border-[var(--neo-border)] transition text-center truncate"
-            >
-              استاد
-            </button>
-            <button
-              type="button"
-              onClick={() => handleQuickFill('admin@tekyad.com')}
-              className="px-2 py-1.5 text-xs font-medium rounded-lg bg-[var(--neo-surface-2)] hover:bg-blue-50 hover:text-[var(--neo-primary)] border border-[var(--neo-border)] transition text-center truncate"
-            >
-              مدیر
-            </button>
-          </div>
-        </div>
-
         {/* Bottom register link */}
-        <div className="mt-6 text-center text-xs sm:text-sm text-[var(--neo-text-secondary)]">
+        <div className="mt-6 text-center text-xs sm:text-sm text-[var(--neo-text-secondary)] pt-4 border-t border-[var(--neo-border)]">
           حساب کاربری ندارید؟{' '}
           <Link href="/register" className="font-bold text-[var(--neo-primary)] hover:underline">
-            ثبت‌نام رایگان کنید
+            ثبت‌نام کنید
           </Link>
         </div>
       </AuthCardLayout>
