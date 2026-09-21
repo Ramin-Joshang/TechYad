@@ -244,31 +244,46 @@ static async getInstructorCourses(instructorId: string, query: any) {
   }
 
   // --- Chapters ---
-  static async createChapter(courseId: string, instructorId: string, data: any) {
-    const course = await Course.findOne({ _id: courseId, instructors: instructorId });
-    if (!course) throw new AppError('Course not found or unauthorized', 404, 'NOT_FOUND');
+  static async createChapter(courseId: string, instructorId: string, data: any, userRole?: string) {
+    const course = await Course.findById(courseId);
+    if (!course) throw new AppError('Course not found', 404, 'NOT_FOUND');
     
-    return await Chapter.create({ ...data, courseId });
+    const isAuthorized = userRole === 'admin' || userRole === 'super-admin' || course.instructors.some((ins: any) => ins.toString() === instructorId?.toString());
+    if (!isAuthorized) throw new AppError('Unauthorized', 403, 'FORBIDDEN');
+    
+    let order = data.order;
+    if (order === undefined || order === null || isNaN(Number(order))) {
+      const highestOrder = await Chapter.findOne({ courseId }).sort({ order: -1 }).select('order');
+      order = highestOrder ? (highestOrder.order + 1) : 1;
+    } else {
+      order = Number(order);
+    }
+    
+    return await Chapter.create({ ...data, order, courseId });
   }
 
-  
-  static async updateChapter(chapterId: string, instructorId: string, data: any) {
+  static async updateChapter(chapterId: string, instructorId: string, data: any, userRole?: string) {
     const chapter = await Chapter.findById(chapterId);
     if (!chapter) throw new AppError('Chapter not found', 404, 'NOT_FOUND');
-    const course = await Course.findOne({ _id: chapter.courseId, instructors: instructorId });
-    if (!course) throw new AppError('Unauthorized', 403, 'FORBIDDEN');
+    const course = await Course.findById(chapter.courseId);
+    if (!course) throw new AppError('Course not found', 404, 'NOT_FOUND');
+    
+    const isAuthorized = userRole === 'admin' || userRole === 'super-admin' || course.instructors.some((ins: any) => ins.toString() === instructorId?.toString());
+    if (!isAuthorized) throw new AppError('Unauthorized', 403, 'FORBIDDEN');
     
     return await Chapter.findByIdAndUpdate(chapterId, data, { new: true });
   }
 
-  static async deleteChapter(chapterId: string, instructorId: string) {
+  static async deleteChapter(chapterId: string, instructorId: string, userRole?: string) {
     const chapter = await Chapter.findById(chapterId);
     if (!chapter) throw new AppError('Chapter not found', 404, 'NOT_FOUND');
-    const course = await Course.findOne({ _id: chapter.courseId, instructors: instructorId });
-    if (!course) throw new AppError('Unauthorized', 403, 'FORBIDDEN');
+    const course = await Course.findById(chapter.courseId);
+    if (!course) throw new AppError('Course not found', 404, 'NOT_FOUND');
+    
+    const isAuthorized = userRole === 'admin' || userRole === 'super-admin' || course.instructors.some((ins: any) => ins.toString() === instructorId?.toString());
+    if (!isAuthorized) throw new AppError('Unauthorized', 403, 'FORBIDDEN');
     
     await Chapter.findByIdAndDelete(chapterId);
-    // Cascade delete lessons? Yes.
     await Lesson.deleteMany({ chapterId });
     return { success: true };
   }
@@ -278,31 +293,76 @@ static async getInstructorCourses(instructorId: string, query: any) {
   }
 
   // --- Lessons ---
-  static async createLesson(chapterId: string, instructorId: string, data: any) {
+  static async createLesson(chapterId: string, instructorId: string, data: any, userRole?: string) {
     const chapter = await Chapter.findById(chapterId);
     if (!chapter) throw new AppError('Chapter not found', 404, 'NOT_FOUND');
 
-    const course = await Course.findOne({ _id: chapter.courseId, instructors: instructorId });
-    if (!course) throw new AppError('Course not found or unauthorized', 404, 'NOT_FOUND');
+    const course = await Course.findById(chapter.courseId);
+    if (!course) throw new AppError('Course not found', 404, 'NOT_FOUND');
 
-    return await Lesson.create({ ...data, chapterId, courseId: course._id });
+    const isAuthorized = userRole === 'admin' || userRole === 'super-admin' || course.instructors.some((ins: any) => ins.toString() === instructorId?.toString());
+    if (!isAuthorized) throw new AppError('Course not found or unauthorized', 403, 'FORBIDDEN');
+
+    let order = data.order;
+    if (order === undefined || order === null || isNaN(Number(order))) {
+      const highestOrder = await Lesson.findOne({ chapterId }).sort({ order: -1 }).select('order');
+      order = highestOrder ? (highestOrder.order + 1) : 1;
+    } else {
+      order = Number(order);
+    }
+
+    const isFree = data.isFree !== undefined ? Boolean(data.isFree) : Boolean(data.isFreePreview);
+
+    let video = data.video;
+    if (!video && data.videoUrl) {
+      video = {
+        provider: 'self_hosted',
+        externalId: data.videoUrl,
+        duration: Number(data.duration) || 0,
+      };
+    }
+
+    return await Lesson.create({
+      ...data,
+      order,
+      isFree,
+      ...(video ? { video } : {}),
+      chapterId,
+      courseId: course._id
+    });
   }
 
-  
-  static async updateLesson(lessonId: string, instructorId: string, data: any) {
+  static async updateLesson(lessonId: string, instructorId: string, data: any, userRole?: string) {
     const lesson = await Lesson.findById(lessonId);
     if (!lesson) throw new AppError('Lesson not found', 404, 'NOT_FOUND');
-    const course = await Course.findOne({ _id: lesson.courseId, instructors: instructorId });
-    if (!course) throw new AppError('Unauthorized', 403, 'FORBIDDEN');
+    const course = await Course.findById(lesson.courseId);
+    if (!course) throw new AppError('Course not found', 404, 'NOT_FOUND');
     
+    const isAuthorized = userRole === 'admin' || userRole === 'super-admin' || course.instructors.some((ins: any) => ins.toString() === instructorId?.toString());
+    if (!isAuthorized) throw new AppError('Unauthorized', 403, 'FORBIDDEN');
+    
+    if (data.videoUrl && !data.video) {
+      data.video = {
+        provider: 'self_hosted',
+        externalId: data.videoUrl,
+        duration: Number(data.duration) || 0,
+      };
+    }
+    if (data.isFreePreview !== undefined && data.isFree === undefined) {
+      data.isFree = Boolean(data.isFreePreview);
+    }
+
     return await Lesson.findByIdAndUpdate(lessonId, data, { new: true });
   }
 
-  static async deleteLesson(lessonId: string, instructorId: string) {
+  static async deleteLesson(lessonId: string, instructorId: string, userRole?: string) {
     const lesson = await Lesson.findById(lessonId);
     if (!lesson) throw new AppError('Lesson not found', 404, 'NOT_FOUND');
-    const course = await Course.findOne({ _id: lesson.courseId, instructors: instructorId });
-    if (!course) throw new AppError('Unauthorized', 403, 'FORBIDDEN');
+    const course = await Course.findById(lesson.courseId);
+    if (!course) throw new AppError('Course not found', 404, 'NOT_FOUND');
+    
+    const isAuthorized = userRole === 'admin' || userRole === 'super-admin' || course.instructors.some((ins: any) => ins.toString() === instructorId?.toString());
+    if (!isAuthorized) throw new AppError('Unauthorized', 403, 'FORBIDDEN');
     
     await Lesson.findByIdAndDelete(lessonId);
     return { success: true };

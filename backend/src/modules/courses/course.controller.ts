@@ -61,50 +61,50 @@ export const rejectCourse = async (req: Request, res: Response) => {
 
 // Chapters
 export const createChapter = async (req: AuthRequest, res: Response) => {
-  const result = await CourseService.createChapter((req.params.courseId as any as string) as any as string, req.user._id, req.body);
+  const result = await CourseService.createChapter((req.params.courseId as any as string), req.user._id, req.body, req.user?.role?.slug);
   sendSuccess(res, result, 'Chapter created successfully', 201);
 };
 
 export const getChapters = async (req: Request, res: Response) => {
-  const result = await CourseService.getChapters((req.params.courseId as any as string) as any as string);
+  const result = await CourseService.getChapters((req.params.courseId as any as string));
   sendSuccess(res, result, 'Chapters retrieved successfully');
 };
 
 // Lessons
 export const createLesson = async (req: AuthRequest, res: Response) => {
-  const result = await CourseService.createLesson((req.params.chapterId as any as string) as any as string, req.user._id, req.body);
+  const result = await CourseService.createLesson((req.params.chapterId as any as string), req.user._id, req.body, req.user?.role?.slug);
   sendSuccess(res, result, 'Lesson created successfully', 201);
 };
 
 export const getLessons = async (req: Request, res: Response) => {
-  const result = await CourseService.getLessons((req.params.chapterId as any as string) as any as string);
+  const result = await CourseService.getLessons((req.params.chapterId as any as string));
   sendSuccess(res, result, 'Lessons retrieved successfully');
 };
 
 export const getCourseStudents = async (req: AuthRequest, res: Response) => {
-  const result = await CourseService.getCourseStudents((req.params.courseId as any as string) as any as string, req.query);
+  const result = await CourseService.getCourseStudents((req.params.courseId as any as string), req.query);
   sendSuccess(res, result, 'Students retrieved successfully');
 };
 
-  export const getInstructorCourseById = async (req: AuthRequest, res: Response) => {
-    const course = await CourseService.getInstructorCourseById(((req.params.id as string) as any as string) as any as string, req.user._id as string);
-    sendSuccess(res, course, 'Course retrieved successfully');
-  };
+export const getInstructorCourseById = async (req: AuthRequest, res: Response) => {
+  const course = await CourseService.getInstructorCourseById((req.params.id as string), req.user._id as string);
+  sendSuccess(res, course, 'Course retrieved successfully');
+};
   
 export const updateChapter = async (req: AuthRequest, res: Response) => {
-  const result = await CourseService.updateChapter((req.params.chapterId as any as string) as any as string, req.user._id as string, req.body);
+  const result = await CourseService.updateChapter((req.params.chapterId as any as string), req.user._id as string, req.body, req.user?.role?.slug);
   sendSuccess(res, result, 'Chapter updated successfully');
 };
 export const deleteChapter = async (req: AuthRequest, res: Response) => {
-  const result = await CourseService.deleteChapter((req.params.chapterId as any as string) as any as string, req.user._id as string);
+  const result = await CourseService.deleteChapter((req.params.chapterId as any as string), req.user._id as string, req.user?.role?.slug);
   sendSuccess(res, result, 'Chapter deleted successfully');
 };
 export const updateLesson = async (req: AuthRequest, res: Response) => {
-  const result = await CourseService.updateLesson((req.params.lessonId as any as string) as any as string, req.user._id as string, req.body);
+  const result = await CourseService.updateLesson((req.params.lessonId as any as string), req.user._id as string, req.body, req.user?.role?.slug);
   sendSuccess(res, result, 'Lesson updated successfully');
 };
 export const deleteLesson = async (req: AuthRequest, res: Response) => {
-  const result = await CourseService.deleteLesson((req.params.lessonId as any as string) as any as string, req.user._id as string);
+  const result = await CourseService.deleteLesson((req.params.lessonId as any as string), req.user._id as string, req.user?.role?.slug);
   sendSuccess(res, result, 'Lesson deleted successfully');
 };
 

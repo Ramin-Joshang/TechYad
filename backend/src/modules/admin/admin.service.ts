@@ -131,6 +131,85 @@ export class AdminService {
     return enrichedUsers;
   }
 
+  static async getUserDetails(id: string) {
+    const user = await User.findById(id).populate('role', 'name slug permissions').select('-passwordHash').lean();
+    if (!user) throw new AppError('کاربر یافت نشد', 404);
+
+    // 1. Instructor profile
+    const instructorProfile = await InstructorProfile.findOne({ userId: id }).lean();
+
+    // 2. Enrollments (Purchased / active courses)
+    const enrollments = await Enrollment.find({ userId: id })
+      .populate('courseId', 'title slug thumbnail price status')
+      .sort({ createdAt: -1 })
+      .lean();
+
+    // 3. Orders history
+    const orders = await Order.find({ userId: id }).sort({ createdAt: -1 }).lean();
+
+    // 4. Tickets history
+    const tickets = await Ticket.find({ userId: id }).sort({ createdAt: -1 }).lean();
+
+    // 5. If instructor: get their courses and classes
+    let instructorCourses: any[] = [];
+    let instructorClasses: any[] = [];
+    let totalInstructorStudents = 0;
+    let totalCourseRevenue = 0;
+
+    const isInstructor = (user.role as any)?.slug === 'instructor' || !!instructorProfile;
+    if (isInstructor) {
+      instructorCourses = await Course.find({ instructors: id }).sort({ createdAt: -1 }).lean();
+      instructorClasses = await Class.find({ $or: [{ instructors: id }, { createdBy: id }] }).sort({ createdAt: -1 }).lean();
+      
+      const courseIds = instructorCourses.map(c => c._id);
+      if (courseIds.length > 0) {
+        totalInstructorStudents = await Enrollment.countDocuments({ courseId: { $in: courseIds } });
+        const paidOrders = await Order.find({
+          status: 'paid',
+          'items.itemType': 'course',
+          'items.itemId': { $in: courseIds }
+        }).lean();
+        
+        paidOrders.forEach((o: any) => {
+          o.items?.forEach((item: any) => {
+            if (item.itemType === 'course' && courseIds.some((cid: any) => cid.toString() === item.itemId?.toString())) {
+              totalCourseRevenue += (item.price || 0);
+            }
+          });
+        });
+      }
+    }
+
+    const paidOrders = orders.filter(o => o.status === 'paid');
+    const totalSpent = paidOrders.reduce((sum, o) => sum + (o.totalAmount || 0), 0);
+
+    return {
+      user: {
+        ...user,
+        bio: user.bio || instructorProfile?.bio || '',
+        specialty: user.specialty || instructorProfile?.title || '',
+        instructorProfile
+      },
+      stats: {
+        totalSpent,
+        paidOrdersCount: paidOrders.length,
+        totalOrdersCount: orders.length,
+        enrollmentsCount: enrollments.length,
+        ticketsCount: tickets.length,
+        isInstructor,
+        totalCoursesTaught: instructorCourses.length,
+        totalClassesTaught: instructorClasses.length,
+        totalStudentsTaught: totalInstructorStudents,
+        totalCourseRevenue
+      },
+      enrollments,
+      orders,
+      tickets,
+      instructorCourses,
+      instructorClasses
+    };
+  }
+
   static async updateUser(id: string, data: any) {
     if (data.firstName && data.firstName.trim().length < 2) {
       throw new AppError('نام باید حداقل ۲ کاراکتر باشد', 400);

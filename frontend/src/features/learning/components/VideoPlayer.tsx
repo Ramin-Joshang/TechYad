@@ -19,12 +19,14 @@ export function VideoPlayer({ secureLesson, initialProgress = 0, onProgressUpdat
   const videoUrl = secureLesson?.video?.externalId || 'https://www.w3schools.com/html/mov_bbb.mp4'; 
   const isSpotPlayer = secureLesson?.video?.provider === 'spotplayer';
 
-  useEffect(() => {
-    // Reset state when lesson changes
+  const [prevLessonId, setPrevLessonId] = useState(secureLesson?._id);
+
+  if (secureLesson?._id !== prevLessonId) {
+    setPrevLessonId(secureLesson?._id);
     setIsPlaying(false);
     setProgress(initialProgress);
     setCurrentTime((initialProgress / 100) * (secureLesson?.video?.duration || 0));
-  }, [secureLesson?._id]);
+  }
 
   const handleTimeUpdate = () => {
     if (!videoRef.current) return;

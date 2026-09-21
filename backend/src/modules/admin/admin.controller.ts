@@ -12,6 +12,11 @@ export const getUsers = async (req: Request, res: Response) => {
   sendSuccess(res, result, 'Users retrieved');
 };
 
+export const getUserById = async (req: Request, res: Response) => {
+  const result = await AdminService.getUserDetails(req.params.id as string);
+  sendSuccess(res, result, 'User details retrieved');
+};
+
 export const updateUser = async (req: Request, res: Response) => {
   const result = await AdminService.updateUser((req.params.id as string), req.body);
   res.status(200).json({ success: true, data: result });

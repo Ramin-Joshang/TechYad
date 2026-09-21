@@ -12,6 +12,7 @@ router.get('/admin/dashboard', isAdmin, asyncHandler(Controller.getDashboardStat
 
 // Users
 router.get('/admin/users', isAdmin, asyncHandler(Controller.getUsers));
+router.get('/admin/users/:id', isAdmin, asyncHandler(Controller.getUserById));
 router.patch('/admin/users/:id', isAdmin, asyncHandler(Controller.updateUser));
 router.patch('/admin/users/:id/status', isAdmin, asyncHandler(Controller.updateUserStatus));
 

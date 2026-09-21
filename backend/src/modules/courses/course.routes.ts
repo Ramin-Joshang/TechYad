@@ -43,11 +43,14 @@ router.post('/instructor/chapters/:chapterId/lessons', isInstructor, validate(cr
 
 // --- Admin Routes ---
 router.get('/admin/courses', isAdmin, asyncHandler(Controller.getAdminCourses));
+router.post('/admin/courses', isAdmin, validate(createCourseSchema), asyncHandler(Controller.createCourse));
 router.patch('/admin/courses/:id', isAdmin, asyncHandler(Controller.adminUpdateCourse));
 router.delete('/admin/courses/:id', isAdmin, asyncHandler(Controller.adminDeleteCourse));
 router.get('/admin/courses/:id', isAdmin, asyncHandler(Controller.adminGetCourseById));
 router.post('/admin/courses/:id/publish', isAdmin, asyncHandler(Controller.publishCourse));
 router.post('/admin/courses/:id/reject', isAdmin, asyncHandler(Controller.rejectCourse));
+router.post('/admin/courses/:courseId/chapters', isAdmin, validate(createChapterSchema), asyncHandler(Controller.createChapter));
+router.post('/admin/chapters/:chapterId/lessons', isAdmin, validate(createLessonSchema), asyncHandler(Controller.createLesson));
 
 export default router;
 

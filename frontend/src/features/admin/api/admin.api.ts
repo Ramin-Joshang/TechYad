@@ -10,6 +10,9 @@ export const adminApi = {
   getUsers: async (params?: any) => {
     return api.get<any, any>('/admin/users', { params });
   },
+  getUserById: async (id: string) => {
+    return api.get<any, any>(`/admin/users/${id}`);
+  },
   updateUser: async (id: string, data: any) => {
     return api.patch<any, any>(`/admin/users/${id}`, data);
   },
@@ -54,6 +57,9 @@ export const adminApi = {
   },
   getCourses: async (params?: any) => {
     return api.get<any, any>('/admin/courses', { params });
+  },
+  createCourse: async (data: any) => {
+    return api.post<any, any>('/courses', data);
   },
   getCourseById: async (id: string) => {
     return api.get<any, any>(`/admin/courses/${id}`);
