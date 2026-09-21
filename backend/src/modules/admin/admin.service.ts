@@ -146,7 +146,6 @@ export class AdminService {
       activeOrders,
       totalOrders,
       totalRevenue,
-      thisMonthRevenue,
       todayRevenue,
       averageOrderValue,
       conversionRate,
@@ -167,7 +166,9 @@ export class AdminService {
       recentOrders,
       recentTickets,
       topCourses: topCourses.filter(Boolean),
-      monthlyRevenue
+      thisMonthRevenue,
+      monthlyRevenue: thisMonthRevenue,
+      monthlyRevenueChart: monthlyRevenue
     };
   }
 

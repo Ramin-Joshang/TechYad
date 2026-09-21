@@ -41,5 +41,9 @@ export const authApi = {
 
   resetPassword: async (data: any) => {
     return api.post<any, ApiResponse<any>>('/auth/reset-password', data);
+  },
+
+  changePassword: async (passwords: { currentPassword: string; newPassword: string }) => {
+    return api.post<any, ApiResponse<any>>('/auth/change-password', passwords);
   }
 };

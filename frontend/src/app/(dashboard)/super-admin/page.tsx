@@ -46,6 +46,7 @@ export default function SuperAdminDashboard() {
   const {
     totalRevenue = 0,
     monthlyRevenue = 0,
+    thisMonthRevenue = 0,
     todayRevenue = 0,
     averageOrderValue = 0,
     conversionRate = 0,
@@ -68,6 +69,20 @@ export default function SuperAdminDashboard() {
     topCourses = [],
     monthlyRevenueChart = []
   } = statsData;
+
+  const currentMonthRevenueValue = typeof monthlyRevenue === 'number' 
+    ? monthlyRevenue 
+    : typeof thisMonthRevenue === 'number' 
+      ? thisMonthRevenue 
+      : Array.isArray(monthlyRevenue) 
+        ? (monthlyRevenue as any[]).reduce((sum, item) => sum + (Number(item?.revenue) || 0), 0)
+        : 0;
+
+  const chartData = Array.isArray(monthlyRevenueChart) && monthlyRevenueChart.length > 0 
+    ? monthlyRevenueChart 
+    : Array.isArray(monthlyRevenue) 
+      ? monthlyRevenue 
+      : [];
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500 pb-12">
@@ -178,7 +193,7 @@ export default function SuperAdminDashboard() {
             <span className="text-[11px] font-bold text-blue-700 bg-blue-50 px-2 py-0.5 rounded-full">۳۰ روزه</span>
           </div>
           <div className="text-2xl font-black text-blue-600 mb-1">
-            {monthlyRevenue.toLocaleString('fa-IR')} <span className="text-xs text-gray-400 font-normal">ت</span>
+            {Number(currentMonthRevenueValue).toLocaleString('fa-IR')} <span className="text-xs text-gray-400 font-normal">ت</span>
           </div>
           <div className="text-xs font-bold text-gray-600">درآمد ماه جاری</div>
         </Link>
@@ -314,7 +329,7 @@ export default function SuperAdminDashboard() {
 
         <div className="h-72 w-full" dir="ltr">
           <ResponsiveContainer width="100%" height="100%">
-            <AreaChart data={monthlyRevenueChart} margin={{ top: 10, right: 10, left: 20, bottom: 0 }}>
+            <AreaChart data={chartData} margin={{ top: 10, right: 10, left: 20, bottom: 0 }}>
               <defs>
                 <linearGradient id="dashRevenueGradient" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="5%" stopColor="#2563eb" stopOpacity={0.35}/>
@@ -322,7 +337,7 @@ export default function SuperAdminDashboard() {
                 </linearGradient>
               </defs>
               <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-              <XAxis dataKey="month" tick={{ fontSize: 11 }} />
+              <XAxis dataKey="name" tick={{ fontSize: 11 }} />
               <YAxis tick={{ fontSize: 11 }} tickFormatter={(val) => (val >= 1000000 ? `${val / 1000000}M` : val)} />
               <Tooltip 
                 formatter={(val: any, name: any) => [

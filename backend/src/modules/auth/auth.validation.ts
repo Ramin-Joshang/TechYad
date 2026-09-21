@@ -36,3 +36,10 @@ export const resetPasswordSchema = z.object({
     newPassword: z.string().min(8, 'Password must be at least 8 characters'),
   })
 });
+
+export const changePasswordSchema = z.object({
+  body: z.object({
+    currentPassword: z.string().min(1, 'رمز عبور فعلی الزامی است'),
+    newPassword: z.string().min(8, 'رمز عبور جدید باید حداقل ۸ کاراکتر باشد'),
+  })
+});

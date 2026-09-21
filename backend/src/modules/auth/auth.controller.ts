@@ -81,6 +81,12 @@ export const resetPassword = async (req: Request, res: Response) => {
   sendSuccess(res, result, 'Password reset successfully');
 };
 
+export const changePassword = async (req: AuthRequest, res: Response) => {
+  const { currentPassword, newPassword } = req.body;
+  const result = await AuthService.changePassword(req.user._id as string, currentPassword, newPassword);
+  sendSuccess(res, result, 'رمز عبور با موفقیت تغییر کرد');
+};
+
 export const refreshToken = async (req: Request, res: Response) => {
   const token = req.cookies?.refreshToken;
   const result = await AuthService.refreshToken(token);

@@ -48,7 +48,7 @@ router.use('/', assignmentRoutes);
 router.use('/', quizRoutes);
 router.use('/', communityRoutes);
 router.use('/', mediaRoutes);
-router.use('/', blogRoutes);
+router.use('/blog', blogRoutes);
 router.use('/', notificationRoutes);
 router.use('/', supportRoutes);
 router.use('/', instructorRoutes);

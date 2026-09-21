@@ -138,6 +138,21 @@ export class AuthService {
     return { message: 'Password has been reset successfully' };
   }
 
+  static async changePassword(userId: string, currentPassword: string, newPassword: string) {
+    const user = await User.findById(userId);
+    if (!user) throw new AppError('کاربر یافت نشد', 404, 'NOT_FOUND');
+
+    const isValidPassword = await argon2.verify(user.passwordHash, currentPassword);
+    if (!isValidPassword) {
+      throw new AppError('رمز عبور فعلی نادرست است', 400, 'INVALID_CURRENT_PASSWORD');
+    }
+
+    user.passwordHash = await argon2.hash(newPassword);
+    await user.save();
+
+    return { message: 'رمز عبور شما با موفقیت تغییر کرد' };
+  }
+
   static async refreshToken(refreshToken: string) {
     if (!refreshToken) {
       throw new AppError('No refresh token provided', 401, 'AUTH_NO_REFRESH_TOKEN');

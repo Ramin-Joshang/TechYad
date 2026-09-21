@@ -7,9 +7,12 @@ export interface IArticle extends Document {
   content: string;
   thumbnail?: string;
   authorId: Types.ObjectId;
+  categoryId?: Types.ObjectId;
   tags: string[];
-  status: "draft" | "published";
+  status: "draft" | "pending_review" | "published" | "rejected";
+  rejectionReason?: string;
   publishedAt?: Date;
+  viewsCount?: number;
 }
 
 const articleSchema = new Schema<IArticle>(
@@ -20,9 +23,16 @@ const articleSchema = new Schema<IArticle>(
     content: { type: String, required: true },
     thumbnail: String,
     authorId: { type: Schema.Types.ObjectId, ref: "User", required: true },
+    categoryId: { type: Schema.Types.ObjectId, ref: "BlogCategory" },
     tags: [{ type: String }],
-    status: { type: String, enum: ["draft", "published"], default: "draft" },
+    status: { 
+      type: String, 
+      enum: ["draft", "pending_review", "published", "rejected"], 
+      default: "draft" 
+    },
+    rejectionReason: String,
     publishedAt: Date,
+    viewsCount: { type: Number, default: 0 },
   },
   { timestamps: true }
 );

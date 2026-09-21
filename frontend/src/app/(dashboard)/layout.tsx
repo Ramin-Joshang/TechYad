@@ -55,7 +55,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         
         { name: 'پشتیبانی', href: '/super-admin/tickets', icon: Ticket },
         { name: 'گزارش‌ها', href: '/super-admin/reports', icon: BarChart },
-        
+        { name: 'مدیریت وبلاگ', href: '/super-admin/blog', icon: FileText },
         { name: 'تنظیمات سیستم', href: '/super-admin/settings', icon: Settings },
         
         profileLink
@@ -74,6 +74,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         { name: 'سفارشات', href: '/admin/orders', icon: List },
         { name: 'درآمد و مالی', href: '/admin/revenue', icon: DollarSign },
         { name: 'تیکت‌های پشتیبانی', href: '/admin/tickets', icon: Ticket },
+        { name: 'مدیریت وبلاگ', href: '/admin/blog', icon: FileText },
         profileLink
       ];
     } else if (user?.role === 'instructor') {
@@ -82,6 +83,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         { name: 'مدیریت دوره‌ها', href: '/instructor/courses', icon: BookOpen },
         { name: 'کلاس‌های زنده', href: '/instructor/classes', icon: Video },
         { name: 'دانشجویان من', href: '/instructor/students', icon: Users },
+        { name: 'مقالات وبلاگ', href: '/instructor/blog', icon: FileText },
         { name: 'بررسی تکالیف', href: '/instructor/assignments', icon: FileText },
         { name: 'نظرات دانشجویان', href: '/instructor/comments', icon: MessageSquare },
         { name: 'گزارش مالی', href: '/instructor/sales', icon: DollarSign },
