@@ -158,3 +158,75 @@ export const updateSettings = async (req: Request, res: Response) => {
   const result = await AdminService.updateSettings(req.body);
   sendSuccess(res, result, 'Settings updated successfully');
 };
+
+// Settlements
+export const getSettlements = async (req: Request, res: Response) => {
+  const result = await AdminService.getSettlements(req.query);
+  sendSuccess(res, result, 'Settlements retrieved');
+};
+
+export const createSettlement = async (req: Request, res: Response) => {
+  const adminId = (req as any).user?.id || (req as any).user?._id;
+  const result = await AdminService.createSettlement(adminId, req.body);
+  sendSuccess(res, result, 'Settlement created successfully', 201);
+};
+
+export const updateSettlementStatus = async (req: Request, res: Response) => {
+  const adminId = (req as any).user?.id || (req as any).user?._id;
+  const result = await AdminService.updateSettlementStatus(
+    adminId,
+    req.params.id as string,
+    req.body.status,
+    req.body.trackingCode,
+    req.body.rejectionReason
+  );
+  sendSuccess(res, result, 'Settlement updated');
+};
+
+// Comments & Reviews Moderation
+export const getComments = async (req: Request, res: Response) => {
+  const result = await AdminService.getCommentsAndReviews(req.query);
+  sendSuccess(res, result, 'Comments and reviews retrieved');
+};
+
+export const moderateComment = async (req: Request, res: Response) => {
+  const result = await AdminService.moderateComment(
+    req.params.id as string,
+    req.body.itemType,
+    req.body.status
+  );
+  sendSuccess(res, result, 'Comment status updated');
+};
+
+export const deleteComment = async (req: Request, res: Response) => {
+  const result = await AdminService.deleteComment(
+    req.params.id as string,
+    req.query.itemType as string
+  );
+  sendSuccess(res, result, 'Comment deleted');
+};
+
+// Broadcast Notifications
+export const sendBroadcastNotification = async (req: Request, res: Response) => {
+  const adminId = (req as any).user?.id || (req as any).user?._id;
+  const result = await AdminService.sendBroadcastNotification(adminId, req.body);
+  sendSuccess(res, result, 'Broadcast sent successfully');
+};
+
+// Audit Logs
+export const getAuditLogs = async (req: Request, res: Response) => {
+  const result = await AdminService.getAuditLogs(req.query);
+  sendSuccess(res, result, 'Audit logs retrieved');
+};
+
+// Security
+export const getSecurityOverview = async (req: Request, res: Response) => {
+  const result = await AdminService.getSecurityOverview();
+  sendSuccess(res, result, 'Security overview retrieved');
+};
+
+export const updateSecurityConfig = async (req: Request, res: Response) => {
+  const result = await AdminService.updateSecurityConfig(req.body);
+  sendSuccess(res, result, 'Security config updated');
+};
+

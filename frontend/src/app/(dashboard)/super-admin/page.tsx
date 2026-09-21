@@ -9,7 +9,8 @@ import {
   List, GraduationCap, Briefcase, Video, Ticket, Shield, 
   Loader2, Server, Key, TrendingUp, ShoppingBag, 
   Tag, Clock, AlertTriangle, ArrowUpRight, CheckCircle2, 
-  ExternalLink, Layers, PlusCircle, Compass
+  ExternalLink, Layers, PlusCircle, Compass,
+  Wallet, MessageCircle, Send, History, Lock, CreditCard
 } from 'lucide-react';
 import Link from 'next/link';
 import { 
@@ -416,6 +417,68 @@ export default function SuperAdminDashboard() {
         </Link>
 
       </div>
+
+      {/* Advanced Control Shortcuts */}
+      <div className="bg-white p-5 rounded-3xl border border-[var(--neo-border)] shadow-sm">
+        <div className="text-xs font-bold text-gray-400 mb-3 px-1">دسترسی مستقیم به ابزارهای نظارتی و مالی</div>
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+          <Link
+            href="/super-admin/settlements"
+            className="flex items-center gap-3 p-3.5 rounded-2xl bg-emerald-50/60 hover:bg-emerald-100/70 border border-emerald-100 transition-colors"
+          >
+            <Wallet className="w-5 h-5 text-emerald-600" />
+            <div>
+              <div className="font-bold text-xs text-emerald-950">تسویه‌حساب اساتید</div>
+              <div className="text-[10px] text-emerald-700 mt-0.5">ثبت شبا و پرداختی‌ها</div>
+            </div>
+          </Link>
+
+          <Link
+            href="/super-admin/comments"
+            className="flex items-center gap-3 p-3.5 rounded-2xl bg-blue-50/60 hover:bg-blue-100/70 border border-blue-100 transition-colors"
+          >
+            <MessageCircle className="w-5 h-5 text-blue-600" />
+            <div>
+              <div className="font-bold text-xs text-blue-950">مدیریت نظرات</div>
+              <div className="text-[10px] text-blue-700 mt-0.5">تایید و رد دیدگاه‌ها</div>
+            </div>
+          </Link>
+
+          <Link
+            href="/super-admin/broadcast"
+            className="flex items-center gap-3 p-3.5 rounded-2xl bg-purple-50/60 hover:bg-purple-100/70 border border-purple-100 transition-colors"
+          >
+            <Send className="w-5 h-5 text-purple-600" />
+            <div>
+              <div className="font-bold text-xs text-purple-950">اعلان همگانی و SMS</div>
+              <div className="text-[10px] text-purple-700 mt-0.5">کمپین و پیام سراسری</div>
+            </div>
+          </Link>
+
+          <Link
+            href="/super-admin/audit-logs"
+            className="flex items-center gap-3 p-3.5 rounded-2xl bg-indigo-50/60 hover:bg-indigo-100/70 border border-indigo-100 transition-colors"
+          >
+            <History className="w-5 h-5 text-indigo-600" />
+            <div>
+              <div className="font-bold text-xs text-indigo-950">ردپای مدیران</div>
+              <div className="text-[10px] text-indigo-700 mt-0.5">لاگ‌های امنیتی سیستم</div>
+            </div>
+          </Link>
+
+          <Link
+            href="/super-admin/security"
+            className="flex items-center gap-3 p-3.5 rounded-2xl bg-red-50/60 hover:bg-red-100/70 border border-red-100 transition-colors"
+          >
+            <Lock className="w-5 h-5 text-red-600" />
+            <div>
+              <div className="font-bold text-xs text-red-950">امنیت و بلک‌لیست IP</div>
+              <div className="text-[10px] text-red-700 mt-0.5">2FA و سیاست رمز</div>
+            </div>
+          </Link>
+        </div>
+      </div>
+
 
       {/* Two-Column Macro Operations Feeds */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">

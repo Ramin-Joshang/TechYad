@@ -57,4 +57,25 @@ router.delete('/super-admin/roles/:id', isSuperAdmin, asyncHandler(Controller.de
 router.get('/super-admin/settings', isSuperAdmin, asyncHandler(Controller.getSettings));
 router.patch('/super-admin/settings', isSuperAdmin, asyncHandler(Controller.updateSettings));
 
+// Settlements & Instructor Payouts
+router.get('/admin/settlements', isAdmin, asyncHandler(Controller.getSettlements));
+router.post('/admin/settlements', isSuperAdmin, asyncHandler(Controller.createSettlement));
+router.patch('/admin/settlements/:id/status', isSuperAdmin, asyncHandler(Controller.updateSettlementStatus));
+
+// Comments & Reviews Moderation
+router.get('/admin/comments', isAdmin, asyncHandler(Controller.getComments));
+router.patch('/admin/comments/:id', isAdmin, asyncHandler(Controller.moderateComment));
+router.delete('/admin/comments/:id', isAdmin, asyncHandler(Controller.deleteComment));
+
+// Broadcast Notifications
+router.post('/super-admin/broadcast', isSuperAdmin, asyncHandler(Controller.sendBroadcastNotification));
+
+// Audit Logs
+router.get('/super-admin/audit-logs', isSuperAdmin, asyncHandler(Controller.getAuditLogs));
+
+// Security & Active Sessions
+router.get('/super-admin/security', isSuperAdmin, asyncHandler(Controller.getSecurityOverview));
+router.patch('/super-admin/security', isSuperAdmin, asyncHandler(Controller.updateSecurityConfig));
+
 export default router;
+

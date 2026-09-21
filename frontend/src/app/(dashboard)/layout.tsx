@@ -12,8 +12,8 @@ import {
   Settings, PlayCircle, BarChart, FileText, CheckSquare, MessageSquare,
   GraduationCap, CreditCard, Heart, Ticket, Bell,
   Users, DollarSign, List, Shield, Menu, X, Video, Activity,
-  Briefcase, ChevronRight, ChevronLeft
-  , ShieldAlert, Key, Tag } from 'lucide-react';
+  Briefcase, ChevronRight, ChevronLeft, ShieldAlert, Key, Tag,
+  Send, MessageCircle, History, Lock, Wallet } from 'lucide-react';
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const { user, logout } = useAuthStore();
@@ -46,16 +46,20 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         { name: 'نقش‌ها و دسترسی‌ها', href: '/super-admin/roles', icon: Key },
         { name: 'کاربران', href: '/super-admin/users', icon: Users },
         { name: 'اساتید', href: '/super-admin/instructors', icon: Briefcase },
+        { name: 'تسویه‌حساب اساتید', href: '/super-admin/settlements', icon: Wallet },
         { name: 'دوره‌ها', href: '/super-admin/courses', icon: BookOpen },
+        { name: 'مدیریت نظرات', href: '/super-admin/comments', icon: MessageCircle },
         { name: 'دسته‌بندی‌ها', href: '/super-admin/categories', icon: List },
         { name: 'کلاس‌ها', href: '/super-admin/classes', icon: Video },
         { name: 'سفارشات', href: '/super-admin/orders', icon: List },
-        
+        { name: 'تراکنش‌های مالی', href: '/super-admin/payments', icon: CreditCard },
         { name: 'کد تخفیف', href: '/super-admin/coupons', icon: Tag },
-        
+        { name: 'ارسال اعلان همگانی', href: '/super-admin/broadcast', icon: Send },
         { name: 'پشتیبانی', href: '/super-admin/tickets', icon: Ticket },
         { name: 'گزارش‌ها', href: '/super-admin/reports', icon: BarChart },
         { name: 'مدیریت وبلاگ', href: '/super-admin/blog', icon: FileText },
+        { name: 'لاگ‌های امنیتی', href: '/super-admin/audit-logs', icon: History },
+        { name: 'امنیت و کنترل دسترسی', href: '/super-admin/security', icon: Lock },
         { name: 'تنظیمات سیستم', href: '/super-admin/settings', icon: Settings },
         
         profileLink

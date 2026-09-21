@@ -4,6 +4,7 @@ import { User } from './user.model.js';
 import { Role } from './role.model.js';
 import { AppError } from '../../common/errors/AppError.js';
 import { env } from '../../config/env.js';
+import { AuditLog } from '../admin/audit-log.model.js';
 
 const signToken = (id: string) => {
   return jwt.sign({ id }, env.JWT_SECRET, {
@@ -81,6 +82,20 @@ export class AuthService {
     const refreshToken = signRefreshToken(user._id.toString());
 
     const role = user.role as any;
+
+    // Log authentication event
+    try {
+      await AuditLog.create({
+        userId: user._id,
+        userEmail: user.email,
+        userName: `${user.firstName || ''} ${user.lastName || ''}`.trim(),
+        action: 'ورود موفق به سیستم',
+        category: 'auth',
+        status: 'success'
+      });
+    } catch (e) {
+      // ignore logging error on login
+    }
 
     return {
       user: {

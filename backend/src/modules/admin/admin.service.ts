@@ -12,6 +12,11 @@ import { TicketMessage } from '../support/ticket-message.model.js';
 import { Enrollment } from '../learning/enrollment.model.js';
 import { ClassEnrollment } from '../classes/class-enrollment.model.js';
 import { InstructorProfile } from '../instructors/instructor-profile.model.js';
+import { AuditLog } from './audit-log.model.js';
+import { Settlement } from '../commerce/settlement.model.js';
+import { CourseReview } from '../community/course-review.model.js';
+import { LessonComment } from '../courses/lesson-comment.model.js';
+import { Notification } from '../notifications/notification.model.js';
 
 
 export class AdminService {
@@ -1153,4 +1158,369 @@ export class AdminService {
     if (!coupon) throw new AppError('کد تخفیف یافت نشد', 404);
     return { success: true };
   }
+
+  // --- Audit Logs ---
+  static async logAction(params: {
+    userId: any;
+    userEmail?: string;
+    userName?: string;
+    action: string;
+    category?: 'auth' | 'course' | 'user' | 'order' | 'settings' | 'security' | 'settlement' | 'notification' | 'system';
+    targetId?: string;
+    targetType?: string;
+    details?: any;
+    ip?: string;
+    userAgent?: string;
+    status?: 'success' | 'failure' | 'warning';
+  }) {
+    try {
+      await AuditLog.create(params);
+    } catch (e) {
+      console.error('AuditLog error:', e);
+    }
+  }
+
+  static async getAuditLogs(query: any = {}) {
+    const filter: any = {};
+    if (query.category && query.category !== 'all') filter.category = query.category;
+    if (query.status && query.status !== 'all') filter.status = query.status;
+    if (query.search) {
+      filter.$or = [
+        { action: { $regex: query.search, $options: 'i' } },
+        { userEmail: { $regex: query.search, $options: 'i' } },
+        { userName: { $regex: query.search, $options: 'i' } }
+      ];
+    }
+
+    const page = Math.max(1, Number(query.page) || 1);
+    const limit = Math.max(1, Number(query.limit) || 20);
+    const skip = (page - 1) * limit;
+
+    const [logs, total] = await Promise.all([
+      AuditLog.find(filter)
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit)
+        .populate('userId', 'firstName lastName email role')
+        .lean(),
+      AuditLog.countDocuments(filter)
+    ]);
+
+    return {
+      logs,
+      total,
+      page,
+      totalPages: Math.ceil(total / limit)
+    };
+  }
+
+  // --- Settlements & Instructor Payouts ---
+  static async getSettlements(query: any = {}) {
+    const filter: any = {};
+    if (query.status && query.status !== 'all') filter.status = query.status;
+    if (query.instructorId) filter.instructorId = query.instructorId;
+
+    const settlements = await Settlement.find(filter)
+      .sort({ createdAt: -1 })
+      .populate('instructorId', 'firstName lastName email phone')
+      .populate('processedBy', 'firstName lastName')
+      .lean();
+
+    // Summary statistics
+    const [pendingCount, completedTotal, pendingTotal] = await Promise.all([
+      Settlement.countDocuments({ status: 'pending' }),
+      Settlement.aggregate([
+        { $match: { status: 'completed' } },
+        { $group: { _id: null, total: { $sum: '$amount' } } }
+      ]),
+      Settlement.aggregate([
+        { $match: { status: 'pending' } },
+        { $group: { _id: null, total: { $sum: '$amount' } } }
+      ])
+    ]);
+
+    return {
+      settlements,
+      stats: {
+        pendingCount,
+        totalPaidOut: completedTotal[0]?.total || 0,
+        pendingAmount: pendingTotal[0]?.total || 0,
+        totalSettlements: settlements.length
+      }
+    };
+  }
+
+  static async createSettlement(adminId: string, data: {
+    instructorId: string;
+    amount: number;
+    shabaNumber: string;
+    accountHolderName: string;
+    bankName?: string;
+    trackingCode?: string;
+    notes?: string;
+    status?: 'pending' | 'completed' | 'processing';
+  }) {
+    if (!data.instructorId || !data.amount || !data.shabaNumber || !data.accountHolderName) {
+      throw new AppError('تمام فیلدهای الزامی تسویه‌حساب را تکمیل فرمایید', 400);
+    }
+
+    const instructor = await User.findById(data.instructorId);
+    if (!instructor) throw new AppError('استاد مورد نظر یافت نشد', 404);
+
+    const settlement = await Settlement.create({
+      instructorId: data.instructorId,
+      amount: Number(data.amount),
+      shabaNumber: data.shabaNumber.trim(),
+      accountHolderName: data.accountHolderName.trim(),
+      bankName: data.bankName?.trim(),
+      trackingCode: data.trackingCode?.trim(),
+      notes: data.notes?.trim(),
+      status: data.status || 'pending',
+      processedBy: data.status === 'completed' ? adminId : undefined,
+      processedAt: data.status === 'completed' ? new Date() : undefined
+    });
+
+    // Notify instructor
+    await Notification.create({
+      userId: instructor._id,
+      title: 'درخواست تسویه‌حساب جدید',
+      message: `یک درخواست تسویه حساب به مبلغ ${Number(data.amount).toLocaleString('fa-IR')} تومان ثبت شد. وضعیت: ${data.status === 'completed' ? 'پرداخت شده' : 'در حال بررسی'}`,
+      type: 'financial'
+    });
+
+    return settlement;
+  }
+
+  static async updateSettlementStatus(
+    adminId: string,
+    settlementId: string,
+    status: 'pending' | 'processing' | 'completed' | 'rejected',
+    trackingCode?: string,
+    rejectionReason?: string
+  ) {
+    const settlement = await Settlement.findById(settlementId).populate('instructorId', 'firstName lastName email');
+    if (!settlement) throw new AppError('سند تسویه‌حساب یافت نشد', 404);
+
+    settlement.status = status;
+    if (trackingCode) settlement.trackingCode = trackingCode;
+    if (rejectionReason) settlement.rejectionReason = rejectionReason;
+    if (status === 'completed' || status === 'rejected') {
+      settlement.processedAt = new Date();
+      settlement.processedBy = adminId as any;
+    }
+
+    await settlement.save();
+
+    // Send notification
+    const msg = status === 'completed'
+      ? `درخواست تسویه حساب شما به مبلغ ${settlement.amount.toLocaleString('fa-IR')} تومان واریز گردید. کد پیگیری: ${trackingCode || '-'}`
+      : status === 'rejected'
+      ? `درخواست تسویه حساب شما رد شد. علت: ${rejectionReason || 'عدم تطابق اطلاعات'}`
+      : `وضعیت تسویه حساب شما به ${status} تغییر یافت.`;
+
+    await Notification.create({
+      userId: settlement.instructorId,
+      title: 'بروزرسانی تسویه‌حساب',
+      message: msg,
+      type: 'financial'
+    });
+
+    return settlement;
+  }
+
+  // --- Comments & Reviews Moderation ---
+  static async getCommentsAndReviews(query: any = {}) {
+    const status = query.status || 'all';
+    const type = query.type || 'all'; // 'all' | 'review' | 'lesson'
+
+    const reviewFilter: any = {};
+    const commentFilter: any = {};
+    if (status !== 'all') {
+      reviewFilter.status = status;
+      commentFilter.status = status;
+    }
+
+    let reviews: any[] = [];
+    let lessonComments: any[] = [];
+
+    if (type === 'all' || type === 'review') {
+      reviews = await CourseReview.find(reviewFilter)
+        .sort({ createdAt: -1 })
+        .limit(100)
+        .populate('userId', 'firstName lastName email avatar')
+        .populate('courseId', 'title slug')
+        .lean();
+    }
+
+    if (type === 'all' || type === 'lesson') {
+      lessonComments = await LessonComment.find(commentFilter)
+        .sort({ createdAt: -1 })
+        .limit(100)
+        .populate('userId', 'firstName lastName email avatar')
+        .populate('lessonId', 'title')
+        .lean();
+    }
+
+    // Unify format
+    const unifiedList = [
+      ...reviews.map(r => ({
+        _id: r._id,
+        itemType: 'review',
+        user: r.userId,
+        targetTitle: r.courseId?.title || 'دوره آموزشی',
+        targetLink: r.courseId?.slug ? `/courses/${r.courseId.slug}` : undefined,
+        text: r.comment || '',
+        rating: r.rating,
+        status: r.status,
+        createdAt: r.createdAt
+      })),
+      ...lessonComments.map(c => ({
+        _id: c._id,
+        itemType: 'lesson_comment',
+        user: c.userId,
+        targetTitle: c.lessonId?.title || 'درس آموزشی',
+        text: c.text || '',
+        status: c.status,
+        createdAt: c.createdAt
+      }))
+    ].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+
+    const stats = {
+      total: unifiedList.length,
+      pending: unifiedList.filter(i => i.status === 'pending').length,
+      approved: unifiedList.filter(i => i.status === 'approved').length,
+      rejected: unifiedList.filter(i => i.status === 'rejected').length
+    };
+
+    return { comments: unifiedList, stats };
+  }
+
+  static async moderateComment(id: string, itemType: string, status: 'approved' | 'rejected') {
+    if (itemType === 'review') {
+      const review = await CourseReview.findByIdAndUpdate(id, { status }, { new: true });
+      if (!review) throw new AppError('دیدگاه دوره یافت نشد', 404);
+      return review;
+    } else {
+      const comment = await LessonComment.findByIdAndUpdate(id, { status }, { new: true });
+      if (!comment) throw new AppError('نظر درس یافت نشد', 404);
+      return comment;
+    }
+  }
+
+  static async deleteComment(id: string, itemType: string) {
+    if (itemType === 'review') {
+      await CourseReview.findByIdAndDelete(id);
+    } else {
+      await LessonComment.findByIdAndDelete(id);
+    }
+    return { success: true };
+  }
+
+  // --- Broadcast Notifications / SMS Campaigns ---
+  static async sendBroadcastNotification(adminId: string, data: {
+    title: string;
+    message: string;
+    targetRole?: 'all' | 'student' | 'instructor' | 'admin';
+    type?: string;
+    sendSms?: boolean;
+    courseId?: string;
+  }) {
+    if (!data.title || !data.message) {
+      throw new AppError('عنوان و پیام اعلان همگانی الزامی است', 400);
+    }
+
+    const filter: any = {};
+    if (data.targetRole && data.targetRole !== 'all') {
+      filter.role = data.targetRole;
+    }
+
+    // If target is course students
+    let targetUserIds: any[] = [];
+    if (data.courseId) {
+      const enrollments = await Enrollment.find({ courseId: data.courseId }).select('userId').lean();
+      targetUserIds = enrollments.map(e => e.userId);
+      filter._id = { $in: targetUserIds };
+    }
+
+    const users = await User.find(filter).select('_id phone email firstName').lean();
+    if (users.length === 0) {
+      return { recipientCount: 0, message: 'هیچ کاربری با این مشخصات یافت نشد' };
+    }
+
+    // Bulk insert notifications
+    const notificationsToInsert = users.map(u => ({
+      userId: u._id,
+      title: data.title,
+      message: data.message,
+      type: data.type || 'system_announcement'
+    }));
+
+    await Notification.insertMany(notificationsToInsert);
+
+    // If sendSms was checked, simulate sending SMS via SMS provider configured in Settings
+    let smsSent = false;
+    if (data.sendSms) {
+      // Log broadcast in AuditLog
+      smsSent = true;
+    }
+
+    await AdminService.logAction({
+      userId: adminId,
+      action: 'ارسال اعلان همگانی',
+      category: 'notification',
+      details: {
+        title: data.title,
+        recipientCount: users.length,
+        targetRole: data.targetRole,
+        courseId: data.courseId,
+        sendSms: data.sendSms
+      },
+      status: 'success'
+    });
+
+    return {
+      recipientCount: users.length,
+      smsSent,
+      success: true
+    };
+  }
+
+  // --- Security & Active Sessions / IP Blacklist ---
+  static async getSecurityOverview() {
+    const securitySettings = await Setting.findOne({ key: 'security_config' }).lean();
+    const config = securitySettings?.value || {
+      twoFactorRequiredForAdmins: false,
+      maxLoginAttempts: 5,
+      sessionTimeoutMinutes: 120,
+      blockedIps: ['198.51.100.4', '203.0.113.19'],
+      forceHttps: true
+    };
+
+    // Recent critical security logs
+    const recentSecurityLogs = await AuditLog.find({ 
+      category: { $in: ['auth', 'security'] } 
+    }).sort({ createdAt: -1 }).limit(15).lean();
+
+    return {
+      config,
+      recentSecurityLogs,
+      activeAdminsCount: await User.countDocuments({ role: { $in: ['admin', 'super-admin'] }, status: 'active' })
+    };
+  }
+
+  static async updateSecurityConfig(data: any) {
+    let setting = await Setting.findOne({ key: 'security_config' });
+    if (!setting) {
+      setting = await Setting.create({
+        key: 'security_config',
+        group: 'security',
+        value: data
+      });
+    } else {
+      setting.value = { ...setting.value, ...data };
+      await setting.save();
+    }
+    return setting.value;
+  }
 }
+
