@@ -19,8 +19,25 @@ router.patch('/admin/users/:id/status', isAdmin, asyncHandler(Controller.updateU
 // Coupons
 router.post('/admin/coupons', isAdmin, asyncHandler(Controller.createCoupon));
 router.get('/admin/coupons', isAdmin, asyncHandler(Controller.getCoupons));
+router.patch('/admin/coupons/:id', isAdmin, asyncHandler(Controller.updateCoupon));
+router.patch('/admin/coupons/:id/toggle', isAdmin, asyncHandler(Controller.toggleCouponStatus));
 router.delete('/admin/coupons/:id', isAdmin, asyncHandler(Controller.deleteCoupon));
 
+// Orders
+router.get('/admin/orders', isAdmin, asyncHandler(Controller.getOrders));
+router.get('/admin/orders/:id', isAdmin, asyncHandler(Controller.getOrderById));
+router.patch('/admin/orders/:id/status', isAdmin, asyncHandler(Controller.updateOrderStatus));
+
+// Tickets & Support
+router.get('/admin/tickets', isAdmin, asyncHandler(Controller.getTickets));
+router.get('/admin/tickets/:id', isAdmin, asyncHandler(Controller.getTicketDetails));
+router.post('/admin/tickets/:id/reply', isAdmin, asyncHandler(Controller.replyToTicket));
+router.patch('/admin/tickets/:id/status', isAdmin, asyncHandler(Controller.updateTicketStatus));
+
+// Classes & Financial Reports
+router.get('/admin/classes', isAdmin, asyncHandler(Controller.getClasses));
+router.get('/admin/revenue', isAdmin, asyncHandler(Controller.getRevenueStats));
+router.get('/admin/reports/analytics', isAdmin, asyncHandler(Controller.getComprehensiveReports));
 
 // Super Admin Specific Routes
 const isSuperAdmin = [requireAuth, authorize('super_admin.access')];
@@ -36,16 +53,8 @@ router.post('/super-admin/roles', isSuperAdmin, asyncHandler(Controller.createRo
 router.patch('/super-admin/roles/:id', isSuperAdmin, asyncHandler(Controller.updateRole));
 router.delete('/super-admin/roles/:id', isSuperAdmin, asyncHandler(Controller.deleteRole));
 
-
 // Global Settings
 router.get('/super-admin/settings', isSuperAdmin, asyncHandler(Controller.getSettings));
 router.patch('/super-admin/settings', isSuperAdmin, asyncHandler(Controller.updateSettings));
 
 export default router;
-
-// Extra Admin Routes
-router.get('/admin/orders', isAdmin, asyncHandler(Controller.getOrders));
-router.get('/admin/tickets', isAdmin, asyncHandler(Controller.getTickets));
-router.patch('/admin/tickets/:id/status', isAdmin, asyncHandler(Controller.updateTicketStatus));
-router.get('/admin/classes', isAdmin, asyncHandler(Controller.getClasses));
-router.get('/admin/revenue', isAdmin, asyncHandler(Controller.getRevenueStats));

@@ -8,7 +8,9 @@ import { AppError } from '../../common/errors/AppError.js';
 import { Role } from '../auth/role.model.js';
 import { Class } from '../classes/class.model.js';
 import { Ticket } from '../support/ticket.model.js';
+import { TicketMessage } from '../support/ticket-message.model.js';
 import { Enrollment } from '../learning/enrollment.model.js';
+import { ClassEnrollment } from '../classes/class-enrollment.model.js';
 import { InstructorProfile } from '../instructors/instructor-profile.model.js';
 
 
@@ -38,17 +40,15 @@ export class AdminService {
   }
   
   static async getDashboardStats() {
-    
-    
-    
-
     const totalUsers = await User.countDocuments();
     const totalCourses = await Course.countDocuments();
     const publishedCourses = await Course.countDocuments({ status: 'published' });
     const pendingCourses = await Course.countDocuments({ status: 'pending_review' });
+    const draftCourses = await Course.countDocuments({ status: 'draft' });
     const activeOrders = await Order.countDocuments({ status: 'paid' });
+    const totalOrders = await Order.countDocuments();
     
-    // Students vs Instructors
+    // Roles breakdown
     const studentRole = await Role.findOne({ slug: 'student' });
     const instructorRole = await Role.findOne({ slug: 'instructor' });
     const adminRole = await Role.findOne({ slug: 'admin' });
@@ -58,24 +58,116 @@ export class AdminService {
     const admins = (adminRole ? await User.countDocuments({ role: adminRole._id }) : 0) + (superAdminRole ? await User.countDocuments({ role: superAdminRole._id }) : 0);
 
     const classes = await Class.countDocuments({ status: 'published' });
-    const tickets = await Ticket.countDocuments({ status: 'open' });
+    const totalClasses = await Class.countDocuments();
     
-    // Calculate total revenue from paid orders
-    const orders = await Order.find({ status: 'paid' });
-    const totalRevenue = orders.reduce((acc, curr) => acc + curr.totalAmount, 0);
+    // Tickets stats
+    const openTickets = await Ticket.countDocuments({ status: 'open' });
+    const inProgressTickets = await Ticket.countDocuments({ status: 'in_progress' });
+    const answeredTickets = await Ticket.countDocuments({ status: 'answered' });
+    const closedTickets = await Ticket.countDocuments({ status: 'closed' });
+    const totalTickets = await Ticket.countDocuments();
+
+    // Coupons
+    const activeCoupons = await Coupon.countDocuments({ isActive: true });
+    const totalCoupons = await Coupon.countDocuments();
+    
+    // Revenue calculations
+    const paidOrders = await Order.find({ status: 'paid' }).lean();
+    const totalRevenue = paidOrders.reduce((acc, curr) => acc + (curr.totalAmount || 0), 0);
+    
+    const now = new Date();
+    const startOfThisMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+    const thisMonthRevenue = paidOrders
+      .filter(o => new Date(o.createdAt as any) >= startOfThisMonth)
+      .reduce((acc, curr) => acc + (curr.totalAmount || 0), 0);
+
+    const todayRevenue = paidOrders
+      .filter(o => new Date(o.createdAt as any) >= startOfToday)
+      .reduce((acc, curr) => acc + (curr.totalAmount || 0), 0);
+
+    const averageOrderValue = activeOrders > 0 ? Math.round(totalRevenue / activeOrders) : 0;
+
+    // Conversion rate: distinct paying users / total users
+    const uniquePayingUsers = new Set(paidOrders.map(o => o.userId?.toString())).size;
+    const conversionRate = totalUsers > 0 ? Number(((uniquePayingUsers / totalUsers) * 100).toFixed(1)) : 0;
+
+    // Recent orders (last 6)
+    const recentOrders = await Order.find()
+      .populate('userId', 'firstName lastName email avatar')
+      .sort({ createdAt: -1 })
+      .limit(6)
+      .lean();
+
+    // Recent open/in-progress tickets (last 6)
+    const recentTickets = await Ticket.find()
+      .populate('userId', 'firstName lastName email avatar')
+      .sort({ createdAt: -1 })
+      .limit(6)
+      .lean();
+
+    // Top courses by enrollment
+    const topCoursesAgg = await Enrollment.aggregate([
+      { $group: { _id: '$courseId', studentCount: { $sum: 1 }, totalRevenue: { $sum: '$amount' } } },
+      { $sort: { studentCount: -1 } },
+      { $limit: 5 }
+    ]);
+    const topCourses = await Promise.all(topCoursesAgg.map(async (item) => {
+      const course = await Course.findById(item._id).select('title slug thumbnail price').lean();
+      return {
+        ...course,
+        studentCount: item.studentCount,
+        revenue: item.totalRevenue
+      };
+    }));
+
+    // Monthly chart data (last 12 months)
+    const monthNames = ['فروردین', 'اردیبهشت', 'خرداد', 'تیر', 'مرداد', 'شهریور', 'مهر', 'آبان', 'آذر', 'دی', 'بهمن', 'اسفند'];
+    const currentYear = now.getFullYear();
+    const monthlyRevenue = monthNames.map((name, idx) => {
+      const monthOrders = paidOrders.filter(o => {
+        const d = new Date(o.createdAt as any);
+        return d.getFullYear() === currentYear && d.getMonth() === idx;
+      });
+      return {
+        name,
+        revenue: monthOrders.reduce((acc, curr) => acc + (curr.totalAmount || 0), 0),
+        orders: monthOrders.length
+      };
+    });
 
     return {
       totalUsers,
       totalCourses,
       publishedCourses,
       pendingCourses,
+      draftCourses,
       activeOrders,
+      totalOrders,
       totalRevenue,
+      thisMonthRevenue,
+      todayRevenue,
+      averageOrderValue,
+      conversionRate,
+      uniquePayingUsers,
       students,
       instructors,
       classes,
-      tickets,
-      admins
+      totalClasses,
+      tickets: openTickets + inProgressTickets,
+      openTickets,
+      inProgressTickets,
+      answeredTickets,
+      closedTickets,
+      totalTickets,
+      admins,
+      activeCoupons,
+      totalCoupons,
+      recentOrders,
+      recentTickets,
+      topCourses: topCourses.filter(Boolean),
+      monthlyRevenue
     };
   }
 
@@ -284,31 +376,270 @@ export class AdminService {
 
   
   static async getOrders(query: any) {
-    const page = parseInt(query.page) || 1;
-    const limit = parseInt(query.limit) || 20;
+    const page = Math.max(1, parseInt(query.page) || 1);
+    const limit = Math.min(100, Math.max(1, parseInt(query.limit) || 20));
     const skip = (page - 1) * limit;
-    const orders = await Order.find().populate('userId', 'firstName lastName email').sort({ createdAt: -1 }).skip(skip).limit(limit);
-    const total = await Order.countDocuments();
-    return { orders, total, page, pages: Math.ceil(total / limit) };
+
+    const filter: any = {};
+    if (query.status && query.status !== 'all') {
+      filter.status = query.status;
+    }
+
+    if (query.search && query.search.trim()) {
+      const search = query.search.trim();
+      const users = await User.find({
+        $or: [
+          { firstName: { $regex: search, $options: 'i' } },
+          { lastName: { $regex: search, $options: 'i' } },
+          { email: { $regex: search, $options: 'i' } },
+          { mobile: { $regex: search, $options: 'i' } }
+        ]
+      }).select('_id');
+      const userIds = users.map(u => u._id);
+
+      const orConditions: any[] = [{ userId: { $in: userIds } }];
+      if (search.length === 24 && /^[0-9a-fA-F]{24}$/.test(search)) {
+        orConditions.push({ _id: search });
+      }
+      filter.$or = orConditions;
+    }
+
+    const [orders, total, allPaidOrders, allOrdersCount, pendingCount, refundedCount, failedCount] = await Promise.all([
+      Order.find(filter)
+        .populate('userId', 'firstName lastName email mobile avatar')
+        .populate('couponId', 'code value type')
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit)
+        .lean(),
+      Order.countDocuments(filter),
+      Order.find({ status: 'paid' }).select('totalAmount').lean(),
+      Order.countDocuments(),
+      Order.countDocuments({ status: 'pending' }),
+      Order.countDocuments({ status: 'refunded' }),
+      Order.countDocuments({ status: 'failed' })
+    ]);
+
+    const totalRevenue = allPaidOrders.reduce((acc, curr) => acc + (curr.totalAmount || 0), 0);
+    const paidCount = allPaidOrders.length;
+    const averageOrderValue = paidCount > 0 ? Math.round(totalRevenue / paidCount) : 0;
+
+    return {
+      orders,
+      total,
+      page,
+      pages: Math.ceil(total / limit) || 1,
+      stats: {
+        totalRevenue,
+        totalOrders: allOrdersCount,
+        paidCount,
+        pendingCount,
+        refundedCount,
+        failedCount,
+        averageOrderValue
+      }
+    };
+  }
+
+  static async getOrderById(id: string) {
+    const order = await Order.findById(id)
+      .populate('userId', 'firstName lastName email mobile avatar role')
+      .populate('couponId', 'code value type minOrderAmount')
+      .lean();
+    if (!order) throw new AppError('سفارش یافت نشد', 404);
+
+    const [courseEnrollments, classEnrollments] = await Promise.all([
+      Enrollment.find({ orderId: id }).populate('courseId', 'title slug thumbnail').lean(),
+      ClassEnrollment.find({ orderId: id }).populate('classId', 'title slug thumbnail').lean()
+    ]);
+
+    return {
+      order,
+      enrollments: {
+        courses: courseEnrollments,
+        classes: classEnrollments
+      }
+    };
+  }
+
+  static async updateOrderStatus(orderId: string, status: 'pending' | 'paid' | 'failed' | 'refunded') {
+    const validStatuses = ['pending', 'paid', 'failed', 'refunded'];
+    if (!validStatuses.includes(status)) {
+      throw new AppError('وضعیت سفارش نامعتبر است', 400);
+    }
+
+    const order = await Order.findById(orderId);
+    if (!order) throw new AppError('سفارش یافت نشد', 404);
+
+    const previousStatus = order.status;
+    order.status = status;
+    await order.save();
+
+    // If order was marked as paid, auto-enroll user in all items
+    if (status === 'paid' && previousStatus !== 'paid') {
+      for (const item of order.items) {
+        if (item.itemType === 'course') {
+          await Enrollment.findOneAndUpdate(
+            { userId: order.userId, courseId: item.itemId },
+            {
+              orderId: order._id,
+              source: 'purchase',
+              status: 'active',
+              amount: item.finalPrice,
+              enrolledAt: new Date()
+            },
+            { upsert: true, new: true }
+          );
+        } else if (item.itemType === 'class') {
+          await ClassEnrollment.findOneAndUpdate(
+            { userId: order.userId, classId: item.itemId },
+            {
+              orderId: order._id,
+              status: 'active',
+              amount: item.finalPrice,
+              enrolledAt: new Date()
+            },
+            { upsert: true, new: true }
+          );
+        }
+      }
+    } else if (status === 'refunded') {
+      await Promise.all([
+        Enrollment.updateMany({ orderId: order._id }, { status: 'cancelled' }),
+        ClassEnrollment.updateMany({ orderId: order._id }, { status: 'cancelled' })
+      ]);
+    }
+
+    return await Order.findById(orderId)
+      .populate('userId', 'firstName lastName email mobile')
+      .populate('couponId', 'code value type');
   }
 
   static async getTickets(query: any) {
-    
-    const page = parseInt(query.page) || 1;
-    const limit = parseInt(query.limit) || 20;
+    const page = Math.max(1, parseInt(query.page) || 1);
+    const limit = Math.min(100, Math.max(1, parseInt(query.limit) || 20));
     const skip = (page - 1) * limit;
-    const tickets = await Ticket.find().populate('userId', 'firstName lastName email').sort({ createdAt: -1 }).skip(skip).limit(limit);
-    const total = await Ticket.countDocuments();
-    return { tickets, total, page, pages: Math.ceil(total / limit) };
+
+    const filter: any = {};
+    if (query.status && query.status !== 'all') {
+      filter.status = query.status;
+    }
+    if (query.priority && query.priority !== 'all') {
+      filter.priority = query.priority;
+    }
+
+    if (query.search && query.search.trim()) {
+      const search = query.search.trim();
+      const users = await User.find({
+        $or: [
+          { firstName: { $regex: search, $options: 'i' } },
+          { lastName: { $regex: search, $options: 'i' } },
+          { email: { $regex: search, $options: 'i' } }
+        ]
+      }).select('_id');
+      const userIds = users.map(u => u._id);
+
+      filter.$or = [
+        { subject: { $regex: search, $options: 'i' } },
+        { userId: { $in: userIds } }
+      ];
+    }
+
+    const [tickets, total, openCount, inProgressCount, answeredCount, closedCount] = await Promise.all([
+      Ticket.find(filter)
+        .populate('userId', 'firstName lastName email avatar role')
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit)
+        .lean(),
+      Ticket.countDocuments(filter),
+      Ticket.countDocuments({ status: 'open' }),
+      Ticket.countDocuments({ status: 'in_progress' }),
+      Ticket.countDocuments({ status: 'answered' }),
+      Ticket.countDocuments({ status: 'closed' })
+    ]);
+
+    const enrichedTickets = await Promise.all(tickets.map(async (t) => {
+      const lastMessage = await TicketMessage.findOne({ ticketId: t._id })
+        .sort({ createdAt: -1 })
+        .populate('senderId', 'firstName lastName role')
+        .lean();
+      const messagesCount = await TicketMessage.countDocuments({ ticketId: t._id });
+      return {
+        ...t,
+        lastMessage,
+        messagesCount
+      };
+    }));
+
+    return {
+      tickets: enrichedTickets,
+      total,
+      page,
+      pages: Math.ceil(total / limit) || 1,
+      stats: {
+        total: await Ticket.countDocuments(),
+        open: openCount,
+        inProgress: inProgressCount,
+        answered: answeredCount,
+        closed: closedCount
+      }
+    };
   }
-  
-  static async updateTicketStatus(ticketId: string, status: string) {
-    
-    return await Ticket.findByIdAndUpdate(ticketId, { status }, { new: true });
+
+  static async getTicketDetails(ticketId: string) {
+    const ticket = await Ticket.findById(ticketId)
+      .populate('userId', 'firstName lastName email mobile avatar role')
+      .lean();
+    if (!ticket) throw new AppError('تیکت یافت نشد', 404);
+
+    const messages = await TicketMessage.find({ ticketId })
+      .populate('senderId', 'firstName lastName role avatar')
+      .sort({ createdAt: 1 })
+      .lean();
+
+    return { ticket, messages };
+  }
+
+  static async adminReplyToTicket(adminId: string, ticketId: string, message: string, status?: string) {
+    if (!message || !message.trim()) {
+      throw new AppError('متن پاسخ نمی‌تواند خالی باشد', 400);
+    }
+
+    const ticket = await Ticket.findById(ticketId);
+    if (!ticket) throw new AppError('تیکت یافت نشد', 404);
+
+    const newMessage = await TicketMessage.create({
+      ticketId: ticket._id,
+      senderId: adminId,
+      message: message.trim()
+    });
+
+    ticket.status = (status as any) || 'answered';
+    await ticket.save();
+
+    const populatedMessage = await TicketMessage.findById(newMessage._id)
+      .populate('senderId', 'firstName lastName role avatar')
+      .lean();
+
+    return {
+      ticket,
+      message: populatedMessage
+    };
+  }
+
+  static async updateTicketStatus(ticketId: string, status: string, priority?: string) {
+    const update: any = {};
+    if (status) update.status = status;
+    if (priority) update.priority = priority;
+
+    const updated = await Ticket.findByIdAndUpdate(ticketId, update, { new: true })
+      .populate('userId', 'firstName lastName email avatar');
+    if (!updated) throw new AppError('تیکت یافت نشد', 404);
+    return updated;
   }
 
   static async getClasses(query: any) {
-    
     const page = parseInt(query.page) || 1;
     const limit = parseInt(query.limit) || 20;
     const skip = (page - 1) * limit;
@@ -324,18 +655,14 @@ export class AdminService {
       .filter(o => new Date((o as any).createdAt).getMonth() === new Date().getMonth())
       .reduce((acc, curr) => acc + curr.totalAmount, 0);
       
-    // Create monthly data for the chart
     const monthNames = ['فروردین', 'اردیبهشت', 'خرداد', 'تیر', 'مرداد', 'شهریور', 'مهر', 'آبان', 'آذر', 'دی', 'بهمن', 'اسفند'];
     const monthlyData = monthNames.map(name => ({ name, revenue: 0 }));
     
-    // Simply group by JS getMonth() for current year
     const currentYear = new Date().getFullYear();
     orders.forEach(o => {
       const date = new Date((o as any).createdAt);
       if (date.getFullYear() === currentYear) {
-         // rough map to jalali month, for demo purposes we just use index 0-11
-         // A better way is relying on actual jalali conversion, but let's keep it simple mapping
-         const monthIndex = date.getMonth(); // 0-11
+         const monthIndex = date.getMonth();
          if (monthlyData[monthIndex]) {
             monthlyData[monthIndex].revenue += o.totalAmount;
          }
@@ -345,9 +672,165 @@ export class AdminService {
     return { totalRevenue, thisMonthRevenue, ordersCount: orders.length, chartData: monthlyData };
   }
 
-  // --- Coupons ---
-  static async createCoupon(data: any) {
-    return await Coupon.create(data);
+  static async getComprehensiveReports(query?: any) {
+    const paidOrders = await Order.find({ status: 'paid' }).lean();
+    const allOrders = await Order.find().lean();
+    const totalUsers = await User.countDocuments();
+    const now = new Date();
+
+    const totalRevenue = paidOrders.reduce((acc, curr) => acc + (curr.totalAmount || 0), 0);
+    
+    const startOfThisMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    const startOfLastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+    const endOfLastMonth = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59);
+
+    const thisMonthRevenue = paidOrders
+      .filter(o => new Date(o.createdAt as any) >= startOfThisMonth)
+      .reduce((acc, curr) => acc + (curr.totalAmount || 0), 0);
+
+    const lastMonthRevenue = paidOrders
+      .filter(o => {
+        const d = new Date(o.createdAt as any);
+        return d >= startOfLastMonth && d <= endOfLastMonth;
+      })
+      .reduce((acc, curr) => acc + (curr.totalAmount || 0), 0);
+
+    const revenueGrowth = lastMonthRevenue > 0
+      ? Number((((thisMonthRevenue - lastMonthRevenue) / lastMonthRevenue) * 100).toFixed(1))
+      : 100;
+
+    const monthNames = ['فروردین', 'اردیبهشت', 'خرداد', 'تیر', 'مرداد', 'شهریور', 'مهر', 'آبان', 'آذر', 'دی', 'بهمن', 'اسفند'];
+    const currentYear = now.getFullYear();
+    const monthlyRevenue = monthNames.map((name, idx) => {
+      const monthOrders = paidOrders.filter(o => {
+        const d = new Date(o.createdAt as any);
+        return d.getFullYear() === currentYear && d.getMonth() === idx;
+      });
+      return {
+        name,
+        revenue: monthOrders.reduce((acc, curr) => acc + (curr.totalAmount || 0), 0),
+        orders: monthOrders.length
+      };
+    });
+
+    const last30Days: any[] = [];
+    for (let i = 29; i >= 0; i--) {
+      const dayDate = new Date(now);
+      dayDate.setDate(now.getDate() - i);
+      dayDate.setHours(0, 0, 0, 0);
+      const nextDay = new Date(dayDate);
+      nextDay.setDate(dayDate.getDate() + 1);
+
+      const dayOrders = paidOrders.filter(o => {
+        const d = new Date(o.createdAt as any);
+        return d >= dayDate && d < nextDay;
+      });
+
+      last30Days.push({
+        date: `${dayDate.getMonth() + 1}/${dayDate.getDate()}`,
+        revenue: dayOrders.reduce((acc, curr) => acc + (curr.totalAmount || 0), 0),
+        orders: dayOrders.length
+      });
+    }
+
+    let coursesRevenue = 0;
+    let coursesSalesCount = 0;
+    let classesRevenue = 0;
+    let classesSalesCount = 0;
+
+    paidOrders.forEach(o => {
+      (o.items || []).forEach(item => {
+        if (item.itemType === 'course') {
+          coursesRevenue += item.finalPrice || 0;
+          coursesSalesCount++;
+        } else if (item.itemType === 'class') {
+          classesRevenue += item.finalPrice || 0;
+          classesSalesCount++;
+        }
+      });
+    });
+
+    const courseSalesMap: Record<string, { title: string; count: number; revenue: number; thumbnail?: string }> = {};
+    const classSalesMap: Record<string, { title: string; count: number; revenue: number }> = {};
+
+    paidOrders.forEach(o => {
+      (o.items || []).forEach(item => {
+        const idStr = item.itemId?.toString();
+        if (item.itemType === 'course') {
+          if (!courseSalesMap[idStr]) {
+            courseSalesMap[idStr] = { title: item.titleSnapshot, count: 0, revenue: 0, thumbnail: item.thumbnail };
+          }
+          courseSalesMap[idStr].count += 1;
+          courseSalesMap[idStr].revenue += item.finalPrice || 0;
+        } else if (item.itemType === 'class') {
+          if (!classSalesMap[idStr]) {
+            classSalesMap[idStr] = { title: item.titleSnapshot, count: 0, revenue: 0 };
+          }
+          classSalesMap[idStr].count += 1;
+          classSalesMap[idStr].revenue += item.finalPrice || 0;
+        }
+      });
+    });
+
+    const topCourses = Object.values(courseSalesMap)
+      .sort((a, b) => b.revenue - a.revenue)
+      .slice(0, 6);
+
+    const topClasses = Object.values(classSalesMap)
+      .sort((a, b) => b.revenue - a.revenue)
+      .slice(0, 6);
+
+    const orderStatuses = {
+      paid: allOrders.filter(o => o.status === 'paid').length,
+      pending: allOrders.filter(o => o.status === 'pending').length,
+      refunded: allOrders.filter(o => o.status === 'refunded').length,
+      failed: allOrders.filter(o => o.status === 'failed').length
+    };
+
+    const uniquePayingUsers = new Set(paidOrders.map(o => o.userId?.toString())).size;
+    const conversionRate = totalUsers > 0 ? Number(((uniquePayingUsers / totalUsers) * 100).toFixed(1)) : 0;
+    const averageOrderValue = paidOrders.length > 0 ? Math.round(totalRevenue / paidOrders.length) : 0;
+
+    const couponsUsedAgg = await Order.aggregate([
+      { $match: { couponId: { $exists: true, $ne: null }, status: 'paid' } },
+      { $group: { _id: '$couponId', usageCount: { $sum: 1 }, totalDiscount: { $sum: '$discountAmount' } } },
+      { $sort: { usageCount: -1 } },
+      { $limit: 5 }
+    ]);
+
+    const topCoupons = await Promise.all(couponsUsedAgg.map(async (c) => {
+      const couponDoc = await Coupon.findById(c._id).select('code type value').lean();
+      return {
+        ...couponDoc,
+        usageCount: c.usageCount,
+        totalDiscount: c.totalDiscount
+      };
+    }));
+
+    return {
+      summary: {
+        totalRevenue,
+        thisMonthRevenue,
+        lastMonthRevenue,
+        revenueGrowth,
+        totalOrders: allOrders.length,
+        paidOrdersCount: paidOrders.length,
+        averageOrderValue,
+        conversionRate,
+        uniquePayingUsers,
+        totalUsers
+      },
+      monthlyRevenue,
+      last30Days,
+      breakdown: {
+        courses: { revenue: coursesRevenue, sales: coursesSalesCount },
+        classes: { revenue: classesRevenue, sales: classesSalesCount }
+      },
+      topCourses,
+      topClasses,
+      orderStatuses,
+      topCoupons: topCoupons.filter(Boolean)
+    };
   }
 
   
@@ -553,11 +1036,120 @@ export class AdminService {
   }
 
   static async getCoupons() {
-    return await Coupon.find().sort({ createdAt: -1 });
+    const coupons = await Coupon.find().sort({ createdAt: -1 }).lean();
+    const enrichedCoupons = await Promise.all(coupons.map(async (c: any) => {
+      const orders = await Order.find({ couponId: c._id, status: 'paid' }).select('discountAmount').lean();
+      const ordersCount = orders.length;
+      const totalDiscountGiven = orders.reduce((acc, curr) => acc + (curr.discountAmount || 0), 0);
+      const isExpired = c.endAt ? new Date(c.endAt) < new Date() : false;
+
+      return {
+        ...c,
+        ordersCount,
+        totalDiscountGiven,
+        isExpired
+      };
+    }));
+    return enrichedCoupons;
+  }
+
+  static async createCoupon(data: any) {
+    if (!data.code || !data.code.trim()) {
+      throw new AppError('کد تخفیف الزامی است', 400);
+    }
+    const code = data.code.trim().toUpperCase();
+
+    const existing = await Coupon.findOne({ code });
+    if (existing) {
+      throw new AppError('کد تخفیف تکراری است', 400);
+    }
+
+    if (!['percentage', 'fixed'].includes(data.type)) {
+      throw new AppError('نوع تخفیف نامعتبر است', 400);
+    }
+
+    const value = Number(data.value);
+    if (isNaN(value) || value <= 0) {
+      throw new AppError('مقدار تخفیف باید عددی مثبت باشد', 400);
+    }
+
+    if (data.type === 'percentage' && value > 100) {
+      throw new AppError('درصد تخفیف نمی‌تواند بیشتر از ۱۰۰ باشد', 400);
+    }
+
+    const coupon = await Coupon.create({
+      code,
+      type: data.type,
+      value,
+      minOrderAmount: data.minOrderAmount ? Number(data.minOrderAmount) : undefined,
+      maxDiscount: data.maxDiscount ? Number(data.maxDiscount) : undefined,
+      usageLimit: data.usageLimit ? Number(data.usageLimit) : undefined,
+      perUserLimit: data.perUserLimit ? Number(data.perUserLimit) : 1,
+      startAt: data.startAt ? new Date(data.startAt) : new Date(),
+      endAt: data.endAt ? new Date(data.endAt) : undefined,
+      applicableProducts: Array.isArray(data.applicableProducts) ? data.applicableProducts : [],
+      isActive: data.isActive !== undefined ? Boolean(data.isActive) : true
+    });
+
+    return coupon;
+  }
+
+  static async updateCoupon(id: string, data: any) {
+    const coupon = await Coupon.findById(id);
+    if (!coupon) throw new AppError('کد تخفیف یافت نشد', 404);
+
+    if (data.code) {
+      const code = data.code.trim().toUpperCase();
+      const existing = await Coupon.findOne({ code, _id: { $ne: id } });
+      if (existing) {
+        throw new AppError('کد تخفیف تکراری است', 400);
+      }
+      coupon.code = code;
+    }
+
+    if (data.type) {
+      if (!['percentage', 'fixed'].includes(data.type)) {
+        throw new AppError('نوع تخفیف نامعتبر است', 400);
+      }
+      coupon.type = data.type;
+    }
+
+    if (data.value !== undefined) {
+      const value = Number(data.value);
+      if (isNaN(value) || value <= 0) {
+        throw new AppError('مقدار تخفیف باید عددی مثبت باشد', 400);
+      }
+      if (coupon.type === 'percentage' && value > 100) {
+        throw new AppError('درصد تخفیف نمی‌تواند بیشتر از ۱۰۰ باشد', 400);
+      }
+      coupon.value = value;
+    }
+
+    if (data.minOrderAmount !== undefined) coupon.minOrderAmount = data.minOrderAmount ? Number(data.minOrderAmount) : undefined;
+    if (data.maxDiscount !== undefined) coupon.maxDiscount = data.maxDiscount ? Number(data.maxDiscount) : undefined;
+    if (data.usageLimit !== undefined) coupon.usageLimit = data.usageLimit ? Number(data.usageLimit) : undefined;
+    if (data.perUserLimit !== undefined) coupon.perUserLimit = Number(data.perUserLimit) || 1;
+    if (data.startAt !== undefined) coupon.startAt = data.startAt ? new Date(data.startAt) : coupon.startAt;
+    if (data.endAt !== undefined) coupon.endAt = data.endAt ? new Date(data.endAt) : undefined;
+    if (data.applicableProducts !== undefined) coupon.applicableProducts = data.applicableProducts;
+    if (data.isActive !== undefined) coupon.isActive = Boolean(data.isActive);
+
+    await coupon.save();
+    return coupon;
+  }
+
+  static async toggleCouponStatus(id: string) {
+    const coupon = await Coupon.findById(id);
+    if (!coupon) throw new AppError('کد تخفیف یافت نشد', 404);
+
+    coupon.isActive = !coupon.isActive;
+    await coupon.save();
+    return coupon;
   }
 
   static async deleteCoupon(id: string) {
-    await Coupon.findByIdAndDelete(id);
+    const coupon = await Coupon.findByIdAndDelete(id);
+    if (!coupon) throw new AppError('کد تخفیف یافت نشد', 404);
     return { success: true };
   }
 }

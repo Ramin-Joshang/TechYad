@@ -6,6 +6,8 @@ export interface ITicket extends Document {
   category: string;
   priority: "low" | "medium" | "high";
   status: "open" | "in_progress" | "answered" | "closed";
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 const ticketSchema = new Schema<ITicket>(

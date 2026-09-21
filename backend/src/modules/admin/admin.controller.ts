@@ -37,8 +37,18 @@ export const getCoupons = async (req: Request, res: Response) => {
   sendSuccess(res, result, 'Coupons retrieved');
 };
 
+export const updateCoupon = async (req: Request, res: Response) => {
+  const result = await AdminService.updateCoupon(req.params.id as string, req.body);
+  sendSuccess(res, result, 'Coupon updated successfully');
+};
+
+export const toggleCouponStatus = async (req: Request, res: Response) => {
+  const result = await AdminService.toggleCouponStatus(req.params.id as string);
+  sendSuccess(res, result, 'Coupon status toggled');
+};
+
 export const deleteCoupon = async (req: Request, res: Response) => {
-  const result = await AdminService.deleteCoupon(((req.params.id as string) as any as string) as any as string);
+  const result = await AdminService.deleteCoupon(req.params.id as string);
   sendSuccess(res, result, 'Coupon deleted');
 };
 
@@ -46,21 +56,51 @@ export const getOrders = async (req: Request, res: Response) => {
   const result = await AdminService.getOrders(req.query);
   sendSuccess(res, result, 'Orders retrieved');
 };
+
+export const getOrderById = async (req: Request, res: Response) => {
+  const result = await AdminService.getOrderById(req.params.id as string);
+  sendSuccess(res, result, 'Order details retrieved');
+};
+
+export const updateOrderStatus = async (req: Request, res: Response) => {
+  const result = await AdminService.updateOrderStatus(req.params.id as string, req.body.status);
+  sendSuccess(res, result, 'Order status updated');
+};
+
 export const getTickets = async (req: Request, res: Response) => {
   const result = await AdminService.getTickets(req.query);
   sendSuccess(res, result, 'Tickets retrieved');
 };
+
+export const getTicketDetails = async (req: Request, res: Response) => {
+  const result = await AdminService.getTicketDetails(req.params.id as string);
+  sendSuccess(res, result, 'Ticket details retrieved');
+};
+
+export const replyToTicket = async (req: Request, res: Response) => {
+  const adminId = (req as any).user?.id || (req as any).user?._id;
+  const result = await AdminService.adminReplyToTicket(adminId, req.params.id as string, req.body.message, req.body.status);
+  sendSuccess(res, result, 'Reply sent successfully');
+};
+
 export const updateTicketStatus = async (req: Request, res: Response) => {
-  const result = await AdminService.updateTicketStatus(((req.params.id as string) as any as string) as any as string, req.body.status);
+  const result = await AdminService.updateTicketStatus(req.params.id as string, req.body.status, req.body.priority);
   sendSuccess(res, result, 'Ticket status updated');
 };
+
 export const getClasses = async (req: Request, res: Response) => {
   const result = await AdminService.getClasses(req.query);
   sendSuccess(res, result, 'Classes retrieved');
 };
+
 export const getRevenueStats = async (req: Request, res: Response) => {
   const result = await AdminService.getRevenueStats();
   sendSuccess(res, result, 'Revenue stats retrieved');
+};
+
+export const getComprehensiveReports = async (req: Request, res: Response) => {
+  const result = await AdminService.getComprehensiveReports(req.query);
+  sendSuccess(res, result, 'Comprehensive reports retrieved');
 };
 
 

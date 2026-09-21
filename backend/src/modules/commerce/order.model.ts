@@ -19,6 +19,8 @@ export interface IOrder extends Document {
   totalAmount: number;
   couponId?: Types.ObjectId;
   status: "pending" | "paid" | "failed" | "refunded";
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 const orderSchema = new Schema<IOrder>(

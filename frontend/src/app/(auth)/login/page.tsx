@@ -37,7 +37,8 @@ export default function LoginPage() {
 
         // Redirect based on role
         const role = response.data.user.role;
-        if (role === 'super-admin' || role === 'admin') router.push('/admin');
+        if (role === 'super-admin') router.push('/super-admin');
+        else if (role === 'admin') router.push('/admin');
         else if (role === 'instructor') router.push('/instructor');
         else router.push('/student');
       }

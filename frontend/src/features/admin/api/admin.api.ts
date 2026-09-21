@@ -22,6 +22,12 @@ export const adminApi = {
   getOrders: async (params?: any) => {
     return api.get<any, any>('/admin/orders', { params });
   },
+  getOrderById: async (id: string) => {
+    return api.get<any, any>(`/admin/orders/${id}`);
+  },
+  updateOrderStatus: async (id: string, status: string) => {
+    return api.patch<any, any>(`/admin/orders/${id}/status`, { status });
+  },
   
   // Coupons
   getCoupons: async () => {
@@ -30,6 +36,12 @@ export const adminApi = {
   createCoupon: async (data: any) => {
     return api.post<any, any>('/admin/coupons', data);
   },
+  updateCoupon: async (id: string, data: any) => {
+    return api.patch<any, any>(`/admin/coupons/${id}`, data);
+  },
+  toggleCoupon: async (id: string) => {
+    return api.patch<any, any>(`/admin/coupons/${id}/toggle`);
+  },
   deleteCoupon: async (id: string) => {
     return api.delete<any, any>(`/admin/coupons/${id}`);
   },
@@ -37,8 +49,14 @@ export const adminApi = {
   getTickets: async (params?: any) => {
     return api.get<any, any>('/admin/tickets', { params });
   },
-  updateTicketStatus: async (id: string, status: string) => {
-    return api.patch<any, any>(`/admin/tickets/${id}/status`, { status });
+  getTicketDetails: async (id: string) => {
+    return api.get<any, any>(`/admin/tickets/${id}`);
+  },
+  replyToTicket: async (id: string, data: { message: string; status?: string }) => {
+    return api.post<any, any>(`/admin/tickets/${id}/reply`, data);
+  },
+  updateTicketStatus: async (id: string, status: string, priority?: string) => {
+    return api.patch<any, any>(`/admin/tickets/${id}/status`, { status, priority });
   },
   getClasses: async (params?: any) => {
     return api.get<any, any>('/admin/classes', { params });
@@ -54,6 +72,9 @@ export const adminApi = {
   },
   getRevenueStats: async () => {
     return api.get<any, any>('/admin/revenue');
+  },
+  getComprehensiveReports: async (params?: any) => {
+    return api.get<any, any>('/admin/reports/analytics', { params });
   },
   getCourses: async (params?: any) => {
     return api.get<any, any>('/admin/courses', { params });

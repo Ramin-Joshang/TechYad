@@ -88,7 +88,13 @@ export function Navbar() {
   }
 
   const userDashboardHref =
-    user?.role === 'student' ? '/student' : user?.role === 'instructor' ? '/instructor' : '/admin';
+    user?.role === 'super-admin'
+      ? '/super-admin'
+      : user?.role === 'student'
+      ? '/student'
+      : user?.role === 'instructor'
+      ? '/instructor'
+      : '/admin';
 
   return (
     <>
