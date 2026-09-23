@@ -10,6 +10,7 @@ import {
   ExternalLink, X, Send
 } from 'lucide-react';
 import Link from 'next/link';
+import RichTextEditor from '@/components/common/RichTextEditor';
 
 export default function InstructorBlogPage() {
   const queryClient = useQueryClient();
@@ -31,7 +32,7 @@ export default function InstructorBlogPage() {
   const [uploadingThumb, setUploadingThumb] = useState(false);
 
   // Queries
-  const { data: articlesData, isLoading: loadingArticles } = useQuery({
+  const { data: articlesData, isLoading: loadingArticles, isFetching: isFetchingArticles } = useQuery({
     queryKey: ['instructorArticles'],
     queryFn: () => blogApi.getInstructorArticles().then(res => res.data)
   });
@@ -202,11 +203,18 @@ export default function InstructorBlogPage() {
       </div>
 
       {/* Articles List */}
-      <div className="bg-white rounded-2xl border border-[var(--neo-border)] shadow-sm overflow-hidden">
+      <div className="bg-white rounded-2xl border border-[var(--neo-border)] shadow-sm overflow-hidden relative">
+        {isFetchingArticles && !loadingArticles && (
+          <div className="absolute top-0 left-0 right-0 z-10 bg-blue-600/10 backdrop-blur-xs py-1.5 px-4 flex items-center justify-center gap-2 text-xs font-bold text-blue-700 animate-pulse border-b border-blue-200">
+            <Loader2 className="w-3.5 h-3.5 animate-spin" />
+            در حال بروزرسانی و دریافت لیست مقالات...
+          </div>
+        )}
+
         {loadingArticles ? (
-          <div className="p-12 text-center text-gray-400 flex flex-col items-center justify-center">
-            <Loader2 className="w-8 h-8 animate-spin text-[var(--neo-primary)] mb-2" />
-            <span className="text-xs">در حال بارگذاری مقالات...</span>
+          <div className="p-16 text-center text-gray-400 flex flex-col items-center justify-center">
+            <Loader2 className="w-9 h-9 animate-spin text-[var(--neo-primary)] mb-3" />
+            <span className="text-sm font-bold text-gray-700">در حال بارگذاری مقالات شما...</span>
           </div>
         ) : articles.length === 0 ? (
           <div className="p-12 text-center text-gray-400">
@@ -389,14 +397,12 @@ export default function InstructorBlogPage() {
 
               {/* Content */}
               <div>
-                <label className="block text-xs font-bold text-gray-700 mb-1">متن اصلی مقاله *</label>
-                <textarea
-                  required
-                  rows={8}
+                <label className="block text-xs font-bold text-gray-700 mb-1">متن اصلی مقاله (ویرایشگر پیشرفته با قابلیت استایل‌دهی، تیترها و لینک‌ها) *</label>
+                <RichTextEditor
                   value={form.content}
-                  onChange={e => setForm(p => ({ ...p, content: e.target.value }))}
-                  placeholder="محتوای تخصصی مقاله شما..."
-                  className="w-full p-3 rounded-xl border border-gray-200 text-xs focus:ring-2 focus:ring-[var(--neo-primary)] font-mono"
+                  onChange={(val) => setForm(p => ({ ...p, content: val }))}
+                  placeholder="محتوای تخصصی و غنی مقاله خود را اینجا وارد کنید..."
+                  minHeight="280px"
                 />
               </div>
 

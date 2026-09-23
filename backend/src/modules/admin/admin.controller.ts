@@ -154,6 +154,11 @@ export const getSettings = async (req: Request, res: Response) => {
   sendSuccess(res, result, 'Settings retrieved');
 };
 
+export const getPublicSettings = async (req: Request, res: Response) => {
+  const result = await AdminService.getPublicSettings();
+  sendSuccess(res, result, 'Public settings retrieved');
+};
+
 export const updateSettings = async (req: Request, res: Response) => {
   const result = await AdminService.updateSettings(req.body);
   sendSuccess(res, result, 'Settings updated successfully');

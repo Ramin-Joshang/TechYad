@@ -28,7 +28,11 @@ export const register = async (req: Request, res: Response) => {
 };
 
 export const login = async (req: Request, res: Response) => {
-  const result = await AuthService.login(req.body);
+  const clientInfo = {
+    ip: (req.headers['x-forwarded-for'] as string)?.split(',')[0]?.trim() || req.ip || req.socket.remoteAddress || '127.0.0.1',
+    userAgent: req.headers['user-agent'] || 'Unknown'
+  };
+  const result = await AuthService.login(req.body, clientInfo);
   setAuthCookies(res, result.accessToken, result.refreshToken);
   sendSuccess(res, { user: result.user }, 'Login successful');
 };

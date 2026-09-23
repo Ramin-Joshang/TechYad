@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuthStore } from '@/features/auth/stores/auth.store';
 import { authApi } from '@/features/auth/api/auth.api';
 import { mediaApi } from '@/features/media/api/media.api';
@@ -15,6 +15,17 @@ export default function ProfilePage() {
     lastName: user?.lastName || '',
     avatar: user?.avatar || ''
   });
+
+  // Sync state if user rehydrates or updates
+  useEffect(() => {
+    if (user) {
+      setFormData({
+        firstName: user.firstName || '',
+        lastName: user.lastName || '',
+        avatar: user.avatar || ''
+      });
+    }
+  }, [user?.firstName, user?.lastName, user?.avatar]);
   
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
   const [message, setMessage] = useState('');

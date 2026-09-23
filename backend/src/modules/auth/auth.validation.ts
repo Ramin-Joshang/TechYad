@@ -20,7 +20,7 @@ export const updateProfileSchema = z.object({
   body: z.object({
     firstName: z.string().min(2).optional(),
     lastName: z.string().min(2).optional(),
-    avatar: z.string().url().optional(),
+    avatar: z.string().optional(),
   })
 });
 

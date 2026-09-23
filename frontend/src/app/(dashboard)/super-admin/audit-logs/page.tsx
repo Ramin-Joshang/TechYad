@@ -5,7 +5,8 @@ import { useQuery } from '@tanstack/react-query';
 import { superAdminApi } from '@/features/admin/api/super-admin.api';
 import { 
   History, Search, Filter, ShieldAlert, CheckCircle, 
-  XCircle, AlertTriangle, User, Globe, Loader2, ArrowUpDown
+  XCircle, AlertTriangle, User, Globe, Loader2, ArrowUpDown,
+  Laptop, Smartphone, Monitor
 } from 'lucide-react';
 
 export default function AuditLogsPage() {
@@ -126,6 +127,7 @@ export default function AuditLogsPage() {
                   <th className="p-3.5">عنوان عملیات</th>
                   <th className="p-3.5">دسته‌بندی</th>
                   <th className="p-3.5">کاربر / مدیر مسئول</th>
+                  <th className="p-3.5">دستگاه و مرورگر</th>
                   <th className="p-3.5">جزئیات / پارامترها</th>
                   <th className="p-3.5">آدرس IP</th>
                   <th className="p-3.5">زمان ثبت</th>
@@ -136,7 +138,9 @@ export default function AuditLogsPage() {
                   const user = log.userId;
                   const userName = user 
                     ? `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.email 
-                    : log.userName || log.userEmail || 'سیستم';
+                    : log.userName || log.userEmail || (log.details?.userEmail || 'کاربر ناشناس');
+
+                  const isMobile = log.device === 'موبایل' || log.device === 'تبلت';
 
                   return (
                     <tr key={log._id} className="hover:bg-gray-50/70 transition-colors">
@@ -154,6 +158,15 @@ export default function AuditLogsPage() {
                       <td className="p-3.5">
                         <div className="font-medium text-gray-800">{userName}</div>
                         <div className="text-[10px] text-gray-400 font-mono">{user?.role || log.userEmail || '-'}</div>
+                      </td>
+                      <td className="p-3.5">
+                        <div className="flex items-center gap-1.5 text-gray-700">
+                          {isMobile ? <Smartphone className="w-3.5 h-3.5 text-blue-500" /> : <Monitor className="w-3.5 h-3.5 text-purple-500" />}
+                          <span className="font-medium">{log.device || 'دسکتاپ'}</span>
+                        </div>
+                        <div className="text-[10px] text-gray-400 font-mono mt-0.5">
+                          {log.browser || 'مرورگر'} • {log.os || 'سیستم'}
+                        </div>
                       </td>
                       <td className="p-3.5 max-w-xs truncate text-gray-600 font-mono text-[11px]" title={JSON.stringify(log.details)}>
                         {log.details ? JSON.stringify(log.details) : '-'}

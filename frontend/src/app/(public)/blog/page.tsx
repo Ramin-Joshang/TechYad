@@ -30,20 +30,27 @@ export default function BlogPage() {
     queryFn: () => blogApi.getArticles(),
   });
 
+  const { data: categoriesData } = useQuery({
+    queryKey: ['publicBlogCategories'],
+    queryFn: () => blogApi.getCategories(true),
+  });
+
   const allArticles = (data?.data as any[]) || [];
+  const realCategories = (categoriesData?.data as any[]) || [];
+  const categoryNames = ['همه', ...realCategories.map((c: any) => c.name)];
   
   // Filtering
   const filteredArticles = allArticles.filter((article: any) => {
-    const matchesSearch = article.title.includes(searchTerm) || article.excerpt?.includes(searchTerm) || article.content.includes(searchTerm);
-    // Assuming backend returns category as string or object. For now we just mock category filter if no real category exists, or match tags.
-    // If we don't have categoryId.name, we'll just allow all for the mock.
+    const matchesSearch = article.title?.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                          article.excerpt?.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                          article.content?.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    const catName = article.categoryId?.name || article.category?.name;
     const matchesCategory = selectedCategory === 'همه' || 
-                            (article as any).category?.name === selectedCategory ||
+                            catName === selectedCategory ||
                             (article.tags && article.tags.includes(selectedCategory));
                             
-    // Allow matchesCategory to be true if we don't have enough data to filter, to avoid empty states
-    const passCategory = selectedCategory === 'همه' ? true : matchesCategory;
-    return matchesSearch && passCategory;
+    return matchesSearch && matchesCategory;
   });
 
   // Featured Article
@@ -88,7 +95,7 @@ export default function BlogPage() {
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
         {/* Categories */}
         <div className="flex overflow-x-auto pb-4 mb-8 hide-scrollbar gap-2">
-          {CATEGORIES.map((cat) => (
+          {categoryNames.map((cat) => (
             <button
               key={cat}
               onClick={() => {
@@ -209,13 +216,13 @@ export default function BlogPage() {
                       
                       <div className="flex items-center gap-3 mt-auto">
                         <img 
-                          src={featuredArticle.author?.avatar || `https://ui-avatars.com/api/?name=${featuredArticle.author?.firstName || 'A'}+${featuredArticle.author?.lastName || 'U'}`} 
+                          src={(featuredArticle.authorId || (featuredArticle as any).author)?.avatar || `https://ui-avatars.com/api/?name=${(featuredArticle.authorId || (featuredArticle as any).author)?.firstName || 'A'}+${(featuredArticle.authorId || (featuredArticle as any).author)?.lastName || 'U'}`} 
                           alt="Author" 
-                          className="w-10 h-10 rounded-full bg-[var(--neo-surface-2)]" 
+                          className="w-10 h-10 rounded-full bg-[var(--neo-surface-2)] object-cover" 
                         />
                         <div>
                           <p className="text-sm font-bold text-[var(--neo-text-main)]">
-                            {featuredArticle.author?.firstName || 'تیم'} {featuredArticle.author?.lastName || 'تک‌یاد'}
+                            {(featuredArticle.authorId || (featuredArticle as any).author)?.firstName || 'تیم'} {(featuredArticle.authorId || (featuredArticle as any).author)?.lastName || 'تک‌یاد'}
                           </p>
                           <p className="text-xs text-[var(--neo-text-muted)]">نویسنده</p>
                         </div>
@@ -255,12 +262,12 @@ export default function BlogPage() {
                     <div className="flex items-center justify-between mt-auto pt-4 border-t border-gray-50">
                       <div className="flex items-center gap-2">
                         <img 
-                          src={article.author?.avatar || `https://ui-avatars.com/api/?name=${article.author?.firstName || 'A'}+${article.author?.lastName || 'U'}`} 
+                          src={(article.authorId || (article as any).author)?.avatar || `https://ui-avatars.com/api/?name=${(article.authorId || (article as any).author)?.firstName || 'A'}+${(article.authorId || (article as any).author)?.lastName || 'U'}`} 
                           alt="Author" 
-                          className="w-6 h-6 rounded-full" 
+                          className="w-6 h-6 rounded-full object-cover" 
                         />
                         <span className="text-xs font-medium text-[var(--neo-text-secondary)]">
-                          {article.author?.firstName || 'نویسنده'} {article.author?.lastName || ''}
+                          {(article.authorId || (article as any).author)?.firstName || 'نویسنده'} {(article.authorId || (article as any).author)?.lastName || ''}
                         </span>
                       </div>
                       <div className="flex items-center gap-1.5 text-xs text-[var(--neo-text-muted)]">

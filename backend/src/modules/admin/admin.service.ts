@@ -30,6 +30,16 @@ export class AdminService {
     }, {} as Record<string, any>);
   }
 
+  static async getPublicSettings() {
+    const settings = await Setting.find({
+      key: { $in: ['siteName', 'seoDescription', 'seoKeywords', 'supportEmail', 'supportPhone', 'socialLinks', 'privacyPolicy', 'termsOfService'] }
+    }).lean();
+    return settings.reduce((acc, curr) => {
+       acc[curr.key] = curr.value;
+       return acc;
+    }, {} as Record<string, any>);
+  }
+
   static async updateSettings(data: Record<string, any>) {
     const operations = Object.entries(data).map(([key, value]) => ({
       updateOne: {
@@ -1501,10 +1511,14 @@ export class AdminService {
       category: { $in: ['auth', 'security'] } 
     }).sort({ createdAt: -1 }).limit(15).lean();
 
+    // Query admin and super-admin role IDs
+    const adminRoles = await Role.find({ slug: { $in: ['admin', 'super-admin'] } }).select('_id');
+    const adminRoleIds = adminRoles.map(r => r._id);
+
     return {
       config,
       recentSecurityLogs,
-      activeAdminsCount: await User.countDocuments({ role: { $in: ['admin', 'super-admin'] }, status: 'active' })
+      activeAdminsCount: await User.countDocuments({ role: { $in: adminRoleIds }, status: 'active' })
     };
   }
 

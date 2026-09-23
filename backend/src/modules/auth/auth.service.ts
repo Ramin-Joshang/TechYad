@@ -55,6 +55,7 @@ export class AuthService {
         firstName: newUser.firstName,
         lastName: newUser.lastName,
         email: newUser.email,
+        avatar: newUser.avatar,
         role: studentRole.slug,
         permissions: studentRole.permissions || []
       },
@@ -63,18 +64,93 @@ export class AuthService {
     };
   }
 
-  static async login(data: any) {
+  static parseClientInfo(userAgent: string) {
+    let browser = 'مرورگر ناشناخته';
+    let os = 'سیستم‌عامل ناشناخته';
+    let device = 'دسکتاپ';
+
+    const ua = userAgent.toLowerCase();
+    if (ua.includes('mobile') || ua.includes('android') || ua.includes('iphone')) {
+      device = 'موبایل';
+    } else if (ua.includes('tablet') || ua.includes('ipad')) {
+      device = 'تبلت';
+    }
+
+    if (ua.includes('chrome') && !ua.includes('edg')) browser = 'Google Chrome';
+    else if (ua.includes('edg')) browser = 'Microsoft Edge';
+    else if (ua.includes('firefox')) browser = 'Mozilla Firefox';
+    else if (ua.includes('safari') && !ua.includes('chrome')) browser = 'Apple Safari';
+    else if (ua.includes('opera') || ua.includes('opr')) browser = 'Opera';
+
+    if (ua.includes('windows')) os = 'Windows';
+    else if (ua.includes('macintosh') || ua.includes('mac os')) os = 'macOS';
+    else if (ua.includes('linux')) os = 'Linux';
+    else if (ua.includes('android')) os = 'Android';
+    else if (ua.includes('iphone') || ua.includes('ipad')) os = 'iOS';
+
+    return { browser, os, device };
+  }
+
+  static async login(data: any, clientInfo: { ip?: string; userAgent?: string } = {}) {
+    const { browser, os, device } = this.parseClientInfo(clientInfo.userAgent || '');
     const user = await User.findOne({ email: data.email }).select('+passwordHash').populate('role');
+    
     if (!user) {
+      try {
+        await AuditLog.create({
+          userEmail: data.email,
+          action: 'ورود ناموفق (کاربر یافت نشد)',
+          category: 'auth',
+          status: 'failure',
+          ip: clientInfo.ip || '127.0.0.1',
+          userAgent: clientInfo.userAgent,
+          device,
+          browser,
+          os,
+          details: { reason: 'User not found with provided email' }
+        });
+      } catch (e) {}
       throw new AppError('Invalid email or password', 401, 'AUTH_INVALID_CREDENTIALS');
     }
 
     const isPasswordCorrect = await argon2.verify(user.passwordHash, data.password);
     if (!isPasswordCorrect) {
+      try {
+        await AuditLog.create({
+          userId: user._id,
+          userEmail: user.email,
+          userName: `${user.firstName || ''} ${user.lastName || ''}`.trim(),
+          action: 'ورود ناموفق (رمز عبور اشتباه)',
+          category: 'auth',
+          status: 'failure',
+          ip: clientInfo.ip || '127.0.0.1',
+          userAgent: clientInfo.userAgent,
+          device,
+          browser,
+          os,
+          details: { reason: 'Incorrect password' }
+        });
+      } catch (e) {}
       throw new AppError('Invalid email or password', 401, 'AUTH_INVALID_CREDENTIALS');
     }
 
     if (user.status !== 'active') {
+      try {
+        await AuditLog.create({
+          userId: user._id,
+          userEmail: user.email,
+          userName: `${user.firstName || ''} ${user.lastName || ''}`.trim(),
+          action: 'ورود ناموفق (حساب کاربری غیرفعال یا مسدود)',
+          category: 'auth',
+          status: 'failure',
+          ip: clientInfo.ip || '127.0.0.1',
+          userAgent: clientInfo.userAgent,
+          device,
+          browser,
+          os,
+          details: { status: user.status }
+        });
+      } catch (e) {}
       throw new AppError('Your account is not active', 403, 'AUTH_ACCOUNT_INACTIVE');
     }
 
@@ -83,7 +159,7 @@ export class AuthService {
 
     const role = user.role as any;
 
-    // Log authentication event
+    // Log successful authentication event
     try {
       await AuditLog.create({
         userId: user._id,
@@ -91,7 +167,12 @@ export class AuthService {
         userName: `${user.firstName || ''} ${user.lastName || ''}`.trim(),
         action: 'ورود موفق به سیستم',
         category: 'auth',
-        status: 'success'
+        status: 'success',
+        ip: clientInfo.ip || '127.0.0.1',
+        userAgent: clientInfo.userAgent,
+        device,
+        browser,
+        os
       });
     } catch (e) {
       // ignore logging error on login
@@ -103,6 +184,7 @@ export class AuthService {
         firstName: user.firstName,
         lastName: user.lastName,
         email: user.email,
+        avatar: user.avatar,
         role: role?.slug,
         permissions: role?.permissions || []
       },
@@ -191,6 +273,7 @@ export class AuthService {
           firstName: user.firstName,
           lastName: user.lastName,
           email: user.email,
+          avatar: user.avatar,
           role: role?.slug,
           permissions: role?.permissions || []
         },

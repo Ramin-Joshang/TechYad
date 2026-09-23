@@ -54,6 +54,7 @@ router.patch('/super-admin/roles/:id', isSuperAdmin, asyncHandler(Controller.upd
 router.delete('/super-admin/roles/:id', isSuperAdmin, asyncHandler(Controller.deleteRole));
 
 // Global Settings
+router.get('/settings/public', asyncHandler(Controller.getPublicSettings));
 router.get('/super-admin/settings', isSuperAdmin, asyncHandler(Controller.getSettings));
 router.patch('/super-admin/settings', isSuperAdmin, asyncHandler(Controller.updateSettings));
 

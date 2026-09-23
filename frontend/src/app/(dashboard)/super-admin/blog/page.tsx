@@ -10,6 +10,7 @@ import {
   ExternalLink, Check, X, Filter
 } from 'lucide-react';
 import Link from 'next/link';
+import RichTextEditor from '@/components/common/RichTextEditor';
 
 export default function AdminBlogManagement() {
   const queryClient = useQueryClient();
@@ -55,7 +56,7 @@ export default function AdminBlogManagement() {
   });
 
   // Queries
-  const { data: articlesData, isLoading: loadingArticles } = useQuery({
+  const { data: articlesData, isLoading: loadingArticles, isFetching: isFetchingArticles } = useQuery({
     queryKey: ['adminArticles', statusFilter, categoryFilter, search],
     queryFn: () => blogApi.getAdminArticles({ 
       status: statusFilter, 
@@ -363,11 +364,19 @@ export default function AdminBlogManagement() {
           </div>
 
           {/* Articles Table */}
-          <div className="bg-white rounded-2xl border border-[var(--neo-border)] shadow-sm overflow-hidden">
+          <div className="bg-white rounded-2xl border border-[var(--neo-border)] shadow-sm overflow-hidden relative">
+            {isFetchingArticles && !loadingArticles && (
+              <div className="absolute top-0 left-0 right-0 z-10 bg-blue-600/10 backdrop-blur-xs py-1.5 px-4 flex items-center justify-center gap-2 text-xs font-bold text-blue-700 animate-pulse border-b border-blue-200">
+                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                در حال بروزرسانی و دریافت لیست جدید مقالات...
+              </div>
+            )}
+
             {loadingArticles ? (
-              <div className="p-12 text-center text-gray-400 flex flex-col items-center justify-center">
-                <Loader2 className="w-8 h-8 animate-spin text-[var(--neo-primary)] mb-2" />
-                <span className="text-xs">در حال بارگذاری مقالات...</span>
+              <div className="p-16 text-center text-gray-400 flex flex-col items-center justify-center">
+                <Loader2 className="w-9 h-9 animate-spin text-[var(--neo-primary)] mb-3" />
+                <span className="text-sm font-bold text-gray-700">در حال بارگذاری مقالات...</span>
+                <span className="text-xs text-gray-400 mt-1">لطفاً شکیبا باشید</span>
               </div>
             ) : articles.length === 0 ? (
               <div className="p-12 text-center text-gray-400">
@@ -726,14 +735,12 @@ export default function AdminBlogManagement() {
 
               {/* Content */}
               <div>
-                <label className="block text-xs font-bold text-gray-700 mb-1">متن کامل مقاله (پشتیبانی از Markdown و HTML) *</label>
-                <textarea
-                  required
-                  rows={8}
+                <label className="block text-xs font-bold text-gray-700 mb-1">متن کامل مقاله (ویرایشگر پیشرفته / پشتیبانی از HTML و استایل) *</label>
+                <RichTextEditor
                   value={articleForm.content}
-                  onChange={e => setArticleForm(p => ({ ...p, content: e.target.value }))}
-                  placeholder="محتوای اصلی مقاله..."
-                  className="w-full p-3 rounded-xl border border-gray-200 text-xs focus:ring-2 focus:ring-[var(--neo-primary)] font-mono"
+                  onChange={(val) => setArticleForm(p => ({ ...p, content: val }))}
+                  placeholder="محتوای غنی و کامل مقاله را با استایل، تیترها و تصاویر اینجا بنویسید..."
+                  minHeight="280px"
                 />
               </div>
 

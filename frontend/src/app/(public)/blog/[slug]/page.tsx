@@ -144,7 +144,7 @@ export default function BlogPostPage() {
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center">
           <div className="mb-6 inline-flex">
             <span className="px-4 py-1.5 bg-[var(--neo-primary)] text-white rounded-full text-sm font-bold shadow-md">
-              {(article as any).category?.name || 'آموزشی'}
+              {(article.categoryId || article.category)?.name || 'آموزشی'}
             </span>
           </div>
           
@@ -159,13 +159,13 @@ export default function BlogPostPage() {
           <div className="flex flex-wrap items-center justify-center gap-6 text-sm font-medium text-gray-300">
             <div className="flex items-center gap-2">
               <img 
-                src={article.author?.avatar || `https://ui-avatars.com/api/?name=${article.author?.firstName || 'A'}+${article.author?.lastName || 'U'}`} 
+                src={(article.authorId || article.author)?.avatar || `https://ui-avatars.com/api/?name=${(article.authorId || article.author)?.firstName || 'A'}+${(article.authorId || article.author)?.lastName || 'U'}`} 
                 alt="Author" 
-                className="w-10 h-10 rounded-full border-2 border-white/20" 
+                className="w-10 h-10 rounded-full border-2 border-white/20 object-cover" 
               />
               <div className="text-right">
-                <div className="text-white font-bold text-base">{article.author?.firstName || 'تیم'} {article.author?.lastName || 'تک‌یاد'}</div>
-                <div className="text-xs">نویسنده</div>
+                <div className="text-white font-bold text-base">{(article.authorId || article.author)?.firstName || 'تیم'} {(article.authorId || article.author)?.lastName || 'تک‌یاد'}</div>
+                <div className="text-xs text-gray-400">نویسنده</div>
               </div>
             </div>
             <div className="w-px h-8 bg-white/20 hidden md:block"></div>
@@ -209,16 +209,8 @@ export default function BlogPostPage() {
               </ul>
             </div>
 
-            <div className="text-[var(--neo-text-secondary)] leading-relaxed text-lg [&>p]:mb-6 [&>h2]:text-2xl [&>h2]:font-bold [&>h2]:mb-4 [&>h2]:text-[var(--neo-text-main)] [&>h2]:mt-10 [&>h3]:text-xl [&>h3]:font-bold [&>h3]:mb-3 [&>h3]:text-[var(--neo-text-main)] [&>ul]:list-disc [&>ul]:pl-5 [&>ul]:mb-6 [&>li]:mb-2 [&>a]:text-[var(--neo-primary)] [&>a]:underline">
-              {/* Mock content injection to include headings if none exist */}
-              <h2 id="intro">مقدمه</h2>
+            <div className="text-[var(--neo-text-secondary)] leading-relaxed text-lg [&>p]:mb-6 [&>h2]:text-2xl [&>h2]:font-bold [&>h2]:mb-4 [&>h2]:text-[var(--neo-text-main)] [&>h2]:mt-10 [&>h3]:text-xl [&>h3]:font-bold [&>h3]:mb-3 [&>h3]:text-[var(--neo-text-main)] [&>ul]:list-disc [&>ul]:pl-5 [&>ul]:mb-6 [&>li]:mb-2 [&>a]:text-[var(--neo-primary)] [&>a]:underline prose prose-slate max-w-none">
               <div dangerouslySetInnerHTML={{ __html: article.content }} />
-              <h2 id="section-1">مفاهیم پایه</h2>
-              <p>در این بخش به بررسی مفاهیم پایه می‌پردازیم...</p>
-              <h2 id="section-2">پیاده‌سازی عملی</h2>
-              <p>حالا نوبت به دست به کد شدن و پیاده‌سازی عملی می‌رسد...</p>
-              <h2 id="conclusion">نتیجه‌گیری</h2>
-              <p>در نهایت متوجه شدیم که...</p>
             </div>
             
             {/* Share & Tags */}

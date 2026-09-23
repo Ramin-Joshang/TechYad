@@ -35,6 +35,9 @@ export const superAdminApi = {
   getSettings: async () => {
     return api.get<any, any>('/super-admin/settings');
   },
+  getPublicSettings: async () => {
+    return api.get<any, any>('/settings/public');
+  },
   updateSettings: async (data: Record<string, any>) => {
     return api.patch<any, any>('/super-admin/settings', data);
   },
