@@ -32,7 +32,28 @@ export class AdminService {
 
   static async getPublicSettings() {
     const settings = await Setting.find({
-      key: { $in: ['siteName', 'seoDescription', 'seoKeywords', 'supportEmail', 'supportPhone', 'socialLinks', 'privacyPolicy', 'termsOfService'] }
+      key: { 
+        $in: [
+          'siteName', 
+          'siteLogo', 
+          'siteFavicon', 
+          'siteFooterLogo', 
+          'enamadCode', 
+          'enamadActive', 
+          'samandehiCode', 
+          'samandehiActive', 
+          'nationalLicenseCode', 
+          'customTrustBadgeUrl', 
+          'footerTrustBadges', 
+          'seoDescription', 
+          'seoKeywords', 
+          'supportEmail', 
+          'supportPhone', 
+          'socialLinks', 
+          'privacyPolicy', 
+          'termsOfService'
+        ] 
+      }
     }).lean();
     return settings.reduce((acc, curr) => {
        acc[curr.key] = curr.value;

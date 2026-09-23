@@ -13,8 +13,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // Fetch and apply SEO settings to document
     superAdminApi.getPublicSettings().then((res: any) => {
       if (res?.data) {
-        if (res.data.siteName) {
-          document.title = res.data.siteName;
+        if (res.data.siteName && (!document.title || document.title.includes('تک‌یاد') || document.title.includes('TechYad'))) {
+          // If on home page, update site name
+          if (window.location.pathname === '/') {
+            document.title = res.data.siteName;
+          }
         }
         if (res.data.seoDescription) {
           let metaDesc = document.querySelector('meta[name="description"]');
@@ -24,6 +27,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             document.head.appendChild(metaDesc);
           }
           metaDesc.setAttribute('content', res.data.seoDescription);
+        }
+        if (res.data.siteFavicon) {
+          let linkIcon = document.querySelector("link[rel*='icon']");
+          if (!linkIcon) {
+            linkIcon = document.createElement('link');
+            linkIcon.setAttribute('rel', 'shortcut icon');
+            document.head.appendChild(linkIcon);
+          }
+          linkIcon.setAttribute('href', res.data.siteFavicon);
         }
       }
     }).catch(() => {});

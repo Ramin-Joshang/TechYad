@@ -57,6 +57,8 @@ router.delete('/super-admin/roles/:id', isSuperAdmin, asyncHandler(Controller.de
 router.get('/settings/public', asyncHandler(Controller.getPublicSettings));
 router.get('/super-admin/settings', isSuperAdmin, asyncHandler(Controller.getSettings));
 router.patch('/super-admin/settings', isSuperAdmin, asyncHandler(Controller.updateSettings));
+router.get('/admin/settings', isAdmin, asyncHandler(Controller.getSettings));
+router.patch('/admin/settings', isAdmin, asyncHandler(Controller.updateSettings));
 
 // Settlements & Instructor Payouts
 router.get('/admin/settlements', isAdmin, asyncHandler(Controller.getSettlements));

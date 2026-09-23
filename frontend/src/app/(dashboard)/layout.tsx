@@ -6,6 +6,8 @@ import { AuthGuard } from '@/features/auth/components/guards/AuthGuard';
 import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
 import { authApi } from '@/features/auth/api/auth.api';
+import { superAdminApi } from '@/features/admin/api/super-admin.api';
+import { useQuery } from '@tanstack/react-query';
 import { useState } from 'react';
 import {
   BookOpen, LayoutDashboard, LogOut, UserCircle, 
@@ -22,6 +24,15 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
+
+  const { data: publicSettings } = useQuery({
+    queryKey: ['publicSettings'],
+    queryFn: async () => {
+      const res = await superAdminApi.getPublicSettings();
+      return res.data;
+    },
+    staleTime: 1000 * 60 * 10
+  });
 
   const handleLogout = async () => {
     try {
@@ -45,6 +56,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         { name: 'مدیران و کارکنان', href: '/super-admin/admins', icon: ShieldAlert },
         { name: 'نقش‌ها و دسترسی‌ها', href: '/super-admin/roles', icon: Key },
         { name: 'کاربران', href: '/super-admin/users', icon: Users },
+        { name: 'دانشجویان', href: '/super-admin/students', icon: GraduationCap },
         { name: 'اساتید', href: '/super-admin/instructors', icon: Briefcase },
         { name: 'تسویه‌حساب اساتید', href: '/super-admin/settlements', icon: Wallet },
         { name: 'دوره‌ها', href: '/super-admin/courses', icon: BookOpen },
@@ -70,15 +82,20 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         { name: 'مدیریت کاربران', href: '/admin/users', icon: Users },
         { name: 'دانشجویان', href: '/admin/students', icon: GraduationCap },
         { name: 'اساتید', href: '/admin/instructors', icon: Briefcase },
+        { name: 'تسویه‌حساب اساتید', href: '/admin/settlements', icon: Wallet },
         { name: 'دسته‌بندی‌ها', href: '/admin/categories', icon: List },
         { name: 'کل دوره‌ها', href: '/admin/courses', icon: BookOpen },
         { name: 'دوره‌های منتشر شده', href: '/admin/courses/published', icon: CheckSquare },
         { name: 'دوره‌های در انتظار', href: '/admin/courses/pending', icon: Activity },
+        { name: 'مدیریت نظرات', href: '/admin/comments', icon: MessageCircle },
         { name: 'کلاس‌ها', href: '/admin/classes', icon: Video },
         { name: 'سفارشات', href: '/admin/orders', icon: List },
-        { name: 'درآمد و مالی', href: '/admin/revenue', icon: DollarSign },
+        { name: 'تراکنش‌های مالی', href: '/admin/payments', icon: CreditCard },
+        { name: 'کد تخفیف', href: '/admin/coupons', icon: Tag },
         { name: 'تیکت‌های پشتیبانی', href: '/admin/tickets', icon: Ticket },
+        { name: 'گزارش‌ها و آمار', href: '/admin/reports', icon: BarChart },
         { name: 'مدیریت وبلاگ', href: '/admin/blog', icon: FileText },
+        { name: 'تنظیمات و برندینگ', href: '/admin/settings', icon: Settings },
         profileLink
       ];
     } else if (user?.role === 'instructor') {
@@ -129,11 +146,23 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           ${mobileMenuOpen ? 'translate-x-0' : 'translate-x-full lg:translate-x-0'}
         `}>
           <div className="p-6 border-b border-[var(--neo-border)] flex items-center justify-between">
-            <Link href="/" className="flex items-center gap-2" onClick={closeMenu}>
-              <div className="w-8 h-8 rounded-full border-2 border-[var(--neo-primary)] flex items-center justify-center relative overflow-hidden shrink-0">
-     <div className="w-2 h-2 bg-[var(--neo-secondary)] rounded-full"></div>
-  </div>
-              {!isSidebarCollapsed && <span className="font-bold text-xl text-[var(--neo-text-main)] tracking-tight">تک‌یاد</span>}
+            <Link href="/" className="flex items-center gap-2.5 overflow-hidden" onClick={closeMenu}>
+              {publicSettings?.siteLogo ? (
+                <img 
+                  src={publicSettings.siteLogo} 
+                  alt={publicSettings?.siteName || 'لوگو'} 
+                  className={`${isSidebarCollapsed ? 'w-8 h-8' : 'h-8 max-w-[130px]'} object-contain shrink-0`}
+                />
+              ) : (
+                <div className="w-8 h-8 rounded-full border-2 border-[var(--neo-primary)] flex items-center justify-center relative overflow-hidden shrink-0">
+                  <div className="w-2 h-2 bg-[var(--neo-secondary)] rounded-full"></div>
+                </div>
+              )}
+              {!isSidebarCollapsed && (
+                <span className="font-bold text-xl text-[var(--neo-text-main)] tracking-tight truncate">
+                  {publicSettings?.siteName ? publicSettings.siteName.split('|')[0].trim() : 'تک‌یاد'}
+                </span>
+              )}
             </Link>
             <div className="flex items-center gap-2">
               <button onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)} className="hidden lg:block text-[var(--neo-text-muted)] hover:text-[var(--neo-primary)] p-1">

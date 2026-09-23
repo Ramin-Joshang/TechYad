@@ -7,8 +7,11 @@ import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 
 export const metadata: Metadata = {
-  title: "TechYad LMS",
-  description: "Full-stack learning management system with course and class enrollment, shopping cart, and authenticated dashboards",
+  title: {
+    default: "تک‌یاد | پلتفرم جامع آموزش آنلاین و دانشگاهی",
+    template: "%s | تک‌یاد"
+  },
+  description: "سامانه جامع یادگیری آنلاین، آموزش مهارت‌های فنی، مهندسی و دوره‌های تخصصی",
 };
 
 export default function RootLayout({

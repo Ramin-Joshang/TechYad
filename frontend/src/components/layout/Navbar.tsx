@@ -8,6 +8,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useAuthStore } from '@/features/auth/stores/auth.store';
 import { useCartStore } from '@/features/commerce/stores/cart.store';
+import { superAdminApi } from '@/features/admin/api/super-admin.api';
 import {
   LogOut,
   User,
@@ -64,6 +65,15 @@ export function Navbar() {
     staleTime: 1000 * 60 * 5,
   });
 
+  const { data: publicSettings } = useQuery({
+    queryKey: ['publicSettings'],
+    queryFn: async () => {
+      const res = await superAdminApi.getPublicSettings();
+      return res.data;
+    },
+    staleTime: 1000 * 60 * 10
+  });
+
   const cartItems = cartData?.items || localCartItems || [];
   const cartItemCount = cartItems.length;
 
@@ -112,12 +122,20 @@ export function Navbar() {
                 <Menu className="w-6 h-6" />
               </button>
 
-              <Link href="/" className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-full border-2 border-[var(--neo-primary)] flex items-center justify-center relative overflow-hidden">
-                  <div className="w-2 h-2 bg-[var(--neo-secondary)] rounded-full"></div>
-                </div>
+              <Link href="/" className="flex items-center gap-2.5">
+                {publicSettings?.siteLogo ? (
+                  <img 
+                    src={publicSettings.siteLogo} 
+                    alt={publicSettings?.siteName || 'لوگو سایت'} 
+                    className="h-9 w-auto max-w-[150px] object-contain"
+                  />
+                ) : (
+                  <div className="w-8 h-8 rounded-full border-2 border-[var(--neo-primary)] flex items-center justify-center relative overflow-hidden shrink-0">
+                    <div className="w-2 h-2 bg-[var(--neo-secondary)] rounded-full"></div>
+                  </div>
+                )}
                 <span className="font-bold text-xl text-[var(--neo-text-main)] hidden sm:block tracking-tight">
-                  تک‌یاد
+                  {publicSettings?.siteName ? publicSettings.siteName.split('|')[0].trim() : 'تک‌یاد'}
                 </span>
               </Link>
             </div>

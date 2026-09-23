@@ -109,14 +109,23 @@ export default function BlogPostPage() {
   }
 
   if (error || !article) {
+    const isUnpublished = (error as any)?.response?.data?.error?.code === 'FORBIDDEN_UNPUBLISHED' || 
+                          (error as any)?.response?.status === 403;
+
     return (
       <div className="bg-[var(--neo-bg)] min-h-screen flex items-center justify-center p-6">
         <div className="max-w-md w-full bg-white rounded-3xl border border-[var(--neo-border)] p-8 text-center shadow-sm">
-          <div className="w-16 h-16 bg-rose-50 text-rose-500 rounded-2xl flex items-center justify-center mx-auto mb-4 font-bold text-2xl">
-            !
+          <div className="w-16 h-16 bg-amber-50 text-amber-500 rounded-2xl flex items-center justify-center mx-auto mb-4 font-bold text-2xl">
+            {isUnpublished ? '🔒' : '!'}
           </div>
-          <h2 className="text-xl font-bold text-[var(--neo-text-main)] mb-2">مقاله یافت نشد</h2>
-          <p className="text-sm text-[var(--neo-text-muted)] mb-6">ممکن است آدرس مقاله تغییر کرده باشد یا موقتاً در دسترس نباشد.</p>
+          <h2 className="text-xl font-bold text-[var(--neo-text-main)] mb-2">
+            {isUnpublished ? 'این مقاله در دسترس نیست' : 'مقاله یافت نشد'}
+          </h2>
+          <p className="text-sm text-[var(--neo-text-muted)] mb-6 leading-relaxed">
+            {isUnpublished 
+              ? 'این مقاله هنوز توسط نویسنده یا مدیران منتشر نشده است یا در وضعیت پیش‌نویس قرار دارد و امکان مشاهده عمومی آن وجود ندارد.'
+              : 'ممکن است آدرس مقاله تغییر کرده باشد یا حذف شده باشد.'}
+          </p>
           <Link href="/blog" className="inline-flex items-center justify-center gap-2 bg-[var(--neo-primary)] text-white px-6 py-2.5 rounded-xl font-bold text-sm hover:bg-blue-700 transition">
             بازگشت به مقالات وبلاگ
           </Link>

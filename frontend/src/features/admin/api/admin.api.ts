@@ -96,5 +96,13 @@ export const adminApi = {
   },
   rejectCourse: async (id: string, reason: string) => {
     return api.post<any, any>(`/admin/courses/${id}/reject`, { reason });
+  },
+
+  // Settings
+  getSettings: async () => {
+    return api.get<any, any>('/admin/settings');
+  },
+  updateSettings: async (data: Record<string, any>) => {
+    return api.patch<any, any>('/admin/settings', data);
   }
 };

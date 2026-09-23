@@ -32,12 +32,18 @@ api.interceptors.response.use(
 
       // Check if this request is /auth/me or /auth/refresh or auth checks where 401 is expected for guests
       const isAuthCheck = originalRequest?.url?.includes('/auth/me') || originalRequest?.url?.includes('/auth/refresh');
+      const isAuthAction = originalRequest?.url?.includes('/auth/login') || originalRequest?.url?.includes('/auth/register');
 
       if (status === 401 && isAuthCheck) {
         // Silent rejection for initial auth check so guests don't see errors or refresh loops
         if (typeof window !== 'undefined') {
           window.dispatchEvent(new CustomEvent('auth:unauthorized'));
         }
+        return Promise.reject(error);
+      }
+
+      if (status === 401 && isAuthAction) {
+        // Login failed with 401 - do NOT retry or attempt token refresh!
         return Promise.reject(error);
       }
 

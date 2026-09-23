@@ -30,7 +30,7 @@ export class BlogService {
       .sort({ publishedAt: -1, createdAt: -1 });
   }
 
-  static async getArticleBySlug(slug: string) {
+  static async getArticleBySlug(slug: string, options?: { allowUnpublished?: boolean }) {
     let decoded = slug;
     try { decoded = decodeURIComponent(slug); } catch (e) {}
 
@@ -51,8 +51,16 @@ export class BlogService {
 
     if (!article) throw new AppError('مقاله یافت نشد', 404, 'NOT_FOUND');
 
-    // Increment views
-    await Article.findByIdAndUpdate(article._id, { $inc: { viewsCount: 1 } });
+    // Only allow viewing if status is 'published', unless specifically requested in an admin/instructor context
+    if (!options?.allowUnpublished && article.status !== 'published') {
+      throw new AppError('این مقاله هنوز منتشر نشده است یا در وضعیت پیش‌نویس قرار دارد', 403, 'FORBIDDEN_UNPUBLISHED');
+    }
+
+    // Increment views only for published articles
+    if (article.status === 'published') {
+      await Article.findByIdAndUpdate(article._id, { $inc: { viewsCount: 1 } });
+    }
+
     return article;
   }
 
