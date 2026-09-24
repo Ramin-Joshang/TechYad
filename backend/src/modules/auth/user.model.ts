@@ -24,6 +24,12 @@ export interface IUser extends Document {
   mobileVerified: boolean;
 
   status: UserStatus;
+
+  referralCode?: string;
+  referredBy?: Types.ObjectId;
+  walletBalance?: number;
+  referralEarnings?: number;
+  referralCount?: number;
 }
 
 const userSchema = new Schema<IUser>(
@@ -103,6 +109,36 @@ const userSchema = new Schema<IUser>(
       enum: ["active", "pending", "blocked"],
       default: "pending",
       index: true,
+    },
+
+    referralCode: {
+      type: String,
+      unique: true,
+      sparse: true,
+      uppercase: true,
+      trim: true,
+      index: true,
+    },
+
+    referredBy: {
+      type: Schema.Types.ObjectId,
+      ref: "User",
+      index: true,
+    },
+
+    walletBalance: {
+      type: Number,
+      default: 0,
+    },
+
+    referralEarnings: {
+      type: Number,
+      default: 0,
+    },
+
+    referralCount: {
+      type: Number,
+      default: 0,
     },
   },
   {

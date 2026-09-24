@@ -15,7 +15,7 @@ import {
   GraduationCap, CreditCard, Heart, Ticket, Bell,
   Users, DollarSign, List, Shield, Menu, X, Video, Activity,
   Briefcase, ChevronRight, ChevronLeft, ShieldAlert, Key, Tag,
-  Send, MessageCircle, History, Lock, Wallet } from 'lucide-react';
+  Send, MessageCircle, History, Lock, Wallet, Share2, Gift } from 'lucide-react';
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const { user, logout } = useAuthStore();
@@ -71,6 +71,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         { name: 'گزارش‌ها', href: '/super-admin/reports', icon: BarChart },
         { name: 'مدیریت وبلاگ', href: '/super-admin/blog', icon: FileText },
         { name: 'لاگ‌های امنیتی', href: '/super-admin/audit-logs', icon: History },
+        { name: 'سیستم همکاری و رفرال', href: '/super-admin/referrals', icon: Share2 },
         { name: 'امنیت و کنترل دسترسی', href: '/super-admin/security', icon: Lock },
         { name: 'تنظیمات سیستم', href: '/super-admin/settings', icon: Settings },
         
@@ -92,6 +93,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         { name: 'سفارشات', href: '/admin/orders', icon: List },
         { name: 'تراکنش‌های مالی', href: '/admin/payments', icon: CreditCard },
         { name: 'کد تخفیف', href: '/admin/coupons', icon: Tag },
+        { name: 'سیستم رفرال و بازاریابی', href: '/admin/referrals', icon: Share2 },
         { name: 'تیکت‌های پشتیبانی', href: '/admin/tickets', icon: Ticket },
         { name: 'گزارش‌ها و آمار', href: '/admin/reports', icon: BarChart },
         { name: 'مدیریت وبلاگ', href: '/admin/blog', icon: FileText },
@@ -107,6 +109,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         { name: 'کلاس‌های زنده', href: '/instructor/classes', icon: Video },
         { name: 'دانشجویان من', href: '/instructor/students', icon: Users },
         { name: 'نظرات دانشجویان', href: '/instructor/comments', icon: MessageSquare },
+        { name: 'همکاری در فروش (رفرال)', href: '/instructor/referrals', icon: Share2 },
         { name: 'مقالات وبلاگ', href: '/instructor/blog', icon: FileText },
         { name: 'گزارش مالی و فروش', href: '/instructor/sales', icon: DollarSign },
         profileLink
@@ -116,6 +119,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         { name: 'داشبورد', href: '/student', icon: LayoutDashboard },
         { name: 'دوره‌های من', href: '/student/courses', icon: BookOpen },
         { name: 'کلاس‌های من', href: '/student/classes', icon: Video },
+        { name: 'معرفی دوستان (کسب درآمد)', href: '/student/referrals', icon: Gift },
         { name: 'تکالیف', href: '/student/assignments', icon: FileText },
         { name: 'آزمون‌ها', href: '/student/quizzes', icon: CheckSquare },
         { name: 'پرداخت‌های من', href: '/student/orders', icon: CreditCard },

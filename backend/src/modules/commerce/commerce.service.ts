@@ -9,6 +9,7 @@ import { Enrollment } from '../learning/enrollment.model.js';
 import { ClassEnrollment } from '../classes/class-enrollment.model.js';
 import { User } from '../auth/user.model.js';
 import { AppError } from '../../common/errors/AppError.js';
+import { ReferralService } from '../referral/referral.service.js';
 
 export class CommerceService {
   static async getInstructorSales(instructorId: string, month?: number, year?: number) {
@@ -443,6 +444,13 @@ export class CommerceService {
         const boughtItemIds = order.items.map(i => i.itemId.toString());
         cart.items = cart.items.filter(i => !boughtItemIds.includes(i.itemId.toString())) as any;
         await cart.save({ session });
+      }
+
+      // 7. Process Referral Reward
+      try {
+        await ReferralService.processOrderReferral(order, session);
+      } catch (refErr) {
+        console.error('Error processing referral reward:', refErr);
       }
 
       await session.commitTransaction();

@@ -5,6 +5,7 @@ import { Role } from './role.model.js';
 import { AppError } from '../../common/errors/AppError.js';
 import { env } from '../../config/env.js';
 import { AuditLog } from '../admin/audit-log.model.js';
+import { ReferralService } from '../referral/referral.service.js';
 
 const signToken = (id: string) => {
   return jwt.sign({ id }, env.JWT_SECRET, {
@@ -19,7 +20,7 @@ const signRefreshToken = (id: string) => {
 };
 
 export class AuthService {
-  static async register(data: any) {
+  static async register(data: any, clientInfo: { ip?: string; userAgent?: string } = {}) {
     const existingUser = await User.findOne({ email: data.email });
     if (existingUser) {
       throw new AppError('Email already in use', 400, 'AUTH_EMAIL_EXISTS');
@@ -46,6 +47,18 @@ export class AuthService {
       status: 'active',
     });
 
+    // Ensure newly created user gets a unique referral code
+    const userReferralCode = await ReferralService.ensureUserReferralCode(newUser);
+
+    // If registered via a referral code, record it
+    if (data.referralCode) {
+      try {
+        await ReferralService.recordReferralOnRegister(newUser._id.toString(), data.referralCode, clientInfo);
+      } catch (refErr) {
+        console.error('Error recording referral on register:', refErr);
+      }
+    }
+
     const accessToken = signToken(newUser._id.toString());
     const refreshToken = signRefreshToken(newUser._id.toString());
 
@@ -57,7 +70,9 @@ export class AuthService {
         email: newUser.email,
         avatar: newUser.avatar,
         role: studentRole.slug,
-        permissions: studentRole.permissions || []
+        permissions: studentRole.permissions || [],
+        referralCode: userReferralCode,
+        walletBalance: newUser.walletBalance || 0
       },
       accessToken,
       refreshToken

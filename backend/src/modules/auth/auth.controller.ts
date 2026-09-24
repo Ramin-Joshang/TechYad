@@ -22,7 +22,11 @@ const setAuthCookies = (res: Response, accessToken: string, refreshToken: string
 };
 
 export const register = async (req: Request, res: Response) => {
-  const result = await AuthService.register(req.body);
+  const clientInfo = {
+    ip: (req.headers['x-forwarded-for'] as string)?.split(',')[0]?.trim() || req.ip || req.socket.remoteAddress || '127.0.0.1',
+    userAgent: req.headers['user-agent'] || 'Unknown'
+  };
+  const result = await AuthService.register(req.body, clientInfo);
   setAuthCookies(res, result.accessToken, result.refreshToken);
   sendSuccess(res, { user: result.user }, 'User registered successfully', 201);
 };
@@ -60,7 +64,11 @@ export const getMe = async (req: AuthRequest, res: Response) => {
     email: user.email,
     avatar: user.avatar,
     role: user.role?.slug,
-    permissions: user.role?.permissions || []
+    permissions: user.role?.permissions || [],
+    referralCode: user.referralCode,
+    walletBalance: user.walletBalance || 0,
+    referralEarnings: user.referralEarnings || 0,
+    referralCount: user.referralCount || 0,
   }, 'User profile retrieved successfully');
 };
 

@@ -18,6 +18,7 @@ import classRoutes from '../modules/classes/class.routes.js';
 import adminRoutes from '../modules/admin/admin.routes.js';
 import homeRoutes from '../modules/home/home.routes.js';
 import generalRoutes from '../modules/general/general.routes.js';
+import referralRoutes from '../modules/referral/referral.routes.js';
 
 const router = Router();
 
@@ -55,6 +56,7 @@ router.use('/', instructorRoutes);
 router.use('/', classRoutes);
 router.use('/', adminRoutes);
 router.use('/', generalRoutes);
+router.use('/', referralRoutes);
 
 router.use("/", searchRoutes);
 export default router;
