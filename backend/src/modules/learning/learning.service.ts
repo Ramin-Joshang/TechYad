@@ -3,6 +3,8 @@ import { LessonProgress } from './lesson-progress.model.js';
 import { AssignmentSubmission } from './assignment-submission.model.js';
 import { Course } from '../courses/course.model.js';
 import { Lesson } from '../courses/lesson.model.js';
+import { User } from '../auth/user.model.js';
+import '../catalog/category.model.js';
 import { AppError } from '../../common/errors/AppError.js';
 import { QuizAttempt } from './quiz-attempt.model.js';
 import { Order } from '../commerce/order.model.js';
@@ -59,10 +61,11 @@ export class LearningService {
     return await Enrollment.find({ userId })
       .populate({
         path: 'courseId',
-        select: 'title slug thumbnail totalLessons totalDuration price instructor level category averageRating ratingCount description shortDescription syllabus',
+        select: 'title slug thumbnail totalLessons totalDuration price instructors levelId categoryId averageRating reviewCount description shortDescription',
+        options: { strictPopulate: false },
         populate: [
           { path: 'instructors', select: 'firstName lastName avatar' },
-          { path: 'category', select: 'name slug' }
+          { path: 'categoryId', select: 'name slug', options: { strictPopulate: false } }
         ]
       })
       .populate('lastLessonId', 'title slug duration order')
@@ -135,9 +138,21 @@ export class LearningService {
     if (!lesson) throw new AppError('Lesson not found', 404, 'NOT_FOUND');
 
     if (!lesson.isFree) {
-      const enrollment = await Enrollment.findOne({ userId, courseId: lesson.courseId, status: 'active' });
-      if (!enrollment) {
-        throw new AppError('You must purchase this course to access this lesson', 403, 'FORBIDDEN');
+      const user = await User.findById(userId).populate('role', 'name slug');
+      const roleSlug = ((user?.role as any)?.slug || (user?.role as any)?.name || '') as string;
+      const isPrivileged = roleSlug === 'admin' || roleSlug === 'super-admin' || roleSlug === 'manager';
+      
+      const course = await Course.findById(lesson.courseId);
+      const isInstructor = course && user && (
+        course.createdBy?.toString() === userId.toString() ||
+        course.instructors?.some((instId: any) => instId?.toString() === userId.toString())
+      );
+
+      if (!isPrivileged && !isInstructor) {
+        const enrollment = await Enrollment.findOne({ userId, courseId: lesson.courseId, status: 'active' });
+        if (!enrollment) {
+          throw new AppError('You must purchase this course to access this lesson', 403, 'FORBIDDEN');
+        }
       }
     }
 

@@ -124,7 +124,7 @@ export default function CartPage() {
                       alt={title} 
                       className="w-full sm:w-36 h-28 object-cover rounded-xl shrink-0 bg-gray-100" 
                       onError={(e: any) => {
-                        e.target.src = `https://picsum.photos/seed/techyad/400/250`;
+                        e.target.src = `https://picsum.photos/seed/tecyad/400/250`;
                       }}
                     />
                     

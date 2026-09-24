@@ -101,7 +101,7 @@ export class ClassService {
   }
 
   static async createClass(userId: string, data: any) {
-    const mockRoomLink = data.mode === 'online' ? `https://www.skyroom.online/ch/techyad/${new Types.ObjectId().toString().substring(0, 8)}` : undefined;
+    const mockRoomLink = data.mode === 'online' ? `https://www.skyroom.online/ch/tecyad/${new Types.ObjectId().toString().substring(0, 8)}` : undefined;
     
     const payload = { ...data };
     if (!payload.capacity) payload.capacity = data.maxStudents || 50;

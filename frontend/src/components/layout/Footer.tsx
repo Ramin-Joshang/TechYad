@@ -32,7 +32,7 @@ export function Footer() {
 
   const logoUrl = publicSettings?.siteFooterLogo || publicSettings?.siteLogo;
   const siteTitle = publicSettings?.siteName ? publicSettings.siteName.split('|')[0].trim() : 'تک‌یاد';
-  const supportEmail = publicSettings?.supportEmail || 'hello@techyad.edu';
+  const supportEmail = publicSettings?.supportEmail || 'hello@tecyad.ir';
   const supportPhone = publicSettings?.supportPhone || '021 - 91234567';
 
   return (
@@ -66,8 +66,9 @@ export function Footer() {
                    <div className="w-2 h-2 bg-[var(--neo-secondary)] rounded-full"></div>
                 </div>
               )}
-              <span className="font-bold text-2xl text-[var(--neo-text-main)] tracking-tight">
-                {siteTitle}
+              <span className="font-bold text-2xl text-[var(--neo-text-main)] inline-flex items-center gap-2 tracking-tight">
+                <span>{siteTitle}</span>
+                <span className="text-xs font-mono tracking-wider font-semibold text-blue-600 bg-blue-50 px-2 py-0.5 rounded uppercase">Tecyad</span>
               </span>
             </Link>
             <p className="mb-6 leading-relaxed text-sm font-medium text-gray-600 max-w-sm">

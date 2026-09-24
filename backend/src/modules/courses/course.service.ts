@@ -1,3 +1,4 @@
+import { Types } from 'mongoose';
 import { Course } from './course.model.js';
 import { Chapter } from './chapter.model.js';
 import { Lesson } from './lesson.model.js';
@@ -59,9 +60,21 @@ export class CourseService {
   }
 
   static async getCourseBySlug(slug: string) {
-    const course = await Course.findOne({ slug, status: 'published' })
+    const isObjectId = Types.ObjectId.isValid(slug);
+    const query: any = isObjectId 
+      ? { $or: [{ slug }, { _id: slug }] }
+      : { slug };
+
+    let course = await Course.findOne({ ...query, status: 'published' })
       .populate('instructors', 'firstName lastName avatar bio')
       .populate('categoryId', 'name slug');
+      
+    if (!course) {
+      course = await Course.findOne(query)
+        .populate('instructors', 'firstName lastName avatar bio')
+        .populate('categoryId', 'name slug');
+    }
+
     if (!course) throw new AppError('Course not found', 404, 'NOT_FOUND');
     return course;
   }

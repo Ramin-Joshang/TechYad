@@ -134,8 +134,9 @@ export function Navbar() {
                     <div className="w-2 h-2 bg-[var(--neo-secondary)] rounded-full"></div>
                   </div>
                 )}
-                <span className="font-bold text-xl text-[var(--neo-text-main)] hidden sm:block tracking-tight">
-                  {publicSettings?.siteName ? publicSettings.siteName.split('|')[0].trim() : 'تک‌یاد'}
+                <span className="font-bold text-xl text-[var(--neo-text-main)] hidden sm:inline-flex items-center gap-1.5 tracking-tight">
+                  <span>{publicSettings?.siteName ? publicSettings.siteName.split('|')[0].trim() : 'تک‌یاد'}</span>
+                  <span className="text-[10px] font-mono tracking-wider font-semibold text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded uppercase">Tecyad</span>
                 </span>
               </Link>
             </div>

@@ -9,21 +9,21 @@ export async function generateMetadata({ params }: { params: Promise<{ slug?: st
     // In a real app we would fetch the actual data here to populate the metadata
     // For now, we will provide a generic but structured dynamic metadata
     return {
-      title: `${identifier} | TechYad`,
+      title: `${identifier} | Tecyad`,
       description: `اطلاعات کامل در مورد ${identifier} در تک‌یاد`,
       openGraph: {
-        title: `${identifier} | TechYad`,
+        title: `${identifier} | Tecyad`,
         description: `اطلاعات کامل در مورد ${identifier} در تک‌یاد`,
         type: 'website',
       },
       twitter: {
         card: 'summary_large_image',
-        title: `${identifier} | TechYad`,
+        title: `${identifier} | Tecyad`,
         description: `اطلاعات کامل در مورد ${identifier} در تک‌یاد`,
       }
     };
   } catch(e) {
-    return { title: 'TechYad' };
+    return { title: 'Tecyad' };
   }
 }
 

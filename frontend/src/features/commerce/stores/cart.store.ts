@@ -49,7 +49,7 @@ export const useCartStore = create<CartState>()(
       setHasHydrated: (status) => set({ hasHydrated: status }),
     }),
     {
-      name: 'techyad_cart',
+      name: 'tecyad_cart',
       storage: createJSONStorage(() => localStorage),
       onRehydrateStorage: () => (state) => {
         state?.setHasHydrated(true);

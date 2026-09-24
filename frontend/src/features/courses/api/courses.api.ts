@@ -22,6 +22,9 @@ export interface Course {
   thumbnail?: string;
   tags?: string[];
   levelId?: string;
+  totalLessons?: number;
+  totalDuration?: number;
+  shortDescription?: string;
   createdAt: string;
 }
 

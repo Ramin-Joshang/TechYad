@@ -166,7 +166,7 @@ export default function SettingsPage() {
                       value={formData.supportEmail || ''}
                       onChange={e => handleChange('supportEmail', e.target.value)}
                       className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[var(--neo-primary)]/20 outline-none text-xs text-left dir-ltr"
-                      placeholder="support@techyad.ir"
+                      placeholder="support@tecyad.ir"
                     />
                   </div>
                   <div className="space-y-2">

@@ -47,8 +47,16 @@ export const useAuthStore = create<AuthState>()(
       setHasHydrated: (status) => set({ hasHydrated: status }),
     }),
     {
-      name: 'techyad_auth',
-      storage: createJSONStorage(() => localStorage),
+      name: 'tecyad_auth',
+      storage: createJSONStorage(() => {
+        if (typeof window !== 'undefined') {
+          const old = localStorage.getItem('techyad_auth');
+          if (old && !localStorage.getItem('tecyad_auth')) {
+            localStorage.setItem('tecyad_auth', old);
+          }
+        }
+        return localStorage;
+      }),
       partialize: (state) => ({
         user: state.user,
         isAuthenticated: state.isAuthenticated,

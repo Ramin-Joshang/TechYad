@@ -23,22 +23,22 @@ export async function generateMetadata({
   const slug = resolvedParams.slug;
   const article = await fetchArticleData(slug);
 
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://tekyad.ir';
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://tecyad.ir';
   const pageUrl = `${baseUrl}/blog/${encodeURIComponent(slug)}`;
 
   if (!article) {
     return {
-      title: 'مقاله تخصصی | وبلاگ تک‌یاد',
-      description: 'جدیدترین مقالات آموزشی، راهنماهای برنامه‌نویسی و فناوری در وبلاگ تک‌یاد.',
+      title: 'مقاله تخصصی | وبلاگ تک‌یاد (Tecyad)',
+      description: 'جدیدترین مقالات آموزشی، راهنماهای برنامه‌نویسی و فناوری در وبلاگ تک‌یاد (Tecyad).',
     };
   }
 
-  const title = `${article.title} | وبلاگ تک‌یاد`;
+  const title = `${article.title} | وبلاگ تک‌یاد (Tecyad)`;
   const rawExcerpt = article.excerpt || article.content || '';
   const cleanExcerpt = rawExcerpt.replace(/<[^>]*>/g, '').slice(0, 155);
   const description = cleanExcerpt.length > 50
     ? `${cleanExcerpt}...`
-    : `مطالعه مقاله تخصصی ${article.title} در وبلاگ تک‌یاد و ارتقای دانش مهندسی و نرم‌افزار.`;
+    : `مطالعه مقاله تخصصی ${article.title} در وبلاگ تک‌یاد (Tecyad) و ارتقای دانش مهندسی و نرم‌افزار.`;
 
   const imageUrl = article.thumbnail || `${baseUrl}/images/blog-default.jpg`;
   const authorName = `${article.author?.firstName || 'تیم'} ${article.author?.lastName || 'تک‌یاد'}`.trim();
@@ -53,6 +53,7 @@ export async function generateMetadata({
       ...(article.tags || []),
       'وبلاگ آموزشی',
       'تک‌یاد',
+      'Tecyad',
     ],
     alternates: {
       canonical: pageUrl,
@@ -63,7 +64,7 @@ export async function generateMetadata({
       url: pageUrl,
       title,
       description,
-      siteName: 'تک‌یاد',
+      siteName: 'تک‌یاد | Tecyad',
       publishedTime: article.createdAt,
       modifiedTime: article.updatedAt || article.createdAt,
       authors: [authorName],
@@ -93,7 +94,7 @@ export default async function BlogPostPage({
   const resolvedParams = await params;
   const article = await fetchArticleData(resolvedParams.slug);
 
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://tekyad.ir';
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://tecyad.ir';
   const pageUrl = `${baseUrl}/blog/${encodeURIComponent(resolvedParams.slug)}`;
 
   const blogJsonLd = article ? {
@@ -114,11 +115,11 @@ export default async function BlogPostPage({
     },
     "publisher": {
       "@type": "EducationalOrganization",
-      "name": "تک‌یاد",
-      "url": "https://tekyad.ir",
+      "name": "تک‌یاد | Tecyad",
+      "url": "https://tecyad.ir",
       "logo": {
         "@type": "ImageObject",
-        "url": "https://picsum.photos/seed/tekyad-logo/512/512"
+        "url": "https://picsum.photos/seed/tecyad-logo/512/512"
       }
     }
   } : null;

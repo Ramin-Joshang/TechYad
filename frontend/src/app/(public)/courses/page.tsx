@@ -13,6 +13,7 @@ export const metadata: Metadata = {
     "هوش مصنوعی",
     "دوره‌های تخصصی آنلاین",
     "تک‌یاد",
+    "Tecyad",
   ],
   alternates: {
     canonical: "/courses",
@@ -20,24 +21,24 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     locale: "fa_IR",
-    url: "https://tekyad.ir/courses",
-    siteName: "تک‌یاد",
-    title: "دوره‌های آموزشی برنامه‌نویسی و مهارت‌های تخصصی | تک‌یاد",
-    description: "کاتالوگ جامع دوره‌های آنلاین برنامه‌نویسی، طراحی وب، هوش مصنوعی و مهندسی نرم‌افزار با اساتید مطرح و گواهینامه معتبر در پلتفرم تک‌یاد.",
+    url: "https://tecyad.ir/courses",
+    siteName: "تک‌یاد | Tecyad",
+    title: "دوره‌های آموزشی برنامه‌نویسی و مهارت‌های تخصصی | تک‌یاد (Tecyad)",
+    description: "کاتالوگ جامع دوره‌های آنلاین برنامه‌نویسی، طراحی وب، هوش مصنوعی و مهندسی نرم‌افزار با اساتید مطرح و گواهینامه معتبر در پلتفرم تک‌یاد (Tecyad).",
     images: [
       {
-        url: "https://picsum.photos/seed/tekyad-courses/1200/630",
+        url: "https://picsum.photos/seed/tecyad-courses/1200/630",
         width: 1200,
         height: 630,
-        alt: "دوره‌های آموزشی تک‌یاد",
+        alt: "دوره‌های آموزشی تک‌یاد Tecyad",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "دوره‌های آموزشی برنامه‌نویسی و مهارت‌های تخصصی | تک‌یاد",
+    title: "دوره‌های آموزشی برنامه‌نویسی و مهارت‌های تخصصی | تک‌یاد (Tecyad)",
     description: "کاتالوگ جامع دوره‌های آنلاین برنامه‌نویسی، طراحی وب، هوش مصنوعی و مهندسی با اساتید مطرح.",
-    images: ["https://picsum.photos/seed/tekyad-courses/1200/630"],
+    images: ["https://picsum.photos/seed/tecyad-courses/1200/630"],
   },
 };
 
@@ -45,13 +46,13 @@ export default function CoursesPage() {
   const catalogJsonLd = {
     "@context": "https://schema.org",
     "@type": "CollectionPage",
-    "name": "دوره‌های آموزشی تک‌یاد",
-    "description": "فهرست دوره‌های آموزشی تخصصی آنلاین در پلتفرم تک‌یاد",
-    "url": "https://tekyad.ir/courses",
+    "name": "دوره‌های آموزشی تک‌یاد | Tecyad",
+    "description": "فهرست دوره‌های آموزشی تخصصی آنلاین در پلتفرم تک‌یاد (Tecyad)",
+    "url": "https://tecyad.ir/courses",
     "provider": {
       "@type": "EducationalOrganization",
-      "name": "تک‌یاد",
-      "url": "https://tekyad.ir"
+      "name": "تک‌یاد | Tecyad",
+      "url": "https://tecyad.ir"
     }
   };
 

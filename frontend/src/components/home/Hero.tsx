@@ -266,7 +266,7 @@ export function Hero() {
                     دانش
                   </span>
                   <span className="text-[10px] text-slate-400 font-semibold tracking-wider uppercase mt-1">
-                    TechYad
+                    Tecyad
                   </span>
                 </div>
               </div>

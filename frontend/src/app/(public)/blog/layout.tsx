@@ -9,6 +9,7 @@ export const metadata: Metadata = {
     'آموزش هوش مصنوعی',
     'تکنولوژی',
     'تک‌یاد',
+    'Tecyad',
   ],
   alternates: {
     canonical: '/blog',
@@ -16,24 +17,24 @@ export const metadata: Metadata = {
   openGraph: {
     type: 'website',
     locale: 'fa_IR',
-    url: 'https://tekyad.ir/blog',
-    siteName: 'تک‌یاد',
-    title: 'وبلاگ تخصصی و مقالات آموزشی | تک‌یاد',
-    description: 'تازه‌ترین مقالات آموزشی، راهنماهای کاربردی برنامه‌نویسی و هوش مصنوعی در وبلاگ تک‌یاد.',
+    url: 'https://tecyad.ir/blog',
+    siteName: 'تک‌یاد | Tecyad',
+    title: 'وبلاگ تخصصی و مقالات آموزشی | تک‌یاد (Tecyad)',
+    description: 'تازه‌ترین مقالات آموزشی، راهنماهای کاربردی برنامه‌نویسی و هوش مصنوعی در وبلاگ تک‌یاد (Tecyad).',
     images: [
       {
-        url: 'https://picsum.photos/seed/tekyad-blog/1200/630',
+        url: 'https://picsum.photos/seed/tecyad-blog/1200/630',
         width: 1200,
         height: 630,
-        alt: 'وبلاگ تک‌یاد',
+        alt: 'وبلاگ تک‌یاد Tecyad',
       },
     ],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'وبلاگ تخصصی و مقالات آموزشی | تک‌یاد',
-    description: 'تازه‌ترین مقالات آموزشی، راهنماهای کاربردی برنامه‌نویسی و فناوری در تک‌یاد.',
-    images: ['https://picsum.photos/seed/tekyad-blog/1200/630'],
+    title: 'وبلاگ تخصصی و مقالات آموزشی | تک‌یاد (Tecyad)',
+    description: 'تازه‌ترین مقالات آموزشی، راهنماهای کاربردی برنامه‌نویسی و فناوری در تک‌یاد (Tecyad).',
+    images: ['https://picsum.photos/seed/tecyad-blog/1200/630'],
   },
 };
 

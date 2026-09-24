@@ -23,22 +23,22 @@ export async function generateMetadata({
   const identifier = resolvedParams.slug || resolvedParams.id || '';
   const classItem = await fetchClassData(identifier);
 
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://tekyad.ir';
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://tecyad.ir';
   const pageUrl = `${baseUrl}/classes/${encodeURIComponent(identifier)}`;
 
   if (!classItem) {
     return {
-      title: 'کلاس آنلاین و وبینار تخصصی | تک‌یاد',
-      description: 'شرکت در کلاس‌های تعاملی آنلاین، کارگاه‌های زنده و دوره‌های مهارتی با حضور اساتید برتر در تک‌یاد.',
+      title: 'کلاس آنلاین و وبینار تخصصی | تک‌یاد (Tecyad)',
+      description: 'شرکت در کلاس‌های تعاملی آنلاین، کارگاه‌های زنده و دوره‌های مهارتی با حضور اساتید برتر در تک‌یاد (Tecyad).',
     };
   }
 
-  const title = `${classItem.title} | کلاس تعاملی آنلاین تک‌یاد`;
+  const title = `${classItem.title} | کلاس تعاملی آنلاین تک‌یاد (Tecyad)`;
   const rawDesc = classItem.description || '';
   const cleanDesc = rawDesc.replace(/<[^>]*>/g, '').slice(0, 155);
   const description = cleanDesc.length > 50
     ? `${cleanDesc}...`
-    : `ثبت‌نام در کلاس زنده و وبینار تخصصی ${classItem.title} با پشتیبانی و ظرفیت محدود در تک‌یاد.`;
+    : `ثبت‌نام در کلاس زنده و وبینار تخصصی ${classItem.title} با پشتیبانی و ظرفیت محدود در تک‌یاد (Tecyad).`;
 
   const imageUrl = classItem.thumbnail || `${baseUrl}/images/class-default.jpg`;
 
@@ -51,6 +51,7 @@ export async function generateMetadata({
       'وبینار آموزشی',
       'کارگاه زنده',
       'تک‌یاد',
+      'Tecyad',
       'آموزش تعاملی',
     ],
     alternates: {
@@ -62,7 +63,7 @@ export async function generateMetadata({
       url: pageUrl,
       title,
       description,
-      siteName: 'تک‌یاد',
+      siteName: 'تک‌یاد | Tecyad',
       images: [
         {
           url: imageUrl,
@@ -89,7 +90,7 @@ export default async function ClassDetailsPage({
   const resolvedParams = await params;
   const classItem = await fetchClassData(resolvedParams.slug);
 
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://tekyad.ir';
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://tecyad.ir';
   const pageUrl = `${baseUrl}/classes/${encodeURIComponent(resolvedParams.slug)}`;
 
   const classJsonLd = classItem ? {
@@ -105,8 +106,8 @@ export default async function ClassDetailsPage({
     "endDate": classItem.endDate || undefined,
     "organizer": {
       "@type": "EducationalOrganization",
-      "name": "تک‌یاد",
-      "url": "https://tekyad.ir"
+      "name": "تک‌یاد | Tecyad",
+      "url": "https://tecyad.ir"
     },
     "performer": classItem.instructor ? {
       "@type": "Person",

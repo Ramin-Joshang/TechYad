@@ -651,7 +651,7 @@ export class WalletService {
     try {
       await AuditLog.create({
         userId: admin?._id,
-        userEmail: admin?.email || "admin@tekyad.ir",
+        userEmail: admin?.email || "admin@tecyad.ir",
         userName: `${admin?.firstName || "مدیر"} ${admin?.lastName || "سیستم"}`.trim(),
         action: `تنظیم دستی موجودی کیف پول کاربر (${targetUser.email}): ${data.direction === "credit" ? "+" : "-"}${data.amount} تومان`,
         category: "settlement",

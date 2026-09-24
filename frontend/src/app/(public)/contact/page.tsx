@@ -139,8 +139,8 @@ export default function ContactPage() {
                   </div>
                   <div>
                     <div className="font-bold text-[var(--neo-text-main)] mb-1">پست الکترونیک</div>
-                    <div className="text-[var(--neo-text-secondary)] text-sm">info@techyad.com</div>
-                    <div className="text-[var(--neo-text-secondary)] text-sm">support@techyad.com</div>
+                    <div className="text-[var(--neo-text-secondary)] text-sm">info@tecyad.ir</div>
+                    <div className="text-[var(--neo-text-secondary)] text-sm">support@tecyad.ir</div>
                   </div>
                 </li>
 

@@ -43,7 +43,7 @@ app.get('/', (req, res) => {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TechYad Backend API</title>
+    <title>Tecyad Backend API</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
@@ -59,7 +59,7 @@ app.get('/', (req, res) => {
         </div>
         <h1 class="text-3xl font-bold text-gray-900 mb-3">تک‌یاد API</h1>
         <p class="text-gray-500 mb-8 leading-relaxed">
-            به سرویس بک‌اند پلتفرم آموزش آنلاین تک‌یاد (TechYad) خوش آمدید. تمامی سرویس‌ها در حال اجرا و آماده پاسخگویی هستند.
+            به سرویس بک‌اند پلتفرم آموزش آنلاین تک‌یاد (Tecyad) خوش آمدید. تمامی سرویس‌ها در حال اجرا و آماده پاسخگویی هستند.
         </p>
         <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
             <a href="/api-docs" class="w-full sm:w-auto inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-xl text-white bg-blue-600 hover:bg-blue-700 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">

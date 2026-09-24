@@ -24,22 +24,22 @@ export async function generateMetadata({
   const identifier = resolvedParams.slug || resolvedParams.id || '';
   const course = await fetchCourseData(identifier);
 
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://tekyad.ir';
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://tecyad.ir';
   const pageUrl = `${baseUrl}/courses/${encodeURIComponent(identifier)}`;
 
   if (!course) {
     return {
-      title: 'دوره آموزشی | تک‌یاد',
-      description: 'مشاهده سرفصل‌ها، ویدیوهای پیش‌نمایش و ثبت‌نام در دوره‌های تخصصی آموزشگاه آنلاین تک‌یاد.',
+      title: 'دوره آموزشی | تک‌یاد (Tecyad)',
+      description: 'مشاهده سرفصل‌ها، ویدیوهای پیش‌نمایش و ثبت‌نام در دوره‌های تخصصی آموزشگاه آنلاین تک‌یاد (Tecyad).',
     };
   }
 
-  const title = `${course.title} | دوره آموزش تخصصی تک‌یاد`;
+  const title = `${course.title} | دوره آموزش تخصصی تک‌یاد (Tecyad)`;
   const rawDescription = course.description || course.shortDescription || '';
   const cleanDescription = rawDescription.replace(/<[^>]*>/g, '').slice(0, 155);
   const description = cleanDescription.length > 50 
     ? `${cleanDescription}...`
-    : `ثبت‌نام در دوره آموزشی ${course.title} در تک‌یاد با تدریس برترین اساتید و دریافت مدرک معتبر مهارت.`;
+    : `ثبت‌نام در دوره آموزشی ${course.title} در تک‌یاد (Tecyad) با تدریس برترین اساتید و دریافت مدرک معتبر مهارت.`;
 
   const imageUrl = course.thumbnail || `${baseUrl}/images/course-default.jpg`;
 
@@ -52,6 +52,7 @@ export async function generateMetadata({
       'دوره آنلاین',
       'یادگیری مهارت',
       'تک‌یاد',
+      'Tecyad',
       'آموزش تخصصی',
     ],
     alternates: {
@@ -63,7 +64,7 @@ export async function generateMetadata({
       url: pageUrl,
       title,
       description,
-      siteName: 'تک‌یاد',
+      siteName: 'تک‌یاد | Tecyad',
       images: [
         {
           url: imageUrl,
@@ -90,7 +91,7 @@ export default async function CoursePage({
   const resolvedParams = await params;
   const course = await fetchCourseData(resolvedParams.slug);
 
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://tekyad.ir';
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://tecyad.ir';
   const pageUrl = `${baseUrl}/courses/${encodeURIComponent(resolvedParams.slug)}`;
 
   const courseJsonLd = course ? {
@@ -102,8 +103,8 @@ export default async function CoursePage({
     "image": course.thumbnail || `${baseUrl}/images/course-default.jpg`,
     "provider": {
       "@type": "EducationalOrganization",
-      "name": "تک‌یاد",
-      "sameAs": "https://tekyad.ir"
+      "name": "تک‌یاد | Tecyad",
+      "sameAs": "https://tecyad.ir"
     },
     "instructor": course.instructor ? {
       "@type": "Person",

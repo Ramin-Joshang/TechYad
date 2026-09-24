@@ -13,7 +13,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // Fetch and apply SEO settings to document
     superAdminApi.getPublicSettings().then((res: any) => {
       if (res?.data) {
-        if (res.data.siteName && (!document.title || document.title.includes('تک‌یاد') || document.title.includes('TechYad'))) {
+        if (res.data.siteName && (!document.title || document.title.includes('تک‌یاد') || document.title.includes('Tecyad') || document.title.includes('TechYad'))) {
           // If on home page, update site name
           if (window.location.pathname === '/') {
             document.title = res.data.siteName;

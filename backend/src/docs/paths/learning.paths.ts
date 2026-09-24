@@ -1,30 +1,91 @@
 export const learningPaths = {
-  '/me/enrollments': {
-    get: { tags: ['Learning'], summary: 'Get user enrollments', security: [{ bearerAuth: [] }], responses: { '200': { description: 'List of enrollments' } } }
+  '/dashboard': {
+    get: {
+      tags: ['Learning (میز یادگیری دانشجو)'],
+      summary: 'دریافت داده‌های داشبورد آموزشی دانشجو',
+      description: 'واکشی دوره‌های اخیر، تمرین‌های در انتظار، وضعیت پیشرفت و اعلان‌های آموزشی کاربر.',
+      security: [{ bearerAuth: [] }],
+      responses: {
+        '200': { description: 'اطلاعات داشبورد دانشجو' }
+      }
+    }
   },
-  '/courses/{courseId}/enroll': {
-    post: { tags: ['Learning'], summary: 'Enroll in a free course', security: [{ bearerAuth: [] }], parameters: [{ name: 'courseId', in: 'path', required: true, schema: { type: 'string' } }], responses: { '201': { description: 'Enrolled successfully' } } }
+  '/enrollments': {
+    get: {
+      tags: ['Learning (میز یادگیری دانشجو)'],
+      summary: 'دریافت فهرست تمام دوره‌های ثبت‌نامی دانشجو با جزئیات کامل',
+      description: 'شامل عنوان دوره، مشخصات مدرس، درصد پیشرفت، آخرین جلسه مشاهده‌شده و تعداد جلسات سپری شده.',
+      security: [{ bearerAuth: [] }],
+      responses: {
+        '200': { description: 'لیست دوره‌های ثبت‌نامی دانشجو' }
+      }
+    }
   },
-  '/me/lessons/{lessonId}/progress': {
-    get: { tags: ['Learning'], summary: 'Get lesson progress', security: [{ bearerAuth: [] }], parameters: [{ name: 'lessonId', in: 'path', required: true, schema: { type: 'string' } }], responses: { '200': { description: 'Progress details' } } },
-    post: { tags: ['Learning'], summary: 'Update lesson progress', security: [{ bearerAuth: [] }], parameters: [{ name: 'lessonId', in: 'path', required: true, schema: { type: 'string' } }], requestBody: { required: true, content: { 'application/json': { schema: { type: 'object', properties: { watchedSeconds: { type: 'number' }, progress: { type: 'number' }, completed: { type: 'boolean' } } } } } }, responses: { '200': { description: 'Progress updated' } } }
+  '/enrollments/{courseId}': {
+    get: {
+      tags: ['Learning (میز یادگیری دانشجو)'],
+      summary: 'بررسی وضعیت ثبت‌نام و درصد پیشرفت دانشجو در یک دوره خاص',
+      security: [{ bearerAuth: [] }],
+      parameters: [{ name: 'courseId', in: 'path', required: true, schema: { type: 'string' } }],
+      responses: {
+        '200': { description: 'اطلاعات ثبت‌نام دوره' }
+      }
+    }
   },
-  '/lessons/{lessonId}/assignments': {
-    get: { tags: ['Assignments'], summary: 'Get assignments for a lesson', parameters: [{ name: 'lessonId', in: 'path', required: true, schema: { type: 'string' } }], responses: { '200': { description: 'Assignments list' } } }
+  '/enrollments/free/{courseId}': {
+    post: {
+      tags: ['Learning (میز یادگیری دانشجو)'],
+      summary: 'ثبت‌نام مستقیم و آنی در دوره آموزشی رایگان',
+      security: [{ bearerAuth: [] }],
+      parameters: [{ name: 'courseId', in: 'path', required: true, schema: { type: 'string' } }],
+      responses: {
+        '201': { description: 'ثبت‌نام در دوره رایگان با موفقیت انجام شد' }
+      }
+    }
   },
-  '/assignments/{assignmentId}/submit': {
-    post: { tags: ['Assignments'], summary: 'Submit an assignment', security: [{ bearerAuth: [] }], parameters: [{ name: 'assignmentId', in: 'path', required: true, schema: { type: 'string' } }], requestBody: { required: true, content: { 'application/json': { schema: { type: 'object', properties: { answerText: { type: 'string' } } } } } }, responses: { '201': { description: 'Assignment submitted' } } }
+  '/lessons/{lessonId}': {
+    get: {
+      tags: ['Learning (میز یادگیری دانشجو)'],
+      summary: 'دسترسی امن به محتوا، ویدیو و منابع جلسه آموزشی',
+      description: 'اعتبارسنجی ثبت‌نام دانشجو و تولید لینک امن استریم ویدیو یا فایل‌های جلسه.',
+      security: [{ bearerAuth: [] }],
+      parameters: [{ name: 'lessonId', in: 'path', required: true, schema: { type: 'string' } }],
+      responses: {
+        '200': { description: 'محتوای امن جلسه' },
+        '403': { description: 'کاربر در این دوره ثبت‌نام نکرده است' }
+      }
+    }
   },
-  '/instructor/lessons/{lessonId}/assignments': {
-    post: { tags: ['Assignments (Instructor)'], summary: 'Create an assignment', security: [{ bearerAuth: [] }], parameters: [{ name: 'lessonId', in: 'path', required: true, schema: { type: 'string' } }], requestBody: { required: true, content: { 'application/json': { schema: { type: 'object', properties: { title: { type: 'string' }, description: { type: 'string' }, type: { type: 'string', enum: ['file_upload', 'text_answer', 'mixed'] } } } } } }, responses: { '201': { description: 'Assignment created' } } }
-  },
-  '/me/quizzes/{quizId}/start': {
-    post: { tags: ['Quizzes'], summary: 'Start a quiz', security: [{ bearerAuth: [] }], parameters: [{ name: 'quizId', in: 'path', required: true, schema: { type: 'string' } }], responses: { '200': { description: 'Quiz session started' } } }
-  },
-  '/me/quizzes/{quizId}/submit': {
-    post: { tags: ['Quizzes'], summary: 'Submit quiz answers', security: [{ bearerAuth: [] }], parameters: [{ name: 'quizId', in: 'path', required: true, schema: { type: 'string' } }], requestBody: { required: true, content: { 'application/json': { schema: { type: 'object', properties: { answers: { type: 'array', items: { type: 'object', properties: { questionId: { type: 'string' }, selectedOptionIds: { type: 'array', items: { type: 'string' } } } } } } } } } }, responses: { '200': { description: 'Quiz graded and submitted' } } }
-  },
-  '/instructor/lessons/{lessonId}/quizzes': {
-    post: { tags: ['Quizzes (Instructor)'], summary: 'Create a quiz', security: [{ bearerAuth: [] }], parameters: [{ name: 'lessonId', in: 'path', required: true, schema: { type: 'string' } }], requestBody: { required: true, content: { 'application/json': { schema: { type: 'object', properties: { title: { type: 'string' }, questions: { type: 'array', items: { type: 'object' } } } } } } }, responses: { '201': { description: 'Quiz created' } } }
+  '/progress/{lessonId}': {
+    get: {
+      tags: ['Learning (میز یادگیری دانشجو)'],
+      summary: 'دریافت میزان پیشرفت و ثانیه‌های تماشا شده در این جلسه',
+      security: [{ bearerAuth: [] }],
+      parameters: [{ name: 'lessonId', in: 'path', required: true, schema: { type: 'string' } }],
+      responses: { '200': { description: 'اطلاعات پیشرفت جلسه' } }
+    },
+    post: {
+      tags: ['Learning (میز یادگیری دانشجو)'],
+      summary: 'به‌روزرسانی خودکار زمان تماشا و علامت‌گذاری تکمیل جلسه',
+      description: 'ارسال ثانیه پخش شده، درصد مشاهده و محاسبه مجدد درصد پیشرفت کل دوره.',
+      security: [{ bearerAuth: [] }],
+      parameters: [{ name: 'lessonId', in: 'path', required: true, schema: { type: 'string' } }],
+      requestBody: {
+        required: true,
+        content: {
+          'application/json': {
+            schema: {
+              type: 'object',
+              properties: {
+                watchedSeconds: { type: 'number', example: 345 },
+                progress: { type: 'number', example: 85 },
+                completed: { type: 'boolean', example: true }
+              }
+            }
+          }
+        }
+      },
+      responses: { '200': { description: 'پیشرفت جلسه ثبت شد' } }
+    }
   }
 };

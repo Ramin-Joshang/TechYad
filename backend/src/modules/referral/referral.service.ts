@@ -375,7 +375,7 @@ export class ReferralService {
     const referralCode = await this.ensureUserReferralCode(user);
     const settings = await this.getSettings();
 
-    const baseUrl = hostUrl || "https://tekyad.ir";
+    const baseUrl = hostUrl || "https://tecyad.ir";
     const referralLink = `${baseUrl}/register?ref=${referralCode}`;
 
     // Share messages
@@ -461,7 +461,7 @@ export class ReferralService {
   static async getInstructorDashboard(instructorId: string, hostUrl: string = "") {
     const baseDashboard = await this.getUserDashboard(instructorId, hostUrl);
     const code = baseDashboard.referralCode;
-    const baseUrl = hostUrl || "https://tekyad.ir";
+    const baseUrl = hostUrl || "https://tecyad.ir";
 
     // Fetch instructor's courses
     const courses = await Course.find({

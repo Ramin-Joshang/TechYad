@@ -10,6 +10,8 @@ export const metadata: Metadata = {
     "اساتید هوش مصنوعی",
     "آموزشگاه آنلاین",
     "اساتید مجرب",
+    "تک‌یاد",
+    "Tecyad",
   ],
   alternates: {
     canonical: "/instructors",
@@ -17,24 +19,24 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     locale: "fa_IR",
-    url: "https://tekyad.ir/instructors",
-    siteName: "تک‌یاد",
-    title: "اساتید و مدرسان برجسته | تک‌یاد",
-    description: "آشنایی با اساتید متخصص و حرفه‌ای تک‌یاد در حوزه‌های برنامه‌نویسی، طراحی محصول و هوش مصنوعی.",
+    url: "https://tecyad.ir/instructors",
+    siteName: "تک‌یاد | Tecyad",
+    title: "اساتید و مدرسان برجسته | تک‌یاد (Tecyad)",
+    description: "آشنایی با اساتید متخصص و حرفه‌ای تک‌یاد (Tecyad) در حوزه‌های برنامه‌نویسی، طراحی محصول و هوش مصنوعی.",
     images: [
       {
-        url: "https://picsum.photos/seed/tekyad-instructors/1200/630",
+        url: "https://picsum.photos/seed/tecyad-instructors/1200/630",
         width: 1200,
         height: 630,
-        alt: "اساتید تک‌یاد",
+        alt: "اساتید تک‌یاد Tecyad",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "اساتید و مدرسان برجسته | تک‌یاد",
-    description: "آشنایی با اساتید متخصص و حرفه‌ای تک‌یاد در حوزه‌های تخصصی نرم‌افزار.",
-    images: ["https://picsum.photos/seed/tekyad-instructors/1200/630"],
+    title: "اساتید و مدرسان برجسته | تک‌یاد (Tecyad)",
+    description: "آشنایی با اساتید متخصص و حرفه‌ای تک‌یاد (Tecyad) در حوزه‌های تخصصی نرم‌افزار.",
+    images: ["https://picsum.photos/seed/tecyad-instructors/1200/630"],
   },
 };
 
