@@ -1,14 +1,23 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
-import { api } from '@/lib/api';
 import { coursesApi } from '@/features/courses/api/courses.api';
-import { Loader2, Search, Mail, BookOpen } from 'lucide-react';
+import { Loader2, Mail, BookOpen } from 'lucide-react';
 
 export default function InstructorStudentsPage() {
-  const [selectedCourse, setSelectedCourse] = useState<string>('all');
+  const searchParams = useSearchParams();
+  const initialCourse = searchParams.get('course') || 'all';
+  const [selectedCourse, setSelectedCourse] = useState<string>(initialCourse);
   const [page, setPage] = useState(1);
+
+  useEffect(() => {
+    const courseParam = searchParams.get('course');
+    if (courseParam) {
+      setSelectedCourse(courseParam);
+    }
+  }, [searchParams]);
 
   // We need the list of courses first to populate the filter
   const { data: coursesData } = useQuery({
@@ -19,22 +28,15 @@ export default function InstructorStudentsPage() {
   const { data, isLoading } = useQuery({
     queryKey: ['instructor-students', selectedCourse, page],
     queryFn: async () => {
-      // If "all", we might need a general endpoint or just fetch the first course
-      // Let's use the first course if 'all' is selected since we only made getCourseStudents
-      let courseId = selectedCourse;
-      if (courseId === 'all' && coursesData?.courses?.[0]) {
-        courseId = coursesData.courses[0]._id;
+      if (selectedCourse === 'all') {
+        const res = await coursesApi.getInstructorStudents({ page, limit: 10 });
+        return res.data;
+      } else {
+        const res = await coursesApi.getCourseStudents(selectedCourse, { page, limit: 10 });
+        return res.data;
       }
-      
-      if (!courseId || courseId === 'all') return { students: [] };
-      
-      return api.get(`/instructor/courses/${courseId}/students`, { params: { page, limit: 10 } })
-        .then(res => res.data);
-    },
-    enabled: selectedCourse !== 'all' || (!!coursesData?.courses && coursesData.courses.length > 0)
+    }
   });
-
-  const displayCourseId = selectedCourse === 'all' && coursesData?.courses ? coursesData.courses[0]?._id : selectedCourse;
 
   return (
     <div className="space-y-6">
@@ -51,7 +53,7 @@ export default function InstructorStudentsPage() {
             onChange={(e) => { setSelectedCourse(e.target.value); setPage(1); }}
             className="bg-transparent border-none focus:ring-0 text-sm font-bold text-[var(--neo-text-main)] outline-none pr-8"
           >
-            <option value="all">انتخاب دوره (پیش‌فرض: اولین دوره)</option>
+            <option value="all">همه دوره‌ها</option>
             {coursesData?.courses?.map((course: any) => (
               <option key={course._id} value={course._id}>{course.title}</option>
             ))}
@@ -70,6 +72,7 @@ export default function InstructorStudentsPage() {
               <thead>
                 <tr className="border-b border-[var(--neo-border)] bg-[var(--neo-surface-2)]/50">
                   <th className="p-4 font-bold text-[var(--neo-text-secondary)] text-sm">دانشجو</th>
+                  <th className="p-4 font-bold text-[var(--neo-text-secondary)] text-sm">دوره ثبت‌نامی</th>
                   <th className="p-4 font-bold text-[var(--neo-text-secondary)] text-sm">ایمیل</th>
                   <th className="p-4 font-bold text-[var(--neo-text-secondary)] text-sm">تاریخ ثبت‌نام</th>
                   <th className="p-4 font-bold text-[var(--neo-text-secondary)] text-sm text-center">عملیات</th>
@@ -91,6 +94,11 @@ export default function InstructorStudentsPage() {
                           {enrollment.userId?.firstName} {enrollment.userId?.lastName}
                         </div>
                       </div>
+                    </td>
+                    <td className="p-4">
+                      <span className="text-xs font-semibold px-2.5 py-1 bg-[var(--neo-surface-2)] rounded-lg text-[var(--neo-text-secondary)] border border-[var(--neo-border)]">
+                        {enrollment.courseId?.title || 'دوره آموزشی'}
+                      </span>
                     </td>
                     <td className="p-4 font-medium text-[var(--neo-text-secondary)] dir-ltr text-right">
                       {enrollment.userId?.email}

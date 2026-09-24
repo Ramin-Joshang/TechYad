@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { coursesApi } from '@/features/courses/api/courses.api';
 import Link from 'next/link';
-import { BookOpen, Plus, Loader2, Edit, AlertCircle, FileText, CheckCircle, Clock } from 'lucide-react';
+import { BookOpen, Plus, Loader2, Edit, AlertCircle, FileText, CheckCircle, Clock, Users } from 'lucide-react';
 import { useAuthStore } from '@/features/auth/stores/auth.store';
 
 export default function InstructorCoursesPage() {
@@ -136,13 +136,22 @@ export default function InstructorCoursesPage() {
                       </div>
                     </td>
                     <td className="p-4">
-                      <Link 
-                        href={`/instructor/courses/${course._id}/edit`}
-                        className="inline-flex items-center justify-center p-2 text-[var(--neo-text-secondary)] hover:bg-[var(--neo-primary)]/10 hover:text-[var(--neo-primary)] rounded-lg transition-colors"
-                        title="ویرایش / مدیریت دروس"
-                      >
-                        <Edit className="w-5 h-5" />
-                      </Link>
+                      <div className="flex items-center gap-1.5">
+                        <Link 
+                          href={`/instructor/students?course=${course._id}`}
+                          className="inline-flex items-center justify-center p-2 text-[var(--neo-text-secondary)] hover:bg-emerald-500/10 hover:text-emerald-600 rounded-lg transition-colors"
+                          title="مشاهده دانشجویان این دوره"
+                        >
+                          <Users className="w-5 h-5" />
+                        </Link>
+                        <Link 
+                          href={`/instructor/courses/${course._id}/edit`}
+                          className="inline-flex items-center justify-center p-2 text-[var(--neo-text-secondary)] hover:bg-[var(--neo-primary)]/10 hover:text-[var(--neo-primary)] rounded-lg transition-colors"
+                          title="ویرایش / مدیریت دروس"
+                        >
+                          <Edit className="w-5 h-5" />
+                        </Link>
+                      </div>
                     </td>
                   </tr>
                 ))}

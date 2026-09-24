@@ -41,6 +41,11 @@ export const deleteClass = async (req: AuthRequest, res: Response) => {
   await ClassService.deleteClass((req.params.id as string), req.user._id as string);
   sendSuccess(res, null, 'Class deleted successfully');
 };
+export const getAdminClasses = async (req: Request, res: Response) => {
+  const result = await ClassService.getAdminClasses(req.query);
+  sendSuccess(res, result, 'Admin classes retrieved successfully');
+};
+
 export const adminUpdateClass = async (req: Request, res: Response) => {
   const result = await ClassService.updateClass((req.params.id as string), '', req.body, true);
   sendSuccess(res, result, 'Class updated by admin successfully');

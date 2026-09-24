@@ -57,6 +57,9 @@ export class QuizService {
 
     const quiz = await Quiz.create({
       ...data,
+      duration: data.duration ?? data.timeLimit ?? 30,
+      passingScore: data.passingScore ?? data.passMark ?? 70,
+      questions: data.questions || [],
       courseId: lesson?.courseId,
       lessonId: lesson?._id
     });

@@ -49,6 +49,41 @@ export class ClassService {
     };
   }
 
+  static async getAdminClasses(query: any = {}) {
+    const filter: any = {};
+    if (query.status && query.status !== 'all') {
+      filter.status = query.status;
+    }
+    if (query.mode && query.mode !== 'all') {
+      filter.mode = query.mode;
+    }
+    if (query.search) {
+      filter.$or = [
+        { title: { $regex: query.search, $options: 'i' } },
+        { description: { $regex: query.search, $options: 'i' } }
+      ];
+    }
+
+    const page = parseInt(query.page as string) || 1;
+    const limit = parseInt(query.limit as string) || 10;
+    const skip = (page - 1) * limit;
+
+    const classes = await Class.find(filter)
+      .populate('instructors', 'firstName lastName avatar bio')
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit);
+
+    const total = await Class.countDocuments(filter);
+    return {
+      classes,
+      total,
+      page,
+      limit,
+      pages: Math.ceil(total / limit) || 1
+    };
+  }
+
   static async getClassBySlug(slug: string) {
     let classData = await Class.findOne({
       $or: [

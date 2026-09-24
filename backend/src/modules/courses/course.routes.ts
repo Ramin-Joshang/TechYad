@@ -34,12 +34,17 @@ router.get('/instructor/courses', isInstructor, asyncHandler(Controller.getInstr
 router.get('/instructor/courses/:id', isInstructor, asyncHandler(Controller.getInstructorCourseById));
 router.get('/instructor/stats', isInstructor, asyncHandler(Controller.getInstructorStats));
 router.get('/instructor/comments', isInstructor, asyncHandler(CommentController.getInstructorComments));
+router.get('/instructor/students', isInstructor, asyncHandler(Controller.getInstructorAllStudents));
 router.get('/instructor/courses/:courseId/students', isInstructor, asyncHandler(Controller.getCourseStudents));
 router.post('/instructor/courses', isInstructor, validate(createCourseSchema), asyncHandler(Controller.createCourse));
 router.patch('/instructor/courses/:id', isInstructor, validate(updateCourseSchema), asyncHandler(Controller.updateCourse));
 router.post('/instructor/courses/:id/request-review', isInstructor, asyncHandler(Controller.requestReview));
 router.post('/instructor/courses/:courseId/chapters', isInstructor, validate(createChapterSchema), asyncHandler(Controller.createChapter));
+router.patch('/instructor/chapters/:chapterId', isInstructor, asyncHandler(Controller.updateChapter));
+router.delete('/instructor/chapters/:chapterId', isInstructor, asyncHandler(Controller.deleteChapter));
 router.post('/instructor/chapters/:chapterId/lessons', isInstructor, validate(createLessonSchema), asyncHandler(Controller.createLesson));
+router.patch('/instructor/lessons/:lessonId', isInstructor, asyncHandler(Controller.updateLesson));
+router.delete('/instructor/lessons/:lessonId', isInstructor, asyncHandler(Controller.deleteLesson));
 
 // --- Admin Routes ---
 router.get('/admin/courses', isAdmin, asyncHandler(Controller.getAdminCourses));
@@ -50,11 +55,10 @@ router.get('/admin/courses/:id', isAdmin, asyncHandler(Controller.adminGetCourse
 router.post('/admin/courses/:id/publish', isAdmin, asyncHandler(Controller.publishCourse));
 router.post('/admin/courses/:id/reject', isAdmin, asyncHandler(Controller.rejectCourse));
 router.post('/admin/courses/:courseId/chapters', isAdmin, validate(createChapterSchema), asyncHandler(Controller.createChapter));
+router.patch('/admin/chapters/:chapterId', isAdmin, asyncHandler(Controller.updateChapter));
+router.delete('/admin/chapters/:chapterId', isAdmin, asyncHandler(Controller.deleteChapter));
 router.post('/admin/chapters/:chapterId/lessons', isAdmin, validate(createLessonSchema), asyncHandler(Controller.createLesson));
+router.patch('/admin/lessons/:lessonId', isAdmin, asyncHandler(Controller.updateLesson));
+router.delete('/admin/lessons/:lessonId', isAdmin, asyncHandler(Controller.deleteLesson));
 
 export default router;
-
-router.patch('/instructor/chapters/:chapterId', isInstructor, asyncHandler(Controller.updateChapter));
-router.delete('/instructor/chapters/:chapterId', isInstructor, asyncHandler(Controller.deleteChapter));
-router.patch('/instructor/lessons/:lessonId', isInstructor, asyncHandler(Controller.updateLesson));
-router.delete('/instructor/lessons/:lessonId', isInstructor, asyncHandler(Controller.deleteLesson));

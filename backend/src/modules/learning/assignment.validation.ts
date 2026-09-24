@@ -3,10 +3,11 @@ import { z } from 'zod';
 export const createAssignmentSchema = z.object({
   body: z.object({
     title: z.string().min(2),
-    description: z.string().min(5),
-    type: z.enum(['file_upload', 'text_answer', 'mixed']),
-    maxScore: z.number().min(0).default(100),
-    deadline: z.string().datetime().optional(),
+    description: z.string().optional(),
+    type: z.enum(['file_upload', 'text_answer', 'mixed']).optional().default('mixed'),
+    maxScore: z.number().min(0).optional(),
+    points: z.number().min(0).optional(),
+    deadline: z.string().optional().nullable(),
     attachments: z.array(z.string()).optional(),
   })
 });

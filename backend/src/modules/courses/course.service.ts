@@ -186,6 +186,25 @@ static async getInstructorCourses(instructorId: string, query: any) {
   }
 
   // --- Course Workflows ---
+  static async getInstructorAllStudents(instructorId: string, query: any) {
+    const courses = await Course.find({ instructors: instructorId }).select('_id');
+    const courseIds = courses.map(c => c._id);
+    
+    const page = parseInt(query.page) || 1;
+    const limit = parseInt(query.limit) || 10;
+    const skip = (page - 1) * limit;
+
+    const filter: any = { courseId: { $in: courseIds } };
+    const enrollments = await Enrollment.find(filter)
+      .populate('userId', 'firstName lastName email avatar')
+      .populate('courseId', 'title slug thumbnail')
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit);
+    const total = await Enrollment.countDocuments(filter);
+    return { students: enrollments, total, page, pages: Math.ceil(total / limit) || 1 };
+  }
+
   static async getCourseStudents(courseId: string, query: any) {
     
     const page = parseInt(query.page) || 1;

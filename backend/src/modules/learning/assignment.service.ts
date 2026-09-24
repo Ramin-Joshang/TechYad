@@ -64,6 +64,8 @@ export class AssignmentService {
 
     const assignment = await Assignment.create({
       ...data,
+      type: data.type || 'mixed',
+      maxScore: data.maxScore ?? data.points ?? 100,
       courseId: lesson?.courseId,
       lessonId: lesson?._id
     });

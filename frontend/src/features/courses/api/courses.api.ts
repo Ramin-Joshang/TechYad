@@ -117,5 +117,11 @@ export const coursesApi = {
   },
   deleteLesson: async (lessonId: string) => {
     return api.delete<any, SingleResponse<any>>(`/instructor/lessons/${lessonId}`);
+  },
+  getCourseStudents: async (courseId: string, params?: any) => {
+    return api.get<any, any>(`/instructor/courses/${courseId}/students`, { params });
+  },
+  getInstructorStudents: async (params?: any) => {
+    return api.get<any, any>('/instructor/students', { params });
   }
 };

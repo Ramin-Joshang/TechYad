@@ -17,10 +17,9 @@ router.get('/me/quizzes/:quizId/result', requireAuth, asyncHandler(Controller.ge
 
 // --- Instructor ---
 router.post('/instructor/lessons/:lessonId/quizzes', isInstructor, validate(createQuizSchema), asyncHandler(Controller.createQuiz));
-
-export default router;
+router.patch('/instructor/quizzes/:quizId', isInstructor, asyncHandler(Controller.updateQuiz));
+router.delete('/instructor/quizzes/:quizId', isInstructor, asyncHandler(Controller.deleteQuiz));
 
 router.get('/me/quizzes', requireAuth, asyncHandler(Controller.getMyQuizzes));
 
-router.patch('/instructor/quizzes/:quizId', isInstructor, asyncHandler(Controller.updateQuiz));
-router.delete('/instructor/quizzes/:quizId', isInstructor, asyncHandler(Controller.deleteQuiz));
+export default router;

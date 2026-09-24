@@ -25,6 +25,7 @@ router.get('/classes/:id/join', requireAuth, asyncHandler(Controller.joinOnlineC
 
 
 const isAdmin = [requireAuth, authorize('classes.manage')];
+router.get('/admin/classes', isAdmin, asyncHandler(Controller.getAdminClasses));
 router.post('/admin/classes', isAdmin, asyncHandler(Controller.createClass)); // Admin can create too
 router.patch('/admin/classes/:id', isAdmin, asyncHandler(Controller.adminUpdateClass));
 router.delete('/admin/classes/:id', isAdmin, asyncHandler(Controller.adminDeleteClass));
