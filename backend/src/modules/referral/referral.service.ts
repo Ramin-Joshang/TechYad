@@ -7,6 +7,7 @@ import { Course } from "../courses/course.model.js";
 import { Order } from "../commerce/order.model.js";
 import { Notification } from "../notifications/notification.model.js";
 import { AppError } from "../../common/errors/AppError.js";
+import { WalletTransaction } from "../wallet/wallet-transaction.model.js";
 
 // Helper to generate a random readable 6-7 char referral code
 function generateRandomCode(): string {
@@ -179,6 +180,24 @@ export class ReferralService {
     }
     await referee.save();
 
+    if (welcomeCredit > 0) {
+      try {
+        await WalletTransaction.create({
+          userId: referee._id,
+          type: "referral_welcome",
+          direction: "credit",
+          amount: welcomeCredit,
+          balanceAfter: referee.walletBalance || 0,
+          status: "completed",
+          title: "هدیه خوش‌آمدگویی کد معرف",
+          description: `اعتبار هدیه ثبت‌نام با کد معرف ${referralCode}`,
+          referenceId: `REF-WEL-${referee._id.toString().slice(-6)}`,
+        });
+      } catch (wErr) {
+        console.error("Error creating welcome wallet transaction:", wErr);
+      }
+    }
+
     // Increment referrer's count
     referrer.referralCount = (referrer.referralCount || 0) + 1;
     await referrer.save();
@@ -191,6 +210,22 @@ export class ReferralService {
       referrer.walletBalance = (referrer.walletBalance || 0) + rewardAmount;
       referrer.referralEarnings = (referrer.referralEarnings || 0) + rewardAmount;
       await referrer.save();
+
+      try {
+        await WalletTransaction.create({
+          userId: referrer._id,
+          type: "referral_reward",
+          direction: "credit",
+          amount: rewardAmount,
+          balanceAfter: referrer.walletBalance || 0,
+          status: "completed",
+          title: "پاداش عضویت دوست دعوت‌شده",
+          description: `پاداش ثبت‌نام کاربر ${referee.firstName} ${referee.lastName}`,
+          referenceId: `REF-REG-${referrer._id.toString().slice(-6)}`,
+        });
+      } catch (wErr) {
+        console.error("Error creating immediate referral wallet transaction:", wErr);
+      }
     }
 
     const referral = await Referral.create({
@@ -289,6 +324,28 @@ export class ReferralService {
       referrer.walletBalance = (referrer.walletBalance || 0) + rewardAmount;
       referrer.referralEarnings = (referrer.referralEarnings || 0) + rewardAmount;
       await referrer.save({ session });
+
+      try {
+        await WalletTransaction.create(
+          [
+            {
+              userId: referrer._id,
+              type: "referral_reward",
+              direction: "credit",
+              amount: rewardAmount,
+              balanceAfter: referrer.walletBalance || 0,
+              status: "completed",
+              title: "پاداش همکاری در فروش (معرفی کاربر)",
+              description: `کمیسیون ${effectivePercent}٪ از خرید دوست در سفارش #${order._id.toString().slice(-6)}`,
+              referenceId: `REF-ORD-${order._id.toString().slice(-6)}`,
+              orderId: order._id,
+            },
+          ],
+          { session }
+        );
+      } catch (wErr) {
+        console.error("Error creating referral reward wallet transaction:", wErr);
+      }
 
       // In-app Notification to referrer
       await Notification.create(
@@ -475,6 +532,24 @@ export class ReferralService {
       requestedAt: new Date(),
     });
 
+    try {
+      await WalletTransaction.create({
+        userId: user._id,
+        type: "withdraw",
+        direction: "debit",
+        amount: data.amount,
+        balanceAfter: user.walletBalance || 0,
+        status: "pending",
+        title: "درخواست تسویه درآمد رفرال",
+        description: `درخواست واریز به حساب بانکی به مبلغ ${data.amount.toLocaleString("fa-IR")} تومان`,
+        referenceId: payout._id.toString(),
+        gateway: "settlement",
+        bankInfo: data.bankInfo,
+      });
+    } catch (wErr) {
+      console.error("Error creating payout wallet transaction:", wErr);
+    }
+
     return payout;
   }
 
@@ -658,6 +733,22 @@ export class ReferralService {
     user.walletBalance = (user.walletBalance || 0) + data.amount;
     user.referralEarnings = (user.referralEarnings || 0) + data.amount;
     await user.save();
+
+    try {
+      await WalletTransaction.create({
+        userId: user._id,
+        type: "referral_reward",
+        direction: "credit",
+        amount: data.amount,
+        balanceAfter: user.walletBalance || 0,
+        status: "completed",
+        title: "پاداش ویژه معرفی (مدیریت)",
+        description: data.reason,
+        processedBy: adminId as any,
+      });
+    } catch (wErr) {
+      console.error("Error creating manual credit wallet transaction:", wErr);
+    }
 
     await Notification.create({
       userId: user._id,

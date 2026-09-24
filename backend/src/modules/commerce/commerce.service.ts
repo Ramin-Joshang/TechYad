@@ -306,12 +306,16 @@ export class CommerceService {
     }
 
     const totalAmount = subtotal - discountAmount;
+    const user = await User.findById(userId).select('walletBalance');
+    const walletBalance = user?.walletBalance || 0;
 
     return {
       items: enriched.items,
       subtotal,
       discountAmount,
       totalAmount,
+      walletBalance,
+      canPayWithWallet: walletBalance >= totalAmount,
       couponId: couponRecord?._id,
       couponCode: couponRecord?.code
     };

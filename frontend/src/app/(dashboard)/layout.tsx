@@ -7,6 +7,7 @@ import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
 import { authApi } from '@/features/auth/api/auth.api';
 import { superAdminApi } from '@/features/admin/api/super-admin.api';
+import { walletApi } from '@/features/wallet/api/wallet.api';
 import { useQuery } from '@tanstack/react-query';
 import { useState } from 'react';
 import {
@@ -33,6 +34,21 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     },
     staleTime: 1000 * 60 * 10
   });
+
+  const { data: walletOverview } = useQuery({
+    queryKey: ['myWalletOverview', user?.id],
+    queryFn: () => walletApi.getOverview().then(res => res.data),
+    enabled: !!user,
+    staleTime: 1000 * 20,
+  });
+
+  const walletHref = user?.role === 'super-admin'
+    ? '/super-admin/wallet'
+    : user?.role === 'admin'
+    ? '/admin/wallet'
+    : user?.role === 'instructor'
+    ? '/instructor/wallet'
+    : '/student/wallet';
 
   const handleLogout = async () => {
     try {
@@ -71,6 +87,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         { name: 'گزارش‌ها', href: '/super-admin/reports', icon: BarChart },
         { name: 'مدیریت وبلاگ', href: '/super-admin/blog', icon: FileText },
         { name: 'لاگ‌های امنیتی', href: '/super-admin/audit-logs', icon: History },
+        { name: 'مدیریت کیف پول‌ها', href: '/super-admin/wallet', icon: Wallet },
         { name: 'سیستم همکاری و رفرال', href: '/super-admin/referrals', icon: Share2 },
         { name: 'امنیت و کنترل دسترسی', href: '/super-admin/security', icon: Lock },
         { name: 'تنظیمات سیستم', href: '/super-admin/settings', icon: Settings },
@@ -92,6 +109,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         { name: 'کلاس‌ها', href: '/admin/classes', icon: Video },
         { name: 'سفارشات', href: '/admin/orders', icon: List },
         { name: 'تراکنش‌های مالی', href: '/admin/payments', icon: CreditCard },
+        { name: 'مدیریت کیف پول‌ها', href: '/admin/wallet', icon: Wallet },
         { name: 'کد تخفیف', href: '/admin/coupons', icon: Tag },
         { name: 'سیستم رفرال و بازاریابی', href: '/admin/referrals', icon: Share2 },
         { name: 'تیکت‌های پشتیبانی', href: '/admin/tickets', icon: Ticket },
@@ -109,6 +127,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         { name: 'کلاس‌های زنده', href: '/instructor/classes', icon: Video },
         { name: 'دانشجویان من', href: '/instructor/students', icon: Users },
         { name: 'نظرات دانشجویان', href: '/instructor/comments', icon: MessageSquare },
+        { name: 'کیف پول و تسویه‌حساب', href: '/instructor/wallet', icon: Wallet },
         { name: 'همکاری در فروش (رفرال)', href: '/instructor/referrals', icon: Share2 },
         { name: 'مقالات وبلاگ', href: '/instructor/blog', icon: FileText },
         { name: 'گزارش مالی و فروش', href: '/instructor/sales', icon: DollarSign },
@@ -119,6 +138,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         { name: 'داشبورد', href: '/student', icon: LayoutDashboard },
         { name: 'دوره‌های من', href: '/student/courses', icon: BookOpen },
         { name: 'کلاس‌های من', href: '/student/classes', icon: Video },
+        { name: 'کیف پول من', href: '/student/wallet', icon: Wallet },
         { name: 'معرفی دوستان (کسب درآمد)', href: '/student/referrals', icon: Gift },
         { name: 'تکالیف', href: '/student/assignments', icon: FileText },
         { name: 'آزمون‌ها', href: '/student/quizzes', icon: CheckSquare },
@@ -250,7 +270,20 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             </div>
             
             <div className="flex items-center gap-3 relative">
-<NotificationDropdown role={user?.role || 'student'} />
+              <Link 
+                href={walletHref} 
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-indigo-200 bg-indigo-50/70 hover:bg-indigo-100 transition text-xs font-bold text-indigo-700 shadow-sm"
+                title="مشاهده و شارژ کیف پول"
+              >
+                <Wallet className="w-4 h-4 text-indigo-600 shrink-0" />
+                <span className="hidden sm:inline">کیف پول:</span>
+                <span className="font-black text-indigo-900">
+                  {((walletOverview?.balance ?? user?.walletBalance) || 0).toLocaleString('fa-IR')}
+                </span>
+                <span className="text-[10px] font-normal text-indigo-500">تومان</span>
+              </Link>
+
+              <NotificationDropdown role={user?.role || 'student'} />
 
               <Link href="/profile" className="flex items-center gap-2 p-1.5 pr-3 rounded-full border border-[var(--neo-border)] hover:bg-[var(--neo-bg)] transition cursor-pointer">
                 <span className="text-sm font-medium text-[var(--neo-text-main)] hidden sm:block">{user?.firstName}</span>

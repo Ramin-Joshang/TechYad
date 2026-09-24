@@ -9,6 +9,8 @@ export interface User {
   role: 'super-admin' | 'admin' | 'instructor' | 'student';
   avatar?: string;
   permissions?: string[]; // E.g., 'courses.manage', 'courses.publish', etc.
+  referralCode?: string;
+  walletBalance?: number;
 }
 
 interface AuthState {

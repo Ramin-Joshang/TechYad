@@ -201,7 +201,9 @@ export class AuthService {
         email: user.email,
         avatar: user.avatar,
         role: role?.slug,
-        permissions: role?.permissions || []
+        permissions: role?.permissions || [],
+        referralCode: user.referralCode,
+        walletBalance: user.walletBalance || 0
       },
       accessToken,
       refreshToken
@@ -290,7 +292,9 @@ export class AuthService {
           email: user.email,
           avatar: user.avatar,
           role: role?.slug,
-          permissions: role?.permissions || []
+          permissions: role?.permissions || [],
+          referralCode: user.referralCode,
+          walletBalance: user.walletBalance || 0
         },
         accessToken: newAccessToken,
         refreshToken: newRefreshToken
