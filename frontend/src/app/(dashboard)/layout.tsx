@@ -102,12 +102,13 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       return [
         { name: 'داشبورد', href: '/instructor', icon: LayoutDashboard },
         { name: 'مدیریت دوره‌ها', href: '/instructor/courses', icon: BookOpen },
+        { name: 'آزمون‌ها و کوییزها', href: '/instructor/quizzes', icon: CheckSquare },
+        { name: 'تکالیف و پروژه‌ها', href: '/instructor/assignments', icon: FileText },
         { name: 'کلاس‌های زنده', href: '/instructor/classes', icon: Video },
         { name: 'دانشجویان من', href: '/instructor/students', icon: Users },
-        { name: 'مقالات وبلاگ', href: '/instructor/blog', icon: FileText },
-        { name: 'بررسی تکالیف', href: '/instructor/assignments', icon: FileText },
         { name: 'نظرات دانشجویان', href: '/instructor/comments', icon: MessageSquare },
-        { name: 'گزارش مالی', href: '/instructor/sales', icon: DollarSign },
+        { name: 'مقالات وبلاگ', href: '/instructor/blog', icon: FileText },
+        { name: 'گزارش مالی و فروش', href: '/instructor/sales', icon: DollarSign },
         profileLink
       ];
     } else {

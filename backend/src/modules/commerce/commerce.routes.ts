@@ -27,4 +27,7 @@ router.get('/me/orders/:id', requireAuth, asyncHandler(Controller.getOrderById))
 router.post('/payments/:orderId/create', requireAuth, asyncHandler(Controller.createMockPayment));
 router.post('/payments/verify', requireAuth, asyncHandler(Controller.verifyMockPayment));
 
+// --- Instructor Sales ---
+router.get('/instructor/sales', isInstructor, asyncHandler(Controller.getInstructorSales));
+
 export default router;

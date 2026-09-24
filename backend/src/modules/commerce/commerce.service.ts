@@ -12,42 +12,121 @@ import { AppError } from '../../common/errors/AppError.js';
 
 export class CommerceService {
   static async getInstructorSales(instructorId: string, month?: number, year?: number) {
-    
     const courses = await Course.find({ instructors: instructorId });
-    const courseIds = courses.map((c: any) => c._id);
+    const courseIds = courses.map((c: any) => c._id.toString());
+    const courseMap = new Map(courses.map((c: any) => [c._id.toString(), c.title]));
+
+    const classes = await Class.find({ instructors: instructorId });
+    const classIds = classes.map((c: any) => c._id.toString());
+    const classMap = new Map(classes.map((c: any) => [c._id.toString(), c.title]));
+
+    const allInstructorItemIds = [...courseIds, ...classIds];
     
-    let dateFilter = {};
+    let dateFilter: any = {};
     if (month && year) {
-      const startDate = new Date(year, month - 1, 1);
-      const endDate = new Date(year, month, 0, 23, 59, 59);
+      const m = Number(month);
+      const y = Number(year);
+      const startDate = new Date(y, m - 1, 1, 0, 0, 0, 0);
+      const endDate = new Date(y, m, 0, 23, 59, 59, 999);
+      dateFilter = { createdAt: { $gte: startDate, $lte: endDate } };
+    } else if (year) {
+      const y = Number(year);
+      const startDate = new Date(y, 0, 1, 0, 0, 0, 0);
+      const endDate = new Date(y, 11, 31, 23, 59, 59, 999);
       dateFilter = { createdAt: { $gte: startDate, $lte: endDate } };
     }
     
     const orders = await Order.find({ 
       status: 'paid', 
-      'items.itemType': 'course', 
-      'items.itemId': { $in: courseIds },
+      'items.itemId': { $in: allInstructorItemIds },
       ...dateFilter
-    }).populate('userId', 'firstName lastName avatar').sort({ createdAt: -1 });
+    }).populate('userId', 'firstName lastName email avatar').sort({ createdAt: -1 });
     
-    // Filter items to only include this instructor's courses and calculate total
     let totalSales = 0;
+    let coursesRevenue = 0;
+    let classesRevenue = 0;
+    const courseStats: Record<string, { title: string, count: number, revenue: number }> = {};
+
     const sales = orders.map(order => {
-      const relevantItems = order.items.filter(item => item.itemType === 'course' && courseIds.some((cid: any) => cid.equals(item.itemId)));
-      const orderTotal = relevantItems.reduce((acc: number, curr: any) => acc + curr.finalPrice, 0);
-      totalSales += orderTotal * 0.7; // 70% share
+      const relevantItems = order.items.filter(item => {
+        const itemIdStr = item.itemId?.toString();
+        return allInstructorItemIds.includes(itemIdStr);
+      }).map((item: any) => {
+        const itemIdStr = item.itemId?.toString();
+        const title = item.itemType === 'course' 
+          ? (courseMap.get(itemIdStr) || item.title || 'دوره آموزشی') 
+          : (classMap.get(itemIdStr) || item.title || 'کلاس آنلاین');
+        
+        const price = item.finalPrice ?? item.price ?? 0;
+        if (item.itemType === 'course') coursesRevenue += price;
+        else classesRevenue += price;
+
+        if (!courseStats[itemIdStr]) {
+          courseStats[itemIdStr] = { title, count: 0, revenue: 0 };
+        }
+        courseStats[itemIdStr].count += 1;
+        courseStats[itemIdStr].revenue += price;
+
+        return {
+          itemId: item.itemId,
+          itemType: item.itemType,
+          title,
+          price: item.price,
+          finalPrice: price
+        };
+      });
+
+      const orderTotal = relevantItems.reduce((acc: number, curr: any) => acc + (curr.finalPrice || 0), 0);
+      const instructorShare = Math.round(orderTotal * 0.7); // 70% instructor share
+      totalSales += orderTotal;
       
       return {
         _id: order._id,
         userId: order.userId,
         items: relevantItems,
         total: orderTotal,
-        instructorShare: orderTotal * 0.7,
+        instructorShare,
         createdAt: (order as any).createdAt
       };
     });
-    
-    return { sales, totalSales };
+
+    const netInstructorEarnings = Math.round(totalSales * 0.7);
+
+    // Calculate last 6 months trend from sales array
+    const monthlyTrend: { month: string, year: number, revenue: number, salesCount: number }[] = [];
+    const now = new Date();
+    for (let i = 5; i >= 0; i--) {
+      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      const mNum = d.getMonth() + 1;
+      const yNum = d.getFullYear();
+      const mStart = new Date(yNum, mNum - 1, 1, 0, 0, 0, 0);
+      const mEnd = new Date(yNum, mNum, 0, 23, 59, 59, 999);
+      
+      const mSales = sales.filter(s => {
+        const sDate = new Date(s.createdAt);
+        return sDate >= mStart && sDate <= mEnd;
+      });
+      const mRev = mSales.reduce((sum, s) => sum + s.instructorShare, 0);
+
+      monthlyTrend.push({
+        month: d.toLocaleDateString('fa-IR', { month: 'short' }),
+        year: yNum,
+        revenue: mRev,
+        salesCount: mSales.length
+      });
+    }
+
+    return { 
+      sales, 
+      totalSales, 
+      netInstructorEarnings,
+      instructorShare: netInstructorEarnings,
+      totalOrders: sales.length,
+      coursesRevenue,
+      classesRevenue,
+      courseStats: Object.values(courseStats),
+      monthlyTrend
+    };
   }
 
   // --- Cart ---

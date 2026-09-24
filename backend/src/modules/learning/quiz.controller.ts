@@ -8,6 +8,26 @@ export const createQuiz = async (req: AuthRequest, res: Response) => {
   sendSuccess(res, result, 'Quiz created successfully', 201);
 };
 
+export const createInstructorQuiz = async (req: AuthRequest, res: Response) => {
+  const result = await QuizService.createQuiz(req.user._id as string, req.body.lessonId, req.body);
+  sendSuccess(res, result, 'Quiz created successfully', 201);
+};
+
+export const getInstructorQuizzes = async (req: AuthRequest, res: Response) => {
+  const result = await QuizService.getInstructorQuizzes(req.user._id as string);
+  sendSuccess(res, result, 'Instructor quizzes retrieved successfully');
+};
+
+export const getQuizForInstructor = async (req: AuthRequest, res: Response) => {
+  const result = await QuizService.getQuizForInstructor(req.user._id as string, (req.params.quizId as any as string));
+  sendSuccess(res, result, 'Quiz details retrieved successfully');
+};
+
+export const getQuizAttemptsForInstructor = async (req: AuthRequest, res: Response) => {
+  const result = await QuizService.getQuizAttemptsForInstructor(req.user._id as string, (req.params.quizId as any as string));
+  sendSuccess(res, result, 'Quiz attempts retrieved successfully');
+};
+
 export const getQuiz = async (req: AuthRequest, res: Response) => {
   const result = await QuizService.getQuizForStudent(req.user._id as string, (req.params.quizId as any as string) as any as string);
   sendSuccess(res, result, 'Quiz retrieved successfully');

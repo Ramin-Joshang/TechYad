@@ -27,50 +27,73 @@ export class AssignmentService {
   // --- Instructor Actions ---
   
   static async updateAssignment(assignmentId: string, instructorId: string, data: any) {
-    
-    
-    
-
     const assignment = await Assignment.findById(assignmentId);
     if (!assignment) throw new AppError('Assignment not found', 404, 'NOT_FOUND');
-    const lesson = await Lesson.findById(assignment.lessonId);
-    const course = await Course.findOne({ _id: lesson?.courseId, instructors: instructorId });
+
+    let course = await Course.findOne({ _id: assignment.courseId, instructors: instructorId });
+    if (!course && assignment.lessonId) {
+      const lesson = await Lesson.findById(assignment.lessonId);
+      course = await Course.findOne({ _id: lesson?.courseId, instructors: instructorId });
+    }
     if (!course) throw new AppError('Unauthorized', 403, 'FORBIDDEN');
 
-    return await Assignment.findByIdAndUpdate(assignmentId, data, { new: true });
+    const updatePayload = {
+      ...data,
+      maxScore: data.maxScore ?? data.points ?? assignment.maxScore,
+      ...(data.deadline !== undefined ? { deadline: data.deadline ? new Date(data.deadline) : null } : {})
+    };
+
+    return await Assignment.findByIdAndUpdate(assignmentId, updatePayload, { new: true });
   }
 
   static async deleteAssignment(assignmentId: string, instructorId: string) {
-    
-    
-    
-
     const assignment = await Assignment.findById(assignmentId);
     if (!assignment) throw new AppError('Assignment not found', 404, 'NOT_FOUND');
-    const lesson = await Lesson.findById(assignment.lessonId);
-    const course = await Course.findOne({ _id: lesson?.courseId, instructors: instructorId });
+
+    let course = await Course.findOne({ _id: assignment.courseId, instructors: instructorId });
+    if (!course && assignment.lessonId) {
+      const lesson = await Lesson.findById(assignment.lessonId);
+      course = await Course.findOne({ _id: lesson?.courseId, instructors: instructorId });
+    }
     if (!course) throw new AppError('Unauthorized', 403, 'FORBIDDEN');
 
+    if (assignment.lessonId) {
+      await Lesson.findByIdAndUpdate(assignment.lessonId, { $unset: { assignmentId: 1 } });
+    }
+    await AssignmentSubmission.deleteMany({ assignmentId });
     await Assignment.findByIdAndDelete(assignmentId);
     return { success: true };
   }
   
-  static async createAssignment(instructorId: string, lessonId: string, data: any) {
-    const lesson = await Lesson.findById(lessonId).populate('courseId');
-    if (!lesson) throw new AppError('Lesson not found', 404, 'NOT_FOUND');
+  static async createAssignment(instructorId: string, lessonId?: string, data?: any) {
+    const payload = data || {};
+    let courseId = payload.courseId;
+    let targetLessonId = lessonId || payload.lessonId;
 
-    const course = await Course.findOne({ _id: lesson?.courseId, instructors: instructorId });
-    if (!course) throw new AppError('Unauthorized', 403, 'FORBIDDEN');
+    if (targetLessonId) {
+      const lesson = await Lesson.findById(targetLessonId).populate('courseId');
+      if (!lesson) throw new AppError('Lesson not found', 404, 'NOT_FOUND');
+      courseId = lesson.courseId;
+    }
+
+    if (!courseId) throw new AppError('Course ID is required', 400, 'BAD_REQUEST');
+
+    const course = await Course.findOne({ _id: courseId, instructors: instructorId });
+    if (!course) throw new AppError('Unauthorized or course not found', 403, 'FORBIDDEN');
 
     const assignment = await Assignment.create({
-      ...data,
-      type: data.type || 'mixed',
-      maxScore: data.maxScore ?? data.points ?? 100,
-      courseId: lesson?.courseId,
-      lessonId: lesson?._id
+      ...payload,
+      type: payload.type || 'mixed',
+      maxScore: payload.maxScore ?? payload.points ?? 100,
+      courseId,
+      lessonId: targetLessonId || undefined,
+      deadline: payload.deadline ? new Date(payload.deadline) : undefined,
+      isPublished: payload.isPublished ?? true
     });
 
-    await Lesson.findByIdAndUpdate(lessonId, { assignmentId: assignment._id });
+    if (targetLessonId) {
+      await Lesson.findByIdAndUpdate(targetLessonId, { assignmentId: assignment._id });
+    }
     return assignment;
   }
 
@@ -86,16 +109,34 @@ export class AssignmentService {
     if (!course) throw new AppError('Unauthorized', 403, 'FORBIDDEN');
 
     return await AssignmentSubmission.find({ assignmentId })
-      .populate('userId', 'firstName lastName email')
+      .populate('userId', 'firstName lastName email avatar')
       .sort({ submittedAt: -1 });
   }
 
-  static async getInstructorAssignments(instructorId: string, query: any) {
-    
+  static async getInstructorAssignments(instructorId: string, query?: any) {
     const courses = await Course.find({ instructors: instructorId });
     const courseIds = courses.map((c: any) => c._id);
-    const assignments = await Assignment.find({ courseId: { $in: courseIds } }).populate('lessonId', 'title');
-    return assignments;
+    const assignments = await Assignment.find({ courseId: { $in: courseIds } })
+      .populate('courseId', 'title slug thumbnail')
+      .populate('lessonId', 'title')
+      .sort({ createdAt: -1 });
+
+    const assignmentIds = assignments.map(a => a._id);
+    const submissions = await AssignmentSubmission.find({ assignmentId: { $in: assignmentIds } });
+
+    return assignments.map(a => {
+      const aSubs = submissions.filter(s => s.assignmentId.toString() === a._id.toString());
+      const totalSubmissions = aSubs.length;
+      const pendingSubmissions = aSubs.filter(s => s.status === 'submitted').length;
+      const gradedSubmissions = aSubs.filter(s => s.status === 'graded').length;
+
+      return {
+        ...a.toObject(),
+        totalSubmissions,
+        pendingSubmissions,
+        gradedSubmissions
+      };
+    });
   }
 
   static async getInstructorSubmissions(instructorId: string, query: any) {

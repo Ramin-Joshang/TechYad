@@ -8,6 +8,11 @@ export const createAssignment = async (req: AuthRequest, res: Response) => {
   sendSuccess(res, result, 'Assignment created successfully', 201);
 };
 
+export const createInstructorAssignment = async (req: AuthRequest, res: Response) => {
+  const result = await AssignmentService.createAssignment(req.user._id as string, req.body.lessonId, req.body);
+  sendSuccess(res, result, 'Assignment created successfully', 201);
+};
+
 export const getLessonAssignments = async (req: Request, res: Response) => {
   const result = await AssignmentService.getLessonAssignments((req.params.lessonId as any as string) as any as string);
   sendSuccess(res, result, 'Assignments retrieved successfully');

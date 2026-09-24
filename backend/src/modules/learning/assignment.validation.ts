@@ -2,6 +2,8 @@ import { z } from 'zod';
 
 export const createAssignmentSchema = z.object({
   body: z.object({
+    courseId: z.string().optional(),
+    lessonId: z.string().optional(),
     title: z.string().min(2),
     description: z.string().optional(),
     type: z.enum(['file_upload', 'text_answer', 'mixed']).optional().default('mixed'),

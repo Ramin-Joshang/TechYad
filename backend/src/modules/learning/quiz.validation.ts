@@ -2,6 +2,8 @@ import { z } from 'zod';
 
 export const createQuizSchema = z.object({
   body: z.object({
+    courseId: z.string().optional(),
+    lessonId: z.string().optional(),
     title: z.string().min(2),
     description: z.string().optional(),
     duration: z.number().min(1).optional(),

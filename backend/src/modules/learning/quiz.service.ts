@@ -18,53 +18,137 @@ export class QuizService {
     });
   }
   // --- Instructor Actions ---
-  
-  static async updateQuiz(quizId: string, instructorId: string, data: any) {
-    
-    
-    
+  static async getInstructorQuizzes(instructorId: string) {
+    const courses = await Course.find({ instructors: instructorId });
+    const courseIds = courses.map((c: any) => c._id);
+    const quizzes = await Quiz.find({ courseId: { $in: courseIds } })
+      .populate('courseId', 'title slug thumbnail')
+      .populate('lessonId', 'title')
+      .sort({ createdAt: -1 });
 
-    const quiz = await Quiz.findById(quizId);
+    const quizIds = quizzes.map(q => q._id);
+    const attempts = await QuizAttempt.find({ quizId: { $in: quizIds }, status: 'submitted' });
+
+    return quizzes.map(q => {
+      const qAttempts = attempts.filter(a => a.quizId.toString() === q._id.toString());
+      const totalAttempts = qAttempts.length;
+      const passedAttempts = qAttempts.filter(a => (a.percentage || 0) >= (q.passingScore || 70)).length;
+      const avgScore = totalAttempts > 0 
+        ? Math.round(qAttempts.reduce((sum, a) => sum + (a.percentage || 0), 0) / totalAttempts) 
+        : 0;
+
+      return {
+        ...q.toObject(),
+        totalAttempts,
+        passedAttempts,
+        avgScore,
+        questionsCount: q.questions?.length || 0
+      };
+    });
+  }
+
+  static async getQuizForInstructor(instructorId: string, quizId: string) {
+    const quiz = await Quiz.findById(quizId).populate('courseId', 'title slug').populate('lessonId', 'title');
     if (!quiz) throw new AppError('Quiz not found', 404, 'NOT_FOUND');
-    const lesson = await Lesson.findById(quiz.lessonId);
-    const course = await Course.findOne({ _id: lesson?.courseId, instructors: instructorId });
+
+    const course = await Course.findOne({ _id: quiz.courseId, instructors: instructorId });
     if (!course) throw new AppError('Unauthorized', 403, 'FORBIDDEN');
 
-    return await Quiz.findByIdAndUpdate(quizId, data, { new: true });
+    return quiz;
+  }
+
+  static async getQuizAttemptsForInstructor(instructorId: string, quizId: string) {
+    const quiz = await Quiz.findById(quizId);
+    if (!quiz) throw new AppError('Quiz not found', 404, 'NOT_FOUND');
+
+    const course = await Course.findOne({ _id: quiz.courseId, instructors: instructorId });
+    if (!course) throw new AppError('Unauthorized', 403, 'FORBIDDEN');
+
+    const attempts = await QuizAttempt.find({ quizId })
+      .populate('userId', 'firstName lastName email avatar')
+      .sort({ submittedAt: -1, createdAt: -1 });
+
+    return attempts.map(a => ({
+      _id: a._id,
+      user: a.userId,
+      score: a.score,
+      totalScore: a.totalScore,
+      percentage: a.percentage,
+      passed: (a.percentage || 0) >= (quiz.passingScore || 70),
+      status: a.status,
+      submittedAt: a.submittedAt || (a as any).createdAt
+    }));
+  }
+
+  static async updateQuiz(quizId: string, instructorId: string, data: any) {
+    const quiz = await Quiz.findById(quizId);
+    if (!quiz) throw new AppError('Quiz not found', 404, 'NOT_FOUND');
+    
+    let course = await Course.findOne({ _id: quiz.courseId, instructors: instructorId });
+    if (!course && quiz.lessonId) {
+      const lesson = await Lesson.findById(quiz.lessonId);
+      course = await Course.findOne({ _id: lesson?.courseId, instructors: instructorId });
+    }
+    if (!course) throw new AppError('Unauthorized', 403, 'FORBIDDEN');
+
+    const updatePayload = {
+      ...data,
+      duration: data.duration ?? data.timeLimit ?? quiz.duration,
+      passingScore: data.passingScore ?? data.passMark ?? quiz.passingScore,
+      ...(data.questions ? { questions: data.questions } : {})
+    };
+
+    return await Quiz.findByIdAndUpdate(quizId, updatePayload, { new: true });
   }
 
   static async deleteQuiz(quizId: string, instructorId: string) {
-    
-    
-    
-
     const quiz = await Quiz.findById(quizId);
     if (!quiz) throw new AppError('Quiz not found', 404, 'NOT_FOUND');
-    const lesson = await Lesson.findById(quiz.lessonId);
-    const course = await Course.findOne({ _id: lesson?.courseId, instructors: instructorId });
+
+    let course = await Course.findOne({ _id: quiz.courseId, instructors: instructorId });
+    if (!course && quiz.lessonId) {
+      const lesson = await Lesson.findById(quiz.lessonId);
+      course = await Course.findOne({ _id: lesson?.courseId, instructors: instructorId });
+    }
     if (!course) throw new AppError('Unauthorized', 403, 'FORBIDDEN');
 
+    if (quiz.lessonId) {
+      await Lesson.findByIdAndUpdate(quiz.lessonId, { $unset: { quizId: 1 } });
+    }
+    await QuizAttempt.deleteMany({ quizId });
     await Quiz.findByIdAndDelete(quizId);
     return { success: true };
   }
   
-  static async createQuiz(instructorId: string, lessonId: string, data: any) {
-    const lesson = await Lesson.findById(lessonId).populate('courseId');
-    if (!lesson) throw new AppError('Lesson not found', 404, 'NOT_FOUND');
+  static async createQuiz(instructorId: string, lessonId?: string, data?: any) {
+    const payload = data || {};
+    let courseId = payload.courseId;
+    let targetLessonId = lessonId || payload.lessonId;
 
-    const course = await Course.findOne({ _id: lesson?.courseId, instructors: instructorId });
-    if (!course) throw new AppError('Unauthorized', 403, 'FORBIDDEN');
+    if (targetLessonId) {
+      const lesson = await Lesson.findById(targetLessonId).populate('courseId');
+      if (!lesson) throw new AppError('Lesson not found', 404, 'NOT_FOUND');
+      courseId = lesson.courseId;
+    }
+
+    if (!courseId) throw new AppError('Course ID is required', 400, 'BAD_REQUEST');
+
+    const course = await Course.findOne({ _id: courseId, instructors: instructorId });
+    if (!course) throw new AppError('Unauthorized or course not found', 403, 'FORBIDDEN');
 
     const quiz = await Quiz.create({
-      ...data,
-      duration: data.duration ?? data.timeLimit ?? 30,
-      passingScore: data.passingScore ?? data.passMark ?? 70,
-      questions: data.questions || [],
-      courseId: lesson?.courseId,
-      lessonId: lesson?._id
+      ...payload,
+      duration: payload.duration ?? payload.timeLimit ?? 30,
+      passingScore: payload.passingScore ?? payload.passMark ?? 70,
+      questions: payload.questions || [],
+      courseId,
+      lessonId: targetLessonId || undefined,
+      isPublished: payload.isPublished ?? true
     });
 
-    await Lesson.findByIdAndUpdate(lessonId, { quizId: quiz._id });
+    if (targetLessonId) {
+      await Lesson.findByIdAndUpdate(targetLessonId, { quizId: quiz._id });
+    }
     return quiz;
   }
 
