@@ -17,6 +17,9 @@ export interface IOrder extends Document {
   subtotal: number;
   discountAmount: number;
   totalAmount: number;
+  walletAmountApplied?: number;
+  gatewayAmount?: number;
+  paymentMethod?: "gateway" | "wallet" | "hybrid";
   couponId?: Types.ObjectId;
   status: "pending" | "paid" | "failed" | "refunded";
   createdAt: Date;
@@ -73,6 +76,19 @@ const orderSchema = new Schema<IOrder>(
     totalAmount: {
       type: Number,
       required: true,
+    },
+    walletAmountApplied: {
+      type: Number,
+      default: 0,
+    },
+    gatewayAmount: {
+      type: Number,
+      default: 0,
+    },
+    paymentMethod: {
+      type: String,
+      enum: ["gateway", "wallet", "hybrid"],
+      default: "gateway",
     },
     couponId: {
       type: Schema.Types.ObjectId,

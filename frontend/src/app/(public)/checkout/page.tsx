@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { 
   ShieldCheck, CreditCard, ArrowRight, Loader2, Tag, 
-  Wallet, CheckCircle2, AlertCircle, PlusCircle, Sparkles 
+  Wallet, CheckCircle2, AlertCircle, PlusCircle, Sparkles, Check
 } from 'lucide-react';
 import { useAuthStore } from '@/features/auth/stores/auth.store';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -22,14 +22,16 @@ export default function CheckoutPage() {
   const [appliedCoupon, setAppliedCoupon] = useState('');
   const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [isApplyingCoupon, setIsApplyingCoupon] = useState(false);
-  const [paymentMethod, setPaymentMethod] = useState<'wallet' | 'gateway'>('wallet');
+  
+  // Hybrid Wallet State: user can choose to apply available wallet balance
+  const [applyWalletBalance, setApplyWalletBalance] = useState(true);
 
-  // Quick Charge Modal
+  // Optional Quick Charge Modal
   const [showChargeModal, setShowChargeModal] = useState(false);
   const [customChargeAmount, setCustomChargeAmount] = useState<number>(100000);
   const [isCharging, setIsCharging] = useState(false);
 
-  // Fetch standard cart preview with live wallet balance
+  // Fetch standard cart preview
   const { data: baseData, isLoading: isBaseLoading } = useQuery({
     queryKey: ['checkoutPreviewBase'],
     queryFn: () => commerceApi.checkoutPreview().then(res => res.data),
@@ -51,8 +53,14 @@ export default function CheckoutPage() {
   const effectivePreview = previewData || baseData;
   const currentWalletBalance = walletData?.balance ?? effectivePreview?.walletBalance ?? user?.walletBalance ?? 0;
   const totalAmount = effectivePreview?.totalAmount ?? 0;
-  const hasEnoughWalletBalance = currentWalletBalance >= totalAmount;
-  const walletShortage = Math.max(0, totalAmount - currentWalletBalance);
+
+  // Calculation of Hybrid Payment:
+  const walletDeduction = (applyWalletBalance && currentWalletBalance > 0) 
+    ? Math.min(currentWalletBalance, totalAmount) 
+    : 0;
+  const remainingToPay = Math.max(0, totalAmount - walletDeduction);
+  const isFullWalletPayment = walletDeduction === totalAmount && totalAmount > 0;
+  const isHybridPayment = walletDeduction > 0 && remainingToPay > 0;
 
   // Handle Coupon Submit
   const handleApplyCoupon = async (e: React.FormEvent) => {
@@ -83,10 +91,10 @@ export default function CheckoutPage() {
     toast.success('کد تخفیف حذف شد');
   };
 
-  // Payment with Gateway
+  // Payment with Gateway (Supports pure gateway OR hybrid gateway)
   const gatewayMutation = useMutation({
-    mutationFn: async () => {
-      const orderRes = await commerceApi.createOrder(appliedCoupon);
+    mutationFn: async ({ useWallet }: { useWallet: boolean }) => {
+      const orderRes = await commerceApi.createOrder(appliedCoupon, useWallet);
       const orderId = orderRes.data._id;
       const paymentRes = await commerceApi.createMockPayment(orderId);
       return paymentRes.data;
@@ -99,10 +107,10 @@ export default function CheckoutPage() {
     }
   });
 
-  // Payment with Wallet
+  // 100% Payment with Wallet
   const walletPaymentMutation = useMutation({
     mutationFn: async () => {
-      const orderRes = await commerceApi.createOrder(appliedCoupon);
+      const orderRes = await commerceApi.createOrder(appliedCoupon, true);
       const orderId = orderRes.data._id;
       const walletRes = await walletApi.payOrderWithWallet(orderId);
       return { ...walletRes.data, orderId };
@@ -124,19 +132,14 @@ export default function CheckoutPage() {
       return;
     }
 
-    if (paymentMethod === 'wallet') {
-      if (!hasEnoughWalletBalance) {
-        toast.error('موجودی کیف پول شما کافی نیست. لطفاً ابتدا کیف پول خود را شارژ کنید.');
-        setShowChargeModal(true);
-        return;
-      }
+    if (isFullWalletPayment) {
       walletPaymentMutation.mutate();
     } else {
-      gatewayMutation.mutate();
+      gatewayMutation.mutate({ useWallet: applyWalletBalance && walletDeduction > 0 });
     }
   };
 
-  // Quick Charge Handler
+  // Quick Charge Handler (Optional convenience for user)
   const handleQuickCharge = async (amount: number) => {
     setIsCharging(true);
     try {
@@ -195,7 +198,7 @@ export default function CheckoutPage() {
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           
-          {/* Right Column - User Info, Items & Payment Method */}
+          {/* Right Column - User Info, Items & Payment Details */}
           <div className="lg:col-span-2 space-y-6">
             
             {/* Step 1: User Info */}
@@ -244,109 +247,98 @@ export default function CheckoutPage() {
               </div>
             </div>
 
-            {/* Step 3: Payment Method Selection */}
-            <div className="bg-white p-6 rounded-3xl border border-[var(--neo-border)] shadow-sm">
-              <h2 className="text-xl font-bold text-[var(--neo-text-main)] mb-6 flex items-center gap-2">
+            {/* Step 3: Payment Method & Wallet Hybrid Option */}
+            <div className="bg-white p-6 rounded-3xl border border-[var(--neo-border)] shadow-sm space-y-4">
+              <h2 className="text-xl font-bold text-[var(--neo-text-main)] flex items-center gap-2">
                 <div className="w-8 h-8 rounded-full bg-[var(--neo-primary)]/10 text-[var(--neo-primary)] flex items-center justify-center font-bold">۳</div>
-                انتخاب روش پرداخت
+                روش پرداخت و استفاده از اعتبار کیف پول
               </h2>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                
-                {/* Method 1: Wallet */}
-                <div 
-                  onClick={() => setPaymentMethod('wallet')}
-                  className={`relative p-5 rounded-2xl border-2 cursor-pointer transition-all duration-200 ${
-                    paymentMethod === 'wallet' 
-                      ? 'border-indigo-600 bg-indigo-50/40 shadow-sm' 
-                      : 'border-slate-200 hover:border-slate-300 bg-white'
-                  }`}
-                >
-                  <div className="flex items-start justify-between mb-3">
-                    <div className="flex items-center gap-3">
-                      <div className="w-12 h-12 rounded-xl bg-indigo-100 text-indigo-700 flex items-center justify-center shrink-0">
-                        <Wallet className="w-6 h-6" />
-                      </div>
-                      <div>
-                        <div className="font-bold text-slate-900 flex items-center gap-1.5">
-                          کیف پول تک‌یاد
-                          <span className="text-[10px] bg-indigo-100 text-indigo-700 font-bold px-2 py-0.5 rounded-full">
-                            پرداخت آنی ۱ کلیکه
-                          </span>
-                        </div>
-                        <div className="text-xs text-slate-500 mt-0.5">
-                          موجودی فعلی: <span className="font-bold text-slate-800">{currentWalletBalance.toLocaleString('fa-IR')} تومان</span>
-                        </div>
-                      </div>
-                    </div>
-                    {paymentMethod === 'wallet' && (
-                      <CheckCircle2 className="w-6 h-6 text-indigo-600 shrink-0" />
-                    )}
-                  </div>
-
-                  {/* Wallet Balance Status */}
-                  {hasEnoughWalletBalance ? (
-                    <div className="flex items-center gap-1.5 text-xs text-emerald-700 bg-emerald-50 border border-emerald-200 p-2 rounded-xl mt-3 font-medium">
-                      <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-600" />
-                      موجودی کافی است. فعال‌سازی آنی بدون انتقال به درگاه بانکی.
-                    </div>
-                  ) : (
-                    <div className="mt-3 space-y-2">
-                      <div className="flex items-center justify-between text-xs text-amber-800 bg-amber-50 border border-amber-200 p-2 rounded-xl font-medium">
-                        <span className="flex items-center gap-1">
-                          <AlertCircle className="w-4 h-4 shrink-0 text-amber-600" />
-                          کسری موجودی: {walletShortage.toLocaleString('fa-IR')} تومان
+              {/* Wallet Usage Box */}
+              <div className={`p-5 rounded-2xl border-2 transition-all ${
+                applyWalletBalance && currentWalletBalance > 0
+                  ? 'border-indigo-600 bg-indigo-50/40 shadow-sm'
+                  : 'border-slate-200 bg-slate-50/50'
+              }`}>
+                <div className="flex items-start justify-between">
+                  <label className="flex items-start gap-3.5 cursor-pointer select-none flex-1">
+                    <input
+                      type="checkbox"
+                      disabled={currentWalletBalance === 0}
+                      checked={applyWalletBalance && currentWalletBalance > 0}
+                      onChange={(e) => setApplyWalletBalance(e.target.checked)}
+                      className="w-5 h-5 mt-0.5 rounded text-indigo-600 focus:ring-indigo-500 cursor-pointer disabled:opacity-40"
+                    />
+                    <div>
+                      <div className="font-bold text-slate-900 flex items-center gap-2 text-sm sm:text-base">
+                        استفاده از موجودی کیف پول تک‌یاد
+                        <span className={`text-xs px-2.5 py-0.5 rounded-full font-bold ${
+                          currentWalletBalance > 0 ? 'bg-indigo-100 text-indigo-700' : 'bg-slate-200 text-slate-600'
+                        }`}>
+                          موجودی: {currentWalletBalance.toLocaleString('fa-IR')} تومان
                         </span>
                       </div>
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setShowChargeModal(true);
-                        }}
-                        className="w-full flex items-center justify-center gap-1.5 text-xs font-bold text-indigo-700 bg-indigo-100 hover:bg-indigo-200 py-2 rounded-xl transition"
-                      >
-                        <PlusCircle className="w-4 h-4" />
-                        شارژ سریع به مبلغ کسری ({walletShortage.toLocaleString('fa-IR')} ت)
-                      </button>
+                      
+                      <p className="text-xs text-slate-600 mt-1.5 leading-relaxed">
+                        {currentWalletBalance === 0 ? (
+                          'موجودی کیف پول شما صفر است. کل مبلغ از طریق درگاه پرداخت خواهد شد.'
+                        ) : isFullWalletPayment ? (
+                          <span className="text-emerald-700 font-bold flex items-center gap-1 mt-1">
+                            <CheckCircle2 className="w-4 h-4 text-emerald-600 inline" />
+                            موجودی کیف پول شما برای پرداخت کامل سفارش کافی است (بدون نیاز به اتصال به درگاه بانکی).
+                          </span>
+                        ) : (
+                          <span className="text-indigo-900 font-medium">
+                            کل موجودی کیف پول شما به مبلغ <strong className="text-indigo-700">{currentWalletBalance.toLocaleString('fa-IR')} تومان</strong> کسر خواهد شد و تنها مبلغ باقیمانده (<strong className="text-indigo-700">{remainingToPay.toLocaleString('fa-IR')} تومان</strong>) به درگاه پرداخت شتاب منتقل می‌شود.
+                          </span>
+                        )}
+                      </p>
                     </div>
-                  )}
-                </div>
+                  </label>
 
-                {/* Method 2: Online Gateway */}
-                <div 
-                  onClick={() => setPaymentMethod('gateway')}
-                  className={`relative p-5 rounded-2xl border-2 cursor-pointer transition-all duration-200 ${
-                    paymentMethod === 'gateway' 
-                      ? 'border-indigo-600 bg-indigo-50/40 shadow-sm' 
-                      : 'border-slate-200 hover:border-slate-300 bg-white'
-                  }`}
-                >
-                  <div className="flex items-start justify-between mb-3">
-                    <div className="flex items-center gap-3">
-                      <div className="w-12 h-12 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0">
-                        <CreditCard className="w-6 h-6" />
-                      </div>
-                      <div>
-                        <div className="font-bold text-slate-900">
-                          درگاه پرداخت آنلاین شتاب
-                        </div>
-                        <div className="text-xs text-slate-500 mt-0.5">
-                          زرین‌پال / کلیه کارت‌های بانکی عضو شتاب
-                        </div>
-                      </div>
-                    </div>
-                    {paymentMethod === 'gateway' && (
-                      <CheckCircle2 className="w-6 h-6 text-indigo-600 shrink-0" />
-                    )}
-                  </div>
-                  <div className="text-xs text-slate-500 bg-slate-50 border border-slate-200 p-2.5 rounded-xl mt-3 flex items-center gap-1">
-                    <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0" />
-                    پرداخت ایمن با رمز پویا از طریق شاپرک
+                  <div className="w-11 h-11 rounded-xl bg-indigo-100 text-indigo-700 flex items-center justify-center shrink-0 mr-2">
+                    <Wallet className="w-6 h-6" />
                   </div>
                 </div>
 
+                {/* If Hybrid Mode is Active */}
+                {isHybridPayment && (
+                  <div className="mt-4 pt-3 border-t border-indigo-200/70 grid grid-cols-2 gap-3 text-xs">
+                    <div className="bg-white/80 p-2.5 rounded-xl border border-indigo-100">
+                      <span className="text-slate-500 block mb-0.5">کسر از کیف پول:</span>
+                      <span className="font-bold text-indigo-700 text-sm">{walletDeduction.toLocaleString('fa-IR')} تومان</span>
+                    </div>
+                    <div className="bg-white/80 p-2.5 rounded-xl border border-indigo-100">
+                      <span className="text-slate-500 block mb-0.5">پرداخت در درگاه بانکی:</span>
+                      <span className="font-black text-emerald-600 text-sm">{remainingToPay.toLocaleString('fa-IR')} تومان</span>
+                    </div>
+                  </div>
+                )}
               </div>
+
+              {/* Bank Gateway Box */}
+              {remainingToPay > 0 && (
+                <div className="p-5 rounded-2xl border-2 border-emerald-500 bg-emerald-50/30 flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-11 h-11 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0">
+                      <CreditCard className="w-6 h-6" />
+                    </div>
+                    <div>
+                      <div className="font-bold text-slate-900 text-sm flex items-center gap-2">
+                        درگاه پرداخت آنلاین شتاب (شاپرک)
+                        <span className="text-[10px] bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded-full">
+                          زرین‌پال
+                        </span>
+                      </div>
+                      <div className="text-xs text-slate-600 mt-1">
+                        پرداخت مبلغ باقیمانده ({remainingToPay.toLocaleString('fa-IR')} تومان) با کلیه کارت‌های عضو شتاب و رمز پویا
+                      </div>
+                    </div>
+                  </div>
+                  <ShieldCheck className="w-6 h-6 text-emerald-600 shrink-0" />
+                </div>
+              )}
+
             </div>
 
           </div>
@@ -399,20 +391,39 @@ export default function CheckoutPage() {
               </div>
 
               {/* Price Details */}
-              <div className="space-y-4 mb-6 text-[var(--neo-text-secondary)]">
+              <div className="space-y-3.5 mb-6 text-[var(--neo-text-secondary)]">
                 <div className="flex justify-between items-center text-sm">
-                  <span>مجموع ارزش دوره‌ها</span>
-                  <span className="font-bold">{effectivePreview?.subtotal?.toLocaleString('fa-IR')} تومان</span>
+                  <span>مجموع ارزش سفارش</span>
+                  <span className="font-bold text-slate-800">{effectivePreview?.subtotal?.toLocaleString('fa-IR')} تومان</span>
                 </div>
                 {effectivePreview?.discountAmount > 0 && (
                   <div className="flex justify-between items-center text-sm text-emerald-600">
-                    <span>مبلغ تخفیف</span>
+                    <span>مبلغ تخفیف کوپن</span>
                     <span className="font-bold">-{effectivePreview?.discountAmount?.toLocaleString('fa-IR')} تومان</span>
                   </div>
                 )}
-                <div className="pt-4 border-t border-[var(--neo-border)] flex justify-between items-center text-xl font-black text-[var(--neo-text-main)]">
-                  <span>مبلغ قابل پرداخت</span>
-                  <span className="text-indigo-600">{totalAmount.toLocaleString('fa-IR')} تومان</span>
+                
+                {/* Wallet Deduction Line */}
+                {walletDeduction > 0 && (
+                  <div className="flex justify-between items-center text-sm text-indigo-700 bg-indigo-50/70 p-2.5 rounded-xl font-bold border border-indigo-100">
+                    <span className="flex items-center gap-1.5">
+                      <Wallet className="w-4 h-4" />
+                      کسر از موجودی کیف پول
+                    </span>
+                    <span>-{walletDeduction.toLocaleString('fa-IR')} تومان</span>
+                  </div>
+                )}
+
+                <div className="pt-3 border-t border-[var(--neo-border)] flex justify-between items-center text-lg font-black text-[var(--neo-text-main)]">
+                  <span>
+                    {remainingToPay > 0 ? 'مبلغ قابل پرداخت درگاه:' : 'مبلغ پرداختی:'}
+                  </span>
+                  <span className={remainingToPay > 0 ? 'text-emerald-600 text-xl' : 'text-indigo-600 text-xl'}>
+                    {remainingToPay > 0 
+                      ? `${remainingToPay.toLocaleString('fa-IR')} تومان`
+                      : 'رایگان (پرداخت با کیف پول)'
+                    }
+                  </span>
                 </div>
               </div>
 
@@ -425,12 +436,12 @@ export default function CheckoutPage() {
                   className="mt-1 w-5 h-5 rounded border-[var(--neo-border)] text-indigo-600 focus:ring-indigo-500 cursor-pointer" 
                 />
                 <span className="text-xs text-[var(--neo-text-secondary)] leading-relaxed">
-                  قوانین و مقررات وبسایت تک‌یاد و حریم خصوصی را مطالعه کرده‌ام و با آن‌ها موافقم.
+                  قوانین و مقررات وبسایت تک‌یاد و شرایط استفاده را مطالعه کرده‌ام و با آن‌ها موافقم.
                 </span>
               </label>
 
-              {/* Pay Button */}
-              {paymentMethod === 'wallet' ? (
+              {/* Final Payment Button */}
+              {isFullWalletPayment ? (
                 <button 
                   onClick={handleFinalPayment}
                   disabled={!acceptedTerms || isProcessingPayment}
@@ -438,15 +449,25 @@ export default function CheckoutPage() {
                 >
                   {isProcessingPayment ? (
                     <Loader2 className="w-5 h-5 animate-spin" />
-                  ) : hasEnoughWalletBalance ? (
+                  ) : (
                     <>
                       <Sparkles className="w-5 h-5" />
                       پرداخت آنی با کیف پول ({totalAmount.toLocaleString('fa-IR')} تومان)
                     </>
+                  )}
+                </button>
+              ) : isHybridPayment ? (
+                <button 
+                  onClick={handleFinalPayment}
+                  disabled={!acceptedTerms || isProcessingPayment}
+                  className="w-full flex items-center justify-center gap-2 bg-emerald-600 text-white px-6 py-4 rounded-xl font-bold hover:bg-emerald-700 transition shadow-lg shadow-emerald-600/30 disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base"
+                >
+                  {isProcessingPayment ? (
+                    <Loader2 className="w-5 h-5 animate-spin" />
                   ) : (
                     <>
-                      <PlusCircle className="w-5 h-5" />
-                      شارژ کیف پول و پرداخت ({totalAmount.toLocaleString('fa-IR')} تومان)
+                      <CreditCard className="w-5 h-5" />
+                      پرداخت {remainingToPay.toLocaleString('fa-IR')} تومان در درگاه شتاب
                     </>
                   )}
                 </button>
@@ -475,111 +496,6 @@ export default function CheckoutPage() {
           </div>
         </div>
       </div>
-
-      {/* Quick Charge Modal */}
-      {showChargeModal && (
-        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl p-6 max-w-md w-full border border-slate-200 shadow-2xl space-y-6">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-4">
-              <div className="flex items-center gap-2.5">
-                <div className="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center">
-                  <Wallet className="w-5 h-5" />
-                </div>
-                <div>
-                  <h3 className="font-bold text-slate-900 text-lg">شارژ سریع کیف پول</h3>
-                  <p className="text-xs text-slate-500">افزایش موجودی و بازگشت به پرداخت</p>
-                </div>
-              </div>
-              <button 
-                onClick={() => setShowChargeModal(false)}
-                className="text-slate-400 hover:text-slate-600 p-1 rounded-lg"
-              >
-                ✕
-              </button>
-            </div>
-
-            <div className="p-4 bg-slate-50 rounded-2xl space-y-2 border border-slate-100">
-              <div className="flex justify-between text-xs text-slate-600">
-                <span>موجودی فعلی شما:</span>
-                <span className="font-bold">{currentWalletBalance.toLocaleString('fa-IR')} تومان</span>
-              </div>
-              <div className="flex justify-between text-xs text-slate-600">
-                <span>مبلغ قابل پرداخت سفارش:</span>
-                <span className="font-bold text-indigo-600">{totalAmount.toLocaleString('fa-IR')} تومان</span>
-              </div>
-              {walletShortage > 0 && (
-                <div className="flex justify-between text-xs text-amber-700 font-bold pt-2 border-t border-slate-200">
-                  <span>حداقل شارژ مورد نیاز:</span>
-                  <span>{walletShortage.toLocaleString('fa-IR')} تومان</span>
-                </div>
-              )}
-            </div>
-
-            {/* Presets */}
-            <div>
-              <label className="block text-xs font-bold text-slate-700 mb-2">انتخاب مبلغ شارژ:</label>
-              <div className="grid grid-cols-2 gap-2 mb-3">
-                {walletShortage > 0 && (
-                  <button
-                    type="button"
-                    onClick={() => setCustomChargeAmount(walletShortage)}
-                    className={`py-2 px-3 text-xs font-bold rounded-xl border transition ${
-                      customChargeAmount === walletShortage
-                        ? 'bg-indigo-600 text-white border-indigo-600'
-                        : 'bg-white text-indigo-700 border-indigo-200 hover:bg-indigo-50'
-                    }`}
-                  >
-                    دقیقاً مبلغ کسری ({walletShortage.toLocaleString('fa-IR')})
-                  </button>
-                )}
-                {[100000, 200000, 500000, 1000000].map((amt) => (
-                  <button
-                    key={amt}
-                    type="button"
-                    onClick={() => setCustomChargeAmount(amt)}
-                    className={`py-2 px-3 text-xs font-bold rounded-xl border transition ${
-                      customChargeAmount === amt
-                        ? 'bg-indigo-600 text-white border-indigo-600'
-                        : 'bg-white text-slate-700 border-slate-200 hover:border-indigo-300'
-                    }`}
-                  >
-                    {amt.toLocaleString('fa-IR')} تومان
-                  </button>
-                ))}
-              </div>
-
-              <div className="relative">
-                <input
-                  type="number"
-                  value={customChargeAmount || ''}
-                  onChange={(e) => setCustomChargeAmount(Number(e.target.value))}
-                  placeholder="یا مبلغ دلخواه به تومان..."
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-left font-bold text-slate-900 outline-none focus:border-indigo-500 text-sm"
-                />
-                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-slate-400">تومان</span>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-3 pt-2">
-              <button
-                type="button"
-                onClick={() => handleQuickCharge(customChargeAmount)}
-                disabled={isCharging || !customChargeAmount || customChargeAmount < 10000}
-                className="flex-1 bg-indigo-600 text-white font-bold py-3.5 rounded-xl hover:bg-indigo-700 transition flex items-center justify-center gap-2 shadow-lg shadow-indigo-600/20 disabled:opacity-50"
-              >
-                {isCharging ? <Loader2 className="w-5 h-5 animate-spin" /> : 'انتقال به درگاه و افزایش اعتبار'}
-              </button>
-              <button
-                type="button"
-                onClick={() => setShowChargeModal(false)}
-                className="px-4 py-3.5 bg-slate-100 text-slate-700 rounded-xl font-bold text-sm hover:bg-slate-200 transition"
-              >
-                انصراف
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </main>
   );
 }

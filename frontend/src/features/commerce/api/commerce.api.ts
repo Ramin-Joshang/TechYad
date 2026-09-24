@@ -22,8 +22,8 @@ export const commerceApi = {
   checkoutPreview: async (couponCode?: string) => {
     return api.post<any, ApiResponse<any>>('/checkout/preview', { couponCode });
   },
-  createOrder: async (couponCode?: string) => {
-    return api.post<any, ApiResponse<any>>('/checkout/create', { couponCode });
+  createOrder: async (couponCode?: string, useWallet?: boolean) => {
+    return api.post<any, ApiResponse<any>>('/checkout/create', { couponCode, useWallet });
   },
   createMockPayment: async (orderId: string) => {
     return api.post<any, ApiResponse<any>>(`/payments/${orderId}/create`);

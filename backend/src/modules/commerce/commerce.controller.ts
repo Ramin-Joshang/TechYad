@@ -29,7 +29,8 @@ export const checkoutPreview = async (req: AuthRequest, res: Response) => {
 };
 
 export const createOrder = async (req: AuthRequest, res: Response) => {
-  const result = await CommerceService.createOrder(req.user._id as string, req.body.couponCode);
+  const { couponCode, useWallet } = req.body;
+  const result = await CommerceService.createOrder(req.user._id as string, couponCode, Boolean(useWallet));
   sendSuccess(res, result, 'Order created successfully', 201);
 };
 

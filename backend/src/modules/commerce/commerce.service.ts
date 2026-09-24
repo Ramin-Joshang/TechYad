@@ -10,6 +10,8 @@ import { ClassEnrollment } from '../classes/class-enrollment.model.js';
 import { User } from '../auth/user.model.js';
 import { AppError } from '../../common/errors/AppError.js';
 import { ReferralService } from '../referral/referral.service.js';
+import { WalletTransaction } from '../wallet/wallet-transaction.model.js';
+import { Notification } from '../notifications/notification.model.js';
 
 export class CommerceService {
   static async getInstructorSales(instructorId: string, month?: number, year?: number) {
@@ -308,6 +310,8 @@ export class CommerceService {
     const totalAmount = subtotal - discountAmount;
     const user = await User.findById(userId).select('walletBalance');
     const walletBalance = user?.walletBalance || 0;
+    const walletAmountApplicable = Math.min(walletBalance, totalAmount);
+    const remainingGatewayAmount = Math.max(0, totalAmount - walletBalance);
 
     return {
       items: enriched.items,
@@ -315,24 +319,44 @@ export class CommerceService {
       discountAmount,
       totalAmount,
       walletBalance,
+      walletAmountApplicable,
+      remainingGatewayAmount,
       canPayWithWallet: walletBalance >= totalAmount,
       couponId: couponRecord?._id,
       couponCode: couponRecord?.code
     };
   }
 
-  static async createOrder(userId: string, couponCode?: string) {
+  static async createOrder(userId: string, couponCode?: string, useWallet: boolean = false) {
     const preview = await this.checkoutPreview(userId, couponCode);
     if (preview.items.length === 0) throw new AppError('Cart is empty', 400, 'CART_EMPTY');
     
-    // NOTE: We don't increase coupon usageCount here, only on successful payment!
-    
+    let walletAmountApplied = 0;
+    let gatewayAmount = preview.totalAmount;
+    let paymentMethod: 'gateway' | 'wallet' | 'hybrid' = 'gateway';
+
+    if (useWallet) {
+      const user = await User.findById(userId).select('walletBalance');
+      const walletBalance = user?.walletBalance || 0;
+      walletAmountApplied = Math.min(walletBalance, preview.totalAmount);
+      gatewayAmount = preview.totalAmount - walletAmountApplied;
+
+      if (gatewayAmount === 0 && walletAmountApplied > 0) {
+        paymentMethod = 'wallet';
+      } else if (walletAmountApplied > 0) {
+        paymentMethod = 'hybrid';
+      }
+    }
+
     const order = await Order.create({
       userId,
       items: preview.items,
       subtotal: preview.subtotal,
       discountAmount: preview.discountAmount,
       totalAmount: preview.totalAmount,
+      walletAmountApplied,
+      gatewayAmount,
+      paymentMethod,
       couponId: preview.couponId || undefined,
       status: 'pending'
     });
@@ -341,13 +365,44 @@ export class CommerceService {
   }
 
   static async getMyOrders(userId: string) {
-    return await Order.find({ userId }).sort({ createdAt: -1 });
+    const orders = await Order.find({ userId }).sort({ createdAt: -1 });
+    const orderIds = orders.map(o => o._id);
+    const payments = await Payment.find({ orderId: { $in: orderIds }, userId });
+    const paymentMap = new Map(payments.map(p => [p.orderId.toString(), p]));
+
+    return orders.map(order => {
+      const payment = paymentMap.get(order._id.toString());
+      return {
+        ...order.toObject(),
+        paymentDetails: payment ? {
+          authority: payment.authority,
+          gateway: payment.gateway,
+          referenceId: payment.referenceId,
+          status: payment.status,
+          paidAt: (payment as any).paidAt || payment.updatedAt,
+        } : undefined
+      };
+    });
   }
 
   static async getOrderById(userId: string, orderId: string) {
-    const order = await Order.findOne({ _id: orderId, userId });
+    const order = await Order.findOne({ _id: orderId, userId }).populate('couponId', 'code value type');
     if (!order) throw new AppError('Order not found', 404, 'NOT_FOUND');
-    return order;
+
+    const payment = await Payment.findOne({ orderId: order._id, userId });
+    const user = await User.findById(userId).select('firstName lastName email phoneNumber nationalCode');
+
+    return {
+      ...order.toObject(),
+      user,
+      paymentDetails: payment ? {
+        authority: payment.authority,
+        gateway: payment.gateway,
+        referenceId: payment.referenceId,
+        status: payment.status,
+        paidAt: (payment as any).paidAt || payment.updatedAt,
+      } : undefined
+    };
   }
 
   // --- Payment Mock / Flow ---
@@ -355,17 +410,28 @@ export class CommerceService {
     const order = await this.getOrderById(userId, orderId);
     if (order.status !== 'pending') throw new AppError('Order is already processed', 400, 'ORDER_PROCESSED');
     
+    // In hybrid payment, only the remaining gatewayAmount is sent to the bank gateway
+    const payableAmount = order.gatewayAmount !== undefined ? order.gatewayAmount : order.totalAmount;
+
+    if (payableAmount === 0 && (order.walletAmountApplied || 0) > 0) {
+      throw new AppError('این سفارش باید از طریق کیف پول پرداخت شود', 400);
+    }
+
     // Create a pending payment
     const payment = await Payment.create({
       orderId,
       userId,
-      amount: order.totalAmount,
-      gateway: 'zarinpal_mock',
+      amount: payableAmount,
+      gateway: order.walletAmountApplied && order.walletAmountApplied > 0 ? 'hybrid_gateway' : 'zarinpal_mock',
       authority: `AUTH_${Date.now()}_${Math.floor(Math.random() * 1000)}`,
       status: 'pending'
     });
 
-    return { payment, paymentUrl: `/payment/mock-gateway?authority=${payment.authority}` };
+    const walletParam = order.walletAmountApplied ? `&walletApplied=${order.walletAmountApplied}` : '';
+    return { 
+      payment, 
+      paymentUrl: `/payment/mock-gateway?authority=${payment.authority}&amount=${payableAmount}${walletParam}` 
+    };
   }
 
   static async verifyPaymentMock(userId: string, authority: string, status: 'OK' | 'NOK') {
@@ -388,6 +454,50 @@ export class CommerceService {
         await session.commitTransaction();
         session.endSession();
         return { success: false, message: 'Payment failed' };
+      }
+
+      // If hybrid payment, deduct wallet balance atomically inside this transaction
+      if (order.walletAmountApplied && order.walletAmountApplied > 0) {
+        const user = await User.findById(userId).session(session);
+        if (!user) throw new AppError('کاربر یافت نشد', 404);
+
+        if ((user.walletBalance || 0) < order.walletAmountApplied) {
+          throw new AppError(
+            `موجودی کیف پول شما برای تکمیل پرداخت کافی نیست`,
+            400,
+            'INSUFFICIENT_WALLET_BALANCE'
+          );
+        }
+
+        user.walletBalance = (user.walletBalance || 0) - order.walletAmountApplied;
+        await user.save({ session });
+
+        await WalletTransaction.create([
+          {
+            userId: user._id,
+            type: 'purchase',
+            direction: 'debit',
+            amount: order.walletAmountApplied,
+            balanceAfter: user.walletBalance,
+            status: 'completed',
+            title: `پرداخت سفارش #${order._id.toString().slice(-6)} (کسر از کیف پول)`,
+            description: `کسر ${order.walletAmountApplied.toLocaleString('fa-IR')} تومان از کیف پول + پرداخت ${payment.amount.toLocaleString('fa-IR')} تومان از درگاه شتاب`,
+            referenceId: `HYB-ORD-${order._id.toString().slice(-6)}`,
+            orderId: order._id,
+            gateway: 'hybrid',
+            trackingCode: payment.authority,
+          }
+        ], { session });
+
+        await Notification.create([
+          {
+            userId: user._id,
+            type: 'system',
+            title: '🎉 پرداخت موفق سفارش (ترکیبی)',
+            message: `سفارش شما با موفقیت ثبت شد. مبلغ ${order.walletAmountApplied.toLocaleString('fa-IR')} تومان از کیف پول شما کسر و مبلغ ${payment.amount.toLocaleString('fa-IR')} تومان از طریق درگاه پرداخت گردید.`,
+            data: { orderId: order._id }
+          }
+        ], { session });
       }
 
       // 1. Verify capacity for classes again!

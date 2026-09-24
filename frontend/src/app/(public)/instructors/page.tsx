@@ -1,8 +1,41 @@
 import { InstructorsList } from '@/components/instructors/InstructorsList';
+import type { Metadata } from 'next';
 
-export const metadata = {
-  title: 'اساتید | TechYad',
-  description: 'با اساتید برتر ما آشنا شوید.',
+export const metadata: Metadata = {
+  title: "اساتید و مدرسان برجسته | تک‌یاد",
+  description: "آشنایی با اساتید متخصص و حرفه‌ای تک‌یاد در حوزه‌های برنامه‌نویسی، طراحی محصول، هوش مصنوعی، داده و مهندسی نرم‌افزار.",
+  keywords: [
+    "اساتید تک‌یاد",
+    "مدرسان برنامه‌نویسی",
+    "اساتید هوش مصنوعی",
+    "آموزشگاه آنلاین",
+    "اساتید مجرب",
+  ],
+  alternates: {
+    canonical: "/instructors",
+  },
+  openGraph: {
+    type: "website",
+    locale: "fa_IR",
+    url: "https://tekyad.ir/instructors",
+    siteName: "تک‌یاد",
+    title: "اساتید و مدرسان برجسته | تک‌یاد",
+    description: "آشنایی با اساتید متخصص و حرفه‌ای تک‌یاد در حوزه‌های برنامه‌نویسی، طراحی محصول و هوش مصنوعی.",
+    images: [
+      {
+        url: "https://picsum.photos/seed/tekyad-instructors/1200/630",
+        width: 1200,
+        height: 630,
+        alt: "اساتید تک‌یاد",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "اساتید و مدرسان برجسته | تک‌یاد",
+    description: "آشنایی با اساتید متخصص و حرفه‌ای تک‌یاد در حوزه‌های تخصصی نرم‌افزار.",
+    images: ["https://picsum.photos/seed/tekyad-instructors/1200/630"],
+  },
 };
 
 export default function InstructorsPage() {

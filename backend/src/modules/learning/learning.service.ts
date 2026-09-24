@@ -57,8 +57,16 @@ export class LearningService {
 
   static async getMyEnrollments(userId: string) {
     return await Enrollment.find({ userId })
-      .populate('courseId', 'title slug thumbnail totalLessons')
-      .sort({ enrolledAt: -1 });
+      .populate({
+        path: 'courseId',
+        select: 'title slug thumbnail totalLessons totalDuration price instructor level category averageRating ratingCount description shortDescription syllabus',
+        populate: [
+          { path: 'instructors', select: 'firstName lastName avatar' },
+          { path: 'category', select: 'name slug' }
+        ]
+      })
+      .populate('lastLessonId', 'title slug duration order')
+      .sort({ lastAccessedAt: -1, enrolledAt: -1 });
   }
 
   static async getMyEnrollmentDetails(userId: string, courseId: string) {

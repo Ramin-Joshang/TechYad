@@ -133,8 +133,27 @@ export class ClassService {
   
   static async getMyClasses(userId: string) {
     const enrollments = await ClassEnrollment.find({ userId, status: 'active' })
-      .populate('classId');
-    return enrollments.map(e => e.classId);
+      .populate({
+        path: 'classId',
+        populate: {
+          path: 'instructors',
+          select: 'firstName lastName avatar bio'
+        }
+      })
+      .sort({ createdAt: -1 });
+
+    return enrollments.map(e => {
+      const cls: any = e.classId;
+      if (!cls) return null;
+      return {
+        ...cls.toObject(),
+        enrollmentId: e._id,
+        enrolledAt: e.enrolledAt,
+        enrollmentStatus: e.status,
+        paidAmount: e.amount,
+        orderId: e.orderId,
+      };
+    }).filter(Boolean);
   }
 
   static async joinOnlineClass(userId: string, classId: string) {

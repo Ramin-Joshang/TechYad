@@ -10,6 +10,8 @@ export interface IPayment extends Document {
   status: "pending" | "paid" | "failed" | "refunded";
   rawResponse?: Record<string, unknown>;
   paidAt?: Date;
+  createdAt?: Date;
+  updatedAt?: Date;
 }
 
 const paymentSchema = new Schema<IPayment>(

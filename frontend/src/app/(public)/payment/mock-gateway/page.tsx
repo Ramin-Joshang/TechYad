@@ -13,6 +13,7 @@ function MockGatewayContent() {
   const authority = searchParams.get('authority');
   const type = searchParams.get('type'); // 'wallet' or empty
   const amount = searchParams.get('amount');
+  const walletApplied = searchParams.get('walletApplied');
   const [isProcessing, setIsProcessing] = useState(false);
 
   const isWalletCharge = type === 'wallet' || (authority && authority.startsWith('WALLET_'));
@@ -67,7 +68,18 @@ function MockGatewayContent() {
           </h1>
           {amount && (
             <div className="text-lg font-black text-emerald-600 mb-2">
-              مبلغ: {Number(amount).toLocaleString('fa-IR')} تومان
+              مبلغ پرداختی درگاه: {Number(amount).toLocaleString('fa-IR')} تومان
+            </div>
+          )}
+          {walletApplied && Number(walletApplied) > 0 && (
+            <div className="bg-indigo-50 border border-indigo-200 rounded-xl p-3 text-xs text-indigo-900 mb-3 text-right">
+              <div className="flex justify-between items-center font-bold">
+                <span>کسر از موجودی کیف پول شما:</span>
+                <span className="text-indigo-700">-{Number(walletApplied).toLocaleString('fa-IR')} تومان</span>
+              </div>
+              <div className="text-[11px] text-indigo-600 mt-1">
+                این مبلغ همزمان با پرداخت موفق درگاه، از کیف پول شما کسر خواهد شد.
+              </div>
             </div>
           )}
           <p className="text-sm font-mono text-[var(--neo-text-muted)] mb-4">شناسه: {authority}</p>
