@@ -2,6 +2,8 @@ import { Types } from 'mongoose';
 import { Course } from './course.model.js';
 import { Chapter } from './chapter.model.js';
 import { Lesson } from './lesson.model.js';
+import '../auth/user.model.js';
+import '../catalog/category.model.js';
 import { AppError } from '../../common/errors/AppError.js';
 import { Class } from '../classes/class.model.js';
 import { Order } from '../commerce/order.model.js';

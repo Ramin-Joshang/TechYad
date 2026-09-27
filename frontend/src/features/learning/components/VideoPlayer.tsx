@@ -313,15 +313,6 @@ export function VideoPlayer({
     setShowSettingsMenu(false);
   };
 
-  const toggleFullscreen = () => {
-    if (!containerRef.current) return;
-    if (!document.fullscreenElement) {
-      containerRef.current.requestFullscreen().catch(() => {});
-    } else {
-      document.exitFullscreen().catch(() => {});
-    }
-  };
-
   const handlePiP = async () => {
     if (!videoRef.current) return;
     try {
@@ -398,11 +389,14 @@ export function VideoPlayer({
     let timer: NodeJS.Timeout;
     if (autoPlayCountdown !== null && autoPlayCountdown > 0) {
       timer = setTimeout(() => {
-        setAutoPlayCountdown((prev) => (prev !== null ? prev - 1 : null));
+        setAutoPlayCountdown((prev) => {
+          if (prev === 1) {
+            if (onNextLesson) onNextLesson();
+            return null;
+          }
+          return prev !== null ? prev - 1 : null;
+        });
       }, 1000);
-    } else if (autoPlayCountdown === 0) {
-      setAutoPlayCountdown(null);
-      if (onNextLesson) onNextLesson();
     }
     return () => clearTimeout(timer);
   }, [autoPlayCountdown, onNextLesson]);
