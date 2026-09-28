@@ -56,6 +56,11 @@ export interface ClassItem {
   // Syllabus
   syllabus?: ISessionSyllabus[];
 
+  // Audience & Prerequisites
+  targetAudience?: string[];
+  prerequisites?: string[];
+  sessionDuration?: number;
+
   status: 'draft' | 'published' | 'completed' | 'cancelled';
 }
 

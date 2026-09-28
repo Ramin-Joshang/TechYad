@@ -11,42 +11,18 @@ import Link from 'next/link';
 import toast from 'react-hot-toast';
 import { MediaUploader } from '@/components/common/MediaUploader';
 import { AttendanceModal } from '@/components/classes/AttendanceModal';
+import { ClassFormModal } from '@/components/classes/ClassFormModal';
 
 export default function AdminClassesPage() {
   const queryClient = useQueryClient();
   const [search, setSearch] = useState('');
   const [modeFilter, setModeFilter] = useState('all');
   const [statusFilter, setStatusFilter] = useState('all');
-  const [showForm, setShowForm] = useState(false);
-  const [editId, setEditId] = useState<string | null>(null);
+  const [isFormOpen, setIsFormOpen] = useState(false);
+  const [editingClass, setEditingClass] = useState<any | null>(null);
   const [detailClass, setDetailClass] = useState<any | null>(null);
   const [updatingClassId, setUpdatingClassId] = useState<string | null>(null);
   const [attendanceClass, setAttendanceClass] = useState<any | null>(null);
-  
-  const [formData, setFormData] = useState({
-    title: '',
-    slug: '',
-    shortDescription: '',
-    description: '',
-    mode: 'online',
-    startDate: '',
-    price: 0,
-    capacity: 50,
-    sessions: 10,
-    totalHours: 20,
-    scheduleDays: ['شنبه', 'چهارشنبه'] as string[],
-    scheduleTime: '۱۷:۰۰ الی ۱۹:۰۰',
-    city: 'تهران',
-    address: '',
-    venueDetails: '',
-    meetingPlatform: 'اسکای‌روم (Skyroom)',
-    meetingLink: '',
-    allowPreRegistration: false,
-    preRegistrationDeposit: 0,
-    remainingPaymentDueAfterSession: 2,
-    thumbnail: '',
-    status: 'published'
-  });
 
   const { data: classesData, isLoading } = useQuery({
     queryKey: ['adminClasses'],
@@ -56,9 +32,10 @@ export default function AdminClassesPage() {
   const createMutation = useMutation({
     mutationFn: (data: any) => adminApi.createClass(data),
     onSuccess: () => {
-      toast.success('کلاس با موفقیت ایجاد شد');
+      toast.success('کلاس با تمام سرفصل‌ها و مشخصات با موفقیت ایجاد شد');
       queryClient.invalidateQueries({ queryKey: ['adminClasses'] });
-      resetForm();
+      setIsFormOpen(false);
+      setEditingClass(null);
     },
     onError: (err: any) => {
       toast.error(err.response?.data?.message || 'خطا در ایجاد کلاس');
@@ -66,11 +43,12 @@ export default function AdminClassesPage() {
   });
 
   const updateMutation = useMutation({
-    mutationFn: (data: any) => adminApi.updateClass(editId!, data),
+    mutationFn: (data: any) => adminApi.updateClass(editingClass?._id, data),
     onSuccess: () => {
-      toast.success('کلاس با موفقیت ویرایش شد');
+      toast.success('کلاس با موفقیت به‌روزرسانی شد');
       queryClient.invalidateQueries({ queryKey: ['adminClasses'] });
-      resetForm();
+      setIsFormOpen(false);
+      setEditingClass(null);
     },
     onError: (err: any) => {
       toast.error(err.response?.data?.message || 'خطا در ویرایش کلاس');
@@ -97,87 +75,29 @@ export default function AdminClassesPage() {
     onSuccess: () => {
       toast.success('کلاس با موفقیت حذف شد');
       queryClient.invalidateQueries({ queryKey: ['adminClasses'] });
-      if (detailClass?._id === editId) setDetailClass(null);
+      if (detailClass?._id === editingClass?._id) setDetailClass(null);
     },
     onError: (err: any) => {
       toast.error(err.response?.data?.message || 'خطا در حذف کلاس');
     }
   });
 
-  const resetForm = () => {
-    setShowForm(false);
-    setEditId(null);
-    setFormData({
-      title: '',
-      slug: '',
-      shortDescription: '',
-      description: '',
-      mode: 'online',
-      startDate: '',
-      price: 0,
-      capacity: 50,
-      sessions: 10,
-      totalHours: 20,
-      scheduleDays: ['شنبه', 'چهارشنبه'],
-      scheduleTime: '۱۷:۰۰ الی ۱۹:۰۰',
-      city: 'تهران',
-      address: '',
-      venueDetails: '',
-      meetingPlatform: 'اسکای‌روم (Skyroom)',
-      meetingLink: '',
-      allowPreRegistration: false,
-      preRegistrationDeposit: 0,
-      remainingPaymentDueAfterSession: 2,
-      thumbnail: '',
-      status: 'published'
-    });
+  const handleCreate = () => {
+    setEditingClass(null);
+    setIsFormOpen(true);
   };
 
   const handleEdit = (cls: any) => {
-    setEditId(cls._id);
-    setFormData({
-      title: cls.title || '',
-      slug: cls.slug || '',
-      shortDescription: cls.shortDescription || '',
-      description: cls.description || '',
-      mode: cls.mode || 'online',
-      startDate: cls.startDate ? cls.startDate.substring(0, 16) : '',
-      price: cls.price || 0,
-      capacity: cls.capacity || cls.maxStudents || 50,
-      sessions: cls.sessions || 10,
-      totalHours: cls.totalHours || 20,
-      scheduleDays: cls.scheduleDays?.length ? cls.scheduleDays : ['شنبه', 'چهارشنبه'],
-      scheduleTime: cls.scheduleTime || '۱۷:۰۰ الی ۱۹:۰۰',
-      city: cls.city || 'تهران',
-      address: cls.address || '',
-      venueDetails: cls.venueDetails || '',
-      meetingPlatform: cls.meetingPlatform || 'اسکای‌روم (Skyroom)',
-      meetingLink: cls.meetingLink || '',
-      allowPreRegistration: !!cls.allowPreRegistration,
-      preRegistrationDeposit: cls.preRegistrationDeposit || 0,
-      remainingPaymentDueAfterSession: cls.remainingPaymentDueAfterSession || 2,
-      thumbnail: cls.thumbnail || '',
-      status: cls.status || 'published'
-    });
-    setShowForm(true);
+    setEditingClass(cls);
+    setIsFormOpen(true);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!formData.title || !formData.slug) {
-      toast.error('عنوان و نامک کلاس الزامی است');
-      return;
+  const handleFormSubmit = (data: any) => {
+    if (editingClass?._id) {
+      updateMutation.mutate(data);
+    } else {
+      createMutation.mutate(data);
     }
-    const payload = {
-      ...formData,
-      price: Number(formData.price) || 0,
-      capacity: Number(formData.capacity) || 50,
-      sessions: Number(formData.sessions) || 10,
-      preRegistrationDeposit: formData.allowPreRegistration ? Number(formData.preRegistrationDeposit) : 0,
-      remainingPaymentDueAfterSession: Number(formData.remainingPaymentDueAfterSession) || 2
-    };
-    if (editId) updateMutation.mutate(payload);
-    else createMutation.mutate(payload);
   };
 
   const classes = classesData?.classes || [];
@@ -195,257 +115,6 @@ export default function AdminClassesPage() {
   const inPersonClasses = classes.filter((c: any) => c.mode === 'in_person').length;
   const activeClasses = classes.filter((c: any) => c.status !== 'cancelled' && c.status !== 'draft').length;
 
-  if (showForm) {
-    return (
-      <div className="max-w-4xl mx-auto bg-[var(--neo-surface)] p-6 md:p-8 rounded-3xl shadow-sm border border-[var(--neo-border)] space-y-6">
-        <div className="flex justify-between items-center pb-4 border-b border-[var(--neo-border)]">
-          <div>
-            <h2 className="text-xl font-black text-[var(--neo-text-main)]">{editId ? 'ویرایش اطلاعات کلاس' : 'ایجاد کلاس جدید'}</h2>
-            <p className="text-xs text-[var(--neo-text-secondary)] mt-0.5">مشخصات زمان‌بندی، ظرفیت و پوستر کلاس را وارد کنید</p>
-          </div>
-          <button onClick={resetForm} className="p-2 text-[var(--neo-text-muted)] hover:text-[var(--neo-text-main)] rounded-xl bg-[var(--neo-surface-2)]">
-            <X className="w-5 h-5" />
-          </button>
-        </div>
-
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <label className="block text-xs font-bold text-[var(--neo-text-main)] mb-1.5">عنوان کلاس *</label>
-              <input 
-                required 
-                type="text" 
-                value={formData.title} 
-                onChange={e => {
-                  const t = e.target.value;
-                  setFormData(prev => ({
-                    ...prev,
-                    title: t,
-                    slug: prev.slug ? prev.slug : t.toLowerCase().trim().replace(/[\s\W-]+/g, '-')
-                  }));
-                }} 
-                className="w-full px-4 py-2.5 rounded-xl border border-[var(--neo-border)] bg-[var(--neo-surface-2)] text-sm focus:ring-2 focus:ring-[var(--neo-primary)] outline-none" 
-              />
-            </div>
-
-            <div>
-              <label className="block text-xs font-bold text-[var(--neo-text-main)] mb-1.5">شناسه یکتا (Slug) *</label>
-              <input 
-                required 
-                type="text" 
-                value={formData.slug} 
-                onChange={e => setFormData({...formData, slug: e.target.value})} 
-                className="w-full px-4 py-2.5 rounded-xl border border-[var(--neo-border)] bg-[var(--neo-surface-2)] text-sm focus:ring-2 focus:ring-[var(--neo-primary)] outline-none dir-ltr text-left" 
-              />
-            </div>
-
-            <div>
-              <label className="block text-xs font-bold text-[var(--neo-text-main)] mb-1.5">نحوه برگزاری</label>
-              <select 
-                value={formData.mode} 
-                onChange={e => setFormData({...formData, mode: e.target.value})} 
-                className="w-full px-4 py-2.5 rounded-xl border border-[var(--neo-border)] bg-[var(--neo-surface-2)] text-sm focus:ring-2 focus:ring-[var(--neo-primary)] outline-none"
-              >
-                <option value="online">آنلاین (وبینار / زنده)</option>
-                <option value="in_person">حضوری</option>
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-xs font-bold text-[var(--neo-text-main)] mb-1.5">وضعیت کلاس</label>
-              <select 
-                value={formData.status} 
-                onChange={e => setFormData({...formData, status: e.target.value})} 
-                className="w-full px-4 py-2.5 rounded-xl border border-[var(--neo-border)] bg-[var(--neo-surface-2)] text-sm focus:ring-2 focus:ring-[var(--neo-primary)] outline-none"
-              >
-                <option value="published">فعال / آماده ثبت‌نام</option>
-                <option value="draft">پیش‌نویس</option>
-                <option value="completed">تکمیل شده</option>
-                <option value="cancelled">لغو شده</option>
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-xs font-bold text-[var(--neo-text-main)] mb-1.5">تاریخ و ساعت شروع</label>
-              <input 
-                type="datetime-local" 
-                value={formData.startDate} 
-                onChange={e => setFormData({...formData, startDate: e.target.value})} 
-                className="w-full px-4 py-2.5 rounded-xl border border-[var(--neo-border)] bg-[var(--neo-surface-2)] text-sm focus:ring-2 focus:ring-[var(--neo-primary)] outline-none dir-ltr" 
-              />
-            </div>
-
-            <div>
-              <label className="block text-xs font-bold text-[var(--neo-text-main)] mb-1.5">هزینه ثبت‌نام (تومان)</label>
-              <input 
-                type="number" 
-                min="0"
-                value={formData.price} 
-                onChange={e => setFormData({...formData, price: Number(e.target.value)})} 
-                className="w-full px-4 py-2.5 rounded-xl border border-[var(--neo-border)] bg-[var(--neo-surface-2)] text-sm focus:ring-2 focus:ring-[var(--neo-primary)] outline-none dir-ltr text-left" 
-              />
-            </div>
-
-            <div>
-              <label className="block text-xs font-bold text-[var(--neo-text-main)] mb-1.5">تعداد جلسات</label>
-              <input 
-                type="number" 
-                min="1"
-                value={formData.sessions} 
-                onChange={e => setFormData({...formData, sessions: Number(e.target.value)})} 
-                className="w-full px-4 py-2.5 rounded-xl border border-[var(--neo-border)] bg-[var(--neo-surface-2)] text-sm focus:ring-2 focus:ring-[var(--neo-primary)] outline-none dir-ltr text-left" 
-              />
-            </div>
-
-            <div>
-              <label className="block text-xs font-bold text-[var(--neo-text-main)] mb-1.5">ساعت برگزاری هر جلسه</label>
-              <input 
-                type="text" 
-                value={formData.scheduleTime} 
-                onChange={e => setFormData({...formData, scheduleTime: e.target.value})} 
-                placeholder="مثال: ۱۷:۰۰ الی ۱۹:۰۰"
-                className="w-full px-4 py-2.5 rounded-xl border border-[var(--neo-border)] bg-[var(--neo-surface-2)] text-sm focus:ring-2 focus:ring-[var(--neo-primary)] outline-none" 
-              />
-            </div>
-
-            {formData.mode === 'online' ? (
-              <>
-                <div>
-                  <label className="block text-xs font-bold text-[var(--neo-text-main)] mb-1.5">پلتفرم آنلاین</label>
-                  <input 
-                    type="text" 
-                    value={formData.meetingPlatform} 
-                    onChange={e => setFormData({...formData, meetingPlatform: e.target.value})} 
-                    placeholder="اسکای‌روم / گوگل میت"
-                    className="w-full px-4 py-2.5 rounded-xl border border-[var(--neo-border)] bg-[var(--neo-surface-2)] text-sm focus:ring-2 focus:ring-[var(--neo-primary)] outline-none" 
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-bold text-[var(--neo-text-main)] mb-1.5">لینک ورود به کلاس آنلاین</label>
-                  <input 
-                    type="url" 
-                    value={formData.meetingLink} 
-                    onChange={e => setFormData({...formData, meetingLink: e.target.value})} 
-                    placeholder="https://skyroom.online/ch/..."
-                    className="w-full px-4 py-2.5 rounded-xl border border-[var(--neo-border)] bg-[var(--neo-surface-2)] text-sm focus:ring-2 focus:ring-[var(--neo-primary)] outline-none dir-ltr text-left font-mono" 
-                  />
-                </div>
-              </>
-            ) : (
-              <>
-                <div>
-                  <label className="block text-xs font-bold text-[var(--neo-text-main)] mb-1.5">شهر محل برگزاری</label>
-                  <input 
-                    type="text" 
-                    value={formData.city} 
-                    onChange={e => setFormData({...formData, city: e.target.value})} 
-                    placeholder="تهران / اصفهان..."
-                    className="w-full px-4 py-2.5 rounded-xl border border-[var(--neo-border)] bg-[var(--neo-surface-2)] text-sm focus:ring-2 focus:ring-[var(--neo-primary)] outline-none" 
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-bold text-[var(--neo-text-main)] mb-1.5">آدرس دقیق محل کلاس حضوری</label>
-                  <input 
-                    type="text" 
-                    value={formData.address} 
-                    onChange={e => setFormData({...formData, address: e.target.value})} 
-                    placeholder="خیابان، پلاک، طبقه و سالن"
-                    className="w-full px-4 py-2.5 rounded-xl border border-[var(--neo-border)] bg-[var(--neo-surface-2)] text-sm focus:ring-2 focus:ring-[var(--neo-primary)] outline-none" 
-                  />
-                </div>
-              </>
-            )}
-          </div>
-
-          {/* Pre-registration Settings in Admin */}
-          <div className="p-4 bg-[var(--neo-surface-2)]/60 rounded-2xl border border-[var(--neo-border)] space-y-3">
-            <div className="flex items-center gap-3">
-              <input
-                type="checkbox"
-                id="adminAllowPreReg"
-                checked={formData.allowPreRegistration}
-                onChange={e => setFormData({...formData, allowPreRegistration: e.target.checked})}
-                className="w-4 h-4 rounded text-emerald-600 focus:ring-emerald-500"
-              />
-              <label htmlFor="adminAllowPreReg" className="text-xs font-bold text-[var(--neo-text-main)] cursor-pointer">
-                فعال‌سازی امکان پیش‌ثبت‌نام با بیعانه برای این کلاس
-              </label>
-            </div>
-
-            {formData.allowPreRegistration && (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2 border-t border-[var(--neo-border)]">
-                <div>
-                  <label className="block text-xs font-bold text-[var(--neo-text-main)] mb-1.5">مبلغ بیعانه / پیش‌پرداخت (تومان)</label>
-                  <input 
-                    type="number" 
-                    min="0"
-                    value={formData.preRegistrationDeposit} 
-                    onChange={e => setFormData({...formData, preRegistrationDeposit: Number(e.target.value)})} 
-                    placeholder="مثال: ۵۰۰,۰۰۰"
-                    className="w-full px-4 py-2 rounded-xl border border-[var(--neo-border)] bg-white text-sm focus:ring-2 focus:ring-[var(--neo-primary)] outline-none dir-ltr text-left font-mono" 
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold text-[var(--neo-text-main)] mb-1.5">موعد تسویه مانده شهریه</label>
-                  <div className="flex items-center gap-2 text-xs">
-                    <span>بعد از جلسه</span>
-                    <input 
-                      type="number" 
-                      min="1"
-                      value={formData.remainingPaymentDueAfterSession} 
-                      onChange={e => setFormData({...formData, remainingPaymentDueAfterSession: Number(e.target.value)})} 
-                      className="w-16 px-2 py-1.5 rounded-lg border border-[var(--neo-border)] bg-white text-center font-bold text-sm" 
-                    />
-                    <span>نوتیفیکیشن تسویه ارسال شود</span>
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
-
-          <div>
-            <label className="block text-xs font-bold text-[var(--neo-text-main)] mb-1.5">توضیح کوتاه کلاس</label>
-            <textarea 
-              value={formData.shortDescription} 
-              onChange={e => setFormData({...formData, shortDescription: e.target.value})} 
-              rows={2} 
-              className="w-full px-4 py-2.5 rounded-xl border border-[var(--neo-border)] bg-[var(--neo-surface-2)] text-sm focus:ring-2 focus:ring-[var(--neo-primary)] outline-none resize-none" 
-            />
-          </div>
-
-          <div>
-            <MediaUploader
-              label="تصویر پوستر کلاس (آپلود فایل یا درج نشانی)"
-              value={formData.thumbnail}
-              onChange={(url) => setFormData(prev => ({ ...prev, thumbnail: url }))}
-              accept="image/*"
-              previewType="image"
-            />
-          </div>
-
-          <div className="flex justify-end gap-3 pt-4 border-t border-[var(--neo-border)]">
-            <button 
-              type="button" 
-              onClick={resetForm} 
-              className="px-5 py-2.5 text-xs font-bold text-[var(--neo-text-secondary)] bg-[var(--neo-surface-2)] hover:bg-[var(--neo-border)] rounded-xl transition"
-            >
-              انصراف
-            </button>
-            <button 
-              type="submit" 
-              disabled={createMutation.isPending || updateMutation.isPending} 
-              className="px-8 py-2.5 bg-[var(--neo-primary)] hover:opacity-95 text-white font-bold text-xs rounded-xl flex items-center justify-center gap-2 transition disabled:opacity-70 shadow-md"
-            >
-              {(createMutation.isPending || updateMutation.isPending) ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-              ذخیره اطلاعات کلاس
-            </button>
-          </div>
-        </form>
-      </div>
-    );
-  }
-
   return (
     <div className="space-y-6 pb-20">
       {/* Header */}
@@ -459,7 +128,7 @@ export default function AdminClassesPage() {
         </div>
         <button 
           id="admin-create-class-btn"
-          onClick={() => setShowForm(true)} 
+          onClick={handleCreate} 
           className="flex items-center gap-2 bg-[var(--neo-primary)] text-white px-4 py-2.5 rounded-xl font-bold text-xs hover:opacity-95 shadow-md transition"
         >
           <Plus className="w-4 h-4" /> ایجاد کلاس جدید
@@ -742,6 +411,20 @@ export default function AdminClassesPage() {
           isAdmin={true}
         />
       )}
+
+      {/* Full Class Creation & Editing Modal for Admin */}
+      <ClassFormModal
+        isOpen={isFormOpen}
+        onClose={() => {
+          setIsFormOpen(false);
+          setEditingClass(null);
+        }}
+        initialData={editingClass}
+        onSubmit={handleFormSubmit}
+        isSubmitting={createMutation.isPending || updateMutation.isPending}
+        title={editingClass ? `ویرایش مشخصات کلاس: ${editingClass.title}` : 'تعریف و ثبت کلاس جدید با تمام جزئیات'}
+        isAdmin={true}
+      />
     </div>
   );
 }

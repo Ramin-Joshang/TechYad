@@ -51,6 +51,11 @@ export interface IClass extends Document {
   // Syllabus
   syllabus: ISessionSyllabus[];
 
+  // Audience & Prerequisites
+  targetAudience?: string[];
+  prerequisites?: string[];
+  sessionDuration?: number;
+
   allowEnrollmentAfterStart?: boolean;
   status: "draft" | "published" | "completed" | "cancelled";
   createdBy: Types.ObjectId;
@@ -110,6 +115,11 @@ const classSchema = new Schema<IClass>(
 
     // Syllabus
     syllabus: { type: [sessionSyllabusSchema], default: [] },
+
+    // Audience & Prerequisites
+    targetAudience: { type: [String], default: [] },
+    prerequisites: { type: [String], default: [] },
+    sessionDuration: { type: Number, default: 90 },
 
     allowEnrollmentAfterStart: { type: Boolean, default: true },
     status: { type: String, enum: ["draft", "published", "completed", "cancelled"], default: "draft" },

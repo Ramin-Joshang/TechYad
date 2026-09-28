@@ -572,18 +572,29 @@ export function ClassDetailsContainer({ slug }: { slug: string }) {
                   این کلاس مناسب چه کسانی است؟
                 </h3>
                 <ul className="space-y-2.5 text-xs text-slate-600 leading-relaxed">
-                  <li className="flex items-start gap-2">
-                    <CheckCircle className="w-4 h-4 text-emerald-500 mt-0.5 shrink-0" />
-                    <span>علاقه‌مندان به یادگیری تعاملی و تمرین پروژه در کلاس</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <CheckCircle className="w-4 h-4 text-emerald-500 mt-0.5 shrink-0" />
-                    <span>افرادی که به تعامل مستقیم و پرسش و پاسخ با استاد نیاز دارند</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <CheckCircle className="w-4 h-4 text-emerald-500 mt-0.5 shrink-0" />
-                    <span>داوطلبانی که به دنبال شبکه ارتباطی با هم‌دوره‌ای‌ها هستند</span>
-                  </li>
+                  {cls.targetAudience && cls.targetAudience.length > 0 ? (
+                    cls.targetAudience.map((item: string, idx: number) => (
+                      <li key={idx} className="flex items-start gap-2">
+                        <CheckCircle className="w-4 h-4 text-emerald-500 mt-0.5 shrink-0" />
+                        <span>{item}</span>
+                      </li>
+                    ))
+                  ) : (
+                    <>
+                      <li className="flex items-start gap-2">
+                        <CheckCircle className="w-4 h-4 text-emerald-500 mt-0.5 shrink-0" />
+                        <span>علاقه‌مندان به یادگیری تعاملی و تمرین پروژه در کلاس</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <CheckCircle className="w-4 h-4 text-emerald-500 mt-0.5 shrink-0" />
+                        <span>افرادی که به تعامل مستقیم و پرسش و پاسخ با استاد نیاز دارند</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <CheckCircle className="w-4 h-4 text-emerald-500 mt-0.5 shrink-0" />
+                        <span>داوطلبانی که به دنبال شبکه ارتباطی با هم‌دوره‌ای‌ها هستند</span>
+                      </li>
+                    </>
+                  )}
                 </ul>
               </div>
 
@@ -593,18 +604,29 @@ export function ClassDetailsContainer({ slug }: { slug: string }) {
                   پیش‌نیازها و لوازم مورد نیاز
                 </h3>
                 <ul className="space-y-2.5 text-xs text-slate-600 leading-relaxed">
-                  <li className="flex items-start gap-2">
-                    <div className="w-1.5 h-1.5 bg-blue-500 rounded-full mt-1.5 shrink-0" />
-                    <span>آشنایی با مبانی اولیه حوزه تخصصی</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <div className="w-1.5 h-1.5 bg-blue-500 rounded-full mt-1.5 shrink-0" />
-                    <span>همراه داشتن لپ‌تاپ (برای جلسات حضوری و تمرین‌ها)</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <div className="w-1.5 h-1.5 bg-blue-500 rounded-full mt-1.5 shrink-0" />
-                    <span>تعهد به حضور منظم در جلسات طبق تقویم</span>
-                  </li>
+                  {cls.prerequisites && cls.prerequisites.length > 0 ? (
+                    cls.prerequisites.map((item: string, idx: number) => (
+                      <li key={idx} className="flex items-start gap-2">
+                        <div className="w-1.5 h-1.5 bg-blue-500 rounded-full mt-1.5 shrink-0" />
+                        <span>{item}</span>
+                      </li>
+                    ))
+                  ) : (
+                    <>
+                      <li className="flex items-start gap-2">
+                        <div className="w-1.5 h-1.5 bg-blue-500 rounded-full mt-1.5 shrink-0" />
+                        <span>آشنایی با مبانی اولیه حوزه تخصصی</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <div className="w-1.5 h-1.5 bg-blue-500 rounded-full mt-1.5 shrink-0" />
+                        <span>همراه داشتن لپ‌تاپ (برای جلسات حضوری و تمرین‌ها)</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <div className="w-1.5 h-1.5 bg-blue-500 rounded-full mt-1.5 shrink-0" />
+                        <span>تعهد به حضور منظم در جلسات طبق تقویم</span>
+                      </li>
+                    </>
+                  )}
                 </ul>
               </div>
             </div>
