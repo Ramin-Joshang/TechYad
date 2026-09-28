@@ -34,24 +34,27 @@ export const getInstructorClasses = async (req: AuthRequest, res: Response) => {
 };
 
 export const updateClass = async (req: AuthRequest, res: Response) => {
-  const result = await ClassService.updateClass((req.params.id as string), req.user._id as string, req.body);
+  const result = await ClassService.updateClass(req.params.id as string, req.user._id as string, req.body);
   sendSuccess(res, result, 'Class updated successfully');
 };
+
 export const deleteClass = async (req: AuthRequest, res: Response) => {
-  await ClassService.deleteClass((req.params.id as string), req.user._id as string);
+  await ClassService.deleteClass(req.params.id as string, req.user._id as string);
   sendSuccess(res, null, 'Class deleted successfully');
 };
+
 export const getAdminClasses = async (req: Request, res: Response) => {
   const result = await ClassService.getAdminClasses(req.query);
   sendSuccess(res, result, 'Admin classes retrieved successfully');
 };
 
 export const adminUpdateClass = async (req: Request, res: Response) => {
-  const result = await ClassService.updateClass((req.params.id as string), '', req.body, true);
+  const result = await ClassService.updateClass(req.params.id as string, '', req.body, true);
   sendSuccess(res, result, 'Class updated by admin successfully');
 };
+
 export const adminDeleteClass = async (req: Request, res: Response) => {
-  await ClassService.deleteClass((req.params.id as string), '', true);
+  await ClassService.deleteClass(req.params.id as string, '', true);
   sendSuccess(res, null, 'Class deleted successfully');
 };
 
@@ -63,4 +66,37 @@ export const getClassEnrollmentStatus = async (req: AuthRequest, res: Response) 
 export const enrollFreeClass = async (req: AuthRequest, res: Response) => {
   const result = await ClassService.enrollFreeClass(req.user._id as string, req.params.id as string);
   sendSuccess(res, result, 'Successfully enrolled in free class', 201);
+};
+
+// Pre-registration & Direct Enrollment
+export const registerForClass = async (req: AuthRequest, res: Response) => {
+  const result = await ClassService.registerForClass(req.user._id as string, req.params.id as string, req.body);
+  sendSuccess(res, result, 'ثبت‌نام در کلاس با موفقیت انجام شد', 201);
+};
+
+// Pay Remaining Balance
+export const payClassRemainingBalance = async (req: AuthRequest, res: Response) => {
+  const result = await ClassService.payClassRemainingBalance(req.user._id as string, req.params.id as string);
+  sendSuccess(res, result, 'تسویه مابقی شهریه با موفقیت انجام شد');
+};
+
+// Attendance
+export const getClassAttendance = async (req: AuthRequest, res: Response) => {
+  const userRole = (req.user as any)?.role?.slug || (req.user as any)?.role || '';
+  const result = await ClassService.getClassAttendance(req.params.id as string, req.user._id as string, userRole);
+  sendSuccess(res, result, 'اطلاعات حضور و غیاب دریافت شد');
+};
+
+export const takeSessionAttendance = async (req: AuthRequest, res: Response) => {
+  const result = await ClassService.takeSessionAttendance(
+    req.params.id as string,
+    req.user._id as string,
+    req.body
+  );
+  sendSuccess(res, result, 'حضور و غیاب جلسه با موفقیت ثبت شد');
+};
+
+export const getClassStudents = async (req: AuthRequest, res: Response) => {
+  const result = await ClassService.getClassStudents(req.params.id as string);
+  sendSuccess(res, result, 'فهرست دانشجویان کلاس دریافت شد');
 };

@@ -10,12 +10,15 @@ import {
 import Link from 'next/link';
 import { useState, useMemo } from 'react';
 import toast from 'react-hot-toast';
+import { StudentAttendanceModal } from '@/components/classes/StudentAttendanceModal';
+import { Award, AlertTriangle, CreditCard } from 'lucide-react';
 
 export default function MyClassesPage() {
   const [search, setSearch] = useState('');
   const [activeTab, setActiveTab] = useState<'all' | 'online' | 'in_person' | 'upcoming' | 'completed'>('all');
   const [joiningId, setJoiningId] = useState<string | null>(null);
   const [selectedResourcesClass, setSelectedResourcesClass] = useState<any>(null);
+  const [selectedAttendanceClass, setSelectedAttendanceClass] = useState<any>(null);
 
   const { data: classesData, isLoading } = useQuery({
     queryKey: ['myClasses'],
@@ -365,6 +368,22 @@ export default function MyClassesPage() {
                     )}
                   </div>
 
+                  {/* Pre-registration Deposit Balance Alert */}
+                  {cls.paymentType === 'deposit' && !cls.remainingPaid && (
+                    <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-900 flex items-center justify-between gap-2">
+                      <div className="flex items-center gap-1.5">
+                        <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0" />
+                        <span>مانده شهریه: <strong className="font-mono">{cls.remainingBalance?.toLocaleString('fa-IR')} تومان</strong></span>
+                      </div>
+                      <button
+                        onClick={() => setSelectedAttendanceClass(cls)}
+                        className="px-2.5 py-1 bg-amber-600 hover:bg-amber-700 text-white rounded-lg font-bold text-[11px] transition shrink-0"
+                      >
+                        تسویه / وضعیت
+                      </button>
+                    </div>
+                  )}
+
                   {/* Action Buttons */}
                   <div className="pt-2 flex flex-col sm:flex-row items-center gap-2">
                     {isOnline ? (
@@ -395,11 +414,20 @@ export default function MyClassesPage() {
                     )}
 
                     <button
+                      onClick={() => setSelectedAttendanceClass(cls)}
+                      className="w-full sm:w-auto px-3.5 py-2.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 rounded-xl text-xs font-bold border border-emerald-200 transition flex items-center justify-center gap-1.5"
+                      title="مشاهده کارنامه حضور و غیاب"
+                    >
+                      <Award className="w-3.5 h-3.5 text-emerald-600" />
+                      حضور و غیاب
+                    </button>
+
+                    <button
                       onClick={() => setSelectedResourcesClass(cls)}
-                      className="w-full sm:w-auto px-4 py-2.5 bg-slate-50 hover:bg-slate-100 text-slate-700 rounded-xl text-xs font-semibold border border-slate-200 transition flex items-center justify-center gap-1.5"
+                      className="w-full sm:w-auto px-3 py-2.5 bg-slate-50 hover:bg-slate-100 text-slate-700 rounded-xl text-xs font-semibold border border-slate-200 transition flex items-center justify-center gap-1.5"
                     >
                       <FileText className="w-3.5 h-3.5 text-slate-500" />
-                      جزوات و منابع
+                      منابع
                     </button>
                   </div>
 
@@ -477,6 +505,14 @@ export default function MyClassesPage() {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Student Attendance & Payment Modal */}
+      {selectedAttendanceClass && (
+        <StudentAttendanceModal
+          classItem={selectedAttendanceClass}
+          onClose={() => setSelectedAttendanceClass(null)}
+        />
       )}
 
     </div>

@@ -19,12 +19,15 @@ export function AuthCardLayout({ children, title, subtitle }: AuthCardLayoutProp
       <div className="w-full max-w-md bg-white rounded-2xl shadow-xl shadow-slate-200/50 border border-[var(--neo-border)] p-6 sm:p-8 relative z-10 transition-all">
         {/* Brand Header */}
         <div className="text-center mb-6">
-          <Link href="/" className="inline-flex items-center gap-2 mb-3 group">
-            <div className="w-8 h-8 rounded-full border-2 border-[var(--neo-primary)] flex items-center justify-center bg-white shadow-2xs group-hover:scale-105 transition">
-              <div className="w-2.5 h-2.5 bg-[var(--neo-secondary)] rounded-full"></div>
-            </div>
-            <span className="font-black text-xl text-[var(--neo-text-main)] tracking-tight">
-              تک‌یاد
+          <Link href="/" className="inline-flex flex-col items-center gap-2 mb-4 group">
+            <img
+              src="/logo.jpg"
+              alt="لوگو تک‌یاد"
+              className="h-14 w-auto object-contain rounded-xl shadow-xs group-hover:scale-105 transition-transform"
+            />
+            <span className="font-black text-xl text-[var(--neo-text-main)] tracking-tight inline-flex items-center gap-1.5">
+              <span>تک‌یاد</span>
+              <span className="text-[10px] font-mono tracking-wider font-semibold text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded uppercase">Tecyad</span>
             </span>
           </Link>
           

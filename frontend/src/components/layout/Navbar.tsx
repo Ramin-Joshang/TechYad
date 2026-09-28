@@ -123,17 +123,14 @@ export function Navbar() {
               </button>
 
               <Link href="/" className="flex items-center gap-2.5">
-                {publicSettings?.siteLogo ? (
-                  <img 
-                    src={publicSettings.siteLogo} 
-                    alt={publicSettings?.siteName || 'لوگو سایت'} 
-                    className="h-9 w-auto max-w-[150px] object-contain"
-                  />
-                ) : (
-                  <div className="w-8 h-8 rounded-full border-2 border-[var(--neo-primary)] flex items-center justify-center relative overflow-hidden shrink-0">
-                    <div className="w-2 h-2 bg-[var(--neo-secondary)] rounded-full"></div>
-                  </div>
-                )}
+                <img 
+                  src={publicSettings?.siteLogo || "/logo.jpg"} 
+                  alt={publicSettings?.siteName || 'لوگو تک‌یاد'} 
+                  className="h-10 w-auto max-w-[140px] object-contain rounded-lg"
+                  onError={(e: any) => {
+                    e.target.src = "/logo.jpg";
+                  }}
+                />
                 <span className="font-bold text-xl text-[var(--neo-text-main)] hidden sm:inline-flex items-center gap-1.5 tracking-tight">
                   <span>{publicSettings?.siteName ? publicSettings.siteName.split('|')[0].trim() : 'تک‌یاد'}</span>
                   <span className="text-[10px] font-mono tracking-wider font-semibold text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded uppercase">Tecyad</span>
@@ -240,12 +237,14 @@ export function Navbar() {
               <div className="p-4 border-b border-[var(--neo-border)] flex items-center justify-between">
                 <Link
                   href="/"
-                  className="flex items-center gap-2"
+                  className="flex items-center gap-2.5"
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
-                  <div className="w-8 h-8 rounded-full border-2 border-[var(--neo-primary)] flex items-center justify-center relative overflow-hidden">
-                    <div className="w-2 h-2 bg-[var(--neo-secondary)] rounded-full"></div>
-                  </div>
+                  <img
+                    src="/logo.jpg"
+                    alt="لوگو تک‌یاد"
+                    className="h-9 w-auto max-w-[120px] object-contain rounded-lg"
+                  />
                   <span className="font-bold text-xl text-[var(--neo-text-main)] tracking-tight">
                     تک‌یاد
                   </span>

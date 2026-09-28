@@ -172,17 +172,14 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         `}>
           <div className="p-6 border-b border-[var(--neo-border)] flex items-center justify-between">
             <Link href="/" className="flex items-center gap-2.5 overflow-hidden" onClick={closeMenu}>
-              {publicSettings?.siteLogo ? (
-                <img 
-                  src={publicSettings.siteLogo} 
-                  alt={publicSettings?.siteName || 'لوگو'} 
-                  className={`${isSidebarCollapsed ? 'w-8 h-8' : 'h-8 max-w-[130px]'} object-contain shrink-0`}
-                />
-              ) : (
-                <div className="w-8 h-8 rounded-full border-2 border-[var(--neo-primary)] flex items-center justify-center relative overflow-hidden shrink-0">
-                  <div className="w-2 h-2 bg-[var(--neo-secondary)] rounded-full"></div>
-                </div>
-              )}
+              <img 
+                src={publicSettings?.siteLogo || "/logo.jpg"} 
+                alt={publicSettings?.siteName || 'لوگو'} 
+                className={`${isSidebarCollapsed ? 'w-8 h-8' : 'h-9 max-w-[140px]'} object-contain shrink-0 rounded-lg`}
+                onError={(e: any) => {
+                  e.target.src = "/logo.jpg";
+                }}
+              />
               {!isSidebarCollapsed && (
                 <span className="font-bold text-xl text-[var(--neo-text-main)] tracking-tight truncate">
                   {publicSettings?.siteName ? publicSettings.siteName.split('|')[0].trim() : 'تک‌یاد'}

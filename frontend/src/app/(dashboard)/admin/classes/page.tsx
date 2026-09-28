@@ -5,11 +5,12 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { adminApi } from '@/features/admin/api/admin.api';
 import { 
   Loader2, Search, Video, Calendar, Users, Plus, Edit, Trash2, 
-  Save, X, ExternalLink, Eye, DollarSign, CheckCircle2, Clock
+  Save, X, ExternalLink, Eye, DollarSign, CheckCircle2, Clock, ClipboardCheck
 } from 'lucide-react';
 import Link from 'next/link';
 import toast from 'react-hot-toast';
 import { MediaUploader } from '@/components/common/MediaUploader';
+import { AttendanceModal } from '@/components/classes/AttendanceModal';
 
 export default function AdminClassesPage() {
   const queryClient = useQueryClient();
@@ -20,6 +21,7 @@ export default function AdminClassesPage() {
   const [editId, setEditId] = useState<string | null>(null);
   const [detailClass, setDetailClass] = useState<any | null>(null);
   const [updatingClassId, setUpdatingClassId] = useState<string | null>(null);
+  const [attendanceClass, setAttendanceClass] = useState<any | null>(null);
   
   const [formData, setFormData] = useState({
     title: '',
@@ -496,6 +498,15 @@ export default function AdminClassesPage() {
                     </select>
                   </div>
                   
+                  {/* Attendance Management Button */}
+                  <button
+                    onClick={() => setAttendanceClass(cls)}
+                    className="w-full py-2 mb-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 font-bold text-xs rounded-xl transition flex items-center justify-center gap-1.5 border border-emerald-200"
+                  >
+                    <ClipboardCheck className="w-3.5 h-3.5 text-emerald-600" />
+                    حضور و غیاب دانشجوها
+                  </button>
+                  
                   <div className="flex gap-2">
                     <Link 
                       href={`/classes/${cls.slug || cls._id}`} 
@@ -576,6 +587,15 @@ export default function AdminClassesPage() {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Attendance Modal for Admin */}
+      {attendanceClass && (
+        <AttendanceModal
+          classItem={attendanceClass}
+          onClose={() => setAttendanceClass(null)}
+          isAdmin={true}
+        />
       )}
     </div>
   );

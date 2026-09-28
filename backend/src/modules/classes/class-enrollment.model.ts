@@ -7,6 +7,17 @@ export interface IClassEnrollment extends Document {
   status: "active" | "cancelled" | "completed";
   amount: number;
   enrolledAt: Date;
+
+  // Pre-registration / Deposit
+  paymentType: "full" | "deposit";
+  depositAmount: number;
+  remainingBalance: number;
+  remainingPaid: boolean;
+  remainingPaidAt?: Date;
+  dueNotificationSent?: boolean;
+
+  // Attendance stats cache
+  attendedSessionsCount: number;
 }
 
 const classEnrollmentSchema = new Schema<IClassEnrollment>(
@@ -17,6 +28,17 @@ const classEnrollmentSchema = new Schema<IClassEnrollment>(
     status: { type: String, enum: ["active", "cancelled", "completed"], default: "active" },
     amount: { type: Number, required: true, default: 0 },
     enrolledAt: { type: Date, default: Date.now },
+
+    // Pre-registration fields
+    paymentType: { type: String, enum: ["full", "deposit"], default: "full" },
+    depositAmount: { type: Number, default: 0 },
+    remainingBalance: { type: Number, default: 0 },
+    remainingPaid: { type: Boolean, default: true },
+    remainingPaidAt: Date,
+    dueNotificationSent: { type: Boolean, default: false },
+
+    // Attendance stats
+    attendedSessionsCount: { type: Number, default: 0 },
   },
   { timestamps: true }
 );

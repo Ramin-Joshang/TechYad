@@ -55,17 +55,14 @@ export function Footer() {
           {/* Col 1: Brand Info */}
           <div className="lg:col-span-2">
             <Link href="/" className="flex items-center gap-2.5 mb-6">
-              {logoUrl ? (
-                <img 
-                  src={logoUrl} 
-                  alt={siteTitle} 
-                  className="h-9 w-auto max-w-[170px] object-contain"
-                />
-              ) : (
-                <div className="w-8 h-8 rounded-full border-2 border-[var(--neo-primary)] flex items-center justify-center relative overflow-hidden shrink-0">
-                   <div className="w-2 h-2 bg-[var(--neo-secondary)] rounded-full"></div>
-                </div>
-              )}
+              <img 
+                src={logoUrl || "/logo.jpg"} 
+                alt={siteTitle} 
+                className="h-11 w-auto max-w-[170px] object-contain rounded-xl"
+                onError={(e: any) => {
+                  e.target.src = "/logo.jpg";
+                }}
+              />
               <span className="font-bold text-2xl text-[var(--neo-text-main)] inline-flex items-center gap-2 tracking-tight">
                 <span>{siteTitle}</span>
                 <span className="text-xs font-mono tracking-wider font-semibold text-blue-600 bg-blue-50 px-2 py-0.5 rounded uppercase">Tecyad</span>

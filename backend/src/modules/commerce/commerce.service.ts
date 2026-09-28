@@ -234,13 +234,7 @@ export class CommerceService {
     if (exists) throw new AppError('Item already in cart', 400, 'ALREADY_IN_CART');
 
     if (data.itemType === 'course') {
-      const course = await Course.findById(data.itemId);
-      if (!course) throw new AppError('Course not found', 404, 'NOT_FOUND');
-      if (course.status !== 'published') throw new AppError('Course is not available', 400, 'UNAVAILABLE');
-      if (course.price === 0) throw new AppError('This is a free course. Enroll directly.', 400, 'IS_FREE');
-
-      const enrollment = await Enrollment.findOne({ userId, courseId: course._id, status: 'active' });
-      if (enrollment) throw new AppError('You are already enrolled in this course', 409, 'COURSE_ALREADY_ENROLLED');
+      throw new AppError('ثبت‌نام مستقیم دوره‌ها موقتاً غیرفعال است. لطفاً از کلاس‌ها و کارگاه‌های تعاملی استفاده فرمایید.', 400, 'COURSE_REGISTRATION_PAUSED');
     } else if (data.itemType === 'class') {
       const classItem = await Class.findById(data.itemId);
       if (!classItem) throw new AppError('Class not found', 404, 'NOT_FOUND');
