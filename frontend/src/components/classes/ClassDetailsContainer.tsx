@@ -80,7 +80,14 @@ export function ClassDetailsContainer({ slug }: { slug: string }) {
       router.push('/student/classes');
     },
     onError: (err: any) => {
-      toast.error(err.response?.data?.message || 'خطا در پیش‌ثبت‌نام');
+      const msg = err.response?.data?.message || 'خطا در پیش‌ثبت‌نام';
+      toast.error(msg, { duration: 4000 });
+      if (err.response?.data?.code === 'INSUFFICIENT_BALANCE' || msg.includes('کیف پول')) {
+        toast('در حال انتقال به صفحه شارژ کیف پول...', { icon: '💳' });
+        setTimeout(() => {
+          router.push('/student/wallet');
+        }, 2000);
+      }
     }
   });
 

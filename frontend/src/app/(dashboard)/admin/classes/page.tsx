@@ -32,6 +32,18 @@ export default function AdminClassesPage() {
     startDate: '',
     price: 0,
     capacity: 50,
+    sessions: 10,
+    totalHours: 20,
+    scheduleDays: ['شنبه', 'چهارشنبه'] as string[],
+    scheduleTime: '۱۷:۰۰ الی ۱۹:۰۰',
+    city: 'تهران',
+    address: '',
+    venueDetails: '',
+    meetingPlatform: 'اسکای‌روم (Skyroom)',
+    meetingLink: '',
+    allowPreRegistration: false,
+    preRegistrationDeposit: 0,
+    remainingPaymentDueAfterSession: 2,
     thumbnail: '',
     status: 'published'
   });
@@ -104,6 +116,18 @@ export default function AdminClassesPage() {
       startDate: '',
       price: 0,
       capacity: 50,
+      sessions: 10,
+      totalHours: 20,
+      scheduleDays: ['شنبه', 'چهارشنبه'],
+      scheduleTime: '۱۷:۰۰ الی ۱۹:۰۰',
+      city: 'تهران',
+      address: '',
+      venueDetails: '',
+      meetingPlatform: 'اسکای‌روم (Skyroom)',
+      meetingLink: '',
+      allowPreRegistration: false,
+      preRegistrationDeposit: 0,
+      remainingPaymentDueAfterSession: 2,
       thumbnail: '',
       status: 'published'
     });
@@ -120,6 +144,18 @@ export default function AdminClassesPage() {
       startDate: cls.startDate ? cls.startDate.substring(0, 16) : '',
       price: cls.price || 0,
       capacity: cls.capacity || cls.maxStudents || 50,
+      sessions: cls.sessions || 10,
+      totalHours: cls.totalHours || 20,
+      scheduleDays: cls.scheduleDays?.length ? cls.scheduleDays : ['شنبه', 'چهارشنبه'],
+      scheduleTime: cls.scheduleTime || '۱۷:۰۰ الی ۱۹:۰۰',
+      city: cls.city || 'تهران',
+      address: cls.address || '',
+      venueDetails: cls.venueDetails || '',
+      meetingPlatform: cls.meetingPlatform || 'اسکای‌روم (Skyroom)',
+      meetingLink: cls.meetingLink || '',
+      allowPreRegistration: !!cls.allowPreRegistration,
+      preRegistrationDeposit: cls.preRegistrationDeposit || 0,
+      remainingPaymentDueAfterSession: cls.remainingPaymentDueAfterSession || 2,
       thumbnail: cls.thumbnail || '',
       status: cls.status || 'published'
     });
@@ -135,7 +171,10 @@ export default function AdminClassesPage() {
     const payload = {
       ...formData,
       price: Number(formData.price) || 0,
-      capacity: Number(formData.capacity) || 50
+      capacity: Number(formData.capacity) || 50,
+      sessions: Number(formData.sessions) || 10,
+      preRegistrationDeposit: formData.allowPreRegistration ? Number(formData.preRegistrationDeposit) : 0,
+      remainingPaymentDueAfterSession: Number(formData.remainingPaymentDueAfterSession) || 2
     };
     if (editId) updateMutation.mutate(payload);
     else createMutation.mutate(payload);
@@ -248,15 +287,121 @@ export default function AdminClassesPage() {
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-[var(--neo-text-main)] mb-1.5">حداکثر ظرفیت (نفر)</label>
+              <label className="block text-xs font-bold text-[var(--neo-text-main)] mb-1.5">تعداد جلسات</label>
               <input 
                 type="number" 
                 min="1"
-                value={formData.capacity} 
-                onChange={e => setFormData({...formData, capacity: Number(e.target.value)})} 
+                value={formData.sessions} 
+                onChange={e => setFormData({...formData, sessions: Number(e.target.value)})} 
                 className="w-full px-4 py-2.5 rounded-xl border border-[var(--neo-border)] bg-[var(--neo-surface-2)] text-sm focus:ring-2 focus:ring-[var(--neo-primary)] outline-none dir-ltr text-left" 
               />
             </div>
+
+            <div>
+              <label className="block text-xs font-bold text-[var(--neo-text-main)] mb-1.5">ساعت برگزاری هر جلسه</label>
+              <input 
+                type="text" 
+                value={formData.scheduleTime} 
+                onChange={e => setFormData({...formData, scheduleTime: e.target.value})} 
+                placeholder="مثال: ۱۷:۰۰ الی ۱۹:۰۰"
+                className="w-full px-4 py-2.5 rounded-xl border border-[var(--neo-border)] bg-[var(--neo-surface-2)] text-sm focus:ring-2 focus:ring-[var(--neo-primary)] outline-none" 
+              />
+            </div>
+
+            {formData.mode === 'online' ? (
+              <>
+                <div>
+                  <label className="block text-xs font-bold text-[var(--neo-text-main)] mb-1.5">پلتفرم آنلاین</label>
+                  <input 
+                    type="text" 
+                    value={formData.meetingPlatform} 
+                    onChange={e => setFormData({...formData, meetingPlatform: e.target.value})} 
+                    placeholder="اسکای‌روم / گوگل میت"
+                    className="w-full px-4 py-2.5 rounded-xl border border-[var(--neo-border)] bg-[var(--neo-surface-2)] text-sm focus:ring-2 focus:ring-[var(--neo-primary)] outline-none" 
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-[var(--neo-text-main)] mb-1.5">لینک ورود به کلاس آنلاین</label>
+                  <input 
+                    type="url" 
+                    value={formData.meetingLink} 
+                    onChange={e => setFormData({...formData, meetingLink: e.target.value})} 
+                    placeholder="https://skyroom.online/ch/..."
+                    className="w-full px-4 py-2.5 rounded-xl border border-[var(--neo-border)] bg-[var(--neo-surface-2)] text-sm focus:ring-2 focus:ring-[var(--neo-primary)] outline-none dir-ltr text-left font-mono" 
+                  />
+                </div>
+              </>
+            ) : (
+              <>
+                <div>
+                  <label className="block text-xs font-bold text-[var(--neo-text-main)] mb-1.5">شهر محل برگزاری</label>
+                  <input 
+                    type="text" 
+                    value={formData.city} 
+                    onChange={e => setFormData({...formData, city: e.target.value})} 
+                    placeholder="تهران / اصفهان..."
+                    className="w-full px-4 py-2.5 rounded-xl border border-[var(--neo-border)] bg-[var(--neo-surface-2)] text-sm focus:ring-2 focus:ring-[var(--neo-primary)] outline-none" 
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-[var(--neo-text-main)] mb-1.5">آدرس دقیق محل کلاس حضوری</label>
+                  <input 
+                    type="text" 
+                    value={formData.address} 
+                    onChange={e => setFormData({...formData, address: e.target.value})} 
+                    placeholder="خیابان، پلاک، طبقه و سالن"
+                    className="w-full px-4 py-2.5 rounded-xl border border-[var(--neo-border)] bg-[var(--neo-surface-2)] text-sm focus:ring-2 focus:ring-[var(--neo-primary)] outline-none" 
+                  />
+                </div>
+              </>
+            )}
+          </div>
+
+          {/* Pre-registration Settings in Admin */}
+          <div className="p-4 bg-[var(--neo-surface-2)]/60 rounded-2xl border border-[var(--neo-border)] space-y-3">
+            <div className="flex items-center gap-3">
+              <input
+                type="checkbox"
+                id="adminAllowPreReg"
+                checked={formData.allowPreRegistration}
+                onChange={e => setFormData({...formData, allowPreRegistration: e.target.checked})}
+                className="w-4 h-4 rounded text-emerald-600 focus:ring-emerald-500"
+              />
+              <label htmlFor="adminAllowPreReg" className="text-xs font-bold text-[var(--neo-text-main)] cursor-pointer">
+                فعال‌سازی امکان پیش‌ثبت‌نام با بیعانه برای این کلاس
+              </label>
+            </div>
+
+            {formData.allowPreRegistration && (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2 border-t border-[var(--neo-border)]">
+                <div>
+                  <label className="block text-xs font-bold text-[var(--neo-text-main)] mb-1.5">مبلغ بیعانه / پیش‌پرداخت (تومان)</label>
+                  <input 
+                    type="number" 
+                    min="0"
+                    value={formData.preRegistrationDeposit} 
+                    onChange={e => setFormData({...formData, preRegistrationDeposit: Number(e.target.value)})} 
+                    placeholder="مثال: ۵۰۰,۰۰۰"
+                    className="w-full px-4 py-2 rounded-xl border border-[var(--neo-border)] bg-white text-sm focus:ring-2 focus:ring-[var(--neo-primary)] outline-none dir-ltr text-left font-mono" 
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-[var(--neo-text-main)] mb-1.5">موعد تسویه مانده شهریه</label>
+                  <div className="flex items-center gap-2 text-xs">
+                    <span>بعد از جلسه</span>
+                    <input 
+                      type="number" 
+                      min="1"
+                      value={formData.remainingPaymentDueAfterSession} 
+                      onChange={e => setFormData({...formData, remainingPaymentDueAfterSession: Number(e.target.value)})} 
+                      className="w-16 px-2 py-1.5 rounded-lg border border-[var(--neo-border)] bg-white text-center font-bold text-sm" 
+                    />
+                    <span>نوتیفیکیشن تسویه ارسال شود</span>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
 
           <div>

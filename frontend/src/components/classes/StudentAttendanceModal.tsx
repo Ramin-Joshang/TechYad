@@ -35,7 +35,14 @@ export function StudentAttendanceModal({ classItem, onClose }: StudentAttendance
       refetch();
     },
     onError: (err: any) => {
-      toast.error(err.response?.data?.message || 'خطا در تسویه مانده شهریه');
+      const msg = err.response?.data?.message || 'خطا در تسویه مانده شهریه';
+      toast.error(msg, { duration: 4000 });
+      if (err.response?.data?.code === 'INSUFFICIENT_BALANCE' || msg.includes('کیف پول')) {
+        toast('در حال هدایت به بخش کیف پول جهت افزایش موجودی...', { icon: '💳' });
+        setTimeout(() => {
+          window.location.href = '/student/wallet';
+        }, 2000);
+      }
     }
   });
 
