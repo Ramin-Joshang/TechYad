@@ -1,14 +1,14 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { createPortal } from 'react-dom';
-import { useQuery } from '@tanstack/react-query';
-import { commerceApi } from '@/features/commerce/api/commerce.api';
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import { useAuthStore } from '@/features/auth/stores/auth.store';
-import { useCartStore } from '@/features/commerce/stores/cart.store';
-import { superAdminApi } from '@/features/admin/api/super-admin.api';
+import { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
+import { useQuery } from "@tanstack/react-query";
+import { commerceApi } from "@/features/commerce/api/commerce.api";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { useAuthStore } from "@/features/auth/stores/auth.store";
+import { useCartStore } from "@/features/commerce/stores/cart.store";
+import { superAdminApi } from "@/features/admin/api/super-admin.api";
 import {
   LogOut,
   User,
@@ -23,7 +23,7 @@ import {
   FileText,
   Info,
   Phone,
-} from 'lucide-react';
+} from "lucide-react";
 
 export function Navbar() {
   const { user, isAuthenticated, isInitializing, logout } = useAuthStore();
@@ -39,21 +39,21 @@ export function Navbar() {
   // Lock body scroll when mobile menu is open
   useEffect(() => {
     if (isMobileMenuOpen) {
-      document.documentElement.style.overflow = 'hidden';
-      document.body.style.overflow = 'hidden';
+      document.documentElement.style.overflow = "hidden";
+      document.body.style.overflow = "hidden";
     } else {
-      document.documentElement.style.overflow = '';
-      document.body.style.overflow = '';
+      document.documentElement.style.overflow = "";
+      document.body.style.overflow = "";
     }
     return () => {
-      document.documentElement.style.overflow = '';
-      document.body.style.overflow = '';
+      document.documentElement.style.overflow = "";
+      document.body.style.overflow = "";
     };
   }, [isMobileMenuOpen]);
 
   // Sync cart from server, populating local store
   const { data: cartData } = useQuery({
-    queryKey: ['cart'],
+    queryKey: ["cart"],
     queryFn: async () => {
       const res = await commerceApi.getCart();
       if (res.data) {
@@ -66,45 +66,46 @@ export function Navbar() {
   });
 
   const { data: publicSettings } = useQuery({
-    queryKey: ['publicSettings'],
+    queryKey: ["publicSettings"],
     queryFn: async () => {
       const res = await superAdminApi.getPublicSettings();
       return res.data;
     },
-    staleTime: 1000 * 60 * 10
+    staleTime: 1000 * 60 * 10,
   });
 
   const cartItems = cartData?.items || localCartItems || [];
   const cartItemCount = cartItems.length;
 
   const NAV_LINKS = [
-    { name: 'دوره‌ها', href: '/courses', icon: BookOpen },
-    { name: 'کلاس‌ها', href: '/classes', icon: GraduationCap },
-    { name: 'اساتید', href: '/instructors', icon: Users },
-    { name: 'وبلاگ', href: '/blog', icon: FileText },
-    { name: 'درباره ما', href: '/about', icon: Info },
-    { name: 'تماس با ما', href: '/contact', icon: Phone },
+    { name: "دوره‌ها", href: "/courses", icon: BookOpen },
+    { name: "کلاس‌ها", href: "/classes", icon: GraduationCap },
+    { name: "اساتید", href: "/instructors", icon: Users },
+    { name: "وبلاگ", href: "/blog", icon: FileText },
+    { name: "درباره ما", href: "/about", icon: Info },
+    { name: "تماس با ما", href: "/contact", icon: Phone },
   ];
 
   if (
-    pathname?.startsWith('/admin') ||
-    pathname?.startsWith('/super-admin') ||
-    pathname?.startsWith('/student') ||
-    (pathname?.startsWith('/instructor') && !pathname?.startsWith('/instructors')) ||
-    pathname?.startsWith('/profile') ||
-    pathname?.startsWith('/learn')
+    pathname?.startsWith("/admin") ||
+    pathname?.startsWith("/super-admin") ||
+    pathname?.startsWith("/student") ||
+    (pathname?.startsWith("/instructor") &&
+      !pathname?.startsWith("/instructors")) ||
+    pathname?.startsWith("/profile") ||
+    pathname?.startsWith("/learn")
   ) {
     return null;
   }
 
   const userDashboardHref =
-    user?.role === 'super-admin'
-      ? '/super-admin'
-      : user?.role === 'student'
-      ? '/student'
-      : user?.role === 'instructor'
-      ? '/instructor'
-      : '/admin';
+    user?.role === "super-admin"
+      ? "/super-admin"
+      : user?.role === "student"
+        ? "/student"
+        : user?.role === "instructor"
+          ? "/instructor"
+          : "/admin";
 
   return (
     <>
@@ -123,17 +124,23 @@ export function Navbar() {
               </button>
 
               <Link href="/" className="flex items-center gap-2.5">
-                <img 
-                  src={publicSettings?.siteLogo || "/logo.jpg"} 
-                  alt={publicSettings?.siteName || 'لوگو تک‌یاد'} 
+                <img
+                  src={publicSettings?.siteLogo || "/logo.png"}
+                  alt={publicSettings?.siteName || "لوگو تک‌یاد"}
                   className="h-10 w-auto max-w-[140px] object-contain rounded-lg"
                   onError={(e: any) => {
-                    e.target.src = "/logo.jpg";
+                    e.target.src = "/logo.png";
                   }}
                 />
                 <span className="font-bold text-xl text-[var(--neo-text-main)] hidden sm:inline-flex items-center gap-1.5 tracking-tight">
-                  <span>{publicSettings?.siteName ? publicSettings.siteName.split('|')[0].trim() : 'تک‌یاد'}</span>
-                  <span className="text-[10px] font-mono tracking-wider font-semibold text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded uppercase">Tecyad</span>
+                  <span>
+                    {publicSettings?.siteName
+                      ? publicSettings.siteName.split("|")[0].trim()
+                      : "تک‌یاد"}
+                  </span>
+                  <span className="text-[10px] font-mono tracking-wider font-semibold text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded uppercase">
+                    Tecyad
+                  </span>
                 </span>
               </Link>
             </div>
@@ -146,8 +153,8 @@ export function Navbar() {
                   href={link.href}
                   className={`transition-colors py-1 relative ${
                     pathname === link.href
-                      ? 'text-[var(--neo-primary)] font-bold'
-                      : 'hover:text-[var(--neo-primary)]'
+                      ? "text-[var(--neo-primary)] font-bold"
+                      : "hover:text-[var(--neo-primary)]"
                   }`}
                 >
                   {link.name}
@@ -176,7 +183,9 @@ export function Navbar() {
                 <ShoppingCart className="w-5 h-5" />
                 {cartItemCount > 0 && (
                   <span className="absolute -top-1 -right-1 bg-rose-500 text-white text-[11px] font-bold w-5 h-5 rounded-full flex items-center justify-center shadow-sm ring-2 ring-white">
-                    {cartItemCount > 9 ? '+9' : cartItemCount.toLocaleString('fa-IR')}
+                    {cartItemCount > 9
+                      ? "+9"
+                      : cartItemCount.toLocaleString("fa-IR")}
                   </span>
                 )}
               </Link>
@@ -197,7 +206,11 @@ export function Navbar() {
                     </span>
                     <div className="w-8 h-8 rounded-full bg-[var(--neo-surface-2)] text-[var(--neo-primary)] flex items-center justify-center font-bold text-sm overflow-hidden shrink-0">
                       {user.avatar ? (
-                        <img src={user.avatar} alt={user.firstName} className="w-full h-full object-cover" />
+                        <img
+                          src={user.avatar}
+                          alt={user.firstName}
+                          className="w-full h-full object-cover"
+                        />
                       ) : (
                         <User className="w-4 h-4" />
                       )}
@@ -241,7 +254,7 @@ export function Navbar() {
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
                   <img
-                    src="/logo.jpg"
+                    src="/logo.png"
                     alt="لوگو تک‌یاد"
                     className="h-9 w-auto max-w-[120px] object-contain rounded-lg"
                   />
@@ -272,8 +285,8 @@ export function Navbar() {
                         onClick={() => setIsMobileMenuOpen(false)}
                         className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition ${
                           isActive
-                            ? 'bg-[var(--neo-primary)]/10 text-[var(--neo-primary)]'
-                            : 'text-[var(--neo-text-secondary)] hover:bg-[var(--neo-surface-2)] hover:text-[var(--neo-primary)]'
+                            ? "bg-[var(--neo-primary)]/10 text-[var(--neo-primary)]"
+                            : "text-[var(--neo-text-secondary)] hover:bg-[var(--neo-surface-2)] hover:text-[var(--neo-primary)]"
                         }`}
                       >
                         <Icon className="w-5 h-5 shrink-0" />
@@ -294,7 +307,11 @@ export function Navbar() {
                   <div className="flex items-center gap-3 mb-3">
                     <div className="w-12 h-12 rounded-full bg-white text-[var(--neo-primary)] flex items-center justify-center font-bold text-lg overflow-hidden shrink-0 border border-[var(--neo-border)]">
                       {user.avatar ? (
-                        <img src={user.avatar} alt={user.firstName} className="w-full h-full object-cover" />
+                        <img
+                          src={user.avatar}
+                          alt={user.firstName}
+                          className="w-full h-full object-cover"
+                        />
                       ) : (
                         <User className="w-6 h-6" />
                       )}
@@ -303,7 +320,9 @@ export function Navbar() {
                       <div className="font-bold text-[var(--neo-text-main)] truncate">
                         {user.firstName} {user.lastName}
                       </div>
-                      <div className="text-xs text-[var(--neo-text-secondary)] truncate">{user.email}</div>
+                      <div className="text-xs text-[var(--neo-text-secondary)] truncate">
+                        {user.email}
+                      </div>
                     </div>
                   </div>
                   <Link
@@ -346,7 +365,7 @@ export function Navbar() {
               )}
             </div>
           </div>,
-          document.body
+          document.body,
         )}
     </>
   );
