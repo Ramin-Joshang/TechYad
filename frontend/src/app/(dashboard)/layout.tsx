@@ -320,7 +320,8 @@ export default function DashboardLayout({
             <div className="flex items-center gap-2">
               <button
                 onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
-                className="hidden lg:block text-[var(--neo-text-muted)] hover:text-[var(--neo-primary)] p-1"
+                className="hidden lg:block text-[var(--neo-text-muted)] hover:text-[var(--neo-primary)] p-1.5 rounded-lg hover:bg-[var(--neo-surface-2)] transition"
+                title={isSidebarCollapsed ? "باز کردن سایدبار" : "جمع کردن سایدبار"}
               >
                 {isSidebarCollapsed ? (
                   <ChevronLeft className="w-5 h-5" />
@@ -330,43 +331,11 @@ export default function DashboardLayout({
               </button>
               <button
                 onClick={closeMenu}
-                className="lg:hidden text-[var(--neo-text-muted)] hover:text-[var(--neo-primary)] p-1"
+                className="lg:hidden text-[var(--neo-text-muted)] hover:text-[var(--neo-primary)] p-1.5 rounded-lg hover:bg-[var(--neo-surface-2)] transition"
               >
                 <X className="w-6 h-6" />
               </button>
             </div>
-          </div>
-
-          <div
-            className={`p-5 border-b border-[var(--neo-border)] flex items-center gap-4 bg-[var(--neo-bg)] ${isSidebarCollapsed ? "justify-center" : ""}`}
-          >
-            <div
-              className={`${isSidebarCollapsed ? "w-10 h-10 rounded-xl text-lg" : "w-12 h-12 rounded-2xl text-xl"} bg-[var(--neo-primary)]/20 text-[var(--neo-secondary)] flex items-center justify-center font-bold overflow-hidden shadow-inner shrink-0`}
-            >
-              {user?.avatar ? (
-                <img
-                  src={user.avatar}
-                  alt={user.firstName}
-                  className="w-full h-full object-cover"
-                />
-              ) : (
-                user?.firstName?.charAt(0) || "U"
-              )}
-            </div>
-            {!isSidebarCollapsed && (
-              <div className="flex-1 min-w-0">
-                <div className="font-bold text-[var(--neo-text-main)] truncate">
-                  {user?.firstName} {user?.lastName}
-                </div>
-                <div className="text-xs font-medium text-[var(--neo-secondary)] capitalize bg-[var(--neo-primary)]/10 inline-block px-2 py-0.5 rounded-full mt-1">
-                  {user?.role === "super-admin" || user?.role === "admin"
-                    ? "مدیریت"
-                    : user?.role === "instructor"
-                      ? "استاد"
-                      : "دانشجو"}
-                </div>
-              </div>
-            )}
           </div>
 
           <nav className="flex-1 overflow-y-auto p-4 space-y-1 hide-scrollbar">
@@ -416,67 +385,125 @@ export default function DashboardLayout({
 
         {/* Main Content */}
         <main className="flex-1 flex flex-col h-full overflow-hidden w-full relative">
-          {/* Mobile Header */}
-          <header className="bg-[var(--neo-surface)] border-b border-[var(--neo-border)] h-16 flex items-center justify-between px-4 sticky top-0 z-30 shadow-sm">
-            <div className="flex items-center gap-4">
+          {/* Header with Complete User Information & Controls */}
+          <header className="bg-[var(--neo-surface)] border-b border-[var(--neo-border)] min-h-16 py-2.5 px-4 sm:px-6 flex items-center justify-between sticky top-0 z-30 shadow-xs backdrop-blur-md bg-white/95">
+            <div className="flex items-center gap-3">
               <button
                 onClick={() => setMobileMenuOpen(true)}
-                className="p-2 text-[var(--neo-text-muted)] hover:bg-[var(--neo-surface-2)] rounded-lg lg:hidden"
+                className="p-2 text-[var(--neo-text-muted)] hover:bg-[var(--neo-surface-2)] rounded-xl lg:hidden transition"
+                title="منوی ناوبری"
               >
                 <Menu className="w-6 h-6" />
               </button>
-              <div className="hidden lg:block">
-                <h2 className="font-bold text-[var(--neo-text-main)] text-lg">
-                  پنل کاربری{" "}
-                  {user?.role === "super-admin" || user?.role === "admin"
-                    ? "مدیریت"
-                    : user?.role === "instructor"
-                      ? "اساتید"
-                      : "دانشجویان"}
-                </h2>
+
+              <div className="flex items-center gap-3">
+                <Link
+                  href="/"
+                  target="_blank"
+                  className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-200 hover:border-slate-300 hover:bg-slate-50 text-xs font-bold text-slate-700 transition"
+                  title="مشاهده صفحه اصلی وب‌سایت در برگه جدید"
+                >
+                  <BookOpen className="w-3.5 h-3.5 text-blue-600" />
+                  <span>صفحه اصلی سایت</span>
+                </Link>
+
+                <div className="h-4 w-px bg-slate-200 hidden sm:block"></div>
+
+                <div className="hidden md:flex items-center gap-2">
+                  <span className="text-xs font-black text-slate-900">
+                    {user?.role === "super-admin"
+                      ? "پنل مدیریت کلان"
+                      : user?.role === "admin"
+                        ? "پنل مدیریت آموزشی"
+                        : user?.role === "instructor"
+                          ? "پنل اساتید و مدرسین"
+                          : "پنل یادگیری دانشجو"}
+                  </span>
+                </div>
               </div>
             </div>
 
-            <div className="flex items-center gap-3 relative">
+            <div className="flex items-center gap-2.5 sm:gap-3.5 relative">
+              {/* Wallet Balance Pill */}
               <Link
                 href={walletHref}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-indigo-200 bg-indigo-50/70 hover:bg-indigo-100 transition text-xs font-bold text-indigo-700 shadow-sm"
-                title="مشاهده و شارژ کیف پول"
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-2xl border border-indigo-200 bg-indigo-50 hover:bg-indigo-100/80 transition text-xs font-bold text-indigo-700 shadow-xs"
+                title="مشاهده و شارژ آنلاین کیف پول"
               >
                 <Wallet className="w-4 h-4 text-indigo-600 shrink-0" />
                 <span className="hidden sm:inline">کیف پول:</span>
-                <span className="font-black text-indigo-900">
+                <span className="font-black text-indigo-950 font-mono">
                   {(
                     (walletOverview?.balance ?? user?.walletBalance) ||
                     0
                   ).toLocaleString("fa-IR")}
                 </span>
-                <span className="text-[10px] font-normal text-indigo-500">
+                <span className="text-[10px] font-normal text-indigo-600">
                   تومان
                 </span>
               </Link>
 
+              {/* Notifications */}
               <NotificationDropdown role={user?.role || "student"} />
 
-              <Link
-                href="/profile"
-                className="flex items-center gap-2 p-1.5 pr-3 rounded-full border border-[var(--neo-border)] hover:bg-[var(--neo-bg)] transition cursor-pointer"
-              >
-                <span className="text-sm font-medium text-[var(--neo-text-main)] hidden sm:block">
-                  {user?.firstName}
-                </span>
-                <div className="w-8 h-8 rounded-full bg-[var(--neo-primary)]/20 text-[var(--neo-secondary)] flex items-center justify-center font-bold text-sm overflow-hidden shrink-0">
-                  {user?.avatar ? (
-                    <img
-                      src={user.avatar}
-                      alt={user.firstName}
-                      className="w-full h-full object-cover"
-                    />
-                  ) : (
-                    user?.firstName?.charAt(0) || "U"
-                  )}
-                </div>
-              </Link>
+              {/* Complete User Profile Card in Header */}
+              <div className="flex items-center gap-2.5 pl-1 pr-2.5 py-1 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-2xl transition group">
+                <Link
+                  href="/profile"
+                  className="flex items-center gap-2.5"
+                  title="مشاهده و ویرایش پروفایل کاربری"
+                >
+                  <div className="relative">
+                    <div className="w-9 h-9 rounded-xl bg-blue-600 text-white flex items-center justify-center font-bold text-sm overflow-hidden shadow-xs shrink-0">
+                      {user?.avatar ? (
+                        <img
+                          src={user.avatar}
+                          alt={user.firstName || "کاربر"}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        user?.firstName?.charAt(0) || "U"
+                      )}
+                    </div>
+                    <span className="w-2.5 h-2.5 bg-emerald-500 border-2 border-white rounded-full absolute -bottom-0.5 -right-0.5"></span>
+                  </div>
+
+                  <div className="hidden sm:block text-right">
+                    <div className="font-black text-xs text-slate-900 leading-tight">
+                      {user?.firstName} {user?.lastName}
+                    </div>
+                    <div className="flex items-center gap-1 mt-0.5">
+                      <span className={`text-[10px] font-bold px-1.5 py-0.2 rounded-md ${
+                        user?.role === "super-admin"
+                          ? "bg-amber-100 text-amber-800"
+                          : user?.role === "admin"
+                            ? "bg-blue-100 text-blue-800"
+                            : user?.role === "instructor"
+                              ? "bg-emerald-100 text-emerald-800"
+                              : "bg-purple-100 text-purple-800"
+                      }`}>
+                        {user?.role === "super-admin"
+                          ? "مدیر ارشد"
+                          : user?.role === "admin"
+                            ? "مدیریت"
+                            : user?.role === "instructor"
+                              ? "استاد"
+                              : "دانشجو"}
+                      </span>
+                    </div>
+                  </div>
+                </Link>
+
+                <div className="h-4 w-px bg-slate-200 mr-1 hidden sm:block"></div>
+
+                <button
+                  onClick={handleLogout}
+                  className="p-1 text-slate-400 hover:text-rose-600 rounded-lg transition"
+                  title="خروج از حساب کاربری"
+                >
+                  <LogOut className="w-4 h-4" />
+                </button>
+              </div>
             </div>
           </header>
 
