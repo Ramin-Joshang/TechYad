@@ -18,6 +18,7 @@ export default function SuperAdminOrdersPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedOrder, setSelectedOrder] = useState<any | null>(null);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
+  const [updatingOrderId, setUpdatingOrderId] = useState<string | null>(null);
 
   // Fetch orders with filters
   const { data, isLoading, isPlaceholderData } = useQuery({
@@ -49,8 +50,10 @@ export default function SuperAdminOrdersPage() {
 
   // Mutation to update order status
   const updateStatusMutation = useMutation({
-    mutationFn: ({ orderId, status }: { orderId: string; status: string }) => 
-      adminApi.updateOrderStatus(orderId, status),
+    mutationFn: ({ orderId, status }: { orderId: string; status: string }) => {
+      setUpdatingOrderId(orderId);
+      return adminApi.updateOrderStatus(orderId, status);
+    },
     onSuccess: (res) => {
       toast.success('وضعیت سفارش با موفقیت به‌روزرسانی شد');
       queryClient.invalidateQueries({ queryKey: ['superAdminOrders'] });
@@ -61,6 +64,9 @@ export default function SuperAdminOrdersPage() {
     },
     onError: (err: any) => {
       toast.error(err.response?.data?.message || 'خطا در تغییر وضعیت سفارش');
+    },
+    onSettled: () => {
+      setUpdatingOrderId(null);
     }
   });
 
@@ -348,18 +354,23 @@ export default function SuperAdminOrdersPage() {
                             <Eye className="w-4 h-4" />
                           </button>
                           
-                          {/* Quick Status Dropdown */}
-                          <select
-                            value={order.status}
-                            onChange={(e) => handleStatusChange(order._id, e.target.value)}
-                            disabled={updateStatusMutation.isPending}
-                            className="text-xs font-bold py-1.5 px-2.5 rounded-xl border border-[var(--neo-border)] bg-[var(--neo-surface-2)] focus:outline-none focus:ring-2 focus:ring-[var(--neo-primary)] cursor-pointer"
-                          >
-                            <option value="paid">تایید پرداخت</option>
-                            <option value="pending">در انتظار</option>
-                            <option value="refunded">مرجوع</option>
-                            <option value="failed">ناموفق</option>
-                          </select>
+                          {/* Quick Status Dropdown with Loader */}
+                          <div className="flex items-center gap-1.5">
+                            {updatingOrderId === order._id && (
+                              <Loader2 className="w-3.5 h-3.5 animate-spin text-[var(--neo-primary)]" />
+                            )}
+                            <select
+                              value={order.status}
+                              onChange={(e) => handleStatusChange(order._id, e.target.value)}
+                              disabled={updatingOrderId === order._id}
+                              className="text-xs font-bold py-1.5 px-2.5 rounded-xl border border-[var(--neo-border)] bg-[var(--neo-surface-2)] focus:outline-none focus:ring-2 focus:ring-[var(--neo-primary)] cursor-pointer disabled:opacity-50"
+                            >
+                              <option value="paid">تایید پرداخت</option>
+                              <option value="pending">در انتظار</option>
+                              <option value="refunded">مرجوع</option>
+                              <option value="failed">ناموفق</option>
+                            </select>
+                          </div>
                         </div>
                       </td>
                     </tr>

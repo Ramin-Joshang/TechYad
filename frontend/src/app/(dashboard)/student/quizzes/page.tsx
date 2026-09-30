@@ -78,7 +78,7 @@ export default function QuizzesPage() {
               <thead>
                 <tr className="bg-[var(--neo-surface-2)] border-b border-[var(--neo-border)]">
                   <th className="py-4 px-6 font-bold text-[var(--neo-text-main)] text-sm">عنوان آزمون</th>
-                  <th className="py-4 px-6 font-bold text-[var(--neo-text-main)] text-sm">دوره آموزشی</th>
+                  <th className="py-4 px-6 font-bold text-[var(--neo-text-main)] text-sm">دوره یا کلاس</th>
                   <th className="py-4 px-6 font-bold text-[var(--neo-text-main)] text-sm">تعداد سوال</th>
                   <th className="py-4 px-6 font-bold text-[var(--neo-text-main)] text-sm">زمان</th>
                   <th className="py-4 px-6 font-bold text-[var(--neo-text-main)] text-sm">وضعیت</th>
@@ -97,7 +97,13 @@ export default function QuizzesPage() {
                         <div className="font-bold text-[var(--neo-text-main)]">{quiz.title}</div>
                       </td>
                       <td className="py-4 px-6 text-[var(--neo-text-secondary)] font-medium">
-                        {quiz.courseId?.title}
+                        {quiz.classId ? (
+                          <span className="inline-flex items-center gap-1 text-purple-700 bg-purple-50 px-2.5 py-0.5 rounded-lg text-xs font-bold border border-purple-200">
+                            کلاس: {quiz.classId.title}
+                          </span>
+                        ) : (
+                          quiz.courseId?.title || 'دوره آموزشی'
+                        )}
                       </td>
                       <td className="py-4 px-6 text-[var(--neo-text-secondary)] font-medium">
                         {quiz.questions?.length || 0} سوال

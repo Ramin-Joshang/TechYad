@@ -2,40 +2,80 @@ import { Assignment } from './assignment.model.js';
 import { AssignmentSubmission } from './assignment-submission.model.js';
 import { Course } from '../courses/course.model.js';
 import { Lesson } from '../courses/lesson.model.js';
+import { Class } from '../classes/class.model.js';
 import { Enrollment } from './enrollment.model.js';
+import { ClassEnrollment } from '../classes/class-enrollment.model.js';
 import { AppError } from '../../common/errors/AppError.js';
 
 export class AssignmentService {
   static async getMyAssignmentDetails(userId: string, assignmentId: string) {
-    const assignment = await Assignment.findById(assignmentId).populate('courseId', 'title').populate('lessonId', 'title').populate('attachments');
+    const assignment = await Assignment.findById(assignmentId)
+      .populate('courseId', 'title')
+      .populate('classId', 'title')
+      .populate('lessonId', 'title')
+      .populate('attachments');
     if (!assignment) throw new AppError('Assignment not found', 404, 'NOT_FOUND');
-    const enrollment = await Enrollment.findOne({ userId, courseId: assignment.courseId });
-    if (!enrollment) throw new AppError('Not enrolled in this course', 403, 'FORBIDDEN');
+
+    let isEnrolled = false;
+    if (assignment.courseId) {
+      const enrollment = await Enrollment.findOne({ userId, courseId: assignment.courseId });
+      if (enrollment) isEnrolled = true;
+    }
+    if (assignment.classId) {
+      const classEnrollment = await ClassEnrollment.findOne({ userId, classId: assignment.classId, status: 'active' });
+      if (classEnrollment) isEnrolled = true;
+    }
+    if (!isEnrolled) throw new AppError('Not enrolled in this course or class', 403, 'FORBIDDEN');
+
     const submission = await AssignmentSubmission.findOne({ userId, assignmentId }).populate('files');
     return { assignment, submission };
   }
+
   static async getMyAssignments(userId: string) {
     const enrollments = await Enrollment.find({ userId, status: 'active' });
     const courseIds = enrollments.map(e => e.courseId);
-    const assignments = await Assignment.find({ courseId: { $in: courseIds }, isPublished: true }).populate('courseId', 'title').populate('lessonId', 'title');
+
+    const classEnrollments = await ClassEnrollment.find({ userId, status: 'active' });
+    const classIds = classEnrollments.map(c => c.classId);
+
+    const assignments = await Assignment.find({
+      $or: [
+        { courseId: { $in: courseIds } },
+        { classId: { $in: classIds } }
+      ],
+      isPublished: true
+    })
+      .populate('courseId', 'title')
+      .populate('classId', 'title')
+      .populate('lessonId', 'title');
+
     const submissions = await AssignmentSubmission.find({ userId });
     return assignments.map(a => {
       const submission = submissions.find(s => s.assignmentId.toString() === a._id.toString());
       return { assignment: a, submission };
     });
   }
+
   // --- Instructor Actions ---
   
   static async updateAssignment(assignmentId: string, instructorId: string, data: any) {
     const assignment = await Assignment.findById(assignmentId);
     if (!assignment) throw new AppError('Assignment not found', 404, 'NOT_FOUND');
 
-    let course = await Course.findOne({ _id: assignment.courseId, instructors: instructorId });
-    if (!course && assignment.lessonId) {
-      const lesson = await Lesson.findById(assignment.lessonId);
-      course = await Course.findOne({ _id: lesson?.courseId, instructors: instructorId });
+    let authorized = false;
+    if (assignment.courseId) {
+      let course = await Course.findOne({ _id: assignment.courseId, instructors: instructorId });
+      if (!course && assignment.lessonId) {
+        const lesson = await Lesson.findById(assignment.lessonId);
+        course = await Course.findOne({ _id: lesson?.courseId, instructors: instructorId });
+      }
+      if (course) authorized = true;
     }
-    if (!course) throw new AppError('Unauthorized', 403, 'FORBIDDEN');
+    if (assignment.classId) {
+      const classItem = await Class.findOne({ _id: assignment.classId, instructors: instructorId });
+      if (classItem) authorized = true;
+    }
+    if (!authorized) throw new AppError('Unauthorized', 403, 'FORBIDDEN');
 
     const updatePayload = {
       ...data,
@@ -50,12 +90,20 @@ export class AssignmentService {
     const assignment = await Assignment.findById(assignmentId);
     if (!assignment) throw new AppError('Assignment not found', 404, 'NOT_FOUND');
 
-    let course = await Course.findOne({ _id: assignment.courseId, instructors: instructorId });
-    if (!course && assignment.lessonId) {
-      const lesson = await Lesson.findById(assignment.lessonId);
-      course = await Course.findOne({ _id: lesson?.courseId, instructors: instructorId });
+    let authorized = false;
+    if (assignment.courseId) {
+      let course = await Course.findOne({ _id: assignment.courseId, instructors: instructorId });
+      if (!course && assignment.lessonId) {
+        const lesson = await Lesson.findById(assignment.lessonId);
+        course = await Course.findOne({ _id: lesson?.courseId, instructors: instructorId });
+      }
+      if (course) authorized = true;
     }
-    if (!course) throw new AppError('Unauthorized', 403, 'FORBIDDEN');
+    if (assignment.classId) {
+      const classItem = await Class.findOne({ _id: assignment.classId, instructors: instructorId });
+      if (classItem) authorized = true;
+    }
+    if (!authorized) throw new AppError('Unauthorized', 403, 'FORBIDDEN');
 
     if (assignment.lessonId) {
       await Lesson.findByIdAndUpdate(assignment.lessonId, { $unset: { assignmentId: 1 } });
@@ -68,6 +116,7 @@ export class AssignmentService {
   static async createAssignment(instructorId: string, lessonId?: string, data?: any) {
     const payload = data || {};
     let courseId = payload.courseId;
+    let classId = payload.classId;
     let targetLessonId = lessonId || payload.lessonId;
 
     if (targetLessonId) {
@@ -76,16 +125,26 @@ export class AssignmentService {
       courseId = lesson.courseId;
     }
 
-    if (!courseId) throw new AppError('Course ID is required', 400, 'BAD_REQUEST');
+    if (!courseId && !classId) {
+      throw new AppError('انتخاب دوره یا کلاس الزامی است', 400, 'BAD_REQUEST');
+    }
 
-    const course = await Course.findOne({ _id: courseId, instructors: instructorId });
-    if (!course) throw new AppError('Unauthorized or course not found', 403, 'FORBIDDEN');
+    if (courseId) {
+      const course = await Course.findOne({ _id: courseId, instructors: instructorId });
+      if (!course) throw new AppError('دسترسی مجاز نیست یا دوره یافت نشد', 403, 'FORBIDDEN');
+    }
+
+    if (classId) {
+      const classItem = await Class.findOne({ _id: classId, instructors: instructorId });
+      if (!classItem) throw new AppError('دسترسی مجاز نیست یا کلاس یافت نشد', 403, 'FORBIDDEN');
+    }
 
     const assignment = await Assignment.create({
       ...payload,
       type: payload.type || 'mixed',
       maxScore: payload.maxScore ?? payload.points ?? 100,
-      courseId,
+      courseId: courseId || undefined,
+      classId: classId || undefined,
       lessonId: targetLessonId || undefined,
       deadline: payload.deadline ? new Date(payload.deadline) : undefined,
       isPublished: payload.isPublished ?? true
@@ -105,8 +164,16 @@ export class AssignmentService {
     const assignment = await Assignment.findById(assignmentId);
     if (!assignment) throw new AppError('Assignment not found', 404, 'NOT_FOUND');
 
-    const course = await Course.findOne({ _id: assignment.courseId, instructors: instructorId });
-    if (!course) throw new AppError('Unauthorized', 403, 'FORBIDDEN');
+    let authorized = false;
+    if (assignment.courseId) {
+      const course = await Course.findOne({ _id: assignment.courseId, instructors: instructorId });
+      if (course) authorized = true;
+    }
+    if (assignment.classId) {
+      const classItem = await Class.findOne({ _id: assignment.classId, instructors: instructorId });
+      if (classItem) authorized = true;
+    }
+    if (!authorized) throw new AppError('Unauthorized', 403, 'FORBIDDEN');
 
     return await AssignmentSubmission.find({ assignmentId })
       .populate('userId', 'firstName lastName email avatar')
@@ -114,10 +181,21 @@ export class AssignmentService {
   }
 
   static async getInstructorAssignments(instructorId: string, query?: any) {
-    const courses = await Course.find({ instructors: instructorId });
+    const [courses, classes] = await Promise.all([
+      Course.find({ instructors: instructorId }),
+      Class.find({ instructors: instructorId })
+    ]);
     const courseIds = courses.map((c: any) => c._id);
-    const assignments = await Assignment.find({ courseId: { $in: courseIds } })
+    const classIds = classes.map((c: any) => c._id);
+
+    const assignments = await Assignment.find({
+      $or: [
+        { courseId: { $in: courseIds } },
+        { classId: { $in: classIds } }
+      ]
+    })
       .populate('courseId', 'title slug thumbnail')
+      .populate('classId', 'title slug thumbnail')
       .populate('lessonId', 'title')
       .sort({ createdAt: -1 });
 
@@ -140,10 +218,19 @@ export class AssignmentService {
   }
 
   static async getInstructorSubmissions(instructorId: string, query: any) {
-    
-    const courses = await Course.find({ instructors: instructorId });
+    const [courses, classes] = await Promise.all([
+      Course.find({ instructors: instructorId }),
+      Class.find({ instructors: instructorId })
+    ]);
     const courseIds = courses.map((c: any) => c._id);
-    const assignments = await Assignment.find({ courseId: { $in: courseIds } });
+    const classIds = classes.map((c: any) => c._id);
+
+    const assignments = await Assignment.find({
+      $or: [
+        { courseId: { $in: courseIds } },
+        { classId: { $in: classIds } }
+      ]
+    });
     const assignmentIds = assignments.map(a => a._id);
     
     const page = parseInt(query.page) || 1;
@@ -166,8 +253,16 @@ export class AssignmentService {
     if (!submission) throw new AppError('Submission not found', 404, 'NOT_FOUND');
 
     const assignment = submission.assignmentId as any;
-    const course = await Course.findOne({ _id: assignment.courseId, instructors: instructorId });
-    if (!course) throw new AppError('Unauthorized', 403, 'FORBIDDEN');
+    let authorized = false;
+    if (assignment.courseId) {
+      const course = await Course.findOne({ _id: assignment.courseId, instructors: instructorId });
+      if (course) authorized = true;
+    }
+    if (assignment.classId) {
+      const classItem = await Class.findOne({ _id: assignment.classId, instructors: instructorId });
+      if (classItem) authorized = true;
+    }
+    if (!authorized) throw new AppError('Unauthorized', 403, 'FORBIDDEN');
 
     if (data.score > assignment.maxScore) {
       throw new AppError(`Score cannot exceed max score of ${assignment.maxScore}`, 400, 'INVALID_SCORE');
@@ -188,8 +283,16 @@ export class AssignmentService {
     const assignment = await Assignment.findById(assignmentId);
     if (!assignment) throw new AppError('Assignment not found', 404, 'NOT_FOUND');
 
-    const enrollment = await Enrollment.findOne({ userId, courseId: assignment.courseId });
-    if (!enrollment) throw new AppError('You must be enrolled to submit', 403, 'FORBIDDEN');
+    let isEnrolled = false;
+    if (assignment.courseId) {
+      const enrollment = await Enrollment.findOne({ userId, courseId: assignment.courseId });
+      if (enrollment) isEnrolled = true;
+    }
+    if (assignment.classId) {
+      const classEnrollment = await ClassEnrollment.findOne({ userId, classId: assignment.classId, status: 'active' });
+      if (classEnrollment) isEnrolled = true;
+    }
+    if (!isEnrolled) throw new AppError('You must be enrolled to submit', 403, 'FORBIDDEN');
 
     const existing = await AssignmentSubmission.findOne({ userId, assignmentId });
     if (existing) throw new AppError('You have already submitted this assignment', 400, 'ALREADY_SUBMITTED');

@@ -16,7 +16,8 @@ interface IQuestion {
 }
 
 export interface IQuiz extends Document {
-  courseId: Types.ObjectId;
+  courseId?: Types.ObjectId;
+  classId?: Types.ObjectId;
   lessonId?: Types.ObjectId;
   title: string;
   description?: string;
@@ -31,7 +32,11 @@ const quizSchema = new Schema<IQuiz>(
     courseId: {
       type: Schema.Types.ObjectId,
       ref: "Course",
-      required: true,
+      index: true,
+    },
+    classId: {
+      type: Schema.Types.ObjectId,
+      ref: "Class",
       index: true,
     },
     lessonId: {

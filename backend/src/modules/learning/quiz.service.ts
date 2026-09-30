@@ -2,7 +2,9 @@ import { Quiz } from './quiz.model.js';
 import { QuizAttempt } from './quiz-attempt.model.js';
 import { Course } from '../courses/course.model.js';
 import { Lesson } from '../courses/lesson.model.js';
+import { Class } from '../classes/class.model.js';
 import { Enrollment } from './enrollment.model.js';
+import { ClassEnrollment } from '../classes/class-enrollment.model.js';
 import { AppError } from '../../common/errors/AppError.js';
 import { Types } from 'mongoose';
 
@@ -10,7 +12,20 @@ export class QuizService {
   static async getMyQuizzes(userId: string) {
     const enrollments = await Enrollment.find({ userId, status: 'active' });
     const courseIds = enrollments.map(e => e.courseId);
-    const quizzes = await Quiz.find({ courseId: { $in: courseIds }, isPublished: true }).populate('courseId', 'title');
+
+    const classEnrollments = await ClassEnrollment.find({ userId, status: 'active' });
+    const classIds = classEnrollments.map(c => c.classId);
+
+    const quizzes = await Quiz.find({
+      $or: [
+        { courseId: { $in: courseIds } },
+        { classId: { $in: classIds } }
+      ],
+      isPublished: true
+    })
+      .populate('courseId', 'title')
+      .populate('classId', 'title');
+
     const attempts = await QuizAttempt.find({ userId });
     return quizzes.map(q => {
       const attempt = attempts.find(a => a.quizId.toString() === q._id.toString());
@@ -19,10 +34,21 @@ export class QuizService {
   }
   // --- Instructor Actions ---
   static async getInstructorQuizzes(instructorId: string) {
-    const courses = await Course.find({ instructors: instructorId });
+    const [courses, classes] = await Promise.all([
+      Course.find({ instructors: instructorId }),
+      Class.find({ instructors: instructorId })
+    ]);
     const courseIds = courses.map((c: any) => c._id);
-    const quizzes = await Quiz.find({ courseId: { $in: courseIds } })
+    const classIds = classes.map((c: any) => c._id);
+
+    const quizzes = await Quiz.find({
+      $or: [
+        { courseId: { $in: courseIds } },
+        { classId: { $in: classIds } }
+      ]
+    })
       .populate('courseId', 'title slug thumbnail')
+      .populate('classId', 'title slug thumbnail')
       .populate('lessonId', 'title')
       .sort({ createdAt: -1 });
 
@@ -48,11 +74,22 @@ export class QuizService {
   }
 
   static async getQuizForInstructor(instructorId: string, quizId: string) {
-    const quiz = await Quiz.findById(quizId).populate('courseId', 'title slug').populate('lessonId', 'title');
+    const quiz = await Quiz.findById(quizId)
+      .populate('courseId', 'title slug')
+      .populate('classId', 'title slug')
+      .populate('lessonId', 'title');
     if (!quiz) throw new AppError('Quiz not found', 404, 'NOT_FOUND');
 
-    const course = await Course.findOne({ _id: quiz.courseId, instructors: instructorId });
-    if (!course) throw new AppError('Unauthorized', 403, 'FORBIDDEN');
+    let authorized = false;
+    if (quiz.courseId) {
+      const course = await Course.findOne({ _id: quiz.courseId, instructors: instructorId });
+      if (course) authorized = true;
+    }
+    if (quiz.classId) {
+      const classItem = await Class.findOne({ _id: quiz.classId, instructors: instructorId });
+      if (classItem) authorized = true;
+    }
+    if (!authorized) throw new AppError('Unauthorized', 403, 'FORBIDDEN');
 
     return quiz;
   }
@@ -61,8 +98,16 @@ export class QuizService {
     const quiz = await Quiz.findById(quizId);
     if (!quiz) throw new AppError('Quiz not found', 404, 'NOT_FOUND');
 
-    const course = await Course.findOne({ _id: quiz.courseId, instructors: instructorId });
-    if (!course) throw new AppError('Unauthorized', 403, 'FORBIDDEN');
+    let authorized = false;
+    if (quiz.courseId) {
+      const course = await Course.findOne({ _id: quiz.courseId, instructors: instructorId });
+      if (course) authorized = true;
+    }
+    if (quiz.classId) {
+      const classItem = await Class.findOne({ _id: quiz.classId, instructors: instructorId });
+      if (classItem) authorized = true;
+    }
+    if (!authorized) throw new AppError('Unauthorized', 403, 'FORBIDDEN');
 
     const attempts = await QuizAttempt.find({ quizId })
       .populate('userId', 'firstName lastName email avatar')
@@ -84,12 +129,20 @@ export class QuizService {
     const quiz = await Quiz.findById(quizId);
     if (!quiz) throw new AppError('Quiz not found', 404, 'NOT_FOUND');
     
-    let course = await Course.findOne({ _id: quiz.courseId, instructors: instructorId });
-    if (!course && quiz.lessonId) {
-      const lesson = await Lesson.findById(quiz.lessonId);
-      course = await Course.findOne({ _id: lesson?.courseId, instructors: instructorId });
+    let authorized = false;
+    if (quiz.courseId) {
+      let course = await Course.findOne({ _id: quiz.courseId, instructors: instructorId });
+      if (!course && quiz.lessonId) {
+        const lesson = await Lesson.findById(quiz.lessonId);
+        course = await Course.findOne({ _id: lesson?.courseId, instructors: instructorId });
+      }
+      if (course) authorized = true;
     }
-    if (!course) throw new AppError('Unauthorized', 403, 'FORBIDDEN');
+    if (quiz.classId) {
+      const classItem = await Class.findOne({ _id: quiz.classId, instructors: instructorId });
+      if (classItem) authorized = true;
+    }
+    if (!authorized) throw new AppError('Unauthorized', 403, 'FORBIDDEN');
 
     const updatePayload = {
       ...data,
@@ -105,12 +158,20 @@ export class QuizService {
     const quiz = await Quiz.findById(quizId);
     if (!quiz) throw new AppError('Quiz not found', 404, 'NOT_FOUND');
 
-    let course = await Course.findOne({ _id: quiz.courseId, instructors: instructorId });
-    if (!course && quiz.lessonId) {
-      const lesson = await Lesson.findById(quiz.lessonId);
-      course = await Course.findOne({ _id: lesson?.courseId, instructors: instructorId });
+    let authorized = false;
+    if (quiz.courseId) {
+      let course = await Course.findOne({ _id: quiz.courseId, instructors: instructorId });
+      if (!course && quiz.lessonId) {
+        const lesson = await Lesson.findById(quiz.lessonId);
+        course = await Course.findOne({ _id: lesson?.courseId, instructors: instructorId });
+      }
+      if (course) authorized = true;
     }
-    if (!course) throw new AppError('Unauthorized', 403, 'FORBIDDEN');
+    if (quiz.classId) {
+      const classItem = await Class.findOne({ _id: quiz.classId, instructors: instructorId });
+      if (classItem) authorized = true;
+    }
+    if (!authorized) throw new AppError('Unauthorized', 403, 'FORBIDDEN');
 
     if (quiz.lessonId) {
       await Lesson.findByIdAndUpdate(quiz.lessonId, { $unset: { quizId: 1 } });
@@ -123,6 +184,7 @@ export class QuizService {
   static async createQuiz(instructorId: string, lessonId?: string, data?: any) {
     const payload = data || {};
     let courseId = payload.courseId;
+    let classId = payload.classId;
     let targetLessonId = lessonId || payload.lessonId;
 
     if (targetLessonId) {
@@ -131,17 +193,27 @@ export class QuizService {
       courseId = lesson.courseId;
     }
 
-    if (!courseId) throw new AppError('Course ID is required', 400, 'BAD_REQUEST');
+    if (!courseId && !classId) {
+      throw new AppError('انتخاب دوره یا کلاس الزامی است', 400, 'BAD_REQUEST');
+    }
 
-    const course = await Course.findOne({ _id: courseId, instructors: instructorId });
-    if (!course) throw new AppError('Unauthorized or course not found', 403, 'FORBIDDEN');
+    if (courseId) {
+      const course = await Course.findOne({ _id: courseId, instructors: instructorId });
+      if (!course) throw new AppError('دسترسی مجاز نیست یا دوره یافت نشد', 403, 'FORBIDDEN');
+    }
+
+    if (classId) {
+      const classItem = await Class.findOne({ _id: classId, instructors: instructorId });
+      if (!classItem) throw new AppError('دسترسی مجاز نیست یا کلاس یافت نشد', 403, 'FORBIDDEN');
+    }
 
     const quiz = await Quiz.create({
       ...payload,
       duration: payload.duration ?? payload.timeLimit ?? 30,
       passingScore: payload.passingScore ?? payload.passMark ?? 70,
       questions: payload.questions || [],
-      courseId,
+      courseId: courseId || undefined,
+      classId: classId || undefined,
       lessonId: targetLessonId || undefined,
       isPublished: payload.isPublished ?? true
     });
@@ -157,8 +229,16 @@ export class QuizService {
     const quiz = await Quiz.findById(quizId).lean();
     if (!quiz) throw new AppError('Quiz not found', 404, 'NOT_FOUND');
 
-    const enrollment = await Enrollment.findOne({ userId, courseId: quiz.courseId });
-    if (!enrollment) throw new AppError('You must be enrolled to access this quiz', 403, 'FORBIDDEN');
+    let isEnrolled = false;
+    if (quiz.courseId) {
+      const enrollment = await Enrollment.findOne({ userId, courseId: quiz.courseId });
+      if (enrollment) isEnrolled = true;
+    }
+    if (quiz.classId) {
+      const classEnrollment = await ClassEnrollment.findOne({ userId, classId: quiz.classId, status: 'active' });
+      if (classEnrollment) isEnrolled = true;
+    }
+    if (!isEnrolled) throw new AppError('You must be enrolled to access this quiz', 403, 'FORBIDDEN');
 
     // Strip out `isCorrect` from options before sending to student
     quiz.questions.forEach(q => {
@@ -174,8 +254,16 @@ export class QuizService {
     const quiz = await Quiz.findById(quizId);
     if (!quiz) throw new AppError('Quiz not found', 404, 'NOT_FOUND');
 
-    const enrollment = await Enrollment.findOne({ userId, courseId: quiz.courseId });
-    if (!enrollment) throw new AppError('You must be enrolled', 403, 'FORBIDDEN');
+    let isEnrolled = false;
+    if (quiz.courseId) {
+      const enrollment = await Enrollment.findOne({ userId, courseId: quiz.courseId });
+      if (enrollment) isEnrolled = true;
+    }
+    if (quiz.classId) {
+      const classEnrollment = await ClassEnrollment.findOne({ userId, classId: quiz.classId, status: 'active' });
+      if (classEnrollment) isEnrolled = true;
+    }
+    if (!isEnrolled) throw new AppError('You must be enrolled', 403, 'FORBIDDEN');
 
     // Check if there's already an active attempt
     let attempt = await QuizAttempt.findOne({ userId, quizId, status: 'in_progress' });

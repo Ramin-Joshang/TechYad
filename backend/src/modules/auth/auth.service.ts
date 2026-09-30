@@ -108,12 +108,35 @@ export class AuthService {
 
   static async login(data: any, clientInfo: { ip?: string; userAgent?: string } = {}) {
     const { browser, os, device } = this.parseClientInfo(clientInfo.userAgent || '');
-    const user = await User.findOne({ email: data.email }).select('+passwordHash').populate('role');
+    
+    // Support login via email OR mobile (or general identifier)
+    const rawIdentifier = (data.identifier || data.email || data.mobile || '').trim();
+    // Normalize Persian/Arabic digits to English digits if mobile
+    const normalizedIdentifier = rawIdentifier.replace(/[۰-۹]/g, (d: string) => "۰۱۲۳۴۵۶۷۸۹".indexOf(d).toString());
+    const isEmail = normalizedIdentifier.includes('@');
+
+    let user;
+    if (isEmail) {
+      user = await User.findOne({ email: normalizedIdentifier.toLowerCase() }).select('+passwordHash').populate('role');
+    } else {
+      // Clean mobile format (e.g. +98 or 09...)
+      let cleanMobile = normalizedIdentifier.replace(/[\s\-_]/g, '');
+      if (cleanMobile.startsWith('+98')) cleanMobile = '0' + cleanMobile.slice(3);
+      else if (cleanMobile.startsWith('0098')) cleanMobile = '0' + cleanMobile.slice(4);
+
+      user = await User.findOne({
+        $or: [
+          { mobile: normalizedIdentifier },
+          { mobile: cleanMobile },
+          { email: normalizedIdentifier.toLowerCase() }
+        ]
+      }).select('+passwordHash').populate('role');
+    }
     
     if (!user) {
       try {
         await AuditLog.create({
-          userEmail: data.email,
+          userEmail: rawIdentifier,
           action: 'ورود ناموفق (کاربر یافت نشد)',
           category: 'auth',
           status: 'failure',
@@ -122,10 +145,10 @@ export class AuthService {
           device,
           browser,
           os,
-          details: { reason: 'User not found with provided email' }
+          details: { reason: 'User not found with provided identifier (email/mobile)' }
         });
       } catch (e) {}
-      throw new AppError('Invalid email or password', 401, 'AUTH_INVALID_CREDENTIALS');
+      throw new AppError('ایمیل، شماره موبایل یا رمز عبور اشتباه است', 401, 'AUTH_INVALID_CREDENTIALS');
     }
 
     const isPasswordCorrect = await argon2.verify(user.passwordHash, data.password);

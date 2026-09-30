@@ -32,8 +32,10 @@ export default function InstructorQuizzesPage() {
   const [viewAttemptsQuizId, setViewAttemptsQuizId] = useState<string | null>(null);
 
   // Form State
+  const [targetType, setTargetType] = useState<'course' | 'class'>('course');
   const [formData, setFormData] = useState<{
     courseId: string;
+    classId: string;
     lessonId: string;
     title: string;
     description: string;
@@ -42,6 +44,7 @@ export default function InstructorQuizzesPage() {
     questions: Question[];
   }>({
     courseId: '',
+    classId: '',
     lessonId: '',
     title: '',
     description: '',
@@ -72,6 +75,12 @@ export default function InstructorQuizzesPage() {
   const { data: coursesData } = useQuery({
     queryKey: ['instructor-courses-dropdown'],
     queryFn: () => api.get('/instructor/courses', { params: { limit: 100 } }).then(res => res.data?.data?.courses || [])
+  });
+
+  // Fetch Classes for dropdown
+  const { data: classesData } = useQuery({
+    queryKey: ['instructor-classes-dropdown'],
+    queryFn: () => api.get('/instructor/classes').then(res => res.data?.data?.classes || res.data?.classes || res.data || [])
   });
 
   // Fetch attempts for a specific quiz
@@ -109,6 +118,7 @@ export default function InstructorQuizzesPage() {
     setEditingQuizId(null);
     setFormData({
       courseId: '',
+      classId: '',
       lessonId: '',
       title: '',
       description: '',
@@ -132,9 +142,14 @@ export default function InstructorQuizzesPage() {
 
   const openCreateModal = () => {
     setEditingQuizId(null);
-    if (coursesData && coursesData.length > 0) {
-      setFormData(prev => ({ ...prev, courseId: coursesData[0]._id }));
-    }
+    setTargetType('course');
+    setFormData(prev => ({
+      ...prev,
+      courseId: coursesData?.[0]?._id || '',
+      classId: '',
+      title: '',
+      description: ''
+    }));
     setIsCreateModalOpen(true);
   };
 
@@ -144,8 +159,11 @@ export default function InstructorQuizzesPage() {
       const res = await api.get(`/instructor/quizzes/${quiz._id}`);
       const qData = res.data?.data;
       if (qData) {
+        const isClass = !qData.courseId && !!qData.classId;
+        setTargetType(isClass ? 'class' : 'course');
         setFormData({
           courseId: qData.courseId?._id || qData.courseId || '',
+          classId: qData.classId?._id || qData.classId || '',
           lessonId: qData.lessonId?._id || qData.lessonId || '',
           title: qData.title || '',
           description: qData.description || '',
@@ -406,8 +424,17 @@ export default function InstructorQuizzesPage() {
                         <div className="font-black text-[var(--neo-text-main)] text-base">{quiz.title}</div>
                         <div className="flex items-center gap-2 mt-1">
                           <span className="inline-flex items-center gap-1 text-xs px-2.5 py-0.5 rounded-lg bg-[var(--neo-primary)]/10 text-[var(--neo-primary)] font-bold">
-                            <BookOpen className="w-3 h-3" />
-                            {quiz.courseId?.title || 'دوره نامشخص'}
+                            {quiz.classId ? (
+                              <span className="text-purple-600 flex items-center gap-1">
+                                <Users className="w-3 h-3" />
+                                کلاس: {quiz.classId.title}
+                              </span>
+                            ) : (
+                              <>
+                                <BookOpen className="w-3 h-3" />
+                                {quiz.courseId?.title || 'دوره نامشخص'}
+                              </>
+                            )}
                           </span>
                           {quiz.lessonId?.title && (
                             <span className="text-xs text-[var(--neo-text-secondary)]">
@@ -508,23 +535,80 @@ export default function InstructorQuizzesPage() {
             {/* Modal Body (Scrollable) */}
             <div className="p-6 overflow-y-auto space-y-6 flex-1">
               
+              {/* Target Switcher: Course vs Class */}
+              <div className="bg-[var(--neo-surface-2)]/60 p-3 rounded-2xl border border-[var(--neo-border)]">
+                <label className="block text-xs font-bold text-[var(--neo-text-secondary)] mb-2">
+                  تعریف آزمون برای:
+                </label>
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setTargetType('course');
+                      setFormData(prev => ({ ...prev, classId: '', courseId: coursesData?.[0]?._id || '' }));
+                    }}
+                    className={`py-2 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${
+                      targetType === 'course'
+                        ? 'bg-[var(--neo-surface)] text-[var(--neo-primary)] shadow-xs border border-[var(--neo-border)]'
+                        : 'text-[var(--neo-text-secondary)] hover:text-[var(--neo-text-main)]'
+                    }`}
+                  >
+                    <BookOpen className="w-3.5 h-3.5" />
+                    دوره آموزشی
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setTargetType('class');
+                      setFormData(prev => ({ ...prev, courseId: '', classId: classesData?.[0]?._id || '' }));
+                    }}
+                    className={`py-2 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${
+                      targetType === 'class'
+                        ? 'bg-[var(--neo-surface)] text-purple-600 shadow-xs border border-[var(--neo-border)]'
+                        : 'text-[var(--neo-text-secondary)] hover:text-[var(--neo-text-main)]'
+                    }`}
+                  >
+                    <Users className="w-3.5 h-3.5" />
+                    کلاس / کارگاه آنلاین یا حضوری
+                  </button>
+                </div>
+              </div>
+
               {/* General Settings */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-bold text-[var(--neo-text-secondary)] mb-1.5">
-                    دوره آموزشی مربوطه *
-                  </label>
-                  <select
-                    value={formData.courseId}
-                    onChange={(e) => setFormData(prev => ({ ...prev, courseId: e.target.value }))}
-                    className="w-full px-3 py-2.5 rounded-2xl bg-[var(--neo-surface-2)] border border-[var(--neo-border)] text-sm font-medium focus:outline-none focus:border-[var(--neo-primary)]"
-                  >
-                    <option value="">انتخاب دوره</option>
-                    {coursesData?.map((c: any) => (
-                      <option key={c._id} value={c._id}>{c.title}</option>
-                    ))}
-                  </select>
-                </div>
+                {targetType === 'course' ? (
+                  <div>
+                    <label className="block text-xs font-bold text-[var(--neo-text-secondary)] mb-1.5">
+                      دوره آموزشی مربوطه *
+                    </label>
+                    <select
+                      value={formData.courseId}
+                      onChange={(e) => setFormData(prev => ({ ...prev, courseId: e.target.value, classId: '' }))}
+                      className="w-full px-3 py-2.5 rounded-2xl bg-[var(--neo-surface-2)] border border-[var(--neo-border)] text-sm font-medium focus:outline-none focus:border-[var(--neo-primary)]"
+                    >
+                      <option value="">انتخاب دوره</option>
+                      {coursesData?.map((c: any) => (
+                        <option key={c._id} value={c._id}>{c.title}</option>
+                      ))}
+                    </select>
+                  </div>
+                ) : (
+                  <div>
+                    <label className="block text-xs font-bold text-[var(--neo-text-secondary)] mb-1.5">
+                      کلاس آموزشی مربوطه *
+                    </label>
+                    <select
+                      value={formData.classId}
+                      onChange={(e) => setFormData(prev => ({ ...prev, classId: e.target.value, courseId: '' }))}
+                      className="w-full px-3 py-2.5 rounded-2xl bg-[var(--neo-surface-2)] border border-[var(--neo-border)] text-sm font-medium focus:outline-none focus:border-purple-500"
+                    >
+                      <option value="">انتخاب کلاس</option>
+                      {classesData?.map((c: any) => (
+                        <option key={c._id} value={c._id}>{c.title} ({c.type === 'in-person' ? 'حضوری' : 'آنلاین'})</option>
+                      ))}
+                    </select>
+                  </div>
+                )}
 
                 <div>
                   <label className="block text-xs font-bold text-[var(--neo-text-secondary)] mb-1.5">

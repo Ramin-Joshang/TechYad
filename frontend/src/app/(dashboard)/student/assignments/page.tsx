@@ -80,7 +80,7 @@ export default function AssignmentsPage() {
               <thead>
                 <tr className="bg-[var(--neo-surface-2)] border-b border-[var(--neo-border)]">
                   <th className="py-4 px-6 font-bold text-[var(--neo-text-main)] text-sm">عنوان تکلیف</th>
-                  <th className="py-4 px-6 font-bold text-[var(--neo-text-main)] text-sm">دوره آموزشی</th>
+                  <th className="py-4 px-6 font-bold text-[var(--neo-text-main)] text-sm">دوره یا کلاس</th>
                   <th className="py-4 px-6 font-bold text-[var(--neo-text-main)] text-sm">مهلت ارسال</th>
                   <th className="py-4 px-6 font-bold text-[var(--neo-text-main)] text-sm">وضعیت</th>
                   <th className="py-4 px-6 font-bold text-[var(--neo-text-main)] text-sm">نمره</th>
@@ -96,10 +96,18 @@ export default function AssignmentsPage() {
                     <tr key={assignment._id} className="hover:bg-[var(--neo-surface-2)]/50 transition-colors group">
                       <td className="py-4 px-6">
                         <div className="font-bold text-[var(--neo-text-main)]">{assignment.title}</div>
-                        <div className="text-xs text-[var(--neo-text-secondary)] mt-1">{assignment.lessonId?.title}</div>
+                        {assignment.lessonId?.title && (
+                          <div className="text-xs text-[var(--neo-text-secondary)] mt-1">{assignment.lessonId.title}</div>
+                        )}
                       </td>
                       <td className="py-4 px-6 text-[var(--neo-text-secondary)] font-medium">
-                        {assignment.courseId?.title}
+                        {assignment.classId ? (
+                          <span className="inline-flex items-center gap-1 text-purple-700 bg-purple-50 px-2.5 py-0.5 rounded-lg text-xs font-bold border border-purple-200">
+                            کلاس: {assignment.classId.title}
+                          </span>
+                        ) : (
+                          assignment.courseId?.title || 'دوره آموزشی'
+                        )}
                       </td>
                       <td className="py-4 px-6">
                         {assignment.deadline ? (

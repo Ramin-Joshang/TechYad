@@ -3,8 +3,9 @@ import { Schema, Types, model, Document } from "mongoose";
 export type AssignmentType = "file_upload" | "text_answer" | "mixed";
 
 export interface IAssignment extends Document {
-  courseId: Types.ObjectId;
-  lessonId: Types.ObjectId;
+  courseId?: Types.ObjectId;
+  classId?: Types.ObjectId;
+  lessonId?: Types.ObjectId;
   title: string;
   description: string;
   type: AssignmentType;
@@ -19,14 +20,17 @@ const assignmentSchema = new Schema<IAssignment>(
     courseId: {
       type: Schema.Types.ObjectId,
       ref: "Course",
-      required: true,
+      index: true,
+    },
+    classId: {
+      type: Schema.Types.ObjectId,
+      ref: "Class",
       index: true,
     },
     lessonId: {
       type: Schema.Types.ObjectId,
       ref: "Lesson",
-      required: true,
-      unique: true,
+      index: true,
     },
     title: { type: String, required: true },
     description: { type: String, required: true },

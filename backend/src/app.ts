@@ -16,13 +16,26 @@ app.set('trust proxy', 1);
 // Security Middlewares
 app.use(cors());
 
-// Rate Limiting (Basic)
-const limiter = rateLimit({
+// Rate Limiting (Protected against brute-force attacks while allowing seamless platform browsing)
+const globalLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // Limit each IP to 100 requests per windowMs
-  message: { success: false, error: { code: 'TOO_MANY_REQUESTS', message: 'Too many requests from this IP, please try again later.' } }
+  max: 3000, // Generous limit for normal dashboard navigation and active platform users
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { success: false, error: { code: 'TOO_MANY_REQUESTS', message: 'درخواست‌های بیش از حد از این IP ثبت شده است. لطفاً کمی بعد دوباره تلاش کنید.' } }
 });
-app.use('/api', limiter);
+app.use('/api', globalLimiter);
+
+// Specific brute-force protection for sensitive auth endpoints (login/register)
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 30, // 30 attempts per 15 minutes per IP for login/register
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { success: false, error: { code: 'TOO_MANY_REQUESTS', message: 'تعداد دفعات تلاش برای ورود یا ثبت‌نام بیش از حد مجاز بوده است. لطفاً ۱۵ دقیقه دیگر تلاش کنید.' } }
+});
+app.use('/api/v1/auth/login', authLimiter);
+app.use('/api/v1/auth/register', authLimiter);
 
 // Body & Cookie Parser
 app.use(express.json({ limit: '50mb' }));

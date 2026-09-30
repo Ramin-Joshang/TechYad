@@ -12,7 +12,7 @@ import { Mail, Lock, Eye, EyeOff, Loader2, AlertCircle, ArrowLeft } from 'lucide
 export default function LoginPage() {
   const router = useRouter();
   const { setAuth } = useAuthStore();
-  const [email, setEmail] = useState('');
+  const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
@@ -24,7 +24,7 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
-      const response = await authApi.login({ email, password });
+      const response = await authApi.login({ identifier: identifier.trim(), password });
       if (response.success) {
         setAuth(response.data.user);
         
@@ -43,7 +43,7 @@ export default function LoginPage() {
         else router.push('/student');
       }
     } catch (err: any) {
-      setError(err.response?.data?.message || 'ایمیل یا رمز عبور اشتباه است.');
+      setError(err.response?.data?.message || 'ایمیل/شماره موبایل یا رمز عبور اشتباه است.');
     } finally {
       setLoading(false);
     }
@@ -64,19 +64,22 @@ export default function LoginPage() {
         <form onSubmit={handleLogin} className="space-y-4">
           <div>
             <label className="block text-xs sm:text-sm font-bold text-[var(--neo-text-main)] mb-1.5">
-              آدرس ایمیل
+              ایمیل یا شماره موبایل
             </label>
             <div className="relative">
               <input 
-                type="email"
-                value={email}
-                onChange={e => setEmail(e.target.value)}
+                type="text"
+                value={identifier}
+                onChange={e => setIdentifier(e.target.value)}
                 className="w-full pl-11 pr-4 py-2.5 rounded-xl border border-[var(--neo-border)] bg-[var(--neo-surface)] text-[var(--neo-text-main)] focus:outline-none focus:ring-2 focus:ring-[var(--neo-primary)] focus:border-transparent transition dir-ltr text-left text-sm"
-                placeholder="name@example.com"
+                placeholder="name@example.com یا ۰۹۱۲۳۴۵۶۷۸۹"
                 required 
               />
               <Mail className="w-4 h-4 text-[var(--neo-text-muted)] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
             </div>
+            <p className="text-[11px] text-[var(--neo-text-muted)] mt-1">
+              می‌توانید با آدرس ایمیل یا شماره همراه ثبت‌شده خود وارد شوید.
+            </p>
           </div>
 
           <div>

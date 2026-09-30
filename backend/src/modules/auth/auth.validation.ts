@@ -12,8 +12,13 @@ export const registerSchema = z.object({
 
 export const loginSchema = z.object({
   body: z.object({
-    email: z.string().email('Invalid email address'),
+    email: z.string().optional(),
+    mobile: z.string().optional(),
+    identifier: z.string().optional(),
     password: z.string().min(1, 'Password is required'),
+  }).refine((data) => !!(data.email || data.mobile || data.identifier), {
+    message: 'ایمیل یا شماره موبایل الزامی است',
+    path: ['identifier']
   })
 });
 

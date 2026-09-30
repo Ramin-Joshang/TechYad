@@ -298,12 +298,15 @@ export default function AdminClassesPage() {
 
                   {/* Status Inline Changer */}
                   <div className="flex items-center justify-between gap-2 mb-3">
-                    <span className="text-[10px] text-[var(--neo-text-muted)] font-medium">تغییر وضعیت:</span>
+                    <span className="text-[10px] text-[var(--neo-text-muted)] font-medium flex items-center gap-1">
+                      {isUpdating && <Loader2 className="w-3 h-3 animate-spin text-[var(--neo-primary)]" />}
+                      تغییر وضعیت:
+                    </span>
                     <select
                       value={cls.status || 'published'}
                       disabled={isUpdating}
                       onChange={(e) => updateStatusMutation.mutate({ id: cls._id, status: e.target.value })}
-                      className="px-2 py-1 bg-[var(--neo-surface-2)] border border-[var(--neo-border)] rounded-lg text-[10px] font-bold outline-none cursor-pointer"
+                      className="px-2 py-1 bg-[var(--neo-surface-2)] border border-[var(--neo-border)] rounded-lg text-[10px] font-bold outline-none cursor-pointer disabled:opacity-50"
                     >
                       <option value="published">فعال (منتشر شده)</option>
                       <option value="draft">پیش‌نویس</option>

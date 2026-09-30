@@ -3,6 +3,7 @@ import { z } from 'zod';
 export const createAssignmentSchema = z.object({
   body: z.object({
     courseId: z.string().optional(),
+    classId: z.string().optional(),
     lessonId: z.string().optional(),
     title: z.string().min(2),
     description: z.string().optional(),
