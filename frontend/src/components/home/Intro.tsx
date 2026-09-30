@@ -67,14 +67,14 @@ export function Intro() {
               </div>
             </div>
             
-            <div className="absolute -bottom-6 -left-6 bg-white/90 backdrop-blur-md p-6 rounded-2xl shadow-xl shadow-[var(--neo-primary)]/10 border border-[var(--neo-border)]">
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-[var(--neo-bg)] text-[var(--neo-primary)] rounded-full flex items-center justify-center border border-[var(--neo-border)]">
-                  <Award className="w-6 h-6" />
+            <div className="absolute bottom-2 left-2 sm:-bottom-6 sm:-left-6 bg-white/95 backdrop-blur-md p-3.5 sm:p-6 rounded-2xl shadow-xl shadow-[var(--neo-primary)]/10 border border-[var(--neo-border)] max-w-[260px] sm:max-w-none">
+              <div className="flex items-center gap-3 sm:gap-4">
+                <div className="w-10 h-10 sm:w-12 sm:h-12 bg-[var(--neo-bg)] text-[var(--neo-primary)] rounded-full flex items-center justify-center border border-[var(--neo-border)] shrink-0">
+                  <Award className="w-5 h-5 sm:w-6 sm:h-6" />
                 </div>
                 <div>
-                  <p className="font-bold text-[var(--neo-text-main)] tracking-tight text-sm">مدرک معتبر و بین‌المللی</p>
-                  <p className="text-xs text-[var(--neo-text-muted)] mt-1 font-medium">مورد تایید وزارت علوم</p>
+                  <p className="font-bold text-[var(--neo-text-main)] tracking-tight text-xs sm:text-sm">مدرک معتبر و بین‌المللی</p>
+                  <p className="text-[10px] sm:text-xs text-[var(--neo-text-muted)] mt-0.5 sm:mt-1 font-medium">مورد تایید وزارت علوم</p>
                 </div>
               </div>
             </div>

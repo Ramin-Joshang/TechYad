@@ -456,23 +456,34 @@ function ClassCard({ cls }: { cls: any }) {
 
         <div className="mt-4 pt-4 border-t border-[var(--neo-border)]">
           {instructor && (
-            <div className="flex items-center gap-2 mb-4">
+            <Link 
+              href={`/instructors/${instructor._id}`}
+              className="flex items-center gap-2 mb-4 group/inst w-fit"
+              title="مشاهده رزومه و دوره‌های استاد"
+            >
               <img
-                src={instructor.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(instructor.firstName + ' ' + instructor.lastName)}`}
-                className="w-6 h-6 rounded-full object-cover"
-                alt="instructor"
+                src={instructor.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(instructor.firstName + ' ' + instructor.lastName)}&background=0284c7&color=fff`}
+                className="w-6 h-6 rounded-full object-cover border border-slate-200"
+                alt={`${instructor.firstName} ${instructor.lastName}`}
               />
-              <span className="text-xs font-medium text-[var(--neo-text-secondary)]">
+              <span className="text-xs font-medium text-[var(--neo-text-secondary)] group-hover/inst:text-blue-600 transition">
                 {instructor.firstName} {instructor.lastName}
               </span>
-            </div>
+              <span className="text-[10px] text-slate-400 group-hover/inst:text-blue-500 transition">
+                (رزومه)
+              </span>
+            </Link>
           )}
           <div className="flex items-center justify-between">
-            <div className="font-bold text-[var(--neo-primary)]">
-              {cls.price === 0 ? 'رایگان' : `${cls.price.toLocaleString()} تومان`}
+            <div className="font-bold text-[var(--neo-primary)] font-mono">
+              {cls.price === 0 ? (
+                <span className="text-emerald-600 font-sans">رایگان</span>
+              ) : (
+                <span>{cls.price.toLocaleString('fa-IR')} <span className="text-xs text-gray-500 font-normal font-sans">تومان</span></span>
+              )}
             </div>
             <Link
-              href={`/classes/${cls.slug}`}
+              href={`/classes/${cls.slug || cls._id}`}
               className="px-4 py-2 bg-[var(--neo-primary)]/5 text-[var(--neo-primary)] rounded-lg text-sm font-bold hover:bg-[var(--neo-primary)] hover:text-white transition"
             >
               مشاهده کلاس

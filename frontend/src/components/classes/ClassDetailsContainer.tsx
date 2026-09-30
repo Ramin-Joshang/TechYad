@@ -10,7 +10,7 @@ import {
   Loader2, Monitor, MapPin, Calendar, Clock, Users, ShieldCheck, 
   CheckCircle, Star, ArrowLeft, BookOpen, Target, FileText, 
   Sparkles, CheckCircle2, ChevronDown, ChevronUp, Copy, Check,
-  ExternalLink, CreditCard, AlertCircle
+  ExternalLink, CreditCard, AlertCircle, GraduationCap, ChevronLeft
 } from 'lucide-react';
 import { format } from 'date-fns-jalali';
 import Link from 'next/link';
@@ -335,17 +335,24 @@ export function ClassDetailsContainer({ slug }: { slug: string }) {
               />
               <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent flex items-end p-5">
                 {instructor && (
-                  <div className="flex items-center gap-3">
+                  <Link 
+                    href={`/instructors/${instructor._id}`}
+                    className="flex items-center gap-3 bg-black/50 hover:bg-black/75 backdrop-blur-xs px-3 py-1.5 rounded-2xl border border-white/20 transition group"
+                    title="مشاهده رزومه استاد"
+                  >
                     <img 
                       src={instructor.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(instructor.firstName + ' ' + instructor.lastName)}`} 
                       className="w-10 h-10 rounded-full border-2 border-white object-cover" 
                       alt="" 
                     />
                     <div>
-                      <span className="text-[11px] text-slate-300 block">مدرس کلاس:</span>
-                      <span className="font-bold text-sm text-white">{instructor.firstName} {instructor.lastName}</span>
+                      <span className="text-[10px] text-slate-300 block">مدرس کلاس:</span>
+                      <span className="font-bold text-sm text-white group-hover:text-blue-300 transition flex items-center gap-1">
+                        {instructor.firstName} {instructor.lastName}
+                        <ChevronLeft className="w-3.5 h-3.5" />
+                      </span>
                     </div>
-                  </div>
+                  </Link>
                 )}
               </div>
             </div>
@@ -632,27 +639,70 @@ export function ClassDetailsContainer({ slug }: { slug: string }) {
             </div>
 
             {/* Instructor Card */}
-            {instructor && (
-              <section className="bg-white rounded-3xl shadow-sm border border-slate-200 p-6 sm:p-8 space-y-4">
-                <h2 className="text-xl font-bold text-slate-900">درباره استاد کلاس</h2>
-                <div className="flex flex-col sm:flex-row gap-5 items-start">
-                  <img 
-                    src={instructor.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(instructor.firstName + ' ' + instructor.lastName)}`} 
-                    className="w-20 h-20 rounded-2xl object-cover border border-slate-200 shadow-xs" 
-                    alt="" 
-                  />
-                  <div className="space-y-2 flex-1">
-                    <h3 className="text-lg font-bold text-slate-900">{instructor.firstName} {instructor.lastName}</h3>
-                    <div className="text-xs font-bold text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-lg inline-block">
-                      مدرس و متخصص ارشد
+            {cls.instructors && cls.instructors.length > 0 ? (
+              <section className="bg-white rounded-3xl shadow-sm border border-slate-200 p-6 sm:p-8 space-y-6">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-slate-100 gap-2">
+                  <h2 className="text-xl font-bold text-slate-900 flex items-center gap-2">
+                    <GraduationCap className="w-6 h-6 text-blue-600" />
+                    درباره استاد کلاس
+                  </h2>
+                  {instructor && (
+                    <Link 
+                      href={`/instructors/${instructor._id}`}
+                      className="text-xs font-bold text-blue-600 hover:underline flex items-center gap-1 self-start sm:self-auto"
+                    >
+                      مشاهده صفحه و رزومه استاد
+                      <ChevronLeft className="w-4 h-4" />
+                    </Link>
+                  )}
+                </div>
+
+                <div className="space-y-6">
+                  {cls.instructors.map((inst: any) => (
+                    <div key={inst._id} className="flex flex-col sm:flex-row gap-5 items-start">
+                      <Link href={`/instructors/${inst._id}`} className="shrink-0 group">
+                        <img 
+                          src={inst.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(inst.firstName + ' ' + inst.lastName)}&background=0284c7&color=fff`} 
+                          className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl object-cover border border-slate-200 shadow-xs group-hover:scale-105 transition duration-300" 
+                          alt={`${inst.firstName} ${inst.lastName}`} 
+                        />
+                      </Link>
+                      <div className="space-y-2 flex-1">
+                        <div className="flex flex-wrap items-center justify-between gap-2">
+                          <div>
+                            <Link href={`/instructors/${inst._id}`}>
+                              <h3 className="text-lg font-bold text-slate-900 hover:text-blue-600 transition">
+                                {inst.firstName} {inst.lastName}
+                              </h3>
+                            </Link>
+                            <div className="text-xs font-bold text-emerald-600 bg-emerald-50 px-2.5 py-0.5 rounded-lg inline-block mt-1">
+                              {inst.specialty || 'مدرس و متخصص ارشد'}
+                            </div>
+                          </div>
+                          <span className="text-xs font-bold bg-blue-50 text-blue-700 px-3 py-1 rounded-full border border-blue-200">
+                            مدرس تایید شده
+                          </span>
+                        </div>
+
+                        <p className="text-xs sm:text-sm text-slate-600 leading-relaxed text-justify">
+                          {inst.bio || 'دارای سال‌ها تجربه در آموزش تخصصی و هدایت پروژه‌های عملی و کارگاهی در حوزه نرم‌افزار و تکنولوژی.'}
+                        </p>
+
+                        <div className="pt-2">
+                          <Link 
+                            href={`/instructors/${inst._id}`}
+                            className="inline-flex items-center gap-2 text-xs sm:text-sm font-bold text-blue-600 hover:text-blue-800 transition bg-blue-50/80 hover:bg-blue-100 px-4 py-2 rounded-xl"
+                          >
+                            مشاهده رزومه کاری، سوابق تحصیلی و سایر کلاس‌های استاد
+                            <ChevronLeft className="w-4 h-4" />
+                          </Link>
+                        </div>
+                      </div>
                     </div>
-                    <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
-                      {instructor.bio || 'دارای سال‌ها تجربه در آموزش تخصصی و هدایت پروژه‌های عملی و کارگاهی.'}
-                    </p>
-                  </div>
+                  ))}
                 </div>
               </section>
-            )}
+            ) : null}
 
           </div>
 
@@ -791,6 +841,31 @@ export function ClassDetailsContainer({ slug }: { slug: string }) {
               </button>
 
             </div>
+
+            {/* Instructor Quick Sidebar Card */}
+            {instructor && (
+              <div className="bg-white rounded-3xl shadow-sm border border-slate-200 p-5 space-y-4">
+                <span className="text-xs font-bold text-slate-400 block">مدرس این کلاس</span>
+                <div className="flex items-center gap-3">
+                  <img 
+                    src={instructor.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(instructor.firstName + ' ' + instructor.lastName)}&background=0284c7&color=fff`} 
+                    alt="" 
+                    className="w-12 h-12 rounded-2xl object-cover border border-slate-200 shadow-2xs"
+                  />
+                  <div className="min-w-0 flex-1">
+                    <h4 className="font-bold text-sm text-slate-900 line-clamp-1">{instructor.firstName} {instructor.lastName}</h4>
+                    <p className="text-xs text-blue-600 font-medium line-clamp-1 mt-0.5">{instructor.specialty || 'مدرس و متخصص ارشد'}</p>
+                  </div>
+                </div>
+                <Link 
+                  href={`/instructors/${instructor._id}`}
+                  className="w-full flex items-center justify-center gap-1.5 py-2.5 px-4 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-700 hover:bg-blue-50 hover:text-blue-700 hover:border-blue-200 transition shadow-2xs"
+                >
+                  <span>مشاهده صفحه و رزومه استاد</span>
+                  <ChevronLeft className="w-3.5 h-3.5" />
+                </Link>
+              </div>
+            )}
           </div>
 
         </div>

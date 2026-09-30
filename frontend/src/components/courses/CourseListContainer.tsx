@@ -323,10 +323,11 @@ export function CourseListContainer() {
 }
 
 function CourseCard({ course }: { course: any }) {
+  const router = useRouter();
   const isFree = course.price === 0;
   const hasDiscount = course.discountPrice && course.discountPrice < course.price;
   const instructor = course.instructors?.[0];
-  const instructorName = instructor ? `${instructor.firstName} ${instructor.lastName}` : 'نامشخص';
+  const instructorName = instructor ? `${instructor.firstName} ${instructor.lastName}` : 'استاد تک‌یاد';
 
   return (
     <Link href={`/courses/${course.slug}`} className="group flex flex-col bg-white rounded-2xl border border-[var(--neo-border)] overflow-hidden hover:shadow-xl hover:shadow-[var(--neo-primary)]/5 transition duration-300">
@@ -360,9 +361,24 @@ function CourseCard({ course }: { course: any }) {
         
         <h3 className="font-bold text-[var(--neo-text-main)] mb-2 line-clamp-2 group-hover:text-[var(--neo-primary)] transition">{course.title}</h3>
         
-        <div className="flex items-center gap-2 mb-4 text-sm text-[var(--neo-text-muted)]">
-          <img src={instructor?.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(instructorName)}`} className="w-6 h-6 rounded-full" alt={instructorName} />
-          <span className="truncate">{instructorName}</span>
+        <div 
+          onClick={(e) => {
+            if (instructor?._id) {
+              e.preventDefault();
+              e.stopPropagation();
+              router.push(`/instructors/${instructor._id}`);
+            }
+          }}
+          className="flex items-center gap-2 mb-4 text-xs text-[var(--neo-text-muted)] hover:text-blue-600 transition w-fit cursor-pointer group/inst"
+          title="مشاهده رزومه و دوره‌های استاد"
+        >
+          <img 
+            src={instructor?.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(instructorName)}&background=0284c7&color=fff`} 
+            className="w-6 h-6 rounded-full object-cover border border-slate-200" 
+            alt={instructorName} 
+          />
+          <span className="truncate font-medium">{instructorName}</span>
+          <span className="text-[10px] text-slate-400 group-hover/inst:text-blue-500">(رزومه)</span>
         </div>
         
         <div className="flex items-center gap-4 text-xs text-[var(--neo-text-muted)] mb-4">
@@ -372,26 +388,26 @@ function CourseCard({ course }: { course: any }) {
 
         <div className="mt-auto pt-4 border-t border-[var(--neo-border)] flex flex-col">
           <div className="flex items-center justify-between mb-3">
-            <div className="font-bold text-lg">
+            <div className="font-bold text-lg font-mono">
               {isFree ? (
-                <span className="text-green-600">رایگان</span>
+                <span className="text-emerald-600 font-sans">رایگان</span>
               ) : (
                 <div className="flex flex-col">
                   {hasDiscount ? (
                     <>
-                      <span className="text-[var(--neo-text-muted)] text-xs line-through">{course.price.toLocaleString()} تومان</span>
-                      <span className="text-[var(--neo-primary)]">{course.discountPrice.toLocaleString()} تومان</span>
+                      <span className="text-[var(--neo-text-muted)] text-xs line-through">{course.price.toLocaleString('fa-IR')} تومان</span>
+                      <span className="text-[var(--neo-primary)]">{course.discountPrice.toLocaleString('fa-IR')} <span className="text-xs font-normal font-sans">تومان</span></span>
                     </>
                   ) : (
-                    <span className="text-[var(--neo-primary)]">{course.price.toLocaleString()} تومان</span>
+                    <span className="text-[var(--neo-primary)]">{course.price.toLocaleString('fa-IR')} <span className="text-xs font-normal font-sans">تومان</span></span>
                   )}
                 </div>
               )}
             </div>
           </div>
-          <button className="w-full py-2 bg-[var(--neo-bg)] hover:bg-[var(--neo-primary)] hover:text-white text-[var(--neo-primary)] font-medium rounded-lg transition-colors">
+          <div className="w-full py-2 bg-[var(--neo-bg)] group-hover:bg-[var(--neo-primary)] group-hover:text-white text-[var(--neo-primary)] font-medium rounded-lg transition-colors text-center text-sm">
             مشاهده دوره
-          </button>
+          </div>
         </div>
       </div>
     </Link>

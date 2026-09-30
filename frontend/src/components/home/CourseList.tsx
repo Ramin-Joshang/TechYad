@@ -52,93 +52,104 @@ export function CourseList({
                   </div>
                 </div>
               ))
-            : data.map((course: any) => (
-                <Link key={course._id} href={`/courses/${course.slug}`} className="neo-card group flex flex-col overflow-hidden relative bg-white">
-                  <div className="relative aspect-[16/10] overflow-hidden bg-[var(--neo-surface-2)]">
-                    <img
-                      src={course.coverImage || course.thumbnail || `https://picsum.photos/seed/${course.slug}/400/250`}
-                      alt={course.title}
-                      className="w-full h-full object-cover group-hover:scale-105 transition duration-700 ease-out"
-                    />
+            : data.map((item: any) => {
+                const isClass = item.mode !== undefined || item.capacity !== undefined || item.scheduleDays !== undefined;
+                const linkHref = isClass ? `/classes/${item.slug || item._id}` : `/courses/${item.slug || item._id}`;
+                const instructorObj = item.instructor || item.instructors?.[0];
+                const instructorName = typeof instructorObj === 'object' && instructorObj !== null
+                  ? `${instructorObj.firstName || ''} ${instructorObj.lastName || ''}`.trim() || instructorObj.name
+                  : (typeof item.instructor === 'string' ? item.instructor : 'استاد تک‌یاد');
+                const instructorAvatar = instructorObj?.avatar;
+                const isFree = item.price === 0;
+                const hasDiscount = item.discountPrice && item.discountPrice < item.price;
+                const displayPrice = hasDiscount ? item.discountPrice : item.price;
 
-                    {/* Overlays */}
-                    <div className="absolute top-4 right-4 z-20 flex gap-2">
-                      {course.price === 0 && (
-                        <div className="bg-[var(--neo-accent)] text-[var(--neo-text-main)] text-xs font-bold px-3 py-1 rounded-full shadow-sm">
-                          رایگان
-                        </div>
-                      )}
-                      {course.type === 'in-person' && (
-                        <div className="bg-[var(--neo-surface)]/90 backdrop-blur text-[var(--neo-text-main)] text-xs font-bold px-3 py-1 rounded-full flex items-center gap-1 shadow-sm">
-                          <span className="w-1.5 h-1.5 rounded-full bg-[var(--neo-primary)] animate-pulse"></span> حضوری
-                        </div>
-                      )}
-                      {course.type === 'online-class' && (
-                        <div className="bg-[var(--neo-surface)]/90 backdrop-blur text-[var(--neo-error)] text-xs font-bold px-3 py-1 rounded-full flex items-center gap-1 shadow-sm">
-                          <span className="w-1.5 h-1.5 rounded-full bg-[var(--neo-error)] animate-pulse"></span> زنده (Live)
-                        </div>
-                      )}
-                    </div>
-                  </div>
+                return (
+                  <Link key={item._id} href={linkHref} className="neo-card group flex flex-col overflow-hidden relative bg-white border border-[var(--neo-border)] rounded-2xl hover:shadow-lg transition-all duration-300">
+                    <div className="relative aspect-[16/10] overflow-hidden bg-[var(--neo-surface-2)]">
+                      <img
+                        src={item.coverImage || item.thumbnail || `https://picsum.photos/seed/${item.slug || item._id}/400/250`}
+                        alt={item.title}
+                        className="w-full h-full object-cover group-hover:scale-105 transition duration-700 ease-out"
+                      />
 
-                  <div className="p-5 flex flex-col flex-grow">
-                    <div className="flex items-center justify-between mb-3">
-                      <div className="text-[var(--neo-text-muted)] text-xs font-medium bg-[var(--neo-surface-2)] px-2 py-1 rounded">
-                        {course.category?.name || 'عمومی'}
-                      </div>
-                      <div className="flex items-center gap-1 text-[var(--neo-warning)] font-en text-xs font-bold">
-                        <Star className="w-3.5 h-3.5 fill-current" />
-                        <span>{course.averageRating ? course.averageRating.toFixed(1) : "4.9"}</span>
-                      </div>
-                    </div>
-
-                    <h3 className="font-bold text-[var(--neo-text-main)] mb-2 line-clamp-2 leading-relaxed group-hover:text-[var(--neo-primary)] transition-colors">
-                      {course.title}
-                    </h3>
-
-                    <div className="flex items-center gap-2 mb-4">
-                      <div className="w-6 h-6 rounded-full bg-[var(--neo-surface-2)] flex items-center justify-center text-[var(--neo-primary)] overflow-hidden">
-                        {course.instructor?.avatar || course.instructors?.[0]?.avatar ? (
-                          <img
-                            src={course.instructor?.avatar || course.instructors?.[0]?.avatar}
-                            className="w-full h-full object-cover"
-                            alt=""
-                          />
-                        ) : (
-                          <Users className="w-3 h-3" />
+                      {/* Overlays */}
+                      <div className="absolute top-3 right-3 z-20 flex flex-wrap gap-1.5">
+                        {isFree && (
+                          <div className="bg-emerald-500 text-white text-[11px] font-bold px-2.5 py-0.5 rounded-full shadow-xs">
+                            رایگان
+                          </div>
+                        )}
+                        {item.mode === 'online' && (
+                          <div className="bg-blue-600/90 backdrop-blur-xs text-white text-[11px] font-bold px-2.5 py-0.5 rounded-full flex items-center gap-1 shadow-xs">
+                            <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse"></span> آنلاین (Live)
+                          </div>
+                        )}
+                        {item.mode === 'in_person' && (
+                          <div className="bg-amber-600/90 backdrop-blur-xs text-white text-[11px] font-bold px-2.5 py-0.5 rounded-full flex items-center gap-1 shadow-xs">
+                            <span className="w-1.5 h-1.5 rounded-full bg-white"></span> حضوری
+                          </div>
+                        )}
+                        {!item.mode && item.tags?.includes('آنلاین') && (
+                          <div className="bg-blue-600/90 backdrop-blur-xs text-white text-[11px] font-bold px-2.5 py-0.5 rounded-full shadow-xs">
+                            آنلاین
+                          </div>
                         )}
                       </div>
-                      <span className="text-sm text-[var(--neo-text-secondary)] font-medium">
-                        {course.instructor?.name ||
-                          course.instructor ||
-                          (course.instructors?.[0]?.firstName
-                            ? `${course.instructors[0].firstName} ${course.instructors[0].lastName}`
-                            : 'استاد مدعو')}
-                      </span>
                     </div>
 
-                    <div className="mt-auto pt-4 border-t border-[var(--neo-border)] flex items-center justify-between">
-                      <div className="flex items-center gap-3 text-xs text-[var(--neo-text-muted)]">
-                        <div className="flex items-center gap-1">
-                          <Clock className="w-3.5 h-3.5" />
-                          {typeof course.duration === 'string'
-                            ? course.duration
-                            : course.totalDuration
-                            ? Math.round(course.totalDuration / 60) + ' ساعت'
-                            : '0 ساعت'}
+                    <div className="p-4 sm:p-5 flex flex-col flex-grow">
+                      <div className="flex items-center justify-between mb-2.5">
+                        <div className="text-[var(--neo-text-muted)] text-[11px] font-medium bg-[var(--neo-surface-2)] px-2 py-0.5 rounded-md">
+                          {item.categoryId?.name || item.category?.name || (isClass ? 'کلاس تعاملی' : 'دوره آموزشی')}
                         </div>
-                        <div className="flex items-center gap-1">
-                          <PlayCircle className="w-3.5 h-3.5" />
-                          {course.totalLessons || 0} جلسه
+                        <div className="flex items-center gap-1 text-amber-500 text-xs font-bold font-mono">
+                          <Star className="w-3.5 h-3.5 fill-current" />
+                          <span>{item.averageRating || item.rating ? Number(item.averageRating || item.rating).toFixed(1) : "5.0"}</span>
                         </div>
                       </div>
-                      <div className="font-bold text-[var(--neo-primary)]">
-                        {course.price === 0 ? "رایگان" : `${course.price.toLocaleString()} تومان`}
+
+                      <h3 className="font-bold text-[var(--neo-text-main)] mb-2 text-sm sm:text-base line-clamp-2 leading-relaxed group-hover:text-[var(--neo-primary)] transition-colors">
+                        {item.title}
+                      </h3>
+
+                      <div className="flex items-center gap-2 mb-4">
+                        <div className="w-6 h-6 rounded-full bg-blue-50 flex items-center justify-center text-blue-600 overflow-hidden border border-blue-100 shrink-0">
+                          {instructorAvatar ? (
+                            <img
+                              src={instructorAvatar}
+                              className="w-full h-full object-cover"
+                              alt=""
+                            />
+                          ) : (
+                            <Users className="w-3 h-3" />
+                          )}
+                        </div>
+                        <span className="text-xs text-[var(--neo-text-secondary)] font-medium line-clamp-1">
+                          {instructorName || 'استاد تک‌یاد'}
+                        </span>
+                      </div>
+
+                      <div className="mt-auto pt-3 border-t border-[var(--neo-border)] flex items-center justify-between">
+                        <div className="flex items-center gap-2 text-[11px] text-[var(--neo-text-muted)]">
+                          {isClass ? (
+                            <span>{item.sessions || 10} جلسه</span>
+                          ) : (
+                            <span>{item.totalLessons || 12} درس</span>
+                          )}
+                        </div>
+                        <div className="font-bold text-xs sm:text-sm text-[var(--neo-primary)] font-mono">
+                          {isFree ? (
+                            <span className="text-emerald-600">رایگان</span>
+                          ) : (
+                            <span>{displayPrice.toLocaleString('fa-IR')} <span className="text-[10px] text-gray-500 font-normal">تومان</span></span>
+                          )}
+                        </div>
                       </div>
                     </div>
-                  </div>
-                </Link>
-              ))}
+                  </Link>
+                );
+              })}
         </div>
       </div>
     </section>

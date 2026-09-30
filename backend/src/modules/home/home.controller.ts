@@ -7,6 +7,7 @@ import { InstructorProfile } from "../instructors/instructor-profile.model.js";
 import { Testimonial } from "./testimonial.model.js";
 import { User } from "../auth/user.model.js";
 import { Role } from "../auth/role.model.js";
+import { Class } from "../classes/class.model.js";
 
 // Mock data seeder
 const seedData = async () => {
@@ -118,12 +119,25 @@ export const getHomeData = async (req: Request, res: Response, next: NextFunctio
     await seedData();
 
     const categories = await Category.find({ isActive: true }).limit(8);
-    const popularCourses = await Course.find({ status: "published" }).sort({ totalLessons: -1 }).limit(4).populate('instructors', 'firstName lastName avatar');
-    const newCourses = await Course.find({ status: "published" }).sort({ createdAt: -1 }).limit(4).populate('instructors', 'firstName lastName avatar');
-    const freeCourses = await Course.find({ status: "published", price: 0 }).limit(4).populate('instructors', 'firstName lastName avatar');
-    const onlineClasses = await Course.find({ status: "published", tags: "آنلاین" }).limit(4).populate('instructors', 'firstName lastName avatar');
-    const inPersonClasses = await Course.find({ status: "published", tags: "حضوری" }).limit(4).populate('instructors', 'firstName lastName avatar');
-    const topInstructors = await InstructorProfile.find({ isApproved: true }).limit(4).populate('userId', 'firstName lastName avatar');
+    const popularCourses = await Course.find({ status: "published" }).sort({ totalLessons: -1 }).limit(4).populate('instructors', 'firstName lastName avatar specialty');
+    const newCourses = await Course.find({ status: "published" }).sort({ createdAt: -1 }).limit(4).populate('instructors', 'firstName lastName avatar specialty');
+    const freeCourses = await Course.find({ status: "published", price: 0 }).limit(4).populate('instructors', 'firstName lastName avatar specialty');
+    
+    // Classes: Fetch interactive live classes and in-person workshops from Class model if available, fallback to tagged courses
+    let onlineClasses: any[] = await Class.find({ mode: 'online', status: { $ne: 'cancelled' } }).limit(4).populate('instructors', 'firstName lastName avatar specialty');
+    if (!onlineClasses || onlineClasses.length === 0) {
+      onlineClasses = await Course.find({ status: "published", tags: "آنلاین" }).limit(4).populate('instructors', 'firstName lastName avatar specialty');
+    }
+
+    let inPersonClasses: any[] = await Class.find({ mode: 'in_person', status: { $ne: 'cancelled' } }).limit(4).populate('instructors', 'firstName lastName avatar specialty');
+    if (!inPersonClasses || inPersonClasses.length === 0) {
+      inPersonClasses = await Course.find({ status: "published", tags: "حضوری" }).limit(4).populate('instructors', 'firstName lastName avatar specialty');
+    }
+
+    const topInstructors = await InstructorProfile.find({ isApproved: true })
+      .limit(8)
+      .populate('userId', 'firstName lastName avatar specialty bio')
+      .lean();
     const latestArticles = await Article.find({ status: "published" }).sort({ createdAt: -1 }).limit(4);
     const testimonials = await Testimonial.find({ isActive: { $ne: false } }).sort({ order: 1, createdAt: -1 }).limit(6);
 
