@@ -18,6 +18,10 @@ export interface IClassEnrollment extends Document {
 
   // Attendance stats cache
   attendedSessionsCount: number;
+
+  // Gradebook & Evaluation
+  finalGrade?: number;
+  evaluationNote?: string;
 }
 
 const classEnrollmentSchema = new Schema<IClassEnrollment>(
@@ -39,6 +43,10 @@ const classEnrollmentSchema = new Schema<IClassEnrollment>(
 
     // Attendance stats
     attendedSessionsCount: { type: Number, default: 0 },
+
+    // Gradebook & Evaluation
+    finalGrade: { type: Number, min: 0, max: 100 },
+    evaluationNote: { type: String, default: "" },
   },
   { timestamps: true }
 );

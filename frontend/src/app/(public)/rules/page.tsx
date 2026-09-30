@@ -1,12 +1,19 @@
-import Link from 'next/link';
-import { Scale, BookOpen, ShieldAlert, CreditCard, Video, Users, AlertCircle } from 'lucide-react';
+'use client';
 
-export const metadata = {
-  title: 'قوانین و مقررات | تک‌یاد',
-  description: 'قوانین و مقررات استفاده از خدمات و دوره‌های آموزشی پلتفرم تک‌یاد.',
-};
+import { useQuery } from '@tanstack/react-query';
+import { superAdminApi } from '@/features/admin/api/super-admin.api';
+import Link from 'next/link';
+import { Scale, BookOpen, ShieldAlert, CreditCard, Video, Users, AlertCircle, FileText } from 'lucide-react';
 
 export default function RulesPage() {
+  const { data: publicSettings } = useQuery({
+    queryKey: ['publicSettings'],
+    queryFn: () => superAdminApi.getPublicSettings().then(res => res.data),
+    staleTime: 1000 * 60 * 5,
+  });
+
+  const customRules = publicSettings?.termsOfService || publicSettings?.rules;
+
   return (
     <main className="bg-[var(--neo-bg)] min-h-screen py-16">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -21,108 +28,78 @@ export default function RulesPage() {
         </div>
 
         <div className="bg-white rounded-3xl p-8 md:p-12 shadow-sm border border-[var(--neo-border)] relative">
-          {/* Last updated */}
           <div className="absolute top-8 left-8 text-xs font-medium text-[var(--neo-text-muted)] bg-[var(--neo-bg)] px-3 py-1.5 rounded-lg border border-[var(--neo-border)]">
-            آخرین بروزرسانی: ۱۵ شهریور ۱۴۰۳
+            نسخه رسمی سامانه تک‌یاد
           </div>
 
-          <div className="prose prose-blue prose-lg max-w-none prose-headings:text-[var(--neo-text-main)] prose-headings:font-bold prose-p:text-[var(--neo-text-secondary)] prose-p:leading-relaxed prose-li:text-[var(--neo-text-secondary)] mt-8">
-            
-            <section className="mb-12">
-              <h2 className="flex items-center gap-2 text-2xl border-b border-[var(--neo-border)] pb-4">
-                <BookOpen className="w-6 h-6 text-[var(--neo-primary)]" />
-                ۱. قوانین کلی سایت
-              </h2>
-              <p>
-                عضویت در سایت تک‌یاد و استفاده از خدمات آن به منزله مطالعه و پذیرش کامل این قوانین است. تک‌یاد حق دارد در هر زمان بدون اطلاع قبلی، این قوانین را تغییر دهد. نسخه به‌روزرسانی شده در همین صفحه قرار خواهد گرفت.
-              </p>
-              <ul>
-                <li>کاربر موظف است هنگام ثبت‌نام، اطلاعات هویتی و تماس خود را به صورت دقیق و واقعی وارد نماید.</li>
-                <li>مسئولیت حفظ و نگهداری از رمز عبور بر عهده کاربر است.</li>
-                <li>هرگونه فعالیت که موجب اختلال در عملکرد سایت شود، پیگرد قانونی خواهد داشت.</li>
-              </ul>
-            </section>
+          {customRules ? (
+            <div className="mt-8 space-y-6">
+              <div className="p-6 bg-blue-50/40 border border-blue-100 rounded-2xl">
+                <div className="flex items-center gap-2 text-blue-700 font-bold mb-3">
+                  <FileText className="w-5 h-5" />
+                  مقررات و شرایط عمومی مصوب مدیریت
+                </div>
+                <div className="text-sm text-gray-700 leading-loose whitespace-pre-wrap font-sans">
+                  {customRules}
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="prose prose-blue prose-lg max-w-none prose-headings:text-[var(--neo-text-main)] prose-headings:font-bold prose-p:text-[var(--neo-text-secondary)] prose-p:leading-relaxed prose-li:text-[var(--neo-text-secondary)] mt-8">
+              <section className="mb-12">
+                <h2 className="flex items-center gap-2 text-2xl border-b border-[var(--neo-border)] pb-4">
+                  <BookOpen className="w-6 h-6 text-[var(--neo-primary)]" />
+                  ۱. قوانین کلی سایت
+                </h2>
+                <p>
+                  عضویت در سایت تک‌یاد و استفاده از خدمات آن به منزله مطالعه و پذیرش کامل این قوانین است. تک‌یاد حق دارد در هر زمان بدون اطلاع قبلی، این قوانین را تغییر دهد.
+                </p>
+                <ul>
+                  <li>کاربر موظف است هنگام ثبت‌نام، اطلاعات هویتی و تماس خود را به صورت دقیق و واقعی وارد نماید.</li>
+                  <li>مسئولیت حفظ و نگهداری از رمز عبور بر عهده کاربر است.</li>
+                  <li>هرگونه فعالیت که موجب اختلال در عملکرد سایت شود، پیگرد قانونی خواهد داشت.</li>
+                </ul>
+              </section>
 
-            <section className="mb-12">
-              <h2 className="flex items-center gap-2 text-2xl border-b border-[var(--neo-border)] pb-4">
-                <CreditCard className="w-6 h-6 text-[var(--neo-primary)]" />
-                ۲. قوانین خرید و پرداخت
-              </h2>
-              <p>
-                تمامی تراکنش‌های مالی از طریق درگاه‌های امن بانکی انجام می‌شود. 
-              </p>
-              <ul>
-                <li>در صورت بروز اختلال در شبکه بانکی و کسر وجه، مبلغ طی ۷۲ ساعت کاری توسط بانک به حساب شما بازگردانده می‌شود.</li>
-                <li>برای پرداخت‌های اقساطی، کاربر موظف به پرداخت سر موعد اقساط است. در غیر این صورت دسترسی به دوره موقتاً مسدود خواهد شد.</li>
-              </ul>
-            </section>
+              <section className="mb-12">
+                <h2 className="flex items-center gap-2 text-2xl border-b border-[var(--neo-border)] pb-4">
+                  <CreditCard className="w-6 h-6 text-[var(--neo-primary)]" />
+                  ۲. قوانین خرید و پرداخت
+                </h2>
+                <p>
+                  تمامی تراکنش‌های مالی از طریق درگاه‌های امن بانکی انجام می‌شود.
+                </p>
+                <ul>
+                  <li>در صورت بروز اختلال در شبکه بانکی و کسر وجه، مبلغ طی ۷۲ ساعت کاری توسط بانک عودت داده می‌شود.</li>
+                  <li>برای دوره‌ها و کلاس‌های پیش‌ثبت‌نامی (بیعانه)، پرداخت مابقی مبلغ طبق تقویم آموزشی الزامی است.</li>
+                </ul>
+              </section>
 
-            <section className="mb-12 bg-[var(--neo-primary)]/5/50 p-6 rounded-2xl border border-blue-100">
-              <h2 className="flex items-center gap-2 text-2xl border-b border-blue-200 pb-4 text-blue-900 mt-0">
-                <ShieldAlert className="w-6 h-6 text-[var(--neo-primary)]" />
-                ۳. قوانین استفاده از محتوا (کپی‌رایت)
-              </h2>
-              <p className="font-medium text-[var(--neo-text-main)]">
-                محتوای آموزشی تک‌یاد حاصل تلاش اساتید و تیم تولید است. هرگونه سوءاستفاده از آن شرعاً و قانوناً حرام و ممنوع است.
-              </p>
-              <ul className="marker:text-red-500">
-                <li><strong className="text-[var(--neo-text-main)]">اشتراک‌گذاری حساب ممنوع:</strong> هر حساب کاربری مختص یک نفر است. استفاده همزمان چند نفر از یک حساب موجب مسدود شدن دائم حساب بدون استرداد وجه خواهد شد.</li>
-                <li><strong className="text-[var(--neo-text-main)]">انتشار محتوا ممنوع:</strong> دانلود، ضبط صفحه نمایش، کپی‌برداری، فروش یا انتشار رایگان ویدئوها و جزوات در شبکه‌های اجتماعی تلگرام و... پیگرد قانونی و قضایی شدید به همراه دارد.</li>
-              </ul>
-            </section>
+              <section className="mb-12 bg-amber-50/50 p-6 rounded-2xl border border-amber-200">
+                <h2 className="flex items-center gap-2 text-2xl text-amber-800 border-none pb-0 mb-4">
+                  <ShieldAlert className="w-6 h-6 text-amber-600" />
+                  ۳. مالکیت فکری و حق کپی‌رایت
+                </h2>
+                <p className="text-amber-900 font-medium">
+                  تمامی محتوای دوره‌ها، ویدیوها و جزوات آموزشی متعلق به مدرسین و تک‌یاد است.
+                </p>
+                <ul className="text-amber-800">
+                  <li>هرگونه انتشار، بازنشر، فروش یا اشتراک‌گذاری محتوای آموزشی غیرقانونی و شرعاً و قانوناً ممنوع است.</li>
+                  <li>هر حساب کاربری فقط مختص یک فرد است و استفاده همزمان چند نفر ممنوع است.</li>
+                </ul>
+              </section>
+            </div>
+          )}
 
-            <section className="mb-12">
-              <h2 className="flex items-center gap-2 text-2xl border-b border-[var(--neo-border)] pb-4">
-                <Video className="w-6 h-6 text-[var(--neo-primary)]" />
-                ۴. قوانین کلاس‌های آنلاین و دوره‌های ضبط‌ شده
-              </h2>
-              <ul>
-                <li>دانشجو موظف است پیش از ثبت‌نام در کلاس‌های آنلاین، از داشتن اینترنت باثبات و سیستم مناسب اطمینان حاصل کند. قطعی اینترنت کاربر به عهده تک‌یاد نیست.</li>
-                <li>رعایت شئونات اخلاقی در چت کلاس آنلاین الزامی است.</li>
-                <li>دوره‌های ضبط شده لایسنس‌دار تنها روی سیستم عامل‌های ویندوز، مک و اندروید از طریق پلیر اختصاصی قابل مشاهده هستند.</li>
-              </ul>
-            </section>
-
-            <section className="mb-12">
-              <h2 className="flex items-center gap-2 text-2xl border-b border-[var(--neo-border)] pb-4">
-                <Users className="w-6 h-6 text-[var(--neo-primary)]" />
-                ۵. قوانین کلاس‌های حضوری
-              </h2>
-              <ul>
-                <li>حضور به‌موقع در کلاس الزامی است (حداکثر تاخیر مجاز ۱۵ دقیقه).</li>
-                <li>غیبت بیش از ۳ جلسه (غیرموجه) در دوره‌های حضوری، موجب حذف نام دانشجو از لیست دریافت گواهینامه پایان دوره می‌شود.</li>
-                <li>رعایت پوشش مناسب محیط‌های آموزشی الزامی است.</li>
-              </ul>
-            </section>
-
-            <section className="mb-12 bg-amber-50 p-6 rounded-2xl border border-amber-200">
-              <h2 className="flex items-center gap-2 text-2xl border-b border-amber-200 pb-4 text-amber-900 mt-0">
-                <AlertCircle className="w-6 h-6 text-amber-600" />
-                ۶. سیاست بازپرداخت و لغو (Refund Policy)
-              </h2>
-              <p>
-                شرایط استرداد وجه با توجه به نوع دوره متفاوت است:
-              </p>
-              <ul>
-                <li><strong className="text-[var(--neo-text-main)]">دوره‌های ویدئویی (ضبط شده):</strong> به دلیل دسترسی آنی به محتوا، امکان استرداد وجه پس از خرید وجود ندارد. (مگر در صورت اثبات خرابی فایل‌ها از سمت سرور ما).</li>
-                <li><strong className="text-[var(--neo-text-main)]">کلاس‌های آنلاین و حضوری:</strong>
-                  <ul>
-                    <li>تا <strong className="text-red-600">۴۸ ساعت قبل از شروع اولین جلسه</strong>: لغو ثبت‌نام با کسر ۱۰٪ کارمزد.</li>
-                    <li>از ۴۸ ساعت قبل تا <strong className="text-red-600">پایان جلسه اول</strong>: لغو ثبت‌نام با کسر ۳۰٪ مبلغ کل دوره.</li>
-                    <li><strong className="text-red-600">پس از شروع جلسه دوم</strong>: امکان لغو و استرداد وجه تحت هیچ شرایطی وجود ندارد.</li>
-                  </ul>
-                </li>
-                <li>مهلت واریز وجه استردادی توسط بخش مالی بین ۳ تا ۵ روز کاری می‌باشد.</li>
-              </ul>
-            </section>
-          </div>
-
-          <div className="mt-12 pt-8 border-t border-[var(--neo-border)] text-center">
-            <p className="text-[var(--neo-text-muted)] mb-4">
-              برای اطلاعات بیشتر در مورد نحوه نگهداری اطلاعات شما، لطفاً صفحه حریم خصوصی را مطالعه کنید.
+          <div className="mt-12 pt-8 border-t border-[var(--neo-border)] flex flex-col sm:flex-row justify-between items-center gap-4">
+            <p className="text-sm text-[var(--neo-text-muted)]">
+              سوالی در مورد قوانین دارید؟ با پشتیبانی ما در ارتباط باشید.
             </p>
-            <Link href="/privacy" className="text-[var(--neo-primary)] font-bold hover:underline">
-              مطالعه سیاست حفظ حریم خصوصی
+            <Link
+              href="/contact"
+              className="text-sm font-bold text-[var(--neo-primary)] hover:underline"
+            >
+              تماس با پشتیبانی &larr;
             </Link>
           </div>
         </div>

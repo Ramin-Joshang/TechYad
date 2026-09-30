@@ -13,7 +13,7 @@ import toast from 'react-hot-toast';
 
 export default function SettingsPage() {
   const queryClient = useQueryClient();
-  const [activeTab, setActiveTab] = useState<'general' | 'branding' | 'trust' | 'payments' | 'sms' | 'legal'>('general');
+  const [activeTab, setActiveTab] = useState<'general' | 'branding' | 'landing' | 'trust' | 'payments' | 'sms' | 'legal' | 'about'>('general');
   const [formData, setFormData] = useState<Record<string, any>>({});
 
   const { isLoading } = useQuery({
@@ -47,10 +47,12 @@ export default function SettingsPage() {
   const tabs = [
     { id: 'general', label: 'عمومی و سئو', icon: Globe },
     { id: 'branding', label: 'لوگو و برندینگ', icon: ImageIcon },
+    { id: 'landing', label: 'صفحه اصلی و لندینگ', icon: Sparkles },
     { id: 'trust', label: 'نمادهای اعتماد و مجوزها', icon: Award },
     { id: 'payments', label: 'درگاه‌های پرداخت', icon: CreditCard },
     { id: 'sms', label: 'پیامک و ارتباطات', icon: MessageSquare },
-    { id: 'legal', label: 'قوانین و حریم خصوصی', icon: Shield },
+    { id: 'legal', label: 'قوانین و مقررات', icon: Shield },
+    { id: 'about', label: 'درباره ما (/about)', icon: Building2 },
   ];
 
   if (isLoading) {
@@ -481,6 +483,397 @@ export default function SettingsPage() {
                     className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl outline-none text-xs leading-relaxed"
                     placeholder="توضیحات مربوط به نگهداری اطلاعات هویتی و امنیت داده‌های کاربران..."
                   />
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* TAB: Landing & Home Page */}
+          {activeTab === 'landing' && (
+            <div className="space-y-6">
+              <div>
+                <h3 className="text-base font-black text-gray-900">مدیریت محتوای صفحه اصلی و لندینگ پیج</h3>
+                <p className="text-xs text-gray-400 mt-1">
+                  تنظیم تیترها، زیرعنوان‌ها، شعارها، دکمه‌های اقدام به عمل و آمارهای کلیدی صفحه اصلی
+                </p>
+              </div>
+
+              {/* Hero Section */}
+              <div className="p-5 bg-white rounded-2xl border border-gray-200 space-y-4">
+                <h4 className="text-xs font-black text-blue-600 uppercase tracking-wider flex items-center gap-1.5">
+                  <Sparkles className="w-4 h-4" />
+                  بخش بنر اصلی (Hero Section)
+                </h4>
+
+                <div className="space-y-2">
+                  <label className="text-xs font-bold text-gray-700">برچسب کوچک بالای تیتر (Badge)</label>
+                  <input
+                    type="text"
+                    value={formData.heroBadgeText || ''}
+                    onChange={e => handleChange('heroBadgeText', e.target.value)}
+                    placeholder="پلتفرم یکپارچه آموزش آکادمیک و تخصصی"
+                    className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl outline-none text-xs"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-xs font-bold text-gray-700">تیتر اصلی هیرو (Hero Title)</label>
+                  <input
+                    type="text"
+                    value={formData.heroTitle || ''}
+                    onChange={e => handleChange('heroTitle', e.target.value)}
+                    placeholder="یادگیری برای آینده‌ای که می‌سازی."
+                    className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl outline-none text-xs font-bold"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-xs font-bold text-gray-700">زیرعنوان و توضیحات هیرو (Hero Subtitle)</label>
+                  <textarea
+                    rows={3}
+                    value={formData.heroSubtitle || ''}
+                    onChange={e => handleChange('heroSubtitle', e.target.value)}
+                    placeholder="دروس دانشگاهی، آموزش‌های تخصصی و کلاس‌های حضوری؛ با اساتیدی که واقعاً می‌دانند چه چیزی را باید آموزش دهند. مسیر یادگیری خودت را پیدا کن."
+                    className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl outline-none text-xs leading-relaxed"
+                  />
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold text-gray-700">متن دکمه اصلی (Primary CTA)</label>
+                    <input
+                      type="text"
+                      value={formData.heroPrimaryCtaText || ''}
+                      onChange={e => handleChange('heroPrimaryCtaText', e.target.value)}
+                      placeholder="شروع یادگیری"
+                      className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl outline-none text-xs"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold text-gray-700">لینک دکمه اصلی</label>
+                    <input
+                      type="text"
+                      value={formData.heroPrimaryCtaLink || ''}
+                      onChange={e => handleChange('heroPrimaryCtaLink', e.target.value)}
+                      placeholder="/courses"
+                      className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl outline-none text-xs font-mono dir-ltr"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold text-gray-700">متن دکمه دوم (Secondary CTA)</label>
+                    <input
+                      type="text"
+                      value={formData.heroSecondaryCtaText || ''}
+                      onChange={e => handleChange('heroSecondaryCtaText', e.target.value)}
+                      placeholder="دوره‌های رایگان"
+                      className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl outline-none text-xs"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold text-gray-700">لینک دکمه دوم</label>
+                    <input
+                      type="text"
+                      value={formData.heroSecondaryCtaLink || ''}
+                      onChange={e => handleChange('heroSecondaryCtaLink', e.target.value)}
+                      placeholder="/courses?free=true"
+                      className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl outline-none text-xs font-mono dir-ltr"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Statistics & Numbers */}
+              <div className="p-5 bg-white rounded-2xl border border-gray-200 space-y-4">
+                <h4 className="text-xs font-black text-emerald-600 uppercase tracking-wider">
+                  آمارها و ارقام برجسته پلتفرم
+                </h4>
+
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                  <div className="space-y-1">
+                    <label className="text-[11px] font-bold text-gray-600">تعداد دانشجویان</label>
+                    <input
+                      type="text"
+                      value={formData.statsStudents || ''}
+                      onChange={e => handleChange('statsStudents', e.target.value)}
+                      placeholder="+۱۰,۰۰۰"
+                      className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl outline-none text-xs font-mono text-center"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-[11px] font-bold text-gray-600">درصد رضایت</label>
+                    <input
+                      type="text"
+                      value={formData.statsSatisfaction || ''}
+                      onChange={e => handleChange('statsSatisfaction', e.target.value)}
+                      placeholder="۹۸٪"
+                      className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl outline-none text-xs font-mono text-center"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-[11px] font-bold text-gray-600">تعداد اساتید برتر</label>
+                    <input
+                      type="text"
+                      value={formData.statsInstructors || ''}
+                      onChange={e => handleChange('statsInstructors', e.target.value)}
+                      placeholder="+۵۰"
+                      className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl outline-none text-xs font-mono text-center"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-[11px] font-bold text-gray-600">ساعات آموزش</label>
+                    <input
+                      type="text"
+                      value={formData.statsHours || ''}
+                      onChange={e => handleChange('statsHours', e.target.value)}
+                      placeholder="+۵۰۰"
+                      className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl outline-none text-xs font-mono text-center"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Intro Section Controls */}
+              <div className="p-5 bg-white rounded-2xl border border-gray-200 space-y-4">
+                <h4 className="text-xs font-black text-indigo-600 uppercase tracking-wider">
+                  بخش معرفی و شعار پلتفرم (Intro Section)
+                </h4>
+
+                <div className="space-y-2">
+                  <label className="text-xs font-bold text-gray-700">برچسب کوچک بالای تیتر</label>
+                  <input
+                    type="text"
+                    value={formData.introBadge || ''}
+                    onChange={e => handleChange('introBadge', e.target.value)}
+                    placeholder="درباره پلتفرم"
+                    className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl outline-none text-xs"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-xs font-bold text-gray-700">تیتر معرفی (Intro Title)</label>
+                  <input
+                    type="text"
+                    value={formData.introTitle || ''}
+                    onChange={e => handleChange('introTitle', e.target.value)}
+                    placeholder="تجربه یادگیری بهتر و متفاوت‌تر"
+                    className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl outline-none text-xs font-bold"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-xs font-bold text-gray-700">متن توضیحات معرفی (Intro Subtitle)</label>
+                  <textarea
+                    rows={3}
+                    value={formData.introSubtitle || ''}
+                    onChange={e => handleChange('introSubtitle', e.target.value)}
+                    placeholder="تک‌یاد با هدف ارتقای سطح دانش و مهارت‌های تخصصی، پلتفرمی یکپارچه برای یادگیری فراهم کرده است..."
+                    className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl outline-none text-xs leading-relaxed"
+                  />
+                </div>
+              </div>
+
+              {/* Advantages 4 Cards */}
+              <div className="p-5 bg-white rounded-2xl border border-gray-200 space-y-4">
+                <h4 className="text-xs font-black text-purple-600 uppercase tracking-wider">
+                  کارت‌های چهارگانه مزایای تک‌یاد (Advantages)
+                </h4>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="p-3 bg-gray-50 rounded-xl border border-gray-200 space-y-2">
+                    <label className="text-[11px] font-bold text-gray-700">کارت ۱ (تضمین کیفیت)</label>
+                    <input
+                      type="text"
+                      value={formData.advantage1Title || ''}
+                      onChange={e => handleChange('advantage1Title', e.target.value)}
+                      placeholder="عنوان: تضمین کیفیت"
+                      className="w-full px-3 py-1.5 bg-white border border-gray-200 rounded-lg text-xs"
+                    />
+                    <input
+                      type="text"
+                      value={formData.advantage1Desc || ''}
+                      onChange={e => handleChange('advantage1Desc', e.target.value)}
+                      placeholder="توضیح: بازگشت وجه در صورت عدم رضایت"
+                      className="w-full px-3 py-1.5 bg-white border border-gray-200 rounded-lg text-xs"
+                    />
+                  </div>
+
+                  <div className="p-3 bg-gray-50 rounded-xl border border-gray-200 space-y-2">
+                    <label className="text-[11px] font-bold text-gray-700">کارت ۲ (دسترسی مادام‌العمر)</label>
+                    <input
+                      type="text"
+                      value={formData.advantage2Title || ''}
+                      onChange={e => handleChange('advantage2Title', e.target.value)}
+                      placeholder="عنوان: دسترسی مادام‌العمر"
+                      className="w-full px-3 py-1.5 bg-white border border-gray-200 rounded-lg text-xs"
+                    />
+                    <input
+                      type="text"
+                      value={formData.advantage2Desc || ''}
+                      onChange={e => handleChange('advantage2Desc', e.target.value)}
+                      placeholder="توضیح: آپدیت رایگان دوره‌های خریداری شده"
+                      className="w-full px-3 py-1.5 bg-white border border-gray-200 rounded-lg text-xs"
+                    />
+                  </div>
+
+                  <div className="p-3 bg-gray-50 rounded-xl border border-gray-200 space-y-2">
+                    <label className="text-[11px] font-bold text-gray-700">کارت ۳ (پشتیبانی)</label>
+                    <input
+                      type="text"
+                      value={formData.advantage3Title || ''}
+                      onChange={e => handleChange('advantage3Title', e.target.value)}
+                      placeholder="عنوان: پشتیبانی ۲۴/۷"
+                      className="w-full px-3 py-1.5 bg-white border border-gray-200 rounded-lg text-xs"
+                    />
+                    <input
+                      type="text"
+                      value={formData.advantage3Desc || ''}
+                      onChange={e => handleChange('advantage3Desc', e.target.value)}
+                      placeholder="توضیح: رفع اشکال توسط اساتید و منتورها"
+                      className="w-full px-3 py-1.5 bg-white border border-gray-200 rounded-lg text-xs"
+                    />
+                  </div>
+
+                  <div className="p-3 bg-gray-50 rounded-xl border border-gray-200 space-y-2">
+                    <label className="text-[11px] font-bold text-gray-700">کارت ۴ (مدرک معتبر)</label>
+                    <input
+                      type="text"
+                      value={formData.advantage4Title || ''}
+                      onChange={e => handleChange('advantage4Title', e.target.value)}
+                      placeholder="عنوان: مدرک معتبر"
+                      className="w-full px-3 py-1.5 bg-white border border-gray-200 rounded-lg text-xs"
+                    />
+                    <input
+                      type="text"
+                      value={formData.advantage4Desc || ''}
+                      onChange={e => handleChange('advantage4Desc', e.target.value)}
+                      placeholder="توضیح: ارائه گواهی پایان دوره دوزبانه"
+                      className="w-full px-3 py-1.5 bg-white border border-gray-200 rounded-lg text-xs"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* CTA Section */}
+              <div className="p-5 bg-white rounded-2xl border border-gray-200 space-y-4">
+                <h4 className="text-xs font-black text-amber-600 uppercase tracking-wider">
+                  بخش دعوت به اقدام انتهای صفحه (Bottom CTA)
+                </h4>
+
+                <div className="space-y-2">
+                  <label className="text-xs font-bold text-gray-700">تیتر دعوت به اقدام</label>
+                  <input
+                    type="text"
+                    value={formData.ctaTitle || ''}
+                    onChange={e => handleChange('ctaTitle', e.target.value)}
+                    placeholder="آماده‌اید مسیر یادگیری خود را آغاز کنید؟"
+                    className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl outline-none text-xs font-bold"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-xs font-bold text-gray-700">توضیحات دعوت به اقدام</label>
+                  <textarea
+                    rows={2}
+                    value={formData.ctaSubtitle || ''}
+                    onChange={e => handleChange('ctaSubtitle', e.target.value)}
+                    placeholder="به هزاران دانشجوی تک‌یاد بپیوندید و مهارت‌های آینده شغلی خود را از همین امروز بسازید."
+                    className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl outline-none text-xs"
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-1">
+                    <label className="text-xs font-bold text-gray-700">متن دکمه ثبت‌نام</label>
+                    <input
+                      type="text"
+                      value={formData.ctaButtonText || ''}
+                      onChange={e => handleChange('ctaButtonText', e.target.value)}
+                      placeholder="عضویت و ثبت‌نام سریع"
+                      className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-xl outline-none text-xs"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-xs font-bold text-gray-700">لینک دکمه</label>
+                    <input
+                      type="text"
+                      value={formData.ctaButtonLink || ''}
+                      onChange={e => handleChange('ctaButtonLink', e.target.value)}
+                      placeholder="/register"
+                      className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-xl outline-none text-xs font-mono dir-ltr"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* TAB: About Us Page */}
+          {activeTab === 'about' && (
+            <div className="space-y-6">
+              <div>
+                <h3 className="text-base font-black text-gray-900">مدیریت محتوای صفحه درباره ما (/about)</h3>
+                <p className="text-xs text-gray-400 mt-1">داستان شکل‌گیری، مأموریت، چشم‌انداز و پیام مدیریت آموزشگاه</p>
+              </div>
+
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <label className="text-xs font-bold text-gray-800">تیتر اصلی صفحه درباره ما</label>
+                  <input
+                    type="text"
+                    value={formData.aboutTitle || ''}
+                    onChange={e => handleChange('aboutTitle', e.target.value)}
+                    placeholder="یادگیری بهتر، آینده بهتر"
+                    className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl outline-none text-xs font-bold"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-xs font-bold text-gray-800">زیرعنوان اصلی</label>
+                  <input
+                    type="text"
+                    value={formData.aboutSubtitle || ''}
+                    onChange={e => handleChange('aboutSubtitle', e.target.value)}
+                    placeholder="ما در تک‌یاد معتقدیم آموزش باکیفیت حق همه است. پلتفرمی برای ارتقای مهارت‌های شما با بهترین اساتید ایران."
+                    className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl outline-none text-xs"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-xs font-bold text-gray-800">داستان ما (Our Story)</label>
+                  <textarea
+                    rows={5}
+                    value={formData.aboutStory || ''}
+                    onChange={e => handleChange('aboutStory', e.target.value)}
+                    placeholder="داستان پیدایش تک‌یاد، اهداف و فلسفه آموزشگاه..."
+                    className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl outline-none text-xs leading-relaxed"
+                  />
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold text-gray-800">مأموریت ما (Mission)</label>
+                    <textarea
+                      rows={4}
+                      value={formData.aboutMission || ''}
+                      onChange={e => handleChange('aboutMission', e.target.value)}
+                      placeholder="ارائه آموزش‌های عملی، باکیفیت و مقرون‌به‌صرفه در حوزه‌های تکنولوژی و مهندسی برای توانمندسازی نیروی کار فردا..."
+                      className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl outline-none text-xs leading-relaxed"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold text-gray-800">چشم‌انداز ما (Vision)</label>
+                    <textarea
+                      rows={4}
+                      value={formData.aboutVision || ''}
+                      onChange={e => handleChange('aboutVision', e.target.value)}
+                      placeholder="تبدیل شدن به بزرگترین مرجع آموزش آنلاین و تعاملی و پر کردن شکاف بین دانشگاه و بازار کار..."
+                      className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl outline-none text-xs leading-relaxed"
+                    />
+                  </div>
                 </div>
               </div>
             </div>

@@ -7,6 +7,9 @@ export interface ISessionSyllabus {
   date?: string;
   time?: string;
   durationMinutes?: number;
+  meetingLink?: string;
+  recordingUrl?: string;
+  isHeld?: boolean;
 }
 
 export interface IClass extends Document {
@@ -69,6 +72,9 @@ const sessionSyllabusSchema = new Schema<ISessionSyllabus>(
     date: String,
     time: String,
     durationMinutes: { type: Number, default: 90 },
+    meetingLink: String,
+    recordingUrl: String,
+    isHeld: { type: Boolean, default: false },
   },
   { _id: false }
 );

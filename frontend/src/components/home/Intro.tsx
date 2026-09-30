@@ -1,12 +1,26 @@
+'use client';
+
+import { useQuery } from "@tanstack/react-query";
+import { superAdminApi } from "@/features/admin/api/super-admin.api";
 import { BookOpen, Users, Award, MonitorPlay, Sparkles } from "lucide-react";
 
 export function Intro() {
+  const { data: publicSettings } = useQuery({
+    queryKey: ['publicSettings'],
+    queryFn: () => superAdminApi.getPublicSettings().then(res => res.data),
+    staleTime: 1000 * 60 * 5,
+  });
+
   const stats = [
-    { icon: BookOpen, value: "۵۰۰+", label: "دوره آموزشی" },
-    { icon: Users, value: "۵۰K+", label: "دانشجو فعال" },
-    { icon: Award, value: "۲۰۰+", label: "استاد مجرب" },
-    { icon: MonitorPlay, value: "۱۰K+", label: "ساعت آموزش" },
+    { icon: BookOpen, value: publicSettings?.statsCourses || "۵۰۰+", label: "دوره آموزشی" },
+    { icon: Users, value: publicSettings?.statsStudents || "۱۰K+", label: "دانشجو فعال" },
+    { icon: Award, value: publicSettings?.statsInstructors || "۵۰+", label: "استاد مجرب" },
+    { icon: MonitorPlay, value: publicSettings?.statsHours || "۱۰K+", label: "ساعت آموزش" },
   ];
+
+  const introBadge = publicSettings?.introBadge || "درباره پلتفرم";
+  const introTitle = publicSettings?.introTitle || "تجربه یادگیری بهتر و متفاوت‌تر";
+  const introSubtitle = publicSettings?.introSubtitle || "تک‌یاد با هدف ارتقای سطح دانش و مهارت‌های تخصصی، پلتفرمی یکپارچه برای یادگیری فراهم کرده است. ما با بهره‌گیری از برترین اساتید ایران، دوره‌هایی متناسب با نیاز بازار کار طراحی کرده‌ایم تا مسیر رشد شما را هموارتر کنیم.";
 
   return (
     <section className="py-24 bg-white border-b border-[var(--neo-border)] overflow-hidden relative">
@@ -15,16 +29,15 @@ export function Intro() {
           <div>
             <div className="flex items-center gap-2 mb-6">
               <Sparkles className="w-5 h-5 text-[var(--neo-secondary)]" />
-              <span className="text-[var(--neo-secondary)] font-bold tracking-widest text-sm uppercase">درباره پلتفرم</span>
+              <span className="text-[var(--neo-secondary)] font-bold tracking-widest text-sm uppercase">{introBadge}</span>
             </div>
             
-            <h2 className="text-3xl md:text-5xl font-black text-[var(--neo-text-main)] mb-6 leading-tight">
-              تجربه یادگیری <br/>
-              <span className="text-[var(--neo-primary)]">بهتر و متفاوت‌تر</span>
+            <h2 className="text-3xl md:text-5xl font-black text-[var(--neo-text-main)] mb-6 leading-tight whitespace-pre-line">
+              {introTitle}
             </h2>
             
             <p className="text-lg text-[var(--neo-text-secondary)] mb-10 leading-relaxed font-medium">
-              تک‌یاد با هدف ارتقای سطح دانش و مهارت‌های تخصصی، پلتفرمی یکپارچه برای یادگیری فراهم کرده است. ما با بهره‌گیری از برترین اساتید ایران، دوره‌هایی متناسب با نیاز بازار کار طراحی کرده‌ایم تا مسیر رشد شما را هموارتر کنیم.
+              {introSubtitle}
             </p>
             
             <div className="grid grid-cols-2 gap-8">

@@ -32,17 +32,50 @@ export class InstructorService {
     return profile;
   }
 
+  static async getMyProfile(userId: string) {
+    let profile = await InstructorProfile.findOne({ userId }).populate('userId', 'firstName lastName avatar email');
+    if (!profile) {
+      const user = await User.findById(userId);
+      profile = await InstructorProfile.create({
+        userId,
+        title: user?.specialty || 'مدرس و متخصص آموزشی',
+        bio: user?.bio || 'مدرس آکادمی تک‌یاد',
+        avatar: user?.avatar || '',
+        specialties: [],
+        education: [],
+        experience: [],
+        isApproved: true,
+        socialLinks: {}
+      });
+      profile = await InstructorProfile.findById(profile._id).populate('userId', 'firstName lastName avatar email');
+    }
+    return profile;
+  }
+
   static async updateMyProfile(userId: string, data: any) {
     let profile = await InstructorProfile.findOne({ userId });
     
+    // Also sync bio/avatar/specialty with User document if provided
+    if (data.bio !== undefined || data.avatar !== undefined || data.title !== undefined) {
+      await User.findByIdAndUpdate(userId, {
+        ...(data.bio !== undefined ? { bio: data.bio } : {}),
+        ...(data.avatar !== undefined ? { avatar: data.avatar } : {}),
+        ...(data.title !== undefined ? { specialty: data.title } : {})
+      });
+    }
+
     if (!profile) {
-      profile = await InstructorProfile.create({ userId, ...data });
+      profile = await InstructorProfile.create({ 
+        userId, 
+        ...data,
+        isApproved: true 
+      });
     } else {
       profile = await InstructorProfile.findOneAndUpdate(
         { userId },
         { $set: data },
         { new: true }
-      );
+      ).populate('userId', 'firstName lastName avatar email');
     }
     
     return profile;

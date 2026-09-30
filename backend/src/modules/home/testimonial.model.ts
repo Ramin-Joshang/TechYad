@@ -6,6 +6,10 @@ export interface ITestimonial extends Document {
   avatar: string;
   content: string;
   rating: number;
+  isActive: boolean;
+  order: number;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 const testimonialSchema = new Schema<ITestimonial>(
@@ -15,6 +19,8 @@ const testimonialSchema = new Schema<ITestimonial>(
     avatar: { type: String },
     content: { type: String, required: true },
     rating: { type: Number, default: 5 },
+    isActive: { type: Boolean, default: true, index: true },
+    order: { type: Number, default: 0, index: true },
   },
   { timestamps: true }
 );

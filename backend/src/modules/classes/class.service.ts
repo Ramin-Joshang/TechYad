@@ -562,7 +562,48 @@ export class ClassService {
       attendedSessionsCount: e.attendedSessionsCount || 0,
       totalHeldSessions: totalHeld,
       dueNotificationSent: e.dueNotificationSent || false,
+      finalGrade: e.finalGrade,
+      evaluationNote: e.evaluationNote || '',
     }));
+  }
+
+  static async updateClassGrades(classId: string, instructorId: string, grades: { enrollmentId?: string; userId?: string; finalGrade: number; evaluationNote?: string }[]) {
+    // Verify instructor or admin
+    const cls = await Class.findById(classId);
+    if (!cls) throw new AppError('کلاس یافت نشد', 404);
+
+    const isInstructorOfClass = cls.instructors.some(id => id.toString() === instructorId.toString());
+    const user = await User.findById(instructorId).populate('role');
+    const roleSlug = (user as any)?.role?.slug || (user as any)?.role || '';
+    const isAdmin = roleSlug === 'admin' || roleSlug === 'super_admin';
+
+    if (!isInstructorOfClass && !isAdmin) {
+      throw new AppError('دسترسی غیرمجاز؛ شما استاد این کلاس نیستید', 403);
+    }
+
+    const updates = grades.map(g => {
+      const filter = g.enrollmentId 
+        ? { _id: g.enrollmentId, classId } 
+        : { userId: g.userId, classId };
+
+      return {
+        updateOne: {
+          filter,
+          update: {
+            $set: {
+              ...(typeof g.finalGrade === 'number' ? { finalGrade: g.finalGrade } : {}),
+              ...(typeof g.evaluationNote === 'string' ? { evaluationNote: g.evaluationNote } : {})
+            }
+          }
+        }
+      };
+    });
+
+    if (updates.length > 0) {
+      await ClassEnrollment.bulkWrite(updates);
+    }
+
+    return await this.getClassStudents(classId);
   }
 
   static async enrollFreeClass(userId: string, classId: string) {

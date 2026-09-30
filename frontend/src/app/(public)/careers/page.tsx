@@ -1,23 +1,25 @@
 'use client';
 
 import { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { generalApi } from '@/features/general/api/general.api';
-import { Briefcase, MapPin, Clock, Upload, Send, GraduationCap, ChevronLeft } from 'lucide-react';
+import { Briefcase, MapPin, Clock, Upload, Send, GraduationCap, ChevronLeft, Loader2, Sparkles, CheckCircle2 } from 'lucide-react';
 import Link from 'next/link';
 import { toast } from 'react-hot-toast';
-
-const OPPORTUNITIES = [
-  { id: 1, title: 'استاد ریاضیات دانشگاهی', type: 'آنلاین / پاره‌وقت', icon: GraduationCap },
-  { id: 2, title: 'مدرس برنامه‌نویسی (React)', type: 'حضوری / پاره‌وقت', icon: Briefcase },
-  { id: 3, title: 'تولیدکننده محتوای آموزشی', type: 'دورکاری / پروژه‌ای', icon: Briefcase },
-  { id: 4, title: 'پشتیبان آموزشی (فیزیک)', type: 'دورکاری / تمام‌وقت', icon: Clock },
-];
+import { MediaUploader } from '@/components/common/MediaUploader';
 
 export default function CareersPage() {
+  const { data: jobPositions = [], isLoading } = useQuery({
+    queryKey: ['publicJobPositions'],
+    queryFn: () => generalApi.getJobPositions().then(res => res.data)
+  });
+
   const [formData, setFormData] = useState({
     fullName: '',
     mobile: '',
     email: '',
+    jobTitle: '',
+    jobPositionId: '',
     specialty: '',
     degree: '',
     experience: '',
@@ -27,6 +29,19 @@ export default function CareersPage() {
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  const handleSelectJob = (job: any) => {
+    setFormData(prev => ({
+      ...prev,
+      jobTitle: job.title,
+      jobPositionId: job._id,
+      specialty: prev.specialty || job.department || job.title
+    }));
+    const formElem = document.getElementById('apply-form');
+    if (formElem) {
+      formElem.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
@@ -34,7 +49,7 @@ export default function CareersPage() {
       await generalApi.submitCareer(formData);
       toast.success('درخواست همکاری شما با موفقیت ثبت شد. به زودی نتیجه به شما اطلاع داده خواهد شد.');
       setFormData({
-        fullName: '', mobile: '', email: '', specialty: '', degree: '', 
+        fullName: '', mobile: '', email: '', jobTitle: '', jobPositionId: '', specialty: '', degree: '', 
         experience: '', resumeUrl: '', demoUrl: '', description: ''
       });
     } catch (error) {
@@ -73,114 +88,125 @@ export default function CareersPage() {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-16">
         <h2 className="text-3xl font-bold text-[var(--neo-text-main)] mb-8">فرصت‌های همکاری فعلی</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {OPPORTUNITIES.map(job => (
-            <div key={job.id} className="bg-white rounded-2xl p-6 border border-[var(--neo-border)] hover:shadow-lg transition group">
-              <job.icon className="w-10 h-10 text-[var(--neo-primary)] mb-4 group-hover:scale-110 transition-transform" />
-              <h3 className="font-bold text-lg text-[var(--neo-text-main)] mb-2">{job.title}</h3>
-              <div className="flex items-center gap-2 text-sm text-[var(--neo-text-muted)] mb-4">
-                <MapPin className="w-4 h-4" />
-                {job.type}
+        {isLoading ? (
+          <div className="flex justify-center p-12">
+            <Loader2 className="w-8 h-8 animate-spin text-[var(--neo-primary)]" />
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {jobPositions.map((job: any) => (
+              <div key={job._id} className="bg-white rounded-2xl p-6 border border-[var(--neo-border)] hover:shadow-lg transition group flex flex-col justify-between">
+                <div>
+                  <Briefcase className="w-10 h-10 text-[var(--neo-primary)] mb-4 group-hover:scale-110 transition-transform" />
+                  <h3 className="font-bold text-lg text-[var(--neo-text-main)] mb-2">{job.title}</h3>
+                  <div className="flex items-center gap-2 text-sm text-[var(--neo-text-muted)] mb-3">
+                    <MapPin className="w-4 h-4 shrink-0" />
+                    <span>{job.type}</span>
+                  </div>
+                  {job.description && (
+                    <p className="text-xs text-gray-500 line-clamp-3 mb-4 leading-relaxed">
+                      {job.description}
+                    </p>
+                  )}
+                </div>
+                <button
+                  type="button"
+                  onClick={() => handleSelectJob(job)}
+                  className="w-full mt-4 py-2.5 bg-blue-50 hover:bg-[var(--neo-primary)] text-blue-700 hover:text-white rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5"
+                >
+                  ارسال رزومه برای این شغل <ChevronLeft className="w-4 h-4" />
+                </button>
               </div>
-              <a href="#apply-form" className="text-[var(--neo-primary)] text-sm font-bold flex items-center gap-1 group-hover:gap-2 transition-all">
-                ارسال رزومه <ChevronLeft className="w-4 h-4" />
-              </a>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
       </div>
 
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8" id="apply-form">
         <div className="bg-white rounded-3xl p-8 md:p-12 shadow-sm border border-[var(--neo-border)]">
           <div className="text-center mb-10">
             <h2 className="text-3xl font-bold text-[var(--neo-text-main)] mb-4">فرم درخواست همکاری</h2>
-            <p className="text-[var(--neo-text-secondary)]">اطلاعات خود را به دقت وارد کنید تا تیم منابع انسانی ما در اسرع وقت بررسی کنند.</p>
+            <p className="text-[var(--neo-text-secondary)]">
+              {formData.jobTitle ? (
+                <span className="inline-block bg-blue-50 text-blue-700 px-3 py-1 rounded-full text-xs font-bold">
+                  در حال ثبت درخواست برای: {formData.jobTitle}
+                </span>
+              ) : (
+                'اطلاعات خود را به دقت وارد کنید تا تیم منابع انسانی ما در اسرع وقت بررسی کنند.'
+              )}
+            </p>
           </div>
           
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <label className="block text-sm font-bold text-[var(--neo-text-secondary)] mb-2">نام و نام خانوادگی <span className="text-red-500">*</span></label>
-                <input required type="text" value={formData.fullName} onChange={e => setFormData({...formData, fullName: e.target.value})} className="w-full bg-[var(--neo-bg)] border border-[var(--neo-border)] rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                <input required type="text" value={formData.fullName} onChange={e => setFormData({...formData, fullName: e.target.value})} className="w-full bg-[var(--neo-bg)] border border-[var(--neo-border)] rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm" />
               </div>
               <div>
                 <label className="block text-sm font-bold text-[var(--neo-text-secondary)] mb-2">شماره موبایل <span className="text-red-500">*</span></label>
-                <input required type="tel" value={formData.mobile} onChange={e => setFormData({...formData, mobile: e.target.value})} className="w-full bg-[var(--neo-bg)] border border-[var(--neo-border)] rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 dir-ltr text-left" />
+                <input required type="tel" value={formData.mobile} onChange={e => setFormData({...formData, mobile: e.target.value})} className="w-full bg-[var(--neo-bg)] border border-[var(--neo-border)] rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 dir-ltr text-left text-sm" />
               </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <label className="block text-sm font-bold text-[var(--neo-text-secondary)] mb-2">ایمیل <span className="text-red-500">*</span></label>
-                <input required type="email" value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} className="w-full bg-[var(--neo-bg)] border border-[var(--neo-border)] rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 dir-ltr text-left" />
+                <input required type="email" value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} className="w-full bg-[var(--neo-bg)] border border-[var(--neo-border)] rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 dir-ltr text-left text-sm" />
               </div>
               <div>
                 <label className="block text-sm font-bold text-[var(--neo-text-secondary)] mb-2">رشته / تخصص اصلی <span className="text-red-500">*</span></label>
-                <input required type="text" placeholder="مثال: برنامه‌نویسی وب، فیزیک کنکور" value={formData.specialty} onChange={e => setFormData({...formData, specialty: e.target.value})} className="w-full bg-[var(--neo-bg)] border border-[var(--neo-border)] rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                <input required type="text" placeholder="مثال: برنامه‌نویسی وب، ریاضیات دانشگاهی" value={formData.specialty} onChange={e => setFormData({...formData, specialty: e.target.value})} className="w-full bg-[var(--neo-bg)] border border-[var(--neo-border)] rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm" />
               </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <label className="block text-sm font-bold text-[var(--neo-text-secondary)] mb-2">آخرین مدرک تحصیلی <span className="text-red-500">*</span></label>
-                <select required value={formData.degree} onChange={e => setFormData({...formData, degree: e.target.value})} className="w-full bg-[var(--neo-bg)] border border-[var(--neo-border)] rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 appearance-none">
-                  <option value="">انتخاب کنید...</option>
-                  <option value="diploma">دیپلم</option>
-                  <option value="bachelor">کارشناسی</option>
-                  <option value="master">کارشناسی ارشد</option>
-                  <option value="phd">دکتری</option>
-                </select>
+                <label className="block text-sm font-bold text-[var(--neo-text-secondary)] mb-2">آخرین مدرک تحصیلی</label>
+                <input type="text" placeholder="مثال: کارشناسی ارشد مهندسی کامپیوتر" value={formData.degree} onChange={e => setFormData({...formData, degree: e.target.value})} className="w-full bg-[var(--neo-bg)] border border-[var(--neo-border)] rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm" />
               </div>
               <div>
-                <label className="block text-sm font-bold text-[var(--neo-text-secondary)] mb-2">سابقه تدریس / کار مرتبط <span className="text-red-500">*</span></label>
-                <select required value={formData.experience} onChange={e => setFormData({...formData, experience: e.target.value})} className="w-full bg-[var(--neo-bg)] border border-[var(--neo-border)] rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 appearance-none">
-                  <option value="">انتخاب کنید...</option>
-                  <option value="none">بدون سابقه</option>
-                  <option value="1-3">۱ تا ۳ سال</option>
-                  <option value="3-5">۳ تا ۵ سال</option>
-                  <option value="5+">بیش از ۵ سال</option>
-                </select>
+                <label className="block text-sm font-bold text-[var(--neo-text-secondary)] mb-2">سابقه کار مرتبط</label>
+                <input type="text" placeholder="مثال: ۴ سال سابقه تدریس یا توسعه نرم‌افزار" value={formData.experience} onChange={e => setFormData({...formData, experience: e.target.value})} className="w-full bg-[var(--neo-bg)] border border-[var(--neo-border)] rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm" />
               </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <label className="block text-sm font-bold text-[var(--neo-text-secondary)] mb-2">لینک رزومه (Google Drive و...)</label>
-                <div className="relative">
-                  <Upload className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[var(--neo-text-muted)]" />
-                  <input type="url" placeholder="https://..." value={formData.resumeUrl} onChange={e => setFormData({...formData, resumeUrl: e.target.value})} className="w-full bg-[var(--neo-bg)] border border-[var(--neo-border)] rounded-xl pr-4 pl-12 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 dir-ltr text-left" />
+                <label className="block text-sm font-bold text-[var(--neo-text-secondary)] mb-2">لینک رزومه (یا آپلود فایل)</label>
+                <div className="flex gap-2 items-center">
+                  <input type="url" placeholder="https://..." value={formData.resumeUrl} onChange={e => setFormData({...formData, resumeUrl: e.target.value})} className="flex-1 bg-[var(--neo-bg)] border border-[var(--neo-border)] rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 dir-ltr text-left text-sm" />
+                  <MediaUploader
+                    onUploadSuccess={(url) => setFormData(prev => ({ ...prev, resumeUrl: url }))}
+                    category="document"
+                    label="آپلود"
+                  />
                 </div>
               </div>
               <div>
-                <label className="block text-sm font-bold text-[var(--neo-text-secondary)] mb-2">لینک نمونه تدریس (فقط برای اساتید)</label>
-                <div className="relative">
-                  <Upload className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[var(--neo-text-muted)]" />
-                  <input type="url" placeholder="Aparat / YouTube / Drive" value={formData.demoUrl} onChange={e => setFormData({...formData, demoUrl: e.target.value})} className="w-full bg-[var(--neo-bg)] border border-[var(--neo-border)] rounded-xl pr-4 pl-12 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 dir-ltr text-left" />
-                </div>
+                <label className="block text-sm font-bold text-[var(--neo-text-secondary)] mb-2">لینک نمونه‌کار / گیت‌هاب / ویدیوی نمونه</label>
+                <input type="url" placeholder="https://github.com/..." value={formData.demoUrl} onChange={e => setFormData({...formData, demoUrl: e.target.value})} className="w-full bg-[var(--neo-bg)] border border-[var(--neo-border)] rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 dir-ltr text-left text-sm" />
               </div>
             </div>
 
             <div>
-              <label className="block text-sm font-bold text-[var(--neo-text-secondary)] mb-2">توضیحات تکمیلی</label>
-              <textarea 
-                rows={4}
-                value={formData.description}
-                onChange={e => setFormData({...formData, description: e.target.value})}
-                placeholder="اگر توضیح خاصی دارید، اینجا بنویسید..."
-                className="w-full bg-[var(--neo-bg)] border border-[var(--neo-border)] rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
-              ></textarea>
+              <label className="block text-sm font-bold text-[var(--neo-text-secondary)] mb-2">توضیحات تکمیلی یا انگیزه‌نامه</label>
+              <textarea rows={4} placeholder="توضیحاتی در مورد سوابق، علایق تدریس و انگیزه همکاری با تک‌یاد..." value={formData.description} onChange={e => setFormData({...formData, description: e.target.value})} className="w-full bg-[var(--neo-bg)] border border-[var(--neo-border)] rounded-xl p-4 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm leading-relaxed" />
             </div>
 
-            <div className="pt-4 border-t border-[var(--neo-border)] flex justify-end">
-              <button 
-                type="submit" 
-                disabled={isSubmitting}
-                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-[var(--neo-primary)] hover:bg-blue-700 text-white px-8 py-4 rounded-xl font-bold transition disabled:opacity-70 shadow-md"
-              >
-                <Send className="w-5 h-5 rotate-180" />
-                {isSubmitting ? 'در حال ارسال...' : 'ارسال درخواست همکاری'}
-              </button>
-            </div>
+            <button type="submit" disabled={isSubmitting} className="w-full bg-[var(--neo-primary)] hover:bg-blue-700 text-white font-bold py-4 rounded-xl transition flex items-center justify-center gap-2 text-base shadow-lg shadow-blue-600/30">
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                  در حال ارسال درخواست...
+                </>
+              ) : (
+                <>
+                  <Send className="w-5 h-5" />
+                  ارسال درخواست همکاری
+                </>
+              )}
+            </button>
           </form>
         </div>
       </div>

@@ -11,6 +11,18 @@ import {
 import toast from 'react-hot-toast';
 import { MediaUploader } from '@/components/common/MediaUploader';
 
+// Helper to robustly parse numeric inputs supporting Persian and Arabic numerals on mobile keyboards
+const parseNumericInput = (val: string | number): number => {
+  if (typeof val === 'number') return isNaN(val) ? 0 : val;
+  if (!val) return 0;
+  const enDigits = val
+    .toString()
+    .replace(/[۰-۹]/g, d => '۰۱۲۳۴۵۶۷۸۹'.indexOf(d).toString())
+    .replace(/[٠-٩]/g, d => '٠١٢٣٤٥٦٧٨٩'.indexOf(d).toString())
+    .replace(/[^0-9]/g, '');
+  return enDigits ? parseInt(enDigits, 10) : 0;
+};
+
 export const DAYS_OF_WEEK = [
   'شنبه', 'یکشنبه', 'دوشنبه', 'سه‌شنبه', 'چهارشنبه', 'پنج‌شنبه', 'جمعه'
 ];
@@ -608,9 +620,10 @@ export function ClassFormModal({
                 <div>
                   <label className="block text-xs font-bold text-slate-700 mb-1.5">شهریه کل کلاس (تومان) *</label>
                   <input
-                    type="number"
-                    value={formData.price}
-                    onChange={e => setFormData({ ...formData, price: Number(e.target.value) })}
+                    type="text"
+                    inputMode="numeric"
+                    value={formData.price ? Number(formData.price).toLocaleString('fa-IR') : ''}
+                    onChange={e => setFormData({ ...formData, price: parseNumericInput(e.target.value) })}
                     placeholder="0 برای کلاس رایگان"
                     className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-emerald-500 outline-none dir-ltr text-left font-mono"
                   />
@@ -622,9 +635,10 @@ export function ClassFormModal({
                 <div>
                   <label className="block text-xs font-bold text-slate-700 mb-1.5">شهریه با تخفیف (اختیاری)</label>
                   <input
-                    type="number"
-                    value={formData.discountPrice}
-                    onChange={e => setFormData({ ...formData, discountPrice: Number(e.target.value) })}
+                    type="text"
+                    inputMode="numeric"
+                    value={formData.discountPrice ? Number(formData.discountPrice).toLocaleString('fa-IR') : ''}
+                    onChange={e => setFormData({ ...formData, discountPrice: parseNumericInput(e.target.value) })}
                     placeholder="در صورت وجود تخفیف"
                     className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-emerald-500 outline-none dir-ltr text-left font-mono"
                   />
@@ -657,9 +671,10 @@ export function ClassFormModal({
                         مبلغ بیعانه / پیش‌پرداخت (تومان) *
                       </label>
                       <input
-                        type="number"
-                        value={formData.preRegistrationDeposit}
-                        onChange={e => setFormData({ ...formData, preRegistrationDeposit: Number(e.target.value) })}
+                        type="text"
+                        inputMode="numeric"
+                        value={formData.preRegistrationDeposit ? Number(formData.preRegistrationDeposit).toLocaleString('fa-IR') : ''}
+                        onChange={e => setFormData({ ...formData, preRegistrationDeposit: parseNumericInput(e.target.value) })}
                         placeholder="مثال: ۵۰۰,۰۰۰"
                         className="w-full px-4 py-2.5 rounded-xl border border-amber-300 bg-white text-sm focus:ring-2 focus:ring-amber-500 outline-none dir-ltr text-left font-mono"
                       />
@@ -821,51 +836,75 @@ export function ClassFormModal({
 
               <div className="space-y-3">
                 {formData.syllabus.map((sess, idx) => (
-                  <div key={idx} className="p-4 bg-slate-50 border border-slate-200 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center gap-3">
-                    <div className="w-9 h-9 rounded-xl bg-emerald-100 text-emerald-800 font-black text-xs flex items-center justify-center shrink-0">
-                      {idx + 1}
+                  <div key={idx} className="p-4 bg-slate-50 border border-slate-200 rounded-2xl space-y-2.5">
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+                      <div className="w-9 h-9 rounded-xl bg-emerald-100 text-emerald-800 font-black text-xs flex items-center justify-center shrink-0">
+                        {idx + 1}
+                      </div>
+
+                      <div className="flex-1 grid grid-cols-1 sm:grid-cols-12 gap-2 w-full">
+                        <div className="sm:col-span-5">
+                          <input
+                            type="text"
+                            value={sess.title}
+                            onChange={e => updateSyllabusItem(idx, 'title', e.target.value)}
+                            placeholder={`عنوان جلسه ${idx + 1}...`}
+                            className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-800 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                          />
+                        </div>
+
+                        <div className="sm:col-span-5">
+                          <input
+                            type="text"
+                            value={sess.description || ''}
+                            onChange={e => updateSyllabusItem(idx, 'description', e.target.value)}
+                            placeholder="مباحث و تمرین‌های جلسه..."
+                            className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs text-slate-600 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                          />
+                        </div>
+
+                        <div className="sm:col-span-2">
+                          <input
+                            type="number"
+                            value={sess.durationMinutes || 90}
+                            onChange={e => updateSyllabusItem(idx, 'durationMinutes', Number(e.target.value))}
+                            placeholder="دقیقه"
+                            className="w-full px-2 py-2 bg-white border border-slate-200 rounded-xl text-xs font-mono text-center text-slate-700 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                          />
+                        </div>
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={() => removeSyllabusSession(idx)}
+                        className="p-2 text-slate-400 hover:text-rose-600 transition shrink-0"
+                        title="حذف جلسه"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
                     </div>
 
-                    <div className="flex-1 grid grid-cols-1 sm:grid-cols-12 gap-2 w-full">
-                      <div className="sm:col-span-5">
+                    {/* Online Meeting Link and Recording URL */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-2 border-t border-slate-200/60 pr-12">
+                      <div>
                         <input
                           type="text"
-                          value={sess.title}
-                          onChange={e => updateSyllabusItem(idx, 'title', e.target.value)}
-                          placeholder={`عنوان جلسه ${idx + 1}...`}
-                          className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-800 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                          value={(sess as any).meetingLink || ''}
+                          onChange={e => updateSyllabusItem(idx, 'meetingLink', e.target.value)}
+                          placeholder="لینک ورود مستقیم به این جلسه (اسکای‌روم / گوگل‌میت)..."
+                          className="w-full px-3 py-1.5 bg-white border border-slate-200 rounded-xl text-[11px] text-blue-700 font-mono dir-ltr placeholder:font-sans placeholder:dir-rtl focus:outline-none focus:ring-1 focus:ring-blue-500"
                         />
                       </div>
-
-                      <div className="sm:col-span-5">
+                      <div>
                         <input
                           type="text"
-                          value={sess.description || ''}
-                          onChange={e => updateSyllabusItem(idx, 'description', e.target.value)}
-                          placeholder="مباحث و تمرین‌های جلسه..."
-                          className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs text-slate-600 focus:outline-none focus:ring-1 focus:ring-emerald-500"
-                        />
-                      </div>
-
-                      <div className="sm:col-span-2">
-                        <input
-                          type="number"
-                          value={sess.durationMinutes || 90}
-                          onChange={e => updateSyllabusItem(idx, 'durationMinutes', Number(e.target.value))}
-                          placeholder="دقیقه"
-                          className="w-full px-2 py-2 bg-white border border-slate-200 rounded-xl text-xs font-mono text-center text-slate-700 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                          value={(sess as any).recordingUrl || ''}
+                          onChange={e => updateSyllabusItem(idx, 'recordingUrl', e.target.value)}
+                          placeholder="لینک ضبط ویدیوی بازپخش جلسه (اختیاری)..."
+                          className="w-full px-3 py-1.5 bg-white border border-slate-200 rounded-xl text-[11px] text-purple-700 font-mono dir-ltr placeholder:font-sans placeholder:dir-rtl focus:outline-none focus:ring-1 focus:ring-purple-500"
                         />
                       </div>
                     </div>
-
-                    <button
-                      type="button"
-                      onClick={() => removeSyllabusSession(idx)}
-                      className="p-2 text-slate-400 hover:text-rose-600 transition shrink-0"
-                      title="حذف جلسه"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
                   </div>
                 ))}
               </div>

@@ -92,19 +92,28 @@ export function Footer() {
             </p>
             <div className="flex gap-3">
               <a
-                href="#"
+                href={publicSettings?.instagramUrl || "#"}
+                target={publicSettings?.instagramUrl ? "_blank" : undefined}
+                rel="noreferrer"
+                title="اینستاگرام"
                 className="w-9 h-9 rounded-full border border-[var(--neo-border)] bg-[var(--neo-bg)] flex items-center justify-center hover:bg-[var(--neo-primary)] hover:text-white hover:border-[var(--neo-primary)] transition-colors"
               >
                 <Camera className="w-4 h-4" />
               </a>
               <a
-                href="#"
+                href={publicSettings?.telegramUrl || "#"}
+                target={publicSettings?.telegramUrl ? "_blank" : undefined}
+                rel="noreferrer"
+                title="تلگرام"
                 className="w-9 h-9 rounded-full border border-[var(--neo-border)] bg-[var(--neo-bg)] flex items-center justify-center hover:bg-[var(--neo-secondary)] hover:text-white hover:border-[var(--neo-secondary)] transition-colors"
               >
                 <MessageCircle className="w-4 h-4" />
               </a>
               <a
-                href="#"
+                href={publicSettings?.linkedinUrl || "#"}
+                target={publicSettings?.linkedinUrl ? "_blank" : undefined}
+                rel="noreferrer"
+                title="لینکدین"
                 className="w-9 h-9 rounded-full border border-[var(--neo-border)] bg-[var(--neo-bg)] flex items-center justify-center hover:bg-[var(--neo-primary)] hover:text-white hover:border-[var(--neo-primary)] transition-colors"
               >
                 <Briefcase className="w-4 h-4" />

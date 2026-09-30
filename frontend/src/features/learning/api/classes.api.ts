@@ -7,6 +7,9 @@ export interface ISessionSyllabus {
   date?: string;
   time?: string;
   durationMinutes?: number;
+  meetingLink?: string;
+  recordingUrl?: string;
+  isHeld?: boolean;
 }
 
 export interface ClassItem {
@@ -106,6 +109,9 @@ export const classesApi = {
   },
   getClassStudents: async (classId: string) => {
     return api.get<any, ApiResponse<any[]>>(`/classes/${classId}/students`);
+  },
+  updateClassGrades: async (classId: string, grades: { enrollmentId?: string; userId?: string; finalGrade: number; evaluationNote?: string }[]) => {
+    return api.patch<any, ApiResponse<any>>(`/classes/${classId}/grades`, { grades });
   },
   enrollFreeClass: async (classId: string) => {
     return api.post<any, ApiResponse<any>>(`/classes/${classId}/enroll-free`, {});

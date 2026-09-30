@@ -47,6 +47,11 @@ import {
   Wallet,
   Share2,
   Gift,
+  Award,
+  TrendingUp,
+  Mail,
+  HelpCircle,
+  Quote,
 } from "lucide-react";
 
 export default function DashboardLayout({
@@ -151,9 +156,39 @@ export default function DashboardLayout({
         { name: "گزارش‌ها", href: "/super-admin/reports", icon: BarChart },
         { name: "مدیریت وبلاگ", href: "/super-admin/blog", icon: FileText },
         {
-          name: "لاگ‌های امنیتی",
+          name: "پیام‌های تماس با ما",
+          href: "/super-admin/contacts",
+          icon: Mail,
+        },
+        {
+          name: "فرصت‌های شغلی و استخدام",
+          href: "/super-admin/careers",
+          icon: Briefcase,
+        },
+        {
+          name: "مدیریت سوالات متداول",
+          href: "/super-admin/faqs",
+          icon: HelpCircle,
+        },
+        {
+          name: "نظرات صفحه اصلی",
+          href: "/super-admin/testimonials",
+          icon: Quote,
+        },
+        {
+          name: "لاگ‌های امنیتی و رویدادها",
           href: "/super-admin/audit-logs",
           icon: History,
+        },
+        {
+          name: "لاگ پیامک‌ها",
+          href: "/super-admin/sms-logs",
+          icon: MessageSquare,
+        },
+        {
+          name: "لاگ درگاه پرداخت",
+          href: "/super-admin/payment-logs",
+          icon: CreditCard,
         },
         {
           name: "مدیریت کیف پول‌ها",
@@ -211,6 +246,41 @@ export default function DashboardLayout({
         { name: "تیکت‌های پشتیبانی", href: "/admin/tickets", icon: Ticket },
         { name: "گزارش‌ها و آمار", href: "/admin/reports", icon: BarChart },
         { name: "مدیریت وبلاگ", href: "/admin/blog", icon: FileText },
+        {
+          name: "پیام‌های تماس با ما",
+          href: "/admin/contacts",
+          icon: Mail,
+        },
+        {
+          name: "فرصت‌های شغلی و استخدام",
+          href: "/admin/careers",
+          icon: Briefcase,
+        },
+        {
+          name: "مدیریت سوالات متداول",
+          href: "/admin/faqs",
+          icon: HelpCircle,
+        },
+        {
+          name: "نظرات صفحه اصلی",
+          href: "/admin/testimonials",
+          icon: Quote,
+        },
+        {
+          name: "لاگ‌ها و رویدادها",
+          href: "/admin/logs",
+          icon: History,
+        },
+        {
+          name: "لاگ پیامک‌ها",
+          href: "/admin/sms-logs",
+          icon: MessageSquare,
+        },
+        {
+          name: "لاگ درگاه پرداخت",
+          href: "/admin/payment-logs",
+          icon: CreditCard,
+        },
         { name: "تنظیمات و برندینگ", href: "/admin/settings", icon: Settings },
         profileLink,
       ];
@@ -247,6 +317,11 @@ export default function DashboardLayout({
         },
         { name: "مقالات وبلاگ", href: "/instructor/blog", icon: FileText },
         {
+          name: "رزومه و سوابق مدرس",
+          href: "/instructor/resume",
+          icon: Award,
+        },
+        {
           name: "گزارش مالی و فروش",
           href: "/instructor/sales",
           icon: DollarSign,
@@ -258,6 +333,8 @@ export default function DashboardLayout({
         { name: "داشبورد", href: "/student", icon: LayoutDashboard },
         { name: "دوره‌های من", href: "/student/courses", icon: BookOpen },
         { name: "کلاس‌های من", href: "/student/classes", icon: Video },
+        { name: "کارنامه و نمرات", href: "/student/grades", icon: Award },
+        { name: "پیشرفت تحصیلی", href: "/student/progress", icon: TrendingUp },
         { name: "کیف پول من", href: "/student/wallet", icon: Wallet },
         {
           name: "معرفی دوستان (کسب درآمد)",

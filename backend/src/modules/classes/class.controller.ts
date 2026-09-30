@@ -100,3 +100,12 @@ export const getClassStudents = async (req: AuthRequest, res: Response) => {
   const result = await ClassService.getClassStudents(req.params.id as string);
   sendSuccess(res, result, 'فهرست دانشجویان کلاس دریافت شد');
 };
+
+export const updateClassGrades = async (req: AuthRequest, res: Response) => {
+  const result = await ClassService.updateClassGrades(
+    req.params.id as string,
+    req.user._id as string,
+    req.body.grades || []
+  );
+  sendSuccess(res, result, 'نمرات و کارنامه کلاس با موفقیت ثبت شد');
+};

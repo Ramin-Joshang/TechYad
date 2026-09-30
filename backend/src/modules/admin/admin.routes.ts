@@ -75,6 +75,7 @@ router.post('/super-admin/broadcast', isSuperAdmin, asyncHandler(Controller.send
 
 // Audit Logs
 router.get('/super-admin/audit-logs', isSuperAdmin, asyncHandler(Controller.getAuditLogs));
+router.get('/admin/audit-logs', isAdmin, asyncHandler(Controller.getAuditLogs));
 
 // Security & Active Sessions
 router.get('/super-admin/security', isSuperAdmin, asyncHandler(Controller.getSecurityOverview));

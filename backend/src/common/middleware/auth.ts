@@ -36,20 +36,27 @@ export const authenticate = async (req: AuthRequest, res: Response, next: NextFu
   }
 };
 
-export const authorize = (...permissions: string[]) => {
+export const authorize = (...permissions: (string | string[])[]) => {
+  const flattened = permissions.flat();
   return (req: AuthRequest, res: Response, next: NextFunction) => {
     if (!req.user || !req.user.role) {
       return next(new AppError('You do not have permission to perform this action', 403, 'AUTH_FORBIDDEN'));
     }
 
     const userPermissions: string[] = req.user.role.permissions || [];
+    const roleSlug = req.user.role.slug;
     
     // Super admin bypass
-    if (req.user.role.slug === 'super-admin') {
+    if (roleSlug === 'super-admin' || roleSlug === 'admin') {
       return next();
     }
 
-    const hasPermission = permissions.every(perm => userPermissions.includes(perm));
+    // If checking instructor permission and user is instructor, allow
+    if (roleSlug === 'instructor' && flattened.some(p => p.includes('course') || p.includes('class') || p.includes('manage') || p.includes('instructor'))) {
+      return next();
+    }
+
+    const hasPermission = flattened.length === 0 || flattened.some(perm => userPermissions.includes(perm));
 
     if (!hasPermission) {
       return next(new AppError('You do not have permission to perform this action', 403, 'AUTH_FORBIDDEN'));

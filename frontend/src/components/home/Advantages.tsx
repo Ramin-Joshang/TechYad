@@ -1,11 +1,37 @@
+'use client';
+
+import { useQuery } from "@tanstack/react-query";
+import { superAdminApi } from "@/features/admin/api/super-admin.api";
 import { Shield, Clock, Video, Award } from "lucide-react";
 
 export function Advantages() {
+  const { data: publicSettings } = useQuery({
+    queryKey: ['publicSettings'],
+    queryFn: () => superAdminApi.getPublicSettings().then(res => res.data),
+    staleTime: 1000 * 60 * 5,
+  });
+
   const items = [
-    { icon: Shield, title: "تضمین کیفیت", desc: "بازگشت وجه در صورت عدم رضایت" },
-    { icon: Video, title: "دسترسی مادام‌العمر", desc: "آپدیت رایگان دوره‌های خریداری شده" },
-    { icon: Clock, title: "پشتیبانی ۲۴/۷", desc: "رفع اشکال توسط اساتید و منتورها" },
-    { icon: Award, title: "مدرک معتبر", desc: "ارائه گواهی پایان دوره دوزبانه" },
+    { 
+      icon: Shield, 
+      title: publicSettings?.advantage1Title || "تضمین کیفیت", 
+      desc: publicSettings?.advantage1Desc || "بازگشت وجه در صورت عدم رضایت" 
+    },
+    { 
+      icon: Video, 
+      title: publicSettings?.advantage2Title || "دسترسی مادام‌العمر", 
+      desc: publicSettings?.advantage2Desc || "آپدیت رایگان دوره‌های خریداری شده" 
+    },
+    { 
+      icon: Clock, 
+      title: publicSettings?.advantage3Title || "پشتیبانی ۲۴/۷", 
+      desc: publicSettings?.advantage3Desc || "رفع اشکال توسط اساتید و منتورها" 
+    },
+    { 
+      icon: Award, 
+      title: publicSettings?.advantage4Title || "مدرک معتبر", 
+      desc: publicSettings?.advantage4Desc || "ارائه گواهی پایان دوره دوزبانه" 
+    },
   ];
 
   return (

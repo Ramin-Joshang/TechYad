@@ -33,6 +33,8 @@ export default function AuditLogsPage() {
       case 'settlement': return <span className="px-2 py-0.5 rounded bg-teal-50 text-teal-700 text-[10px] font-bold">تسویه‌حساب</span>;
       case 'security': return <span className="px-2 py-0.5 rounded bg-red-50 text-red-700 text-[10px] font-bold">امنیتی</span>;
       case 'notification': return <span className="px-2 py-0.5 rounded bg-amber-50 text-amber-700 text-[10px] font-bold">اعلان سراسری</span>;
+      case 'sms': return <span className="px-2 py-0.5 rounded bg-cyan-50 text-cyan-700 text-[10px] font-bold">ارسال پیامک</span>;
+      case 'payment': return <span className="px-2 py-0.5 rounded bg-emerald-50 text-emerald-700 text-[10px] font-bold">درگاه پرداخت</span>;
       default: return <span className="px-2 py-0.5 rounded bg-gray-50 text-gray-700 text-[10px] font-bold">سیستمی</span>;
     }
   };
@@ -92,6 +94,8 @@ export default function AuditLogsPage() {
             <option value="settlement">تسویه‌حساب</option>
             <option value="security">امنیتی</option>
             <option value="notification">اعلان‌ها</option>
+            <option value="sms">لاگ پیامک‌ها</option>
+            <option value="payment">لاگ درگاه پرداخت</option>
           </select>
 
           <select

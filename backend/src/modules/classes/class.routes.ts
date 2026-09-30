@@ -32,6 +32,7 @@ router.post('/classes/:id/pay-remaining', requireAuth, asyncHandler(Controller.p
 router.get('/classes/:id/attendance', requireAuth, asyncHandler(Controller.getClassAttendance));
 router.post('/classes/:id/attendance', requireAuth, asyncHandler(Controller.takeSessionAttendance));
 router.get('/classes/:id/students', requireAuth, asyncHandler(Controller.getClassStudents));
+router.patch('/classes/:id/grades', requireAuth, asyncHandler(Controller.updateClassGrades));
 
 // Admin routes
 const isAdmin = [requireAuth, authorize('classes.manage')];

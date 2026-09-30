@@ -125,7 +125,7 @@ export const getHomeData = async (req: Request, res: Response, next: NextFunctio
     const inPersonClasses = await Course.find({ status: "published", tags: "حضوری" }).limit(4).populate('instructors', 'firstName lastName avatar');
     const topInstructors = await InstructorProfile.find({ isApproved: true }).limit(4).populate('userId', 'firstName lastName avatar');
     const latestArticles = await Article.find({ status: "published" }).sort({ createdAt: -1 }).limit(4);
-    const testimonials = await Testimonial.find().limit(6);
+    const testimonials = await Testimonial.find({ isActive: { $ne: false } }).sort({ order: 1, createdAt: -1 }).limit(6);
 
     res.status(200).json({
       success: true,
@@ -145,4 +145,28 @@ export const getHomeData = async (req: Request, res: Response, next: NextFunctio
     console.error("Error in getHomeData:", error);
     next(error);
   }
+};
+
+// ==================== Testimonial CRUD for Admin ====================
+export const getAllTestimonialsAdmin = async (req: Request, res: Response) => {
+  const testimonials = await Testimonial.find().sort({ order: 1, createdAt: -1 });
+  res.status(200).json({ success: true, data: testimonials, message: 'All testimonials retrieved' });
+};
+
+export const createTestimonial = async (req: Request, res: Response) => {
+  const testimonial = await Testimonial.create(req.body);
+  res.status(201).json({ success: true, data: testimonial, message: 'Testimonial created successfully' });
+};
+
+export const updateTestimonial = async (req: Request, res: Response) => {
+  const testimonial = await Testimonial.findByIdAndUpdate(req.params.id, req.body, { new: true });
+  if (!testimonial) {
+    return res.status(404).json({ success: false, message: 'Testimonial not found' });
+  }
+  res.status(200).json({ success: true, data: testimonial, message: 'Testimonial updated successfully' });
+};
+
+export const deleteTestimonial = async (req: Request, res: Response) => {
+  await Testimonial.findByIdAndDelete(req.params.id);
+  res.status(200).json({ success: true, data: null, message: 'Testimonial deleted successfully' });
 };

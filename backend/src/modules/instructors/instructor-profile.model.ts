@@ -13,6 +13,14 @@ export interface IInstructorProfile extends Document {
     startYear?: number;
     endYear?: number;
   }[];
+  experience?: {
+    position: string;
+    company: string;
+    startYear?: number;
+    endYear?: number;
+    current?: boolean;
+    description?: string;
+  }[];
   socialLinks: {
     linkedin?: string;
     website?: string;
@@ -39,6 +47,16 @@ const instructorProfileSchema = new Schema<IInstructorProfile>(
         university: String,
         startYear: Number,
         endYear: Number,
+      }
+    ],
+    experience: [
+      {
+        position: String,
+        company: String,
+        startYear: Number,
+        endYear: Number,
+        current: Boolean,
+        description: String,
       }
     ],
     socialLinks: {

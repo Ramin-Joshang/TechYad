@@ -13,6 +13,11 @@ export const getInstructorBySlug = async (req: Request, res: Response) => {
   sendSuccess(res, result, 'Instructor profile retrieved successfully');
 };
 
+export const getMyProfile = async (req: AuthRequest, res: Response) => {
+  const result = await InstructorService.getMyProfile(req.user._id as string);
+  sendSuccess(res, result, 'Instructor profile retrieved successfully');
+};
+
 export const updateMyProfile = async (req: AuthRequest, res: Response) => {
   const result = await InstructorService.updateMyProfile(req.user._id as string, req.body);
   sendSuccess(res, result, 'Instructor profile updated successfully');

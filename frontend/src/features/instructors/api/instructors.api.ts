@@ -28,5 +28,13 @@ export const instructorsApi = {
   
   getInstructorById: async (id: string) => {
     return api.get<any, SingleResponse<Instructor>>(`/instructors/${id}`);
+  },
+
+  getMyProfile: async () => {
+    return api.get<any, SingleResponse<any>>('/instructor/profile');
+  },
+
+  updateMyProfile: async (data: any) => {
+    return api.put<any, SingleResponse<any>>('/instructor/profile', data);
   }
 };

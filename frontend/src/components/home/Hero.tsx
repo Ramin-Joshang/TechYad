@@ -1,9 +1,24 @@
 'use client';
 
 import Link from 'next/link';
+import { useQuery } from '@tanstack/react-query';
+import { superAdminApi } from '@/features/admin/api/super-admin.api';
 import { ArrowLeft, Brain, Code2, Cpu, Sigma, Layers, Sparkles } from 'lucide-react';
 
 export function Hero() {
+  const { data: publicSettings } = useQuery({
+    queryKey: ['publicSettings'],
+    queryFn: () => superAdminApi.getPublicSettings().then(res => res.data),
+    staleTime: 1000 * 60 * 5,
+  });
+
+  const badgeText = publicSettings?.heroBadgeText || 'پلتفرم یکپارچه آموزش آکادمیک و تخصصی';
+  const heroTitle = publicSettings?.heroTitle || 'یادگیری برای آینده‌ای که می‌سازی.';
+  const heroSubtitle = publicSettings?.heroSubtitle || 'دروس دانشگاهی، آموزش‌های تخصصی و کلاس‌های حضوری؛ با اساتیدی که واقعاً می‌دانند چه چیزی را باید آموزش دهند. مسیر یادگیری خودت را پیدا کن.';
+  const primaryCtaText = publicSettings?.heroPrimaryCtaText || 'شروع یادگیری';
+  const primaryCtaLink = publicSettings?.heroPrimaryCtaLink || '/courses';
+  const secondaryCtaText = publicSettings?.heroSecondaryCtaText || 'دوره‌های رایگان';
+  const secondaryCtaLink = publicSettings?.heroSecondaryCtaLink || '/courses?free=true';
   return (
     <section className="relative min-h-[85vh] flex items-center overflow-hidden bg-[var(--neo-bg)] border-b border-[var(--neo-border)] pt-16">
       {/* Knowledge Network Background (Light CSS based) */}
@@ -81,35 +96,31 @@ export function Hero() {
                 <span className="relative inline-flex rounded-full h-2 w-2 bg-[var(--neo-primary)]"></span>
               </span>
               <span className="text-xs sm:text-sm font-medium text-[var(--neo-text-main)]">
-                پلتفرم یکپارچه آموزش آکادمیک و تخصصی
+                {badgeText}
               </span>
             </div>
 
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black text-[var(--neo-text-main)] mb-6 leading-[1.2] tracking-tight">
-              یادگیری برای
-              <br />
-              آینده‌ای که <span className="neo-gradient-text">می‌سازی.</span>
+              {heroTitle}
             </h1>
 
             <p className="text-base sm:text-lg lg:text-xl text-[var(--neo-text-secondary)] mb-10 leading-relaxed font-normal">
-              دروس دانشگاهی، آموزش‌های تخصصی و کلاس‌های حضوری؛ با اساتیدی که
-              واقعاً می‌دانند چه چیزی را باید آموزش دهند. مسیر یادگیری خودت را
-              پیدا کن.
+              {heroSubtitle}
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4">
               <Link
-                href="/courses"
+                href={primaryCtaLink}
                 className="inline-flex justify-center items-center gap-2 px-8 py-4 bg-[var(--neo-primary)] hover:bg-blue-700 text-white rounded-xl font-bold transition-all shadow-lg shadow-[var(--neo-primary)]/25 text-base sm:text-lg hover:scale-[1.02] active:scale-[0.98]"
               >
-                <span>شروع یادگیری</span>
+                <span>{primaryCtaText}</span>
                 <ArrowLeft className="w-5 h-5" />
               </Link>
               <Link
-                href="/courses?free=true"
+                href={secondaryCtaLink}
                 className="inline-flex justify-center items-center gap-2 px-8 py-4 bg-white hover:bg-[var(--neo-surface-2)] text-[var(--neo-text-main)] border border-[var(--neo-border)] hover:border-[var(--neo-primary)] hover:text-[var(--neo-primary)] rounded-xl font-bold transition text-base sm:text-lg shadow-xs"
               >
-                <span>دوره‌های رایگان</span>
+                <span>{secondaryCtaText}</span>
               </Link>
             </div>
           </div>

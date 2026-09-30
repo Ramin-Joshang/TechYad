@@ -31,29 +31,17 @@ export class AdminService {
   }
 
   static async getPublicSettings() {
+    const privateKeys = [
+      'payment_gateways_config',
+      'sms_config',
+      'security_config',
+      'jwt_secret',
+      'api_keys',
+      'admin_secret'
+    ];
     const settings = await Setting.find({
-      key: { 
-        $in: [
-          'siteName', 
-          'siteLogo', 
-          'siteFavicon', 
-          'siteFooterLogo', 
-          'enamadCode', 
-          'enamadActive', 
-          'samandehiCode', 
-          'samandehiActive', 
-          'nationalLicenseCode', 
-          'customTrustBadgeUrl', 
-          'footerTrustBadges', 
-          'seoDescription', 
-          'seoKeywords', 
-          'supportEmail', 
-          'supportPhone', 
-          'socialLinks', 
-          'privacyPolicy', 
-          'termsOfService'
-        ] 
-      }
+      key: { $nin: privateKeys },
+      group: { $ne: 'secret' }
     }).lean();
     return settings.reduce((acc, curr) => {
        acc[curr.key] = curr.value;

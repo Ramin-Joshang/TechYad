@@ -11,6 +11,8 @@ import Link from 'next/link';
 import toast from 'react-hot-toast';
 import { AttendanceModal } from '@/components/classes/AttendanceModal';
 import { ClassFormModal } from '@/components/classes/ClassFormModal';
+import { ClassSessionsModal } from '@/components/classes/ClassSessionsModal';
+import { ClassGradebookModal } from '@/components/classes/ClassGradebookModal';
 
 export default function InstructorClassesPage() {
   const queryClient = useQueryClient();
@@ -18,6 +20,8 @@ export default function InstructorClassesPage() {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingClass, setEditingClass] = useState<any | null>(null);
   const [attendanceClass, setAttendanceClass] = useState<any | null>(null);
+  const [sessionsClass, setSessionsClass] = useState<any | null>(null);
+  const [gradebookClass, setGradebookClass] = useState<any | null>(null);
 
   const { data: classesData, isLoading } = useQuery({
     queryKey: ['instructor-classes'],
@@ -227,21 +231,43 @@ export default function InstructorClassesPage() {
                     </div>
                   </div>
 
-                  {/* Attendance & Class Actions */}
+                  {/* Attendance, Sessions, Gradebook & Class Actions */}
                   <div className="space-y-2 pt-2 border-t border-slate-100">
                     {/* Primary Button: Take Attendance */}
                     <button
                       onClick={() => setAttendanceClass(cls)}
-                      className="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs sm:text-sm font-bold rounded-xl transition flex items-center justify-center gap-2 shadow-xs"
+                      className="w-full py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs sm:text-sm font-bold rounded-xl transition flex items-center justify-center gap-1.5 shadow-xs"
                     >
                       <ClipboardCheck className="w-4 h-4" />
                       حضور و غیاب دانشجوها ({enrolled} نفر)
                     </button>
 
                     <div className="grid grid-cols-2 gap-2">
+                      {/* Manage Sessions & Online Links */}
+                      <button
+                        onClick={() => setSessionsClass(cls)}
+                        className="py-2 px-2 bg-blue-50 hover:bg-blue-100 text-blue-700 text-xs font-bold rounded-xl transition flex items-center justify-center gap-1 border border-blue-200/60"
+                        title="مدیریت لینک‌های آنلاین و وضعیت برگزاری جلسات"
+                      >
+                        <Video className="w-3.5 h-3.5" />
+                        جلسات و لینک‌ها
+                      </button>
+
+                      {/* Class Gradebook & Student Scores */}
+                      <button
+                        onClick={() => setGradebookClass(cls)}
+                        className="py-2 px-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-xs font-bold rounded-xl transition flex items-center justify-center gap-1 border border-indigo-200/60"
+                        title="مشاهده کارنامه دسته‌جمعی و ثبت نمرات کلاس"
+                      >
+                        <Users className="w-3.5 h-3.5" />
+                        کارنامه و نمرات
+                      </button>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-2 pt-1">
                       <Link 
                         href={`/classes/${cls.slug || cls._id}`} 
-                        className="text-center py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl transition"
+                        className="text-center py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl transition"
                       >
                         صفحه عمومی
                       </Link>
@@ -251,15 +277,15 @@ export default function InstructorClassesPage() {
                           href={cls.meetingLink} 
                           target="_blank" 
                           rel="noreferrer" 
-                          className="text-center py-2 bg-blue-50 hover:bg-blue-100 text-blue-700 text-xs font-bold rounded-xl transition flex items-center justify-center gap-1"
+                          className="text-center py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 text-xs font-bold rounded-xl transition flex items-center justify-center gap-1 border border-emerald-200"
                         >
                           <LinkIcon className="w-3.5 h-3.5" />
-                          ورود استاد
+                          ورود مستقیم
                         </a>
                       ) : (
                         <button 
                           onClick={() => handleEdit(cls)}
-                          className="text-center py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl transition"
+                          className="text-center py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl transition"
                         >
                           ویرایش کامل
                         </button>
@@ -293,6 +319,22 @@ export default function InstructorClassesPage() {
           classItem={attendanceClass}
           onClose={() => setAttendanceClass(null)}
           isAdmin={false}
+        />
+      )}
+
+      {/* Sessions & Online Meeting Links Modal */}
+      {sessionsClass && (
+        <ClassSessionsModal
+          classItem={sessionsClass}
+          onClose={() => setSessionsClass(null)}
+        />
+      )}
+
+      {/* Class Gradebook & Student Scores Modal */}
+      {gradebookClass && (
+        <ClassGradebookModal
+          classItem={gradebookClass}
+          onClose={() => setGradebookClass(null)}
         />
       )}
 
