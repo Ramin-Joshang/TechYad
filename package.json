@@ -7,7 +7,7 @@
     "backend"
   ],
   "scripts": {
-    "dev": "concurrently \"npm run dev -w backend\" \"npm run dev -w frontend\"",
+    "dev": "concurrently \"npm run dev -w backend\" \"npm run dev -w frontend\" \"node scripts/port-bridge.cjs\"",
     "build": "NODE_ENV=production npm run build -w backend && NODE_ENV=production npm run build -w frontend",
     "lint": "npm run lint -w frontend",
     "start": "npm run start -w backend & npm run start -w frontend",

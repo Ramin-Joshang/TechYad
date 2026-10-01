@@ -12,8 +12,16 @@ export const validate = (schema: ZodSchema) =>
       });
       if (parsed) {
         if (parsed.body !== undefined) req.body = parsed.body;
-        if (parsed.query !== undefined) (req as any).query = parsed.query;
-        if (parsed.params !== undefined) (req as any).params = parsed.params;
+        if (parsed.query !== undefined && typeof parsed.query === 'object') {
+          try {
+            Object.assign(req.query, parsed.query);
+          } catch {}
+        }
+        if (parsed.params !== undefined && typeof parsed.params === 'object') {
+          try {
+            Object.assign(req.params, parsed.params);
+          } catch {}
+        }
       }
       return next();
     } catch (error) {

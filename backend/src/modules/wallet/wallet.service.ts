@@ -10,6 +10,7 @@ import { Enrollment } from "../learning/enrollment.model.js";
 import { ClassEnrollment } from "../classes/class-enrollment.model.js";
 import { Notification } from "../notifications/notification.model.js";
 import { AuditLog } from "../admin/audit-log.model.js";
+import { AuditService } from "../../common/services/audit.service.js";
 import { AppError } from "../../common/errors/AppError.js";
 import { ReferralService } from "../referral/referral.service.js";
 import {
@@ -585,6 +586,23 @@ export class WalletService {
         "fa-IR"
       )} تومان ثبت شد و طی ۱ تا ۲ روز کاری پس از بررسی پایا/ساتنا واریز خواهد شد.`,
       data: { transactionId: transaction._id, referenceId },
+    });
+
+    // Audit Log for withdrawal request
+    AuditService.log({
+      userId: user._id,
+      action: "request_withdrawal",
+      category: "wallet",
+      title: `درخواست تسویه حساب بانکی ثبت شد (${data.amount.toLocaleString('fa-IR')} تومان)`,
+      targetId: transaction._id.toString(),
+      targetType: "wallet_transaction",
+      details: {
+        amount: data.amount,
+        shaba: cleanShaba,
+        accountHolder: data.accountHolder,
+        bankName: data.bankName,
+        referenceId
+      }
     });
 
     return transaction;

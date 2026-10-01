@@ -4,9 +4,13 @@ const nextConfig: NextConfig = {
   typescript: {
     ignoreBuildErrors: true,
   },
-  eslint: {
-    ignoreDuringBuilds: true,
-  },
+  allowedDevOrigins: [
+    'localhost:3000',
+    'localhost:4000',
+    '127.0.0.1:3000',
+    '127.0.0.1:4000',
+    '*.run.app'
+  ],
   async rewrites() {
     return [
       {

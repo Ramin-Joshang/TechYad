@@ -7,6 +7,7 @@ import { Notification } from '../notifications/notification.model.js';
 import { AppError } from '../../common/errors/AppError.js';
 import { Types } from 'mongoose';
 import { parseDateSafely } from '../../common/utils/date.js';
+import { AuditService } from '../../common/services/audit.service.js';
 
 export class ClassService {
   static async getInstructorClasses(instructorId: string) {
@@ -136,12 +137,32 @@ export class ClassService {
       payload.allowPreRegistration = true;
     }
 
-    return await Class.create({
+    const createdClass = await Class.create({
       ...payload,
       meetingLink: mockRoomLink,
       createdBy: userId,
       instructors: data.instructors?.length > 0 ? data.instructors : [userId],
     });
+
+    // Audit Log for Instructor creating class
+    AuditService.log({
+      userId,
+      userRole: 'instructor',
+      action: 'create_class',
+      category: 'class',
+      title: `استاد کلاس جدید «${createdClass.title}» را تعریف کرد`,
+      targetId: createdClass._id.toString(),
+      targetType: 'class',
+      targetTitle: createdClass.title,
+      details: {
+        mode: createdClass.mode,
+        price: createdClass.price,
+        capacity: createdClass.capacity,
+        startDate: createdClass.startDate
+      }
+    });
+
+    return createdClass;
   }
 
   static async updateClass(id: string, userId: string, data: any, overrideAuth: boolean = false) {
@@ -153,6 +174,24 @@ export class ClassService {
 
     const cls = await Class.findOneAndUpdate(query, payload, { new: true });
     if (!cls) throw new AppError('Class not found or unauthorized', 404);
+
+    // Audit Log for class update
+    AuditService.log({
+      userId,
+      userRole: overrideAuth ? 'admin' : 'instructor',
+      action: 'update_class',
+      category: 'class',
+      title: `ویرایش اطلاعات کلاس «${cls.title}»`,
+      targetId: cls._id.toString(),
+      targetType: 'class',
+      targetTitle: cls.title,
+      details: {
+        status: cls.status,
+        mode: cls.mode,
+        price: cls.price
+      }
+    });
+
     return cls;
   }
 
@@ -319,6 +358,24 @@ export class ClassService {
         type: 'system',
       });
     }
+
+    // Audit Log for Student class enrollment
+    AuditService.log({
+      userId,
+      userRole: 'student',
+      action: 'enroll_class',
+      category: 'class',
+      title: `دانشجو در کلاس «${classData.title}» ثبت‌نام کرد (${isDeposit ? 'پیش‌ثبت‌نام با بیعانه' : 'پرداخت کامل'})`,
+      targetId: classId,
+      targetType: 'class',
+      targetTitle: classData.title,
+      details: {
+        paymentType: isDeposit ? 'deposit' : 'full',
+        amountPaid: requiredAmount,
+        remainingBalance,
+        mode: classData.mode
+      }
+    });
 
     return enrollment;
   }

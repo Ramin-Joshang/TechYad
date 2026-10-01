@@ -7,6 +7,7 @@ import { Enrollment } from './enrollment.model.js';
 import { ClassEnrollment } from '../classes/class-enrollment.model.js';
 import { AppError } from '../../common/errors/AppError.js';
 import { Types } from 'mongoose';
+import { AuditService } from '../../common/services/audit.service.js';
 
 export class QuizService {
   static async getMyQuizzes(userId: string) {
@@ -221,6 +222,26 @@ export class QuizService {
     if (targetLessonId) {
       await Lesson.findByIdAndUpdate(targetLessonId, { quizId: quiz._id });
     }
+
+    // Audit Log for Instructor creating quiz
+    AuditService.log({
+      userId: instructorId,
+      userRole: 'instructor',
+      action: 'create_quiz',
+      category: 'quiz',
+      title: `استاد آزمون «${quiz.title}» را با ${quiz.questions.length} سوال طراحی کرد`,
+      targetId: quiz._id.toString(),
+      targetType: 'quiz',
+      targetTitle: quiz.title,
+      details: {
+        courseId,
+        classId,
+        questionsCount: quiz.questions.length,
+        duration: quiz.duration,
+        passingScore: quiz.passingScore
+      }
+    });
+
     return quiz;
   }
 
@@ -325,6 +346,30 @@ export class QuizService {
     attempt.submittedAt = new Date();
 
     await attempt.save();
+
+    // Audit Log for Student submitting quiz
+    const passed = percentage >= (quiz.passingScore || 70);
+    AuditService.log({
+      userId,
+      userRole: 'student',
+      action: 'submit_quiz',
+      category: 'quiz',
+      title: `دانشجو آزمون «${quiz.title}» را به پایان رساند (نمره: ${Math.round(percentage)}٪ - ${passed ? 'قبول' : 'مردود'})`,
+      targetId: quiz._id.toString(),
+      targetType: 'quiz',
+      targetTitle: quiz.title,
+      status: passed ? 'success' : 'warning',
+      severity: passed ? 'info' : 'warning',
+      details: {
+        score: earnedScore,
+        totalScore,
+        percentage: Math.round(percentage),
+        passed,
+        passingScore: quiz.passingScore || 70,
+        attemptId: attempt._id.toString()
+      }
+    });
+
     return attempt;
   }
 

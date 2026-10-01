@@ -5,6 +5,7 @@ import { Role } from './role.model.js';
 import { AppError } from '../../common/errors/AppError.js';
 import { env } from '../../config/env.js';
 import { AuditLog } from '../admin/audit-log.model.js';
+import { AuditService } from '../../common/services/audit.service.js';
 import { ReferralService } from '../referral/referral.service.js';
 
 const signToken = (id: string) => {
@@ -61,6 +62,22 @@ export class AuthService {
 
     const accessToken = signToken(newUser._id.toString());
     const refreshToken = signRefreshToken(newUser._id.toString());
+
+    // Audit Log for user registration
+    AuditService.log({
+      userId: newUser._id,
+      userRole: studentRole.slug as any,
+      action: 'ثبت‌نام کاربر جدید',
+      category: 'auth',
+      title: `کاربر جدید «${newUser.firstName} ${newUser.lastName}» در سامانه ثبت‌نام کرد`,
+      targetId: newUser._id.toString(),
+      targetType: 'user',
+      details: {
+        email: newUser.email,
+        mobile: newUser.mobile,
+        referralCode: userReferralCode
+      }
+    });
 
     return {
       user: {
@@ -203,7 +220,9 @@ export class AuthService {
         userId: user._id,
         userEmail: user.email,
         userName: `${user.firstName || ''} ${user.lastName || ''}`.trim(),
+        userRole: role?.slug || user.role,
         action: 'ورود موفق به سیستم',
+        title: `${role?.slug === 'instructor' ? 'استاد' : (role?.slug === 'student' ? 'دانشجو' : 'کاربر')} وارد سامانه شد`,
         category: 'auth',
         status: 'success',
         ip: clientInfo.ip || '127.0.0.1',

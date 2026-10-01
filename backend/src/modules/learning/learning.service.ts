@@ -8,6 +8,7 @@ import '../catalog/category.model.js';
 import { AppError } from '../../common/errors/AppError.js';
 import { QuizAttempt } from './quiz-attempt.model.js';
 import { Order } from '../commerce/order.model.js';
+import { AuditService } from '../../common/services/audit.service.js';
 
 export class LearningService {
   // --- Dashboard ---
@@ -48,13 +49,31 @@ export class LearningService {
     const existing = await Enrollment.findOne({ userId, courseId });
     if (existing) throw new AppError('You are already enrolled in this course', 400, 'ALREADY_ENROLLED');
 
-    return await Enrollment.create({
+    const enrollment = await Enrollment.create({
       userId,
       courseId,
       source: 'free',
       status: 'active',
       amount: 0
     });
+
+    // Audit Log for free course enrollment
+    AuditService.log({
+      userId,
+      userRole: 'student',
+      action: 'enroll_free_course',
+      category: 'course',
+      title: `دانشجو در دوره رایگان «${course.title}» ثبت‌نام کرد`,
+      targetId: course._id.toString(),
+      targetType: 'course',
+      targetTitle: course.title,
+      details: {
+        source: 'free',
+        enrollmentId: enrollment._id.toString()
+      }
+    });
+
+    return enrollment;
   }
 
   static async getMyEnrollments(userId: string) {
@@ -107,6 +126,25 @@ export class LearningService {
       { new: true, upsert: true, setDefaultsOnInsert: true }
     );
 
+    // Audit log if student completed a lesson
+    if (data.completed) {
+      AuditService.log({
+        userId,
+        userRole: 'student',
+        action: 'complete_lesson',
+        category: 'course',
+        title: `دانشجو جلسه «${lesson.title}» را مشاهده و تکمیل کرد`,
+        targetId: lesson._id.toString(),
+        targetType: 'lesson',
+        targetTitle: lesson.title,
+        details: {
+          courseId: lesson.courseId?.toString(),
+          lessonId: lesson._id.toString(),
+          watchTime: data.watchTime
+        }
+      });
+    }
+
     // Update Enrollment progress
     if (enrollment) {
       const completedCount = await LessonProgress.countDocuments({ 
@@ -117,12 +155,32 @@ export class LearningService {
 
       const course = await Course.findById(lesson.courseId);
       const total = course?.totalLessons || 1;
+      const previousProgress = enrollment.progress || 0;
       
       enrollment.completedLessons = completedCount;
       enrollment.progress = Math.round((completedCount / total) * 100);
       enrollment.lastLessonId = lesson._id;
       enrollment.lastAccessedAt = new Date();
       await enrollment.save();
+
+      // If course is 100% finished
+      if (enrollment.progress >= 100 && previousProgress < 100) {
+        AuditService.log({
+          userId,
+          userRole: 'student',
+          action: 'complete_course',
+          category: 'course',
+          title: `دانشجو دوره «${course?.title || 'آموزشی'}» را با موفقیت به پایان رساند (۱۰۰٪)`,
+          targetId: course?._id.toString() || lesson.courseId?.toString(),
+          targetType: 'course',
+          targetTitle: course?.title,
+          severity: 'info',
+          details: {
+            totalLessons: total,
+            completedLessons: completedCount
+          }
+        });
+      }
     }
     
     return progress;

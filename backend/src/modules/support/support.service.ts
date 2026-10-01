@@ -1,6 +1,7 @@
 import { Ticket } from './ticket.model.js';
 import { TicketMessage } from './ticket-message.model.js';
 import { AppError } from '../../common/errors/AppError.js';
+import { AuditService } from '../../common/services/audit.service.js';
 
 export class SupportService {
   static async createTicket(userId: string, data: { subject: string, category?: string, priority?: "low" | "medium" | "high", message: string }) {
@@ -15,6 +16,21 @@ export class SupportService {
       ticketId: ticket._id,
       senderId: userId,
       message: data.message
+    });
+
+    // Audit Log for creating ticket
+    AuditService.log({
+      userId,
+      action: 'create_ticket',
+      category: 'support',
+      title: `ثبت تیکت پشتیبانی جدید: «${ticket.subject}»`,
+      targetId: ticket._id.toString(),
+      targetType: 'ticket',
+      targetTitle: ticket.subject,
+      details: {
+        category: ticket.category,
+        priority: ticket.priority
+      }
     });
 
     return ticket;
@@ -45,6 +61,17 @@ export class SupportService {
       ticketId,
       senderId: userId,
       message
+    });
+
+    // Audit Log for replying to ticket
+    AuditService.log({
+      userId,
+      action: 'reply_ticket',
+      category: 'support',
+      title: `ارسال پاسخ به تیکت «${ticket.subject}»`,
+      targetId: ticket._id.toString(),
+      targetType: 'ticket',
+      targetTitle: ticket.subject
     });
 
     return reply;

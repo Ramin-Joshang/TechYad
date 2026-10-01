@@ -12,6 +12,7 @@ import { AppError } from '../../common/errors/AppError.js';
 import { ReferralService } from '../referral/referral.service.js';
 import { WalletTransaction } from '../wallet/wallet-transaction.model.js';
 import { Notification } from '../notifications/notification.model.js';
+import { AuditService } from '../../common/services/audit.service.js';
 
 export class CommerceService {
   static async getInstructorSales(instructorId: string, month?: number, year?: number) {
@@ -560,6 +561,24 @@ export class CommerceService {
       } catch (refErr) {
         console.error('Error processing referral reward:', refErr);
       }
+
+      // Audit Log for student purchase
+      AuditService.log({
+        userId,
+        userRole: 'student',
+        action: 'order_paid',
+        category: 'order',
+        title: `دانشجو سفارش خرید به مبلغ ${order.totalAmount.toLocaleString('fa-IR')} تومان را پرداخت کرد`,
+        targetId: order._id.toString(),
+        targetType: 'order',
+        targetTitle: `سفارش #${order._id.toString().slice(-6)}`,
+        details: {
+          itemsCount: order.items.length,
+          totalAmount: order.totalAmount,
+          items: order.items.map(i => ({ type: i.itemType, id: i.itemId })),
+          couponId: (order as any).couponCode || order.couponId
+        }
+      });
 
       await session.commitTransaction();
       session.endSession();

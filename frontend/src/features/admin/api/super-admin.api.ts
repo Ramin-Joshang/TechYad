@@ -79,6 +79,9 @@ export const superAdminApi = {
   getAuditLogs: async (params?: any) => {
     return api.get<any, any>('/super-admin/audit-logs', { params });
   },
+  getAuditStats: async () => {
+    return api.get<any, any>('/super-admin/audit-stats');
+  },
 
   // Security Overview
   getSecurityOverview: async () => {

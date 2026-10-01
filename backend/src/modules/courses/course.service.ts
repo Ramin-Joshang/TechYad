@@ -8,16 +8,36 @@ import { AppError } from '../../common/errors/AppError.js';
 import { Class } from '../classes/class.model.js';
 import { Order } from '../commerce/order.model.js';
 import { Enrollment } from '../learning/enrollment.model.js';
+import { AuditService } from '../../common/services/audit.service.js';
 
 export class CourseService {
   // --- Courses ---
   static async createCourse(instructorId: string, data: any) {
-    return await Course.create({
+    const course = await Course.create({
       ...data,
       instructors: data.instructors?.length > 0 ? data.instructors : [instructorId],
       createdBy: instructorId,
       status: 'draft'
     });
+
+    // Audit Log for Instructor creating course
+    AuditService.log({
+      userId: instructorId,
+      userRole: 'instructor',
+      action: 'create_course',
+      category: 'course',
+      title: `استاد دوره جدید «${course.title}» را ایجاد کرد`,
+      targetId: course._id.toString(),
+      targetType: 'course',
+      targetTitle: course.title,
+      details: {
+        price: course.price,
+        categoryId: course.categoryId,
+        status: course.status
+      }
+    });
+
+    return course;
   }
 
   static async getCourses(query: any) {
@@ -197,6 +217,24 @@ static async getInstructorCourses(instructorId: string, query: any) {
       { new: true, runValidators: true }
     );
     if (!course) throw new AppError('Course not found or unauthorized', 404, 'NOT_FOUND');
+
+    // Audit Log for Course Update
+    AuditService.log({
+      userId: instructorId,
+      userRole: overrideAuth ? 'admin' : 'instructor',
+      action: 'update_course',
+      category: 'course',
+      title: `ویرایش اطلاعات دوره «${course.title}»`,
+      targetId: course._id.toString(),
+      targetType: 'course',
+      targetTitle: course.title,
+      details: {
+        status: course.status,
+        price: course.price,
+        publishedAt: course.publishedAt
+      }
+    });
+
     return course;
   }
 

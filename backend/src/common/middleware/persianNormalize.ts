@@ -35,13 +35,23 @@ export function deepNormalize(obj: any): any {
  */
 export function persianNormalizeMiddleware(req: Request, res: Response, next: NextFunction) {
   if (req.body && typeof req.body === 'object') {
-    req.body = deepNormalize(req.body);
+    try {
+      req.body = deepNormalize(req.body);
+    } catch {}
   }
   if (req.query && typeof req.query === 'object') {
-    req.query = deepNormalize(req.query);
+    try {
+      for (const key of Object.keys(req.query)) {
+        req.query[key] = deepNormalize(req.query[key]);
+      }
+    } catch {}
   }
   if (req.params && typeof req.params === 'object') {
-    req.params = deepNormalize(req.params);
+    try {
+      for (const key of Object.keys(req.params)) {
+        req.params[key] = deepNormalize(req.params[key]);
+      }
+    } catch {}
   }
   next();
 }

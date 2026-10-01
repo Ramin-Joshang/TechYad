@@ -18,6 +18,7 @@ import { CourseReview } from '../community/course-review.model.js';
 import { LessonComment } from '../courses/lesson-comment.model.js';
 import { Notification } from '../notifications/notification.model.js';
 import { parseDateSafely } from '../../common/utils/date.js';
+import { AuditService } from '../../common/services/audit.service.js';
 
 
 export class AdminService {
@@ -1201,37 +1202,11 @@ export class AdminService {
   }
 
   static async getAuditLogs(query: any = {}) {
-    const filter: any = {};
-    if (query.category && query.category !== 'all') filter.category = query.category;
-    if (query.status && query.status !== 'all') filter.status = query.status;
-    if (query.search) {
-      filter.$or = [
-        { action: { $regex: query.search, $options: 'i' } },
-        { userEmail: { $regex: query.search, $options: 'i' } },
-        { userName: { $regex: query.search, $options: 'i' } }
-      ];
-    }
+    return await AuditService.getLogs(query);
+  }
 
-    const page = Math.max(1, Number(query.page) || 1);
-    const limit = Math.max(1, Number(query.limit) || 20);
-    const skip = (page - 1) * limit;
-
-    const [logs, total] = await Promise.all([
-      AuditLog.find(filter)
-        .sort({ createdAt: -1 })
-        .skip(skip)
-        .limit(limit)
-        .populate('userId', 'firstName lastName email role')
-        .lean(),
-      AuditLog.countDocuments(filter)
-    ]);
-
-    return {
-      logs,
-      total,
-      page,
-      totalPages: Math.ceil(total / limit)
-    };
+  static async getAuditStats() {
+    return await AuditService.getStats();
   }
 
   // --- Settlements & Instructor Payouts ---

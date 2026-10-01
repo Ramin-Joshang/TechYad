@@ -224,6 +224,11 @@ export const getAuditLogs = async (req: Request, res: Response) => {
   sendSuccess(res, result, 'Audit logs retrieved');
 };
 
+export const getAuditStats = async (req: Request, res: Response) => {
+  const result = await AdminService.getAuditStats();
+  sendSuccess(res, result, 'Audit stats retrieved');
+};
+
 // Security
 export const getSecurityOverview = async (req: Request, res: Response) => {
   const result = await AdminService.getSecurityOverview();

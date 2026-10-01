@@ -7,6 +7,7 @@ import { Enrollment } from './enrollment.model.js';
 import { ClassEnrollment } from '../classes/class-enrollment.model.js';
 import { AppError } from '../../common/errors/AppError.js';
 import { parseDateSafely } from '../../common/utils/date.js';
+import { AuditService } from '../../common/services/audit.service.js';
 
 export class AssignmentService {
   static async getMyAssignmentDetails(userId: string, assignmentId: string) {
@@ -154,6 +155,26 @@ export class AssignmentService {
     if (targetLessonId) {
       await Lesson.findByIdAndUpdate(targetLessonId, { assignmentId: assignment._id });
     }
+
+    // Audit Log for Instructor
+    AuditService.log({
+      userId: instructorId,
+      userRole: 'instructor',
+      action: 'create_assignment',
+      category: 'assignment',
+      title: `استاد تکلیف جدید «${assignment.title}» را تعریف کرد`,
+      targetId: assignment._id.toString(),
+      targetType: 'assignment',
+      targetTitle: assignment.title,
+      details: {
+        courseId,
+        classId,
+        maxScore: assignment.maxScore,
+        type: assignment.type,
+        deadline: assignment.deadline
+      }
+    });
+
     return assignment;
   }
 
@@ -276,6 +297,25 @@ export class AssignmentService {
     submission.gradedAt = new Date();
 
     await submission.save();
+
+    // Audit Log for Instructor grading
+    AuditService.log({
+      userId: instructorId,
+      userRole: 'instructor',
+      action: 'grade_assignment',
+      category: 'assignment',
+      title: `استاد نمره ${data.score} از ${assignment.maxScore} را برای تکلیف ثبت کرد`,
+      targetId: submissionId,
+      targetType: 'assignment_submission',
+      targetTitle: assignment.title,
+      details: {
+        score: data.score,
+        maxScore: assignment.maxScore,
+        feedback: data.feedback,
+        studentId: submission.userId
+      }
+    });
+
     return submission;
   }
 
@@ -298,11 +338,31 @@ export class AssignmentService {
     const existing = await AssignmentSubmission.findOne({ userId, assignmentId });
     if (existing) throw new AppError('You have already submitted this assignment', 400, 'ALREADY_SUBMITTED');
 
-    return await AssignmentSubmission.create({
+    const createdSubmission = await AssignmentSubmission.create({
       ...data,
       userId,
       assignmentId
     });
+
+    // Audit Log for Student submitting assignment
+    AuditService.log({
+      userId,
+      userRole: 'student',
+      action: 'submit_assignment',
+      category: 'assignment',
+      title: `دانشجو پاسخ تکلیف «${assignment.title}» را ارسال کرد`,
+      targetId: createdSubmission._id.toString(),
+      targetType: 'assignment_submission',
+      targetTitle: assignment.title,
+      details: {
+        hasFiles: Array.isArray(data.files) && data.files.length > 0,
+        filesCount: data.files?.length || 0,
+        hasAnswerText: Boolean(data.answerText?.trim()),
+        assignmentId
+      }
+    });
+
+    return createdSubmission;
   }
 
   static async getMySubmissions(userId: string) {
