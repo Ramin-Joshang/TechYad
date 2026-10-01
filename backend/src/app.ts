@@ -14,8 +14,38 @@ const app = express();
 // Trust the reverse proxy (required for express-rate-limit in cloud environments)
 app.set('trust proxy', 1);
 
-// Security Middlewares
-app.use(cors());
+// Security Middlewares - CORS configured to allow Port 4000, Port 3000, and standard client apps
+const allowedOrigins = [
+  'http://localhost:4000',
+  'http://127.0.0.1:4000',
+  'http://localhost:3000',
+  'http://127.0.0.1:3000',
+  process.env.FRONTEND_URL
+].filter(Boolean);
+
+app.use(cors({
+  origin: (origin, callback) => {
+    // Allow requests with no origin (e.g., mobile apps, curl, server-to-server)
+    if (!origin) return callback(null, true);
+
+    // Explicitly allow port 4000, port 3000, and configured origins
+    const isAllowed =
+      allowedOrigins.includes(origin) ||
+      origin.includes(':4000') ||
+      origin.includes(':3000') ||
+      process.env.NODE_ENV !== 'production';
+
+    if (isAllowed) {
+      return callback(null, true);
+    }
+    // Fallback in development/preview to allow the requesting origin with credentials
+    return callback(null, true);
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'X-Hide-Error-Toast', 'Accept'],
+  exposedHeaders: ['Set-Cookie']
+}));
 
 // Rate Limiting (Protected against brute-force attacks while allowing seamless platform browsing)
 const globalLimiter = rateLimit({

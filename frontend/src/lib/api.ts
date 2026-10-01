@@ -5,10 +5,11 @@ interface CustomAxiosRequestConfig extends InternalAxiosRequestConfig {
   _retry?: boolean;
 }
 
-const API_URL = 'http://localhost:5000/api/v1';
+// Backend API Base URL running on Port 5000
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api/v1';
 
 export const api = axios.create({
-  baseURL: API_URL,
+  baseURL: API_URL, // Backend server running on port 5000
   withCredentials: true,
   headers: {
     'Content-Type': 'application/json',
