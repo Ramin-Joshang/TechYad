@@ -6,6 +6,7 @@ import { WalletTransaction } from '../wallet/wallet-transaction.model.js';
 import { Notification } from '../notifications/notification.model.js';
 import { AppError } from '../../common/errors/AppError.js';
 import { Types } from 'mongoose';
+import { parseDateSafely } from '../../common/utils/date.js';
 
 export class ClassService {
   static async getInstructorClasses(instructorId: string) {
@@ -115,11 +116,14 @@ export class ClassService {
         : undefined;
 
     const payload = { ...data };
-    if (!payload.capacity) payload.capacity = data.maxStudents || 50;
-    if (!payload.description) payload.description = data.shortDescription || 'توضیحاتی برای این کلاس وارد نشده است.';
-    if (!payload.endDate) {
-      payload.endDate = new Date(new Date(data.startDate || new Date()).getTime() + 30 * 24 * 60 * 60 * 1000).toISOString();
+    if (payload.startDate) payload.startDate = parseDateSafely(payload.startDate) || payload.startDate;
+    if (payload.endDate) {
+      payload.endDate = parseDateSafely(payload.endDate) || payload.endDate;
+    } else if (payload.startDate) {
+      const sDate = payload.startDate instanceof Date ? payload.startDate : new Date(payload.startDate);
+      payload.endDate = new Date(sDate.getTime() + 30 * 24 * 60 * 60 * 1000);
     }
+    if (!payload.capacity) payload.capacity = data.maxStudents || 50;
     if (payload.mode === 'in-person') payload.mode = 'in_person';
 
     // Auto calculate sessions if syllabus provided
@@ -143,6 +147,8 @@ export class ClassService {
   static async updateClass(id: string, userId: string, data: any, overrideAuth: boolean = false) {
     const query = overrideAuth ? { _id: id } : { _id: id, instructors: userId };
     const payload = { ...data };
+    if (payload.startDate !== undefined) payload.startDate = parseDateSafely(payload.startDate) || payload.startDate;
+    if (payload.endDate !== undefined) payload.endDate = parseDateSafely(payload.endDate) || payload.endDate;
     if (payload.mode === 'in-person') payload.mode = 'in_person';
 
     const cls = await Class.findOneAndUpdate(query, payload, { new: true });

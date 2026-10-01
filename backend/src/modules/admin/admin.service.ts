@@ -17,6 +17,7 @@ import { Settlement } from '../commerce/settlement.model.js';
 import { CourseReview } from '../community/course-review.model.js';
 import { LessonComment } from '../courses/lesson-comment.model.js';
 import { Notification } from '../notifications/notification.model.js';
+import { parseDateSafely } from '../../common/utils/date.js';
 
 
 export class AdminService {
@@ -1110,8 +1111,8 @@ export class AdminService {
       maxDiscount: data.maxDiscount ? Number(data.maxDiscount) : undefined,
       usageLimit: data.usageLimit ? Number(data.usageLimit) : undefined,
       perUserLimit: data.perUserLimit ? Number(data.perUserLimit) : 1,
-      startAt: data.startAt ? new Date(data.startAt) : new Date(),
-      endAt: data.endAt ? new Date(data.endAt) : undefined,
+      startAt: data.startAt ? (parseDateSafely(data.startAt) || new Date()) : new Date(),
+      endAt: data.endAt ? (parseDateSafely(data.endAt) || undefined) : undefined,
       applicableProducts: Array.isArray(data.applicableProducts) ? data.applicableProducts : [],
       isActive: data.isActive !== undefined ? Boolean(data.isActive) : true
     });
@@ -1154,8 +1155,8 @@ export class AdminService {
     if (data.maxDiscount !== undefined) coupon.maxDiscount = data.maxDiscount ? Number(data.maxDiscount) : undefined;
     if (data.usageLimit !== undefined) coupon.usageLimit = data.usageLimit ? Number(data.usageLimit) : undefined;
     if (data.perUserLimit !== undefined) coupon.perUserLimit = Number(data.perUserLimit) || 1;
-    if (data.startAt !== undefined) coupon.startAt = data.startAt ? new Date(data.startAt) : coupon.startAt;
-    if (data.endAt !== undefined) coupon.endAt = data.endAt ? new Date(data.endAt) : undefined;
+    if (data.startAt !== undefined) coupon.startAt = data.startAt ? (parseDateSafely(data.startAt) || coupon.startAt) : coupon.startAt;
+    if (data.endAt !== undefined) coupon.endAt = data.endAt ? (parseDateSafely(data.endAt) || undefined) : undefined;
     if (data.applicableProducts !== undefined) coupon.applicableProducts = data.applicableProducts;
     if (data.isActive !== undefined) coupon.isActive = Boolean(data.isActive);
 

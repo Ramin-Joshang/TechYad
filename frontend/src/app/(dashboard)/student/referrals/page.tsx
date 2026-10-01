@@ -9,6 +9,7 @@ import {
   AlertCircle, ArrowUpRight, HelpCircle, ExternalLink,
   MessageCircle, Send, QrCode, X, Sparkles, CheckCircle2, Clock
 } from 'lucide-react';
+import { toEnDigits } from '@/lib/utils';
 
 export default function StudentReferralPage() {
   const queryClient = useQueryClient();
@@ -694,11 +695,12 @@ export default function StudentReferralPage() {
                   مبلغ درخواستی (تومان)
                 </label>
                 <input
-                  type="number"
+                  type="text"
+                  inputMode="numeric"
                   value={payoutForm.amount}
-                  onChange={(e) => setPayoutForm({ ...payoutForm, amount: e.target.value })}
+                  onChange={(e) => setPayoutForm({ ...payoutForm, amount: toEnDigits(e.target.value).replace(/[^0-9]/g, '') })}
                   placeholder={`حداقل ${(stats.minWithdrawalAmount || 100000).toLocaleString('fa-IR')}`}
-                  className="w-full px-4 py-2.5 rounded-xl border border-[var(--neo-border)] bg-[var(--neo-bg)] text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  className="w-full px-4 py-2.5 rounded-xl border border-[var(--neo-border)] bg-[var(--neo-bg)] text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 dir-ltr text-left"
                   required
                 />
               </div>

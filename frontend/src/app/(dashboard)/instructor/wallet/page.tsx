@@ -10,6 +10,7 @@ import {
 import { walletApi, WalletTransactionItem } from '@/features/wallet/api/wallet.api';
 import toast from 'react-hot-toast';
 import Link from 'next/link';
+import { toEnDigits } from '@/lib/utils';
 
 export default function InstructorWalletPage() {
   const queryClient = useQueryClient();
@@ -362,13 +363,15 @@ export default function InstructorWalletPage() {
               <div>
                 <label className="block text-xs font-bold text-slate-700 mb-1">مبلغ تسویه (تومان):</label>
                 <input
-                  type="number"
+                  type="text"
+                  inputMode="numeric"
                   required
-                  min={50000}
-                  max={balance}
-                  value={withdrawAmount || ''}
-                  onChange={(e) => setWithdrawAmount(Number(e.target.value))}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-left font-bold text-slate-900 outline-none focus:border-indigo-500 text-sm"
+                  value={withdrawAmount ? withdrawAmount.toLocaleString('en-US') : ''}
+                  onChange={(e) => {
+                    const clean = toEnDigits(e.target.value).replace(/[^0-9]/g, '');
+                    setWithdrawAmount(clean ? Number(clean) : 0);
+                  }}
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-left font-bold text-slate-900 outline-none focus:border-indigo-500 text-sm dir-ltr"
                 />
               </div>
 
@@ -449,10 +452,14 @@ export default function InstructorWalletPage() {
             <div>
               <label className="block text-xs font-bold text-slate-700 mb-2">مبلغ شارژ (تومان):</label>
               <input
-                type="number"
-                value={depositAmount || ''}
-                onChange={(e) => setDepositAmount(Number(e.target.value))}
-                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-left font-bold text-slate-900 outline-none focus:border-indigo-500 text-base"
+                type="text"
+                inputMode="numeric"
+                value={depositAmount ? depositAmount.toLocaleString('en-US') : ''}
+                onChange={(e) => {
+                  const clean = toEnDigits(e.target.value).replace(/[^0-9]/g, '');
+                  setDepositAmount(clean ? Number(clean) : 0);
+                }}
+                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-left font-bold text-slate-900 outline-none focus:border-indigo-500 text-base dir-ltr"
               />
             </div>
             <div className="flex items-center gap-3">

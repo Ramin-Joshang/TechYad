@@ -12,6 +12,7 @@ import {
 import Link from 'next/link';
 import toast from 'react-hot-toast';
 import { MediaUploader } from '@/components/common/MediaUploader';
+import { toEnDigits } from '@/lib/utils';
 
 export default function AdminCoursesPage() {
   const queryClient = useQueryClient();
@@ -513,10 +514,13 @@ export default function AdminCoursesPage() {
                 <div>
                   <label className="block text-xs font-bold text-[var(--neo-text-main)] mb-1">قیمت (تومان)</label>
                   <input
-                    type="number"
-                    min="0"
+                    type="text"
+                    inputMode="numeric"
                     value={editingCourse.price || 0}
-                    onChange={(e) => setEditingCourse({ ...editingCourse, price: Number(e.target.value) })}
+                    onChange={(e) => {
+                      const clean = toEnDigits(e.target.value).replace(/[^0-9]/g, '');
+                      setEditingCourse({ ...editingCourse, price: clean ? Number(clean) : 0 });
+                    }}
                     className="w-full px-3.5 py-2 bg-[var(--neo-surface-2)] border border-[var(--neo-border)] rounded-xl text-xs outline-none focus:ring-2 focus:ring-[var(--neo-primary)] dir-ltr text-left"
                   />
                 </div>
@@ -644,10 +648,13 @@ export default function AdminCoursesPage() {
                 <div>
                   <label className="block text-xs font-bold text-[var(--neo-text-main)] mb-1">قیمت (تومان)</label>
                   <input
-                    type="number"
-                    min="0"
+                    type="text"
+                    inputMode="numeric"
                     value={newCourseData.price}
-                    onChange={(e) => setNewCourseData({ ...newCourseData, price: Number(e.target.value) })}
+                    onChange={(e) => {
+                      const clean = toEnDigits(e.target.value).replace(/[^0-9]/g, '');
+                      setNewCourseData({ ...newCourseData, price: clean ? Number(clean) : 0 });
+                    }}
                     className="w-full px-3.5 py-2 bg-[var(--neo-surface-2)] border border-[var(--neo-border)] rounded-xl text-xs outline-none focus:ring-2 focus:ring-[var(--neo-primary)] dir-ltr text-left"
                   />
                 </div>

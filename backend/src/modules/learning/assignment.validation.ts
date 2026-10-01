@@ -8,8 +8,8 @@ export const createAssignmentSchema = z.object({
     title: z.string().min(2),
     description: z.string().optional(),
     type: z.enum(['file_upload', 'text_answer', 'mixed']).optional().default('mixed'),
-    maxScore: z.number().min(0).optional(),
-    points: z.number().min(0).optional(),
+    maxScore: z.coerce.number().min(0).optional(),
+    points: z.coerce.number().min(0).optional(),
     deadline: z.string().optional().nullable(),
     attachments: z.array(z.string()).optional(),
   })
@@ -24,7 +24,7 @@ export const submitAssignmentSchema = z.object({
 
 export const gradeSubmissionSchema = z.object({
   body: z.object({
-    score: z.number().min(0),
+    score: z.coerce.number().min(0),
     feedback: z.string().optional()
   })
 });

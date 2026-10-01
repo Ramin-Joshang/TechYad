@@ -12,6 +12,7 @@ import {
 import Link from 'next/link';
 import toast from 'react-hot-toast';
 import { MediaUploader } from '@/components/common/MediaUploader';
+import { toEnDigits } from '@/lib/utils';
 
 function LinkedinIcon({ className }: { className?: string }) {
   return (
@@ -470,9 +471,13 @@ export default function InstructorResumePage() {
                       <div>
                         <label className="block text-[11px] font-bold text-[var(--neo-text-secondary)] mb-1">سال شروع</label>
                         <input
-                          type="number"
+                          type="text"
+                          inputMode="numeric"
                           value={edu.startYear || ''}
-                          onChange={e => handleUpdateEducation(idx, 'startYear', e.target.value ? Number(e.target.value) : '')}
+                          onChange={e => {
+                            const val = toEnDigits(e.target.value).replace(/[^0-9]/g, '');
+                            handleUpdateEducation(idx, 'startYear', val ? Number(val) : '');
+                          }}
                           placeholder="۱۳۹۵"
                           className="w-full px-3 py-2 rounded-xl border border-[var(--neo-border)] bg-[var(--neo-surface)] text-xs font-mono outline-none dir-ltr text-left"
                         />
@@ -481,9 +486,13 @@ export default function InstructorResumePage() {
                       <div>
                         <label className="block text-[11px] font-bold text-[var(--neo-text-secondary)] mb-1">سال فراغت / پایان</label>
                         <input
-                          type="number"
+                          type="text"
+                          inputMode="numeric"
                           value={edu.endYear || ''}
-                          onChange={e => handleUpdateEducation(idx, 'endYear', e.target.value ? Number(e.target.value) : '')}
+                          onChange={e => {
+                            const val = toEnDigits(e.target.value).replace(/[^0-9]/g, '');
+                            handleUpdateEducation(idx, 'endYear', val ? Number(val) : '');
+                          }}
                           placeholder="۱۳۹۹ (یا خالی برای اکنون)"
                           className="w-full px-3 py-2 rounded-xl border border-[var(--neo-border)] bg-[var(--neo-surface)] text-xs font-mono outline-none dir-ltr text-left"
                         />
@@ -571,9 +580,13 @@ export default function InstructorResumePage() {
                       <div>
                         <label className="block text-[11px] font-bold text-[var(--neo-text-secondary)] mb-1">سال شروع</label>
                         <input
-                          type="number"
+                          type="text"
+                          inputMode="numeric"
                           value={exp.startYear || ''}
-                          onChange={e => handleUpdateExperience(idx, 'startYear', e.target.value ? Number(e.target.value) : '')}
+                          onChange={e => {
+                            const val = toEnDigits(e.target.value).replace(/[^0-9]/g, '');
+                            handleUpdateExperience(idx, 'startYear', val ? Number(val) : '');
+                          }}
                           placeholder="۱۳۹۸"
                           className="w-full px-3 py-2 rounded-xl border border-[var(--neo-border)] bg-[var(--neo-surface)] text-xs font-mono outline-none dir-ltr text-left"
                         />
@@ -582,10 +595,14 @@ export default function InstructorResumePage() {
                       <div>
                         <label className="block text-[11px] font-bold text-[var(--neo-text-secondary)] mb-1">سال پایان</label>
                         <input
-                          type="number"
+                          type="text"
+                          inputMode="numeric"
                           disabled={exp.current}
                           value={exp.endYear || ''}
-                          onChange={e => handleUpdateExperience(idx, 'endYear', e.target.value ? Number(e.target.value) : '')}
+                          onChange={e => {
+                            const val = toEnDigits(e.target.value).replace(/[^0-9]/g, '');
+                            handleUpdateExperience(idx, 'endYear', val ? Number(val) : '');
+                          }}
                           placeholder={exp.current ? 'مشغول به کار' : '۱۴۰۲'}
                           className="w-full px-3 py-2 rounded-xl border border-[var(--neo-border)] bg-[var(--neo-surface)] text-xs font-mono outline-none dir-ltr text-left disabled:opacity-50"
                         />

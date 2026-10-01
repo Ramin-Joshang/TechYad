@@ -5,6 +5,7 @@ import rateLimit from 'express-rate-limit';
 import swaggerUi from 'swagger-ui-express';
 import routes from './routes/index.js';
 import { errorHandler } from './common/middleware/errorHandler.js';
+import { persianNormalizeMiddleware } from './common/middleware/persianNormalize.js';
 import { AppError } from './common/errors/AppError.js';
 import { swaggerDocument } from './docs/swagger.js';
 
@@ -41,6 +42,7 @@ app.use('/api/v1/auth/register', authLimiter);
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 app.use(cookieParser());
+app.use(persianNormalizeMiddleware);
 
 // API Routes
 app.use('/api/v1', routes);

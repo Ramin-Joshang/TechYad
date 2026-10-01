@@ -8,6 +8,7 @@ import {
   Clock, X, Search, Filter, Settings, Award, AlertCircle,
   Check, Save, Loader2, ArrowUpRight, Gift, ShieldAlert
 } from 'lucide-react';
+import { toEnDigits } from '@/lib/utils';
 
 export default function AdminReferralsPage() {
   const queryClient = useQueryClient();
@@ -659,12 +660,14 @@ export default function AdminReferralsPage() {
                     </label>
                     <div className="relative">
                       <input
-                        type="number"
+                        type="text"
+                        inputMode="numeric"
                         value={settingsForm.defaultCommissionPercent}
-                        onChange={(e) => setSettingsForm({ ...settingsForm, defaultCommissionPercent: Number(e.target.value) })}
-                        className="w-full pl-9 pr-4 py-2.5 rounded-xl border border-[var(--neo-border)] bg-[var(--neo-bg)] text-sm font-bold"
-                        min={1}
-                        max={100}
+                        onChange={(e) => {
+                          const clean = toEnDigits(e.target.value).replace(/[^0-9]/g, '');
+                          setSettingsForm({ ...settingsForm, defaultCommissionPercent: clean ? Number(clean) : 0 });
+                        }}
+                        className="w-full pl-9 pr-4 py-2.5 rounded-xl border border-[var(--neo-border)] bg-[var(--neo-bg)] text-sm font-bold dir-ltr text-left"
                         required
                       />
                       <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-bold text-gray-500">٪</span>
@@ -677,12 +680,14 @@ export default function AdminReferralsPage() {
                     </label>
                     <div className="relative">
                       <input
-                        type="number"
+                        type="text"
+                        inputMode="numeric"
                         value={settingsForm.instructorCommissionPercent}
-                        onChange={(e) => setSettingsForm({ ...settingsForm, instructorCommissionPercent: Number(e.target.value) })}
-                        className="w-full pl-9 pr-4 py-2.5 rounded-xl border border-[var(--neo-border)] bg-[var(--neo-bg)] text-sm font-bold"
-                        min={1}
-                        max={100}
+                        onChange={(e) => {
+                          const clean = toEnDigits(e.target.value).replace(/[^0-9]/g, '');
+                          setSettingsForm({ ...settingsForm, instructorCommissionPercent: clean ? Number(clean) : 0 });
+                        }}
+                        className="w-full pl-9 pr-4 py-2.5 rounded-xl border border-[var(--neo-border)] bg-[var(--neo-bg)] text-sm font-bold dir-ltr text-left"
                         required
                       />
                       <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-bold text-gray-500">٪</span>
@@ -695,12 +700,14 @@ export default function AdminReferralsPage() {
                     </label>
                     <div className="relative">
                       <input
-                        type="number"
+                        type="text"
+                        inputMode="numeric"
                         value={settingsForm.refereeDiscountPercent}
-                        onChange={(e) => setSettingsForm({ ...settingsForm, refereeDiscountPercent: Number(e.target.value) })}
-                        className="w-full pl-9 pr-4 py-2.5 rounded-xl border border-[var(--neo-border)] bg-[var(--neo-bg)] text-sm font-bold"
-                        min={0}
-                        max={100}
+                        onChange={(e) => {
+                          const clean = toEnDigits(e.target.value).replace(/[^0-9]/g, '');
+                          setSettingsForm({ ...settingsForm, refereeDiscountPercent: clean ? Number(clean) : 0 });
+                        }}
+                        className="w-full pl-9 pr-4 py-2.5 rounded-xl border border-[var(--neo-border)] bg-[var(--neo-bg)] text-sm font-bold dir-ltr text-left"
                       />
                       <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-bold text-gray-500">٪</span>
                     </div>
@@ -712,10 +719,14 @@ export default function AdminReferralsPage() {
                     </label>
                     <div className="relative">
                       <input
-                        type="number"
+                        type="text"
+                        inputMode="numeric"
                         value={settingsForm.refereeWelcomeCredit}
-                        onChange={(e) => setSettingsForm({ ...settingsForm, refereeWelcomeCredit: Number(e.target.value) })}
-                        className="w-full pl-12 pr-4 py-2.5 rounded-xl border border-[var(--neo-border)] bg-[var(--neo-bg)] text-sm font-bold"
+                        onChange={(e) => {
+                          const clean = toEnDigits(e.target.value).replace(/[^0-9]/g, '');
+                          setSettingsForm({ ...settingsForm, refereeWelcomeCredit: clean ? Number(clean) : 0 });
+                        }}
+                        className="w-full pl-12 pr-4 py-2.5 rounded-xl border border-[var(--neo-border)] bg-[var(--neo-bg)] text-sm font-bold dir-ltr text-left"
                       />
                       <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-bold text-gray-500">تومان</span>
                     </div>
@@ -727,10 +738,14 @@ export default function AdminReferralsPage() {
                     </label>
                     <div className="relative">
                       <input
-                        type="number"
+                        type="text"
+                        inputMode="numeric"
                         value={settingsForm.minWithdrawalAmount}
-                        onChange={(e) => setSettingsForm({ ...settingsForm, minWithdrawalAmount: Number(e.target.value) })}
-                        className="w-full pl-12 pr-4 py-2.5 rounded-xl border border-[var(--neo-border)] bg-[var(--neo-bg)] text-sm font-bold"
+                        onChange={(e) => {
+                          const clean = toEnDigits(e.target.value).replace(/[^0-9]/g, '');
+                          setSettingsForm({ ...settingsForm, minWithdrawalAmount: clean ? Number(clean) : 0 });
+                        }}
+                        className="w-full pl-12 pr-4 py-2.5 rounded-xl border border-[var(--neo-border)] bg-[var(--neo-bg)] text-sm font-bold dir-ltr text-left"
                       />
                       <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-bold text-gray-500">تومان</span>
                     </div>
@@ -918,11 +933,12 @@ export default function AdminReferralsPage() {
                   مبلغ پاداش (تومان):
                 </label>
                 <input
-                  type="number"
+                  type="text"
+                  inputMode="numeric"
                   value={bonusForm.amount}
-                  onChange={(e) => setBonusForm({ ...bonusForm, amount: e.target.value })}
+                  onChange={(e) => setBonusForm({ ...bonusForm, amount: toEnDigits(e.target.value).replace(/[^0-9]/g, '') })}
                   placeholder="مثال: 50000"
-                  className="w-full px-3 py-2 rounded-xl border border-[var(--neo-border)] bg-[var(--neo-bg)] text-xs font-bold"
+                  className="w-full px-3 py-2 rounded-xl border border-[var(--neo-border)] bg-[var(--neo-bg)] text-xs font-bold dir-ltr text-left"
                   required
                 />
               </div>

@@ -10,6 +10,7 @@ import {
   CheckSquare, Trash2, Edit2, Play, Eye, Clock, CheckCircle2, Save, X
 } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { toEnDigits } from '@/lib/utils';
 
 interface LessonItemProps {
   lesson: any;
@@ -146,11 +147,15 @@ const LessonItem = ({ lesson, chapterId }: LessonItemProps) => {
             <div className="flex items-center gap-2">
               <span className="text-sm font-medium text-[var(--neo-text-main)]">مدت زمان (دقیقه):</span>
               <input 
-                type="number" 
-                min="1" 
+                type="text" 
+                inputMode="numeric"
                 value={editLessonData.duration} 
-                onChange={e => setEditLessonData({...editLessonData, duration: Number(e.target.value)})} 
-                className="w-24 px-3 py-1.5 bg-[var(--neo-surface-2)] border border-[var(--neo-border)] rounded-xl text-sm outline-none" 
+                onChange={e => {
+                  const val = toEnDigits(e.target.value).replace(/[^0-9]/g, '');
+                  setEditLessonData({...editLessonData, duration: val ? Number(val) : 0});
+                }} 
+                className="w-24 px-3 py-1.5 bg-[var(--neo-surface-2)] border border-[var(--neo-border)] rounded-xl text-sm outline-none text-left" 
+                dir="ltr"
               />
             </div>
           </div>
@@ -530,11 +535,15 @@ const ChapterItem = ({ chapter, courseId }: { chapter: any; courseId: string }) 
                 <div className="flex items-center gap-2">
                   <span className="text-sm font-medium text-[var(--neo-text-main)]">مدت زمان (دقیقه):</span>
                   <input 
-                    type="number" 
-                    min="1" 
+                    type="text" 
+                    inputMode="numeric"
                     value={lessonData.duration} 
-                    onChange={e => setLessonData({...lessonData, duration: Number(e.target.value)})} 
-                    className="w-24 px-3 py-1.5 bg-[var(--neo-surface-2)] border border-[var(--neo-border)] rounded-xl text-sm outline-none" 
+                    onChange={e => {
+                      const val = toEnDigits(e.target.value).replace(/[^0-9]/g, '');
+                      setLessonData({...lessonData, duration: val ? Number(val) : 0});
+                    }} 
+                    className="w-24 px-3 py-1.5 bg-[var(--neo-surface-2)] border border-[var(--neo-border)] rounded-xl text-sm outline-none text-left" 
+                    dir="ltr"
                   />
                 </div>
               </div>

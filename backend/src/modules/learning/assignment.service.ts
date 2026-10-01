@@ -6,6 +6,7 @@ import { Class } from '../classes/class.model.js';
 import { Enrollment } from './enrollment.model.js';
 import { ClassEnrollment } from '../classes/class-enrollment.model.js';
 import { AppError } from '../../common/errors/AppError.js';
+import { parseDateSafely } from '../../common/utils/date.js';
 
 export class AssignmentService {
   static async getMyAssignmentDetails(userId: string, assignmentId: string) {
@@ -80,7 +81,7 @@ export class AssignmentService {
     const updatePayload = {
       ...data,
       maxScore: data.maxScore ?? data.points ?? assignment.maxScore,
-      ...(data.deadline !== undefined ? { deadline: data.deadline ? new Date(data.deadline) : null } : {})
+      ...(data.deadline !== undefined ? { deadline: data.deadline ? (parseDateSafely(data.deadline) || null) : null } : {})
     };
 
     return await Assignment.findByIdAndUpdate(assignmentId, updatePayload, { new: true });
@@ -146,7 +147,7 @@ export class AssignmentService {
       courseId: courseId || undefined,
       classId: classId || undefined,
       lessonId: targetLessonId || undefined,
-      deadline: payload.deadline ? new Date(payload.deadline) : undefined,
+      deadline: payload.deadline ? (parseDateSafely(payload.deadline) || undefined) : undefined,
       isPublished: payload.isPublished ?? true
     });
 

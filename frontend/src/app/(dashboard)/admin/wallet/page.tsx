@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 import { walletApi, WalletTransactionItem } from '@/features/wallet/api/wallet.api';
 import toast from 'react-hot-toast';
+import { toEnDigits } from '@/lib/utils';
 
 export default function AdminWalletPage() {
   const queryClient = useQueryClient();
@@ -622,12 +623,15 @@ export default function AdminWalletPage() {
               <label className="block text-xs font-bold text-slate-700 mb-1.5">مبلغ تغییر (تومان):</label>
               <div className="relative">
                 <input
-                  type="number"
+                  type="text"
+                  inputMode="numeric"
                   required
-                  min={1000}
-                  value={adjustAmount || ''}
-                  onChange={(e) => setAdjustAmount(Number(e.target.value))}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-left font-bold text-slate-900 outline-none focus:border-indigo-500 text-base"
+                  value={adjustAmount ? adjustAmount.toLocaleString('en-US') : ''}
+                  onChange={(e) => {
+                    const clean = toEnDigits(e.target.value).replace(/[^0-9]/g, '');
+                    setAdjustAmount(clean ? Number(clean) : 0);
+                  }}
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-left font-bold text-slate-900 outline-none focus:border-indigo-500 text-base dir-ltr"
                 />
                 <span className="absolute right-3.5 top-1/2 -translate-y-1/2 text-xs text-slate-400">تومان</span>
               </div>

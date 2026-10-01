@@ -9,6 +9,7 @@ import {
   Search, Plus, Loader2, AlertCircle, Building2, UserCheck
 } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { toEnDigits } from '@/lib/utils';
 
 export default function SettlementsPage() {
   const queryClient = useQueryClient();
@@ -360,11 +361,12 @@ export default function SettlementsPage() {
               <div>
                 <label className="block text-xs font-bold text-gray-700 mb-1">مبلغ تسویه (تومان) *</label>
                 <input
-                  type="number"
+                  type="text"
+                  inputMode="numeric"
                   placeholder="مثلاً: 2500000"
                   value={newSettlement.amount}
-                  onChange={(e) => setNewSettlement({ ...newSettlement, amount: e.target.value })}
-                  className="w-full p-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs focus:ring-2 focus:ring-emerald-500 outline-none"
+                  onChange={(e) => setNewSettlement({ ...newSettlement, amount: toEnDigits(e.target.value).replace(/[^0-9]/g, '') })}
+                  className="w-full p-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs focus:ring-2 focus:ring-emerald-500 outline-none dir-ltr text-left"
                 />
               </div>
 

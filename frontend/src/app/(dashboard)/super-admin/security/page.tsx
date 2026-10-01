@@ -8,6 +8,7 @@ import {
   CheckCircle, Plus, Trash2, Loader2, Save, Globe, Activity
 } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { toEnDigits } from '@/lib/utils';
 
 export default function SecurityPage() {
   const queryClient = useQueryClient();
@@ -161,12 +162,14 @@ export default function SecurityPage() {
                 حداکثر دفعات تلاش ناموفق ورود (Rate Limiting)
               </label>
               <input
-                type="number"
-                min="3"
-                max="20"
+                type="text"
+                inputMode="numeric"
                 value={config.maxLoginAttempts || 5}
-                onChange={(e) => setConfig({ ...config, maxLoginAttempts: Number(e.target.value) })}
-                className="w-full p-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs outline-none focus:ring-2 focus:ring-red-500"
+                onChange={(e) => {
+                  const clean = toEnDigits(e.target.value).replace(/[^0-9]/g, '');
+                  setConfig({ ...config, maxLoginAttempts: clean ? Number(clean) : 0 });
+                }}
+                className="w-full p-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs outline-none focus:ring-2 focus:ring-red-500 dir-ltr text-left"
               />
               <span className="text-[11px] text-gray-400">پس از این تعداد، حساب یا IP به مدت ۱۵ دقیقه مسدود می‌شود.</span>
             </div>
@@ -176,12 +179,14 @@ export default function SecurityPage() {
                 مدت زمان انقضای نشست فعال مدیر (دقیقه)
               </label>
               <input
-                type="number"
-                min="15"
-                max="1440"
+                type="text"
+                inputMode="numeric"
                 value={config.sessionTimeoutMinutes || 120}
-                onChange={(e) => setConfig({ ...config, sessionTimeoutMinutes: Number(e.target.value) })}
-                className="w-full p-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs outline-none focus:ring-2 focus:ring-red-500"
+                onChange={(e) => {
+                  const clean = toEnDigits(e.target.value).replace(/[^0-9]/g, '');
+                  setConfig({ ...config, sessionTimeoutMinutes: clean ? Number(clean) : 0 });
+                }}
+                className="w-full p-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs outline-none focus:ring-2 focus:ring-red-500 dir-ltr text-left"
               />
               <span className="text-[11px] text-gray-400">پس از عدم فعالیت کاربر، خروج خودکار صورت می‌گیرد.</span>
             </div>

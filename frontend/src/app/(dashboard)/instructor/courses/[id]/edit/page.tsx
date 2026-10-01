@@ -15,6 +15,7 @@ import {
 import { CurriculumBuilder } from './CurriculumBuilder';
 import { MediaUploader } from '@/components/common/MediaUploader';
 import toast from 'react-hot-toast';
+import { toEnDigits } from '@/lib/utils';
 
 export default function EditCoursePage() {
   const { user } = useAuthStore();
@@ -287,11 +288,14 @@ export default function EditCoursePage() {
               <div>
                 <label className="block text-xs font-bold text-[var(--neo-text-main)] mb-1.5">قیمت دوره (تومان) *</label>
                 <input 
-                  type="number" 
+                  type="text" 
+                  inputMode="numeric"
                   required
-                  min="0"
                   value={formData.price}
-                  onChange={(e) => setFormData({...formData, price: Number(e.target.value)})}
+                  onChange={(e) => {
+                    const clean = toEnDigits(e.target.value).replace(/[^0-9]/g, '');
+                    setFormData({...formData, price: clean ? Number(clean) : 0});
+                  }}
                   className="w-full px-4 py-2.5 bg-[var(--neo-surface-2)] border border-[var(--neo-border)] rounded-xl focus:ring-2 focus:ring-[var(--neo-primary)] outline-none text-sm font-medium text-left dir-ltr"
                   placeholder="0 برای دوره رایگان"
                 />

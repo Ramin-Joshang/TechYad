@@ -10,18 +10,9 @@ import {
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { MediaUploader } from '@/components/common/MediaUploader';
-
-// Helper to robustly parse numeric inputs supporting Persian and Arabic numerals on mobile keyboards
-const parseNumericInput = (val: string | number): number => {
-  if (typeof val === 'number') return isNaN(val) ? 0 : val;
-  if (!val) return 0;
-  const enDigits = val
-    .toString()
-    .replace(/[۰-۹]/g, d => '۰۱۲۳۴۵۶۷۸۹'.indexOf(d).toString())
-    .replace(/[٠-٩]/g, d => '٠١٢٣٤٥٦٧٨٩'.indexOf(d).toString())
-    .replace(/[^0-9]/g, '');
-  return enDigits ? parseInt(enDigits, 10) : 0;
-};
+import { PersianDatePicker } from '@/components/ui/PersianDatePicker';
+import { NumericInput } from '@/components/ui/NumericInput';
+import { toEnDigits, parseNumericInput } from '@/lib/utils';
 
 export const DAYS_OF_WEEK = [
   'شنبه', 'یکشنبه', 'دوشنبه', 'سه‌شنبه', 'چهارشنبه', 'پنج‌شنبه', 'جمعه'
@@ -198,8 +189,49 @@ export function ClassFormModal({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.title.trim() || !formData.slug.trim()) {
-      toast.error('عنوان و شناسه (Slug) کلاس الزامی است');
+    if (!formData.title.trim()) {
+      toast.error('لطفاً عنوان کلاس را وارد کنید');
+      setActiveTab('basic');
+      return;
+    }
+    if (!formData.slug.trim()) {
+      toast.error('لطفاً شناسه اختصاصی (Slug) کلاس را وارد کنید');
+      setActiveTab('basic');
+      return;
+    }
+
+    const price = Number(formData.price) || 0;
+    const discountPrice = Number(formData.discountPrice) || 0;
+    const capacity = Number(formData.capacity) || 0;
+
+    if (capacity < 1) {
+      toast.error('ظرفیت کلاس باید حداقل ۱ نفر باشد');
+      setActiveTab('schedule');
+      return;
+    }
+
+    if (discountPrice > 0 && discountPrice >= price) {
+      toast.error('شهریه تخفیف‌دار باید کمتر از شهریه اصلی کلاس باشد');
+      setActiveTab('pricing');
+      return;
+    }
+
+    if (formData.allowPreRegistration) {
+      const deposit = Number(formData.preRegistrationDeposit) || 0;
+      if (deposit <= 0) {
+        toast.error('لطفاً مبلغ معتبر برای بیعانه پیش‌ثبت‌نام تعیین کنید');
+        setActiveTab('pricing');
+        return;
+      }
+      if (price > 0 && deposit >= price) {
+        toast.error('مبلغ بیعانه باید کمتر از کل شهریه کلاس باشد');
+        setActiveTab('pricing');
+        return;
+      }
+    }
+
+    if (formData.mode === 'in_person' && !formData.address.trim()) {
+      toast.error('برای کلاس‌های حضوری وارد کردن آدرس دقیق الزامی است');
       setActiveTab('basic');
       return;
     }
@@ -207,9 +239,9 @@ export function ClassFormModal({
     const payload = {
       ...formData,
       instructors: formData.instructorId ? [formData.instructorId] : (initialData?.instructors || undefined),
-      price: Number(formData.price) || 0,
-      discountPrice: Number(formData.discountPrice) || 0,
-      capacity: Number(formData.capacity) || 30,
+      price: price,
+      discountPrice: discountPrice,
+      capacity: capacity,
       sessions: Number(formData.sessions) || formData.syllabus.length || 10,
       totalHours: Number(formData.totalHours) || 20,
       sessionDuration: Number(formData.sessionDuration) || 90,
@@ -515,22 +547,22 @@ export function ClassFormModal({
             <div className="space-y-6 animate-in fade-in duration-200">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1.5">تاریخ و ساعت شروع کلاس</label>
-                  <input
-                    type="datetime-local"
+                  <PersianDatePicker
+                    includeTime={true}
                     value={formData.startDate}
-                    onChange={e => setFormData({ ...formData, startDate: e.target.value })}
-                    className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-emerald-500 outline-none"
+                    onChange={val => setFormData({ ...formData, startDate: val })}
+                    label="تاریخ و ساعت شروع کلاس"
+                    placeholder="انتخاب تاریخ و ساعت شروع..."
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1.5">تاریخ پایان کلاس (اختیاری)</label>
-                  <input
-                    type="datetime-local"
+                  <PersianDatePicker
+                    includeTime={true}
                     value={formData.endDate}
-                    onChange={e => setFormData({ ...formData, endDate: e.target.value })}
-                    className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-emerald-500 outline-none"
+                    onChange={val => setFormData({ ...formData, endDate: val })}
+                    label="تاریخ پایان کلاس (اختیاری)"
+                    placeholder="انتخاب تاریخ پایان..."
                   />
                 </div>
 
@@ -546,42 +578,43 @@ export function ClassFormModal({
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1.5">مدت هر جلسه (دقیقه)</label>
-                  <input
-                    type="number"
+                  <NumericInput
+                    label="مدت هر جلسه"
+                    unit="دقیقه"
                     value={formData.sessionDuration}
-                    onChange={e => setFormData({ ...formData, sessionDuration: Number(e.target.value) })}
-                    className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-emerald-500 outline-none dir-ltr text-left font-mono"
+                    onChange={num => setFormData({ ...formData, sessionDuration: num })}
+                    placeholder="۹۰"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1.5">تعداد جلسات رسمی</label>
-                  <input
-                    type="number"
+                  <NumericInput
+                    label="تعداد جلسات رسمی"
+                    unit="جلسه"
                     value={formData.sessions}
-                    onChange={e => setFormData({ ...formData, sessions: Number(e.target.value) })}
-                    className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-emerald-500 outline-none dir-ltr text-left font-mono"
+                    onChange={num => setFormData({ ...formData, sessions: num })}
+                    placeholder="۱۰"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1.5">مجموع ساعات آموزش</label>
-                  <input
-                    type="number"
+                  <NumericInput
+                    label="مجموع ساعات آموزش"
+                    unit="ساعت"
                     value={formData.totalHours}
-                    onChange={e => setFormData({ ...formData, totalHours: Number(e.target.value) })}
-                    className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-emerald-500 outline-none dir-ltr text-left font-mono"
+                    onChange={num => setFormData({ ...formData, totalHours: num })}
+                    placeholder="۲۰"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1.5">حداکثر ظرفیت پذیرش (نفر)</label>
-                  <input
-                    type="number"
+                  <NumericInput
+                    label="حداکثر ظرفیت پذیرش"
+                    unit="نفر"
+                    required
                     value={formData.capacity}
-                    onChange={e => setFormData({ ...formData, capacity: Number(e.target.value) })}
-                    className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-emerald-500 outline-none dir-ltr text-left font-mono"
+                    onChange={num => setFormData({ ...formData, capacity: num })}
+                    placeholder="۳۰"
                   />
                 </div>
               </div>
@@ -618,29 +651,24 @@ export function ClassFormModal({
             <div className="space-y-6 animate-in fade-in duration-200">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1.5">شهریه کل کلاس (تومان) *</label>
-                  <input
-                    type="text"
-                    inputMode="numeric"
-                    value={formData.price ? Number(formData.price).toLocaleString('fa-IR') : ''}
-                    onChange={e => setFormData({ ...formData, price: parseNumericInput(e.target.value) })}
+                  <NumericInput
+                    label="شهریه کل کلاس"
+                    unit="تومان"
+                    required
+                    value={formData.price}
+                    onChange={num => setFormData({ ...formData, price: num })}
                     placeholder="0 برای کلاس رایگان"
-                    className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-emerald-500 outline-none dir-ltr text-left font-mono"
+                    helperText={formData.price > 0 ? `${Number(formData.price).toLocaleString('fa-IR')} تومان` : 'کلاس به صورت رایگان ارائه می‌شود'}
                   />
-                  <span className="text-[11px] text-slate-500 mt-1 block">
-                    {formData.price > 0 ? `${Number(formData.price).toLocaleString('fa-IR')} تومان` : 'رایگان'}
-                  </span>
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1.5">شهریه با تخفیف (اختیاری)</label>
-                  <input
-                    type="text"
-                    inputMode="numeric"
-                    value={formData.discountPrice ? Number(formData.discountPrice).toLocaleString('fa-IR') : ''}
-                    onChange={e => setFormData({ ...formData, discountPrice: parseNumericInput(e.target.value) })}
+                  <NumericInput
+                    label="شهریه با تخفیف ویژه (اختیاری)"
+                    unit="تومان"
+                    value={formData.discountPrice || ''}
+                    onChange={num => setFormData({ ...formData, discountPrice: num })}
                     placeholder="در صورت وجود تخفیف"
-                    className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-emerald-500 outline-none dir-ltr text-left font-mono"
                   />
                 </div>
               </div>
@@ -667,38 +695,28 @@ export function ClassFormModal({
                 {formData.allowPreRegistration && (
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-3 border-t border-amber-200/80">
                     <div>
-                      <label className="block text-xs font-bold text-amber-950 mb-1.5">
-                        مبلغ بیعانه / پیش‌پرداخت (تومان) *
-                      </label>
-                      <input
-                        type="text"
-                        inputMode="numeric"
-                        value={formData.preRegistrationDeposit ? Number(formData.preRegistrationDeposit).toLocaleString('fa-IR') : ''}
-                        onChange={e => setFormData({ ...formData, preRegistrationDeposit: parseNumericInput(e.target.value) })}
+                      <NumericInput
+                        label="مبلغ بیعانه / پیش‌پرداخت"
+                        unit="تومان"
+                        required
+                        value={formData.preRegistrationDeposit || ''}
+                        onChange={num => setFormData({ ...formData, preRegistrationDeposit: num })}
                         placeholder="مثال: ۵۰۰,۰۰۰"
-                        className="w-full px-4 py-2.5 rounded-xl border border-amber-300 bg-white text-sm focus:ring-2 focus:ring-amber-500 outline-none dir-ltr text-left font-mono"
+                        helperText={`مانده بدهی دانشجو: ${(Math.max(0, formData.price - (Number(formData.preRegistrationDeposit) || 0))).toLocaleString('fa-IR')} تومان`}
                       />
-                      <span className="text-[11px] text-amber-800 mt-1 block">
-                        مانده بدهی دانشجو: {(Math.max(0, formData.price - formData.preRegistrationDeposit)).toLocaleString('fa-IR')} تومان
-                      </span>
                     </div>
 
                     <div>
-                      <label className="block text-xs font-bold text-amber-950 mb-1.5">
-                        موعد پرداخت مابقی شهریه (بعد از برگزاری کدام جلسه؟) *
-                      </label>
-                      <div className="flex items-center gap-2">
-                        <span className="text-xs text-amber-900 font-medium">پس از جلسه شماره</span>
-                        <input
-                          type="number"
-                          min={1}
-                          max={formData.sessions}
-                          value={formData.remainingPaymentDueAfterSession}
-                          onChange={e => setFormData({ ...formData, remainingPaymentDueAfterSession: Number(e.target.value) })}
-                          className="w-16 px-2 py-2 rounded-xl border border-amber-300 bg-white text-center font-bold text-sm focus:ring-2 focus:ring-amber-500 outline-none"
-                        />
-                        <span className="text-xs text-amber-900 font-medium">نوتیفیکیشن تسویه ارسال شود</span>
-                      </div>
+                      <NumericInput
+                        label="موعد تسویه مابقی شهریه (جلسه شماره)"
+                        unit="شماره جلسه"
+                        min={1}
+                        max={formData.sessions}
+                        value={formData.remainingPaymentDueAfterSession}
+                        onChange={num => setFormData({ ...formData, remainingPaymentDueAfterSession: num })}
+                        placeholder="۲"
+                        helperText="ارسال خودکار نوتیفیکیشن و پیامک یادآوری تسویه برای دانشجو"
+                      />
                     </div>
                   </div>
                 )}
@@ -865,11 +883,16 @@ export function ClassFormModal({
 
                         <div className="sm:col-span-2">
                           <input
-                            type="number"
+                            type="text"
+                            inputMode="numeric"
                             value={sess.durationMinutes || 90}
-                            onChange={e => updateSyllabusItem(idx, 'durationMinutes', Number(e.target.value))}
+                            onChange={e => {
+                              const val = toEnDigits(e.target.value).replace(/[^0-9]/g, '');
+                              updateSyllabusItem(idx, 'durationMinutes', val ? Number(val) : 0);
+                            }}
                             placeholder="دقیقه"
                             className="w-full px-2 py-2 bg-white border border-slate-200 rounded-xl text-xs font-mono text-center text-slate-700 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                            dir="ltr"
                           />
                         </div>
                       </div>

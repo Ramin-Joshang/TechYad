@@ -6,6 +6,7 @@ import { api } from '@/lib/api';
 import Link from 'next/link';
 import { Search, Filter, Clock, Book, User, Star, CheckSquare, Square, ChevronLeft, ChevronRight, X } from 'lucide-react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { toEnDigits } from '@/lib/utils';
 
 export function CourseListContainer() {
   const router = useRouter();
@@ -184,18 +185,20 @@ export function CourseListContainer() {
                 <h4 className="font-semibold text-[var(--neo-text-main)] mb-3 text-sm">محدوده قیمت (تومان)</h4>
                 <div className="flex gap-2">
                   <input 
-                    type="number" 
+                    type="text" 
+                    inputMode="numeric"
                     placeholder="از" 
-                    className="w-1/2 p-2 border border-[var(--neo-border)] rounded-lg text-sm bg-white"
+                    className="w-1/2 p-2 border border-[var(--neo-border)] rounded-lg text-sm bg-white dir-ltr text-left"
                     value={filters.minPrice}
-                    onChange={(e) => handleFilterChange('minPrice', e.target.value)}
+                    onChange={(e) => handleFilterChange('minPrice', toEnDigits(e.target.value).replace(/[^0-9]/g, ''))}
                   />
                   <input 
-                    type="number" 
+                    type="text" 
+                    inputMode="numeric"
                     placeholder="تا" 
-                    className="w-1/2 p-2 border border-[var(--neo-border)] rounded-lg text-sm bg-white"
+                    className="w-1/2 p-2 border border-[var(--neo-border)] rounded-lg text-sm bg-white dir-ltr text-left"
                     value={filters.maxPrice}
-                    onChange={(e) => handleFilterChange('maxPrice', e.target.value)}
+                    onChange={(e) => handleFilterChange('maxPrice', toEnDigits(e.target.value).replace(/[^0-9]/g, ''))}
                   />
                 </div>
               </div>

@@ -9,6 +9,7 @@ import {
   Loader2, User, BookOpen, Sparkles 
 } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { toEnDigits } from '@/lib/utils';
 
 export default function AdminTestimonialsPage() {
   const queryClient = useQueryClient();
@@ -305,10 +306,14 @@ export default function AdminTestimonialsPage() {
                 <div>
                   <label className="block text-xs font-bold text-gray-700 mb-1">ترتیب نمایش</label>
                   <input
-                    type="number"
+                    type="text"
+                    inputMode="numeric"
                     value={form.order}
-                    onChange={e => setForm({ ...form, order: Number(e.target.value) })}
-                    className="w-full px-3.5 py-2 rounded-xl border border-[var(--neo-border)] bg-[var(--neo-surface-2)] text-xs font-mono"
+                    onChange={e => {
+                      const clean = toEnDigits(e.target.value).replace(/[^0-9]/g, '');
+                      setForm({ ...form, order: clean ? Number(clean) : 0 });
+                    }}
+                    className="w-full px-3.5 py-2 rounded-xl border border-[var(--neo-border)] bg-[var(--neo-surface-2)] text-xs font-mono dir-ltr text-left"
                   />
                 </div>
               </div>

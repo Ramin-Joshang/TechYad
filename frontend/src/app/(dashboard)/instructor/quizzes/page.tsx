@@ -8,6 +8,7 @@ import {
   Trash2, Edit, CheckCircle, XCircle, AlertCircle, HelpCircle, 
   ChevronDown, BookOpen, Eye, Check
 } from 'lucide-react';
+import { toEnDigits } from '@/lib/utils';
 
 interface QuestionOption {
   text: string;
@@ -628,10 +629,13 @@ export default function InstructorQuizzesPage() {
                     مدت زمان آزمون (دقیقه)
                   </label>
                   <input
-                    type="number"
-                    min="1"
+                    type="text"
+                    inputMode="numeric"
                     value={formData.duration}
-                    onChange={(e) => setFormData(prev => ({ ...prev, duration: Number(e.target.value) }))}
+                    onChange={(e) => {
+                      const val = toEnDigits(e.target.value).replace(/[^0-9]/g, '');
+                      setFormData(prev => ({ ...prev, duration: val ? Number(val) : 0 }));
+                    }}
                     className="w-full px-3 py-2.5 rounded-2xl bg-[var(--neo-surface-2)] border border-[var(--neo-border)] text-sm font-medium focus:outline-none focus:border-[var(--neo-primary)]"
                   />
                 </div>
@@ -641,11 +645,13 @@ export default function InstructorQuizzesPage() {
                     حد نصاب قبولی (درصد)
                   </label>
                   <input
-                    type="number"
-                    min="0"
-                    max="100"
+                    type="text"
+                    inputMode="numeric"
                     value={formData.passingScore}
-                    onChange={(e) => setFormData(prev => ({ ...prev, passingScore: Number(e.target.value) }))}
+                    onChange={(e) => {
+                      const val = toEnDigits(e.target.value).replace(/[^0-9]/g, '');
+                      setFormData(prev => ({ ...prev, passingScore: val ? Number(val) : 0 }));
+                    }}
                     className="w-full px-3 py-2.5 rounded-2xl bg-[var(--neo-surface-2)] border border-[var(--neo-border)] text-sm font-medium focus:outline-none focus:border-[var(--neo-primary)]"
                   />
                 </div>
@@ -696,11 +702,15 @@ export default function InstructorQuizzesPage() {
                           <div className="flex items-center gap-1.5">
                             <span className="text-xs text-[var(--neo-text-secondary)]">نمره:</span>
                             <input
-                              type="number"
-                              min="1"
+                              type="text"
+                              inputMode="numeric"
                               value={question.score}
-                              onChange={(e) => updateQuestionField(qIdx, 'score', Number(e.target.value))}
+                              onChange={(e) => {
+                                const val = toEnDigits(e.target.value).replace(/[^0-9]/g, '');
+                                updateQuestionField(qIdx, 'score', val ? Number(val) : 1);
+                              }}
                               className="w-16 px-2 py-1 rounded-xl bg-[var(--neo-surface)] border border-[var(--neo-border)] text-xs font-bold text-center"
+                              dir="ltr"
                             />
                           </div>
 

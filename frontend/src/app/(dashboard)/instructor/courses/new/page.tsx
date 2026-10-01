@@ -9,6 +9,7 @@ import { Loader2, ArrowRight, BookOpen, Layers } from 'lucide-react';
 import Link from 'next/link';
 import { MediaUploader } from '@/components/common/MediaUploader';
 import toast from 'react-hot-toast';
+import { toEnDigits } from '@/lib/utils';
 
 export default function NewCoursePage() {
   const router = useRouter();
@@ -138,12 +139,15 @@ export default function NewCoursePage() {
             <div>
               <label className="block text-xs font-bold text-[var(--neo-text-main)] mb-1.5">هزینه دوره (تومان) *</label>
               <input 
-                type="number" 
+                type="text" 
+                inputMode="numeric"
                 name="price"
                 required
-                min="0"
                 value={formData.price}
-                onChange={handleChange}
+                onChange={(e) => {
+                  const val = toEnDigits(e.target.value).replace(/[^0-9]/g, '');
+                  setFormData(prev => ({ ...prev, price: val }));
+                }}
                 className="w-full px-4 py-2.5 bg-[var(--neo-surface-2)] border border-[var(--neo-border)] rounded-xl focus:ring-2 focus:ring-[var(--neo-primary)] outline-none text-sm font-medium text-left dir-ltr"
                 placeholder="0 برای رایگان"
               />

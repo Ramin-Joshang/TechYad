@@ -8,6 +8,8 @@ import {
   MessageSquare, Download, Trash2, Edit, Calendar, 
   Award, Users, AlertCircle, BookOpen, Check, ExternalLink 
 } from 'lucide-react';
+import { PersianDatePicker } from '@/components/ui/PersianDatePicker';
+import { toEnDigits } from '@/lib/utils';
 
 export default function InstructorAssignmentsPage() {
   const queryClient = useQueryClient();
@@ -556,24 +558,24 @@ export default function InstructorAssignmentsPage() {
                     حداکثر نمره (بارم)
                   </label>
                   <input
-                    type="number"
-                    min="1"
+                    type="text"
+                    inputMode="numeric"
                     value={assignmentForm.maxScore}
-                    onChange={(e) => setAssignmentForm(prev => ({ ...prev, maxScore: Number(e.target.value) }))}
+                    onChange={(e) => {
+                      const clean = toEnDigits(e.target.value).replace(/[^0-9]/g, '');
+                      setAssignmentForm(prev => ({ ...prev, maxScore: clean ? Number(clean) : 0 }));
+                    }}
                     className="w-full px-3 py-2.5 rounded-2xl bg-[var(--neo-surface-2)] border border-[var(--neo-border)] text-sm font-medium focus:outline-none focus:border-[var(--neo-primary)]"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-[var(--neo-text-secondary)] mb-1.5">
-                  مهلت ارسال (اختیاری)
-                </label>
-                <input
-                  type="date"
+                <PersianDatePicker
+                  label="مهلت ارسال (اختیاری)"
                   value={assignmentForm.deadline}
-                  onChange={(e) => setAssignmentForm(prev => ({ ...prev, deadline: e.target.value }))}
-                  className="w-full px-3 py-2.5 rounded-2xl bg-[var(--neo-surface-2)] border border-[var(--neo-border)] text-sm font-medium focus:outline-none focus:border-[var(--neo-primary)]"
+                  onChange={(isoString) => setAssignmentForm(prev => ({ ...prev, deadline: isoString }))}
+                  placeholder="انتخاب مهلت ارسال تکلیف..."
                 />
               </div>
 
@@ -672,12 +674,11 @@ export default function InstructorAssignmentsPage() {
                   نمره اختصاص داده شده (از {gradingSubmission.assignmentId?.maxScore || 100}) *
                 </label>
                 <input
-                  type="number"
-                  min="0"
-                  max={gradingSubmission.assignmentId?.maxScore || 100}
+                  type="text"
+                  inputMode="numeric"
                   placeholder="مثال: 85"
                   value={gradeScore}
-                  onChange={(e) => setGradeScore(e.target.value)}
+                  onChange={(e) => setGradeScore(toEnDigits(e.target.value).replace(/[^0-9.]/g, ''))}
                   className="w-full px-3.5 py-2.5 rounded-2xl bg-[var(--neo-surface-2)] border border-[var(--neo-border)] text-sm font-black focus:outline-none focus:border-[var(--neo-primary)]"
                 />
               </div>

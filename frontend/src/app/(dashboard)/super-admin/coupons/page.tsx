@@ -9,6 +9,8 @@ import {
   Percent, ShieldCheck, Clock
 } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { PersianDatePicker } from '@/components/ui/PersianDatePicker';
+import { toEnDigits } from '@/lib/utils';
 
 export default function SuperAdminCouponsPage() {
   const queryClient = useQueryClient();
@@ -464,12 +466,11 @@ export default function SuperAdminCouponsPage() {
                     مقدار {formData.type === 'percentage' ? '(درصد)' : '(تومان)'}
                   </label>
                   <input
-                    type="number"
+                    type="text"
+                    inputMode="numeric"
                     required
-                    min="1"
-                    max={formData.type === 'percentage' ? 100 : undefined}
                     value={formData.value}
-                    onChange={(e) => setFormData({ ...formData, value: e.target.value })}
+                    onChange={(e) => setFormData({ ...formData, value: toEnDigits(e.target.value).replace(/[^0-9]/g, '') })}
                     className="w-full px-4 py-3 rounded-xl border border-[var(--neo-border)] focus:ring-2 focus:ring-[var(--neo-primary)] outline-none font-mono text-left"
                     placeholder={formData.type === 'percentage' ? 'مثلاً ۲۰' : 'مثلاً ۵۰۰۰۰'}
                     dir="ltr"
@@ -482,9 +483,10 @@ export default function SuperAdminCouponsPage() {
                 <div className="space-y-1.5">
                   <label className="text-sm font-bold text-[var(--neo-text-main)]">حداکثر سقف تخفیف (تومان)</label>
                   <input
-                    type="number"
+                    type="text"
+                    inputMode="numeric"
                     value={formData.maxDiscount}
-                    onChange={(e) => setFormData({ ...formData, maxDiscount: e.target.value })}
+                    onChange={(e) => setFormData({ ...formData, maxDiscount: toEnDigits(e.target.value).replace(/[^0-9]/g, '') })}
                     className="w-full px-4 py-3 rounded-xl border border-[var(--neo-border)] focus:ring-2 focus:ring-[var(--neo-primary)] outline-none font-mono text-left"
                     placeholder="اختیاری (برای درصدی)"
                     dir="ltr"
@@ -494,9 +496,10 @@ export default function SuperAdminCouponsPage() {
                 <div className="space-y-1.5">
                   <label className="text-sm font-bold text-[var(--neo-text-main)]">حداقل مبلغ خرید (تومان)</label>
                   <input
-                    type="number"
+                    type="text"
+                    inputMode="numeric"
                     value={formData.minOrderAmount}
-                    onChange={(e) => setFormData({ ...formData, minOrderAmount: e.target.value })}
+                    onChange={(e) => setFormData({ ...formData, minOrderAmount: toEnDigits(e.target.value).replace(/[^0-9]/g, '') })}
                     className="w-full px-4 py-3 rounded-xl border border-[var(--neo-border)] focus:ring-2 focus:ring-[var(--neo-primary)] outline-none font-mono text-left"
                     placeholder="اختیاری"
                     dir="ltr"
@@ -509,9 +512,10 @@ export default function SuperAdminCouponsPage() {
                 <div className="space-y-1.5">
                   <label className="text-sm font-bold text-[var(--neo-text-main)]">سقف کل استفاده (نفر/بار)</label>
                   <input
-                    type="number"
+                    type="text"
+                    inputMode="numeric"
                     value={formData.usageLimit}
-                    onChange={(e) => setFormData({ ...formData, usageLimit: e.target.value })}
+                    onChange={(e) => setFormData({ ...formData, usageLimit: toEnDigits(e.target.value).replace(/[^0-9]/g, '') })}
                     className="w-full px-4 py-3 rounded-xl border border-[var(--neo-border)] focus:ring-2 focus:ring-[var(--neo-primary)] outline-none font-mono text-left"
                     placeholder="خالی = نامحدود"
                     dir="ltr"
@@ -521,35 +525,33 @@ export default function SuperAdminCouponsPage() {
                 <div className="space-y-1.5">
                   <label className="text-sm font-bold text-[var(--neo-text-main)]">سقف استفاده هر کاربر</label>
                   <input
-                    type="number"
-                    min="1"
+                    type="text"
+                    inputMode="numeric"
                     value={formData.perUserLimit}
-                    onChange={(e) => setFormData({ ...formData, perUserLimit: e.target.value })}
+                    onChange={(e) => setFormData({ ...formData, perUserLimit: toEnDigits(e.target.value).replace(/[^0-9]/g, '') })}
                     className="w-full px-4 py-3 rounded-xl border border-[var(--neo-border)] focus:ring-2 focus:ring-[var(--neo-primary)] outline-none font-mono text-left"
                     dir="ltr"
                   />
                 </div>
               </div>
 
-              {/* Dates */}
-              <div className="grid grid-cols-2 gap-4">
+              {/* Persian Dates */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-1.5">
-                  <label className="text-sm font-bold text-[var(--neo-text-main)]">تاریخ شروع</label>
-                  <input
-                    type="date"
+                  <PersianDatePicker
+                    label="تاریخ شروع"
                     value={formData.startAt}
-                    onChange={(e) => setFormData({ ...formData, startAt: e.target.value })}
-                    className="w-full px-4 py-3 rounded-xl border border-[var(--neo-border)] focus:ring-2 focus:ring-[var(--neo-primary)] outline-none"
+                    onChange={(isoString) => setFormData({ ...formData, startAt: isoString })}
+                    placeholder="انتخاب تاریخ شروع..."
                   />
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="text-sm font-bold text-[var(--neo-text-main)]">تاریخ انقضا (اختیاری)</label>
-                  <input
-                    type="date"
+                  <PersianDatePicker
+                    label="تاریخ انقضا (اختیاری)"
                     value={formData.endAt}
-                    onChange={(e) => setFormData({ ...formData, endAt: e.target.value })}
-                    className="w-full px-4 py-3 rounded-xl border border-[var(--neo-border)] focus:ring-2 focus:ring-[var(--neo-primary)] outline-none"
+                    onChange={(isoString) => setFormData({ ...formData, endAt: isoString })}
+                    placeholder="انتخاب تاریخ انقضا..."
                   />
                 </div>
               </div>
