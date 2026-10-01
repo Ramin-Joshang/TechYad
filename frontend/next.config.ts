@@ -17,11 +17,11 @@ const nextConfig: NextConfig = {
     return [
       {
         source: "/api/:path*",
-        destination: "http://localhost:5000/api/:path*",
+        destination: "http://62.220.123.21:5000/api/:path*",
       },
       {
         source: "/api-docs/:path*",
-        destination: "http://localhost:5000/api-docs/:path*",
+        destination: "http://62.220.123.21:5000/api-docs/:path*",
       },
     ];
   },
