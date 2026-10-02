@@ -341,7 +341,7 @@ export function ClassDetailsContainer({ slug }: { slug: string }) {
                     title="مشاهده رزومه استاد"
                   >
                     <img 
-                      src={instructor.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(instructor.firstName + ' ' + instructor.lastName)}`} 
+                      src={(instructor.personnelPhoto || instructor.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(instructor.firstName + " " + instructor.lastName)}`)} 
                       className="w-10 h-10 rounded-full border-2 border-white object-cover" 
                       alt="" 
                     />
@@ -662,7 +662,7 @@ export function ClassDetailsContainer({ slug }: { slug: string }) {
                     <div key={inst._id} className="flex flex-col sm:flex-row gap-5 items-start">
                       <Link href={`/instructors/${inst._id}`} className="shrink-0 group">
                         <img 
-                          src={inst.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(inst.firstName + ' ' + inst.lastName)}&background=0284c7&color=fff`} 
+                          src={(inst.personnelPhoto || inst.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(inst.firstName + " " + inst.lastName)}&background=0284c7&color=fff`)} 
                           className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl object-cover border border-slate-200 shadow-xs group-hover:scale-105 transition duration-300" 
                           alt={`${inst.firstName} ${inst.lastName}`} 
                         />
@@ -848,7 +848,7 @@ export function ClassDetailsContainer({ slug }: { slug: string }) {
                 <span className="text-xs font-bold text-slate-400 block">مدرس این کلاس</span>
                 <div className="flex items-center gap-3">
                   <img 
-                    src={instructor.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(instructor.firstName + ' ' + instructor.lastName)}&background=0284c7&color=fff`} 
+                    src={(instructor.personnelPhoto || instructor.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(instructor.firstName + " " + instructor.lastName)}&background=0284c7&color=fff`)} 
                     alt="" 
                     className="w-12 h-12 rounded-2xl object-cover border border-slate-200 shadow-2xs"
                   />

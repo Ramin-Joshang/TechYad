@@ -119,24 +119,24 @@ export const getHomeData = async (req: Request, res: Response, next: NextFunctio
     await seedData();
 
     const categories = await Category.find({ isActive: true }).limit(8);
-    const popularCourses = await Course.find({ status: "published" }).sort({ totalLessons: -1 }).limit(4).populate('instructors', 'firstName lastName avatar specialty');
-    const newCourses = await Course.find({ status: "published" }).sort({ createdAt: -1 }).limit(4).populate('instructors', 'firstName lastName avatar specialty');
-    const freeCourses = await Course.find({ status: "published", price: 0 }).limit(4).populate('instructors', 'firstName lastName avatar specialty');
+    const popularCourses = await Course.find({ status: "published" }).sort({ totalLessons: -1 }).limit(4).populate('instructors', 'firstName lastName avatar personnelPhoto specialty');
+    const newCourses = await Course.find({ status: "published" }).sort({ createdAt: -1 }).limit(4).populate('instructors', 'firstName lastName avatar personnelPhoto specialty');
+    const freeCourses = await Course.find({ status: "published", price: 0 }).limit(4).populate('instructors', 'firstName lastName avatar personnelPhoto specialty');
     
     // Classes: Fetch interactive live classes and in-person workshops from Class model if available, fallback to tagged courses
-    let onlineClasses: any[] = await Class.find({ mode: 'online', status: { $ne: 'cancelled' } }).limit(4).populate('instructors', 'firstName lastName avatar specialty');
+    let onlineClasses: any[] = await Class.find({ mode: 'online', status: { $ne: 'cancelled' } }).limit(4).populate('instructors', 'firstName lastName avatar personnelPhoto specialty');
     if (!onlineClasses || onlineClasses.length === 0) {
-      onlineClasses = await Course.find({ status: "published", tags: "آنلاین" }).limit(4).populate('instructors', 'firstName lastName avatar specialty');
+      onlineClasses = await Course.find({ status: "published", tags: "آنلاین" }).limit(4).populate('instructors', 'firstName lastName avatar personnelPhoto specialty');
     }
 
-    let inPersonClasses: any[] = await Class.find({ mode: 'in_person', status: { $ne: 'cancelled' } }).limit(4).populate('instructors', 'firstName lastName avatar specialty');
+    let inPersonClasses: any[] = await Class.find({ mode: 'in_person', status: { $ne: 'cancelled' } }).limit(4).populate('instructors', 'firstName lastName avatar personnelPhoto specialty');
     if (!inPersonClasses || inPersonClasses.length === 0) {
-      inPersonClasses = await Course.find({ status: "published", tags: "حضوری" }).limit(4).populate('instructors', 'firstName lastName avatar specialty');
+      inPersonClasses = await Course.find({ status: "published", tags: "حضوری" }).limit(4).populate('instructors', 'firstName lastName avatar personnelPhoto specialty');
     }
 
     const topInstructors = await InstructorProfile.find({ isApproved: true })
       .limit(8)
-      .populate('userId', 'firstName lastName avatar specialty bio')
+      .populate('userId', 'firstName lastName avatar personnelPhoto specialty bio')
       .lean();
     const latestArticles = await Article.find({ status: "published" }).sort({ createdAt: -1 }).limit(4);
     const testimonials = await Testimonial.find({ isActive: { $ne: false } }).sort({ order: 1, createdAt: -1 }).limit(6);

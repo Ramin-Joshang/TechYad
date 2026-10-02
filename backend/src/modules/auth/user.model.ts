@@ -17,6 +17,7 @@ export interface IUser extends Document {
   passwordHash: string;
 
   avatar?: string;
+  personnelPhoto?: string;
   bio?: string;
   specialty?: string;
 
@@ -79,6 +80,10 @@ const userSchema = new Schema<IUser>(
     },
 
     avatar: {
+      type: String,
+    },
+
+    personnelPhoto: {
       type: String,
     },
 

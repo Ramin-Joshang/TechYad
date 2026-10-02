@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useAuthStore } from '@/features/auth/stores/auth.store';
 import { authApi } from '@/features/auth/api/auth.api';
 import { mediaApi } from '@/features/media/api/media.api';
-import { Loader2, Upload, Lock, ShieldCheck, UserCheck, Eye, EyeOff } from 'lucide-react';
+import { Loader2, Upload, Lock, ShieldCheck, UserCheck, Eye, EyeOff, GraduationCap } from 'lucide-react';
 
 export default function ProfilePage() {
   const { user, updateUser } = useAuthStore();
@@ -13,7 +13,10 @@ export default function ProfilePage() {
   const [formData, setFormData] = useState({
     firstName: user?.firstName || '',
     lastName: user?.lastName || '',
-    avatar: user?.avatar || ''
+    avatar: user?.avatar || '',
+    personnelPhoto: user?.personnelPhoto || '',
+    specialty: user?.specialty || '',
+    bio: user?.bio || '',
   });
 
   // Sync state if user rehydrates or updates
@@ -22,14 +25,18 @@ export default function ProfilePage() {
       setFormData({
         firstName: user.firstName || '',
         lastName: user.lastName || '',
-        avatar: user.avatar || ''
+        avatar: user.avatar || '',
+        personnelPhoto: user.personnelPhoto || '',
+        specialty: user.specialty || '',
+        bio: user.bio || '',
       });
     }
-  }, [user?.firstName, user?.lastName, user?.avatar]);
+  }, [user?.firstName, user?.lastName, user?.avatar, user?.personnelPhoto, user?.specialty, user?.bio]);
   
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
   const [message, setMessage] = useState('');
   const [uploading, setUploading] = useState(false);
+  const [uploadingPersonnel, setUploadingPersonnel] = useState(false);
 
   // Password form state
   const [passData, setPassData] = useState({
@@ -131,6 +138,31 @@ export default function ProfilePage() {
     }
   };
 
+  const handlePersonnelPhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    
+    try {
+      setUploadingPersonnel(true);
+      const res = await mediaApi.uploadFile(file);
+      const newPhoto = res.data.url;
+      setFormData(prev => ({ ...prev, personnelPhoto: newPhoto }));
+      try {
+        const updateRes = await authApi.updateProfile({ ...formData, personnelPhoto: newPhoto });
+        if (updateRes.success) {
+          updateUser({ personnelPhoto: newPhoto });
+          setMessage('عکس پرسنلی رسمی با موفقیت بروزرسانی شد.');
+          setStatus('success');
+        }
+      } catch (e) { console.error('auto save failed', e); }
+    } catch (err) {
+      console.error('Personnel photo upload failed', err);
+      alert('خطا در آپلود عکس پرسنلی');
+    } finally {
+      setUploadingPersonnel(false);
+    }
+  };
+
   return (
     <div className="max-w-4xl mx-auto space-y-8 animate-in fade-in duration-500 pb-12">
       <div>
@@ -192,6 +224,45 @@ export default function ProfilePage() {
                 </div>
               </div>
 
+              {/* Personnel / Formal ID Photo Upload */}
+              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6 pb-6 border-b border-[var(--neo-border)]">
+                <div className="w-20 h-24 rounded-2xl bg-amber-50 text-amber-600 border-2 border-dashed border-amber-300 flex items-center justify-center font-bold overflow-hidden shrink-0 shadow-xs relative">
+                  {formData.personnelPhoto ? (
+                    <img src={formData.personnelPhoto} alt="Personnel Photo" className="w-full h-full object-cover" />
+                  ) : (
+                    <div className="flex flex-col items-center justify-center p-1 text-center">
+                      <GraduationCap className="w-7 h-7 text-amber-500 mb-0.5" />
+                      <span className="text-[10px] font-bold text-amber-700">پرسنلی رسمی</span>
+                    </div>
+                  )}
+                </div>
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 mb-1">
+                    <label className="block text-sm font-bold text-[var(--neo-text-main)]">عکس پرسنلی رسمی استاد (۳×۴)</label>
+                    <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 font-bold">نمایش به دانشجویان</span>
+                  </div>
+                  <p className="text-xs text-[var(--neo-text-secondary)] mb-2.5">
+                    این تصویر به عنوان عکس رسمی و پرسنلی استاد در صفحات دوره‌ها، کلاس‌های آموزشی، کارت‌های سایت و پروفایل عمومی استاد به دانشجویان نمایش داده می‌شود.
+                  </p>
+                  <div className="flex items-center gap-3">
+                    <input 
+                      type="file" 
+                      id="personnel-photo-upload" 
+                      className="hidden" 
+                      accept="image/*"
+                      onChange={handlePersonnelPhotoUpload}
+                    />
+                    <label htmlFor="personnel-photo-upload" className="inline-flex items-center gap-2 px-4 py-2 bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200 font-bold text-xs rounded-xl cursor-pointer transition">
+                      {uploadingPersonnel ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
+                      {formData.personnelPhoto ? 'تغییر عکس پرسنلی' : 'آپلود عکس پرسنلی رسمی'}
+                    </label>
+                    {formData.personnelPhoto && (
+                      <button type="button" onClick={() => setFormData(prev => ({ ...prev, personnelPhoto: '' }))} className="text-xs text-red-500 hover:underline">حذف عکس پرسنلی</button>
+                    )}
+                  </div>
+                </div>
+              </div>
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                   <label className="block text-sm font-medium text-[var(--neo-text-main)] mb-1.5">نام</label>
@@ -215,6 +286,30 @@ export default function ProfilePage() {
                     required 
                   />
                 </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-[var(--neo-text-main)] mb-1.5">تخصص / عنوان علمی استاد</label>
+                <input 
+                  type="text"
+                  name="specialty"
+                  placeholder="مثال: مدرس ارشد مهندسی نرم‌افزار و هوش مصنوعی"
+                  value={formData.specialty}
+                  onChange={handleChange}
+                  className="w-full px-4 py-2.5 rounded-xl border border-[var(--neo-border)] focus:outline-none focus:ring-2 focus:ring-[var(--neo-primary)] transition-all text-right"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-[var(--neo-text-main)] mb-1.5">بیوگرافی و معرفی کوتاه استاد</label>
+                <textarea 
+                  name="bio"
+                  rows={3}
+                  placeholder="خلاصه‌ای از رزومه، تجارب تدریس و سوابق علمی..."
+                  value={formData.bio}
+                  onChange={(e) => setFormData(prev => ({ ...prev, bio: e.target.value }))}
+                  className="w-full px-4 py-2.5 rounded-xl border border-[var(--neo-border)] focus:outline-none focus:ring-2 focus:ring-[var(--neo-primary)] transition-all text-right resize-none text-sm"
+                />
               </div>
 
               <div>

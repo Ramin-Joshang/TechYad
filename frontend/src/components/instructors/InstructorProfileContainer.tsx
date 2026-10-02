@@ -100,7 +100,7 @@ export function InstructorProfileContainer({ id }: { id: string }) {
   const { userId, title, bio, avatar, specialties = [], education = [], experience = [], socialLinks = {} } = profile;
   const userObj = typeof userId === 'object' && userId !== null ? userId : {};
   const fullName = `${userObj.firstName || ''} ${userObj.lastName || ''}`.trim() || 'استاد تک‌یاد';
-  const displayAvatar = avatar || userObj.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(fullName)}&size=200&background=0284c7&color=fff`;
+  const displayAvatar = userObj.personnelPhoto || profile.personnelPhoto || avatar || userObj.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(fullName)}&size=200&background=0284c7&color=fff`;
 
   // Real courses and classes from server (with fallback to client filter)
   const targetInstructorId = (userObj._id || profile.userId || id)?.toString();

@@ -51,7 +51,7 @@ export class CommerceService {
     let classesRevenue = 0;
     const courseStats: Record<string, { title: string, count: number, revenue: number }> = {};
 
-    const sales = orders.map(order => {
+    const sales: any[] = orders.map(order => {
       const relevantItems = order.items.filter(item => {
         const itemIdStr = item.itemId?.toString();
         return allInstructorItemIds.includes(itemIdStr);
@@ -93,6 +93,49 @@ export class CommerceService {
         createdAt: (order as any).createdAt
       };
     });
+
+    // Query direct class enrollments (wallet enrollments & deposits)
+    const classEnrollments = await ClassEnrollment.find({
+      classId: { $in: classIds },
+      status: { $in: ['active', 'completed'] },
+      amount: { $gt: 0 },
+      ...dateFilter
+    }).populate('userId', 'firstName lastName email avatar').lean();
+
+    for (const ce of classEnrollments) {
+      const classIdStr = ce.classId?.toString();
+      const title = classMap.get(classIdStr) || 'کلاس آموزشی';
+      const price = ce.amount || 0;
+      const instructorShare = Math.round(price * 0.7);
+
+      classesRevenue += price;
+      totalSales += price;
+
+      if (!courseStats[classIdStr]) {
+        courseStats[classIdStr] = { title, count: 0, revenue: 0 };
+      }
+      courseStats[classIdStr].count += 1;
+      courseStats[classIdStr].revenue += price;
+
+      sales.push({
+        _id: ce._id,
+        userId: ce.userId,
+        items: [{
+          itemId: ce.classId,
+          itemType: 'class',
+          title,
+          price,
+          finalPrice: price,
+          paymentType: ce.paymentType
+        }],
+        total: price,
+        instructorShare,
+        createdAt: ce.enrolledAt || (ce as any).createdAt || new Date()
+      });
+    }
+
+    // Sort all sales descending by date
+    sales.sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 
     const netInstructorEarnings = Math.round(totalSales * 0.7);
 

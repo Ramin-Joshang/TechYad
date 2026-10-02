@@ -8,6 +8,9 @@ export interface User {
   email: string;
   role: 'super-admin' | 'admin' | 'instructor' | 'student';
   avatar?: string;
+  personnelPhoto?: string;
+  bio?: string;
+  specialty?: string;
   permissions?: string[]; // E.g., 'courses.manage', 'courses.publish', etc.
   referralCode?: string;
   walletBalance?: number;

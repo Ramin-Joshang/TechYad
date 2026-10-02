@@ -22,7 +22,7 @@ export const globalSearch = async (req: Request, res: Response) => {
     $or: [{ title: regex }, { description: regex }, { tags: regex }]
   })
     .select('title slug description price thumbnail instructors categoryId rating totalDuration')
-    .populate('instructors', 'firstName lastName avatar')
+    .populate('instructors', 'firstName lastName avatar personnelPhoto specialty')
     .limit(10);
 
   // 2. Search Classes
@@ -31,7 +31,7 @@ export const globalSearch = async (req: Request, res: Response) => {
     $or: [{ title: regex }, { description: regex }, { location: regex }]
   })
     .select('title slug description type mode price capacity enrolledCount startDate thumbnail instructors')
-    .populate('instructors', 'firstName lastName avatar')
+    .populate('instructors', 'firstName lastName avatar personnelPhoto specialty')
     .limit(10);
 
   // 3. Search Blog Articles (note: field is authorId referencing User)

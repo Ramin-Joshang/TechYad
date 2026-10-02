@@ -6,6 +6,7 @@ import '../auth/user.model.js';
 import '../catalog/category.model.js';
 import { AppError } from '../../common/errors/AppError.js';
 import { Class } from '../classes/class.model.js';
+import { ClassEnrollment } from '../classes/class-enrollment.model.js';
 import { Order } from '../commerce/order.model.js';
 import { Enrollment } from '../learning/enrollment.model.js';
 import { AuditService } from '../../common/services/audit.service.js';
@@ -70,7 +71,7 @@ export class CourseService {
     if (query.sort === 'price_desc') sortOption = { price: -1 };
     
     const courses = await Course.find(filter)
-      .populate('instructors', 'firstName lastName avatar')
+      .populate('instructors', 'firstName lastName avatar personnelPhoto bio specialty')
       .populate('categoryId', 'name slug')
       .sort(sortOption)
       .skip(skip)
@@ -88,12 +89,12 @@ export class CourseService {
       : { slug };
 
     let course = await Course.findOne({ ...query, status: 'published' })
-      .populate('instructors', 'firstName lastName avatar bio')
+      .populate('instructors', 'firstName lastName avatar personnelPhoto bio specialty')
       .populate('categoryId', 'name slug');
       
     if (!course) {
       course = await Course.findOne(query)
-        .populate('instructors', 'firstName lastName avatar bio')
+        .populate('instructors', 'firstName lastName avatar personnelPhoto bio specialty')
         .populate('categoryId', 'name slug');
     }
 
@@ -114,14 +115,14 @@ export class CourseService {
         { tags: { $in: course.tags } }
       ]
     })
-    .populate('instructors', 'firstName lastName avatar')
+    .populate('instructors', 'firstName lastName avatar personnelPhoto bio specialty')
     .limit(4);
   }
 
   
   static async getCourseById(courseId: string) {
     const course = await Course.findById(courseId)
-      .populate('instructors', 'firstName lastName avatar bio')
+      .populate('instructors', 'firstName lastName avatar personnelPhoto bio specialty')
       .populate('categoryId', 'name slug');
     if (!course) throw new AppError('Course not found', 404, 'NOT_FOUND');
     return course;
@@ -240,22 +241,127 @@ static async getInstructorCourses(instructorId: string, query: any) {
 
   // --- Course Workflows ---
   static async getInstructorAllStudents(instructorId: string, query: any) {
-    const courses = await Course.find({ instructors: instructorId }).select('_id');
-    const courseIds = courses.map(c => c._id);
+    const courses = await Course.find({ instructors: instructorId }).select('_id title slug thumbnail');
+    const classes = await Class.find({ instructors: instructorId }).select('_id title slug thumbnail mode');
     
-    const page = parseInt(query.page) || 1;
-    const limit = parseInt(query.limit) || 10;
-    const skip = (page - 1) * limit;
+    const courseIds = courses.map(c => c._id);
+    const classIds = classes.map(c => c._id);
+    
+    const page = Math.max(1, parseInt(query.page) || 1);
+    const limit = Math.max(1, parseInt(query.limit) || 10);
+    const filterType = query.type || 'all'; // 'all' | 'course' | 'class'
+    const targetItemId = query.item || query.course; // specific courseId or classId or 'all'
 
-    const filter: any = { courseId: { $in: courseIds } };
-    const enrollments = await Enrollment.find(filter)
-      .populate('userId', 'firstName lastName email avatar')
-      .populate('courseId', 'title slug thumbnail')
-      .sort({ createdAt: -1 })
-      .skip(skip)
-      .limit(limit);
-    const total = await Enrollment.countDocuments(filter);
-    return { students: enrollments, total, page, pages: Math.ceil(total / limit) || 1 };
+    let courseFilter: any = null;
+    let classFilter: any = null;
+
+    if (targetItemId && targetItemId !== 'all') {
+      const isCourse = courseIds.some(id => id.toString() === targetItemId);
+      const isClass = classIds.some(id => id.toString() === targetItemId);
+      if (isCourse) {
+        courseFilter = { courseId: targetItemId };
+      } else if (isClass) {
+        classFilter = { classId: targetItemId };
+      }
+    } else {
+      if (filterType === 'all' || filterType === 'course') {
+        courseFilter = { courseId: { $in: courseIds } };
+      }
+      if (filterType === 'all' || filterType === 'class') {
+        classFilter = { classId: { $in: classIds } };
+      }
+    }
+
+    const [courseEnrollments, classEnrollments, totalCoursesCount, totalClassesCount] = await Promise.all([
+      courseFilter
+        ? Enrollment.find(courseFilter)
+            .populate('userId', 'firstName lastName email avatar mobile')
+            .populate('courseId', 'title slug thumbnail')
+            .lean()
+        : Promise.resolve([]),
+      classFilter
+        ? ClassEnrollment.find(classFilter)
+            .populate('userId', 'firstName lastName email avatar mobile')
+            .populate('classId', 'title slug thumbnail mode')
+            .lean()
+        : Promise.resolve([]),
+      Enrollment.countDocuments({ courseId: { $in: courseIds } }),
+      ClassEnrollment.countDocuments({ classId: { $in: classIds } })
+    ]);
+
+    const unifiedList: any[] = [];
+
+    for (const e of courseEnrollments) {
+      if (!e.userId) continue;
+      unifiedList.push({
+        _id: e._id,
+        type: 'course',
+        userId: e.userId,
+        item: {
+          _id: (e.courseId as any)?._id || e.courseId,
+          title: (e.courseId as any)?.title || 'دوره آموزشی',
+          slug: (e.courseId as any)?.slug,
+          thumbnail: (e.courseId as any)?.thumbnail,
+          type: 'course'
+        },
+        courseId: e.courseId,
+        status: e.status || 'active',
+        progress: e.progress || 0,
+        amount: e.amount || 0,
+        paymentType: 'full',
+        enrolledAt: (e as any).createdAt || new Date(),
+        createdAt: (e as any).createdAt || new Date()
+      });
+    }
+
+    for (const c of classEnrollments) {
+      if (!c.userId) continue;
+      unifiedList.push({
+        _id: c._id,
+        type: 'class',
+        userId: c.userId,
+        item: {
+          _id: (c.classId as any)?._id || c.classId,
+          title: (c.classId as any)?.title || 'کلاس آموزشی',
+          slug: (c.classId as any)?.slug,
+          thumbnail: (c.classId as any)?.thumbnail,
+          type: 'class',
+          mode: (c.classId as any)?.mode || 'online'
+        },
+        courseId: c.classId,
+        classId: c.classId,
+        status: c.status || 'active',
+        progress: c.attendedSessionsCount || 0,
+        amount: c.amount || 0,
+        paymentType: c.paymentType || 'full',
+        depositAmount: c.depositAmount || 0,
+        remainingBalance: c.remainingBalance || 0,
+        remainingPaid: c.remainingPaid,
+        enrolledAt: c.enrolledAt || (c as any).createdAt || new Date(),
+        createdAt: (c as any).createdAt || c.enrolledAt || new Date()
+      });
+    }
+
+    unifiedList.sort((a, b) => new Date(b.enrolledAt).getTime() - new Date(a.enrolledAt).getTime());
+
+    const total = unifiedList.length;
+    const skip = (page - 1) * limit;
+    const paginated = unifiedList.slice(skip, skip + limit);
+
+    return {
+      students: paginated,
+      total,
+      page,
+      limit,
+      pages: Math.ceil(total / limit) || 1,
+      courses,
+      classes,
+      stats: {
+        totalStudents: totalCoursesCount + totalClassesCount,
+        courseStudentsCount: totalCoursesCount,
+        classStudentsCount: totalClassesCount
+      }
+    };
   }
 
   static async getCourseStudents(courseId: string, query: any) {

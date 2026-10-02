@@ -86,6 +86,9 @@ export class AuthService {
         lastName: newUser.lastName,
         email: newUser.email,
         avatar: newUser.avatar,
+        personnelPhoto: (newUser as any).personnelPhoto,
+        bio: newUser.bio,
+        specialty: newUser.specialty,
         role: studentRole.slug,
         permissions: studentRole.permissions || [],
         referralCode: userReferralCode,
@@ -242,6 +245,9 @@ export class AuthService {
         lastName: user.lastName,
         email: user.email,
         avatar: user.avatar,
+        personnelPhoto: user.personnelPhoto,
+        bio: user.bio,
+        specialty: user.specialty,
         role: role?.slug,
         permissions: role?.permissions || [],
         referralCode: user.referralCode,
@@ -252,7 +258,7 @@ export class AuthService {
     };
   }
 
-  static async updateProfile(userId: string, data: { firstName?: string, lastName?: string, avatar?: string }) {
+  static async updateProfile(userId: string, data: { firstName?: string, lastName?: string, avatar?: string, personnelPhoto?: string, bio?: string, specialty?: string }) {
     const user = await User.findByIdAndUpdate(
       userId,
       { $set: data },
@@ -333,6 +339,9 @@ export class AuthService {
           lastName: user.lastName,
           email: user.email,
           avatar: user.avatar,
+          personnelPhoto: user.personnelPhoto,
+          bio: user.bio,
+          specialty: user.specialty,
           role: role?.slug,
           permissions: role?.permissions || [],
           referralCode: user.referralCode,

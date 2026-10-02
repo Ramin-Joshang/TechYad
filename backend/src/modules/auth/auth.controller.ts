@@ -63,6 +63,9 @@ export const getMe = async (req: AuthRequest, res: Response) => {
     lastName: user.lastName,
     email: user.email,
     avatar: user.avatar,
+    personnelPhoto: user.personnelPhoto,
+    bio: user.bio,
+    specialty: user.specialty,
     role: user.role?.slug,
     permissions: user.role?.permissions || [],
     referralCode: user.referralCode,
@@ -79,7 +82,10 @@ export const updateProfile = async (req: AuthRequest, res: Response) => {
     firstName: result.firstName,
     lastName: result.lastName,
     email: result.email,
-    avatar: result.avatar
+    avatar: result.avatar,
+    personnelPhoto: result.personnelPhoto,
+    bio: result.bio,
+    specialty: result.specialty
   }, 'Profile updated successfully');
 };
 

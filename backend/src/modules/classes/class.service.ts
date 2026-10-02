@@ -42,7 +42,7 @@ export class ClassService {
     if (query.sort === 'price_desc') sortOption = { price: -1 };
 
     const classes = await Class.find(filter)
-      .populate('instructors', 'firstName lastName avatar bio')
+      .populate('instructors', 'firstName lastName avatar personnelPhoto bio specialty')
       .sort(sortOption)
       .skip(skip)
       .limit(limit);
@@ -79,7 +79,7 @@ export class ClassService {
     const skip = (page - 1) * limit;
 
     const classes = await Class.find(filter)
-      .populate('instructors', 'firstName lastName avatar bio')
+      .populate('instructors', 'firstName lastName avatar personnelPhoto bio specialty')
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limit);
@@ -100,10 +100,10 @@ export class ClassService {
         { slug },
         { slug: decodeURIComponent(slug) },
       ],
-    }).populate('instructors', 'firstName lastName bio avatar');
+    }).populate('instructors', 'firstName lastName bio avatar personnelPhoto specialty');
 
     if (!classData && /^[0-9a-fA-F]{24}$/.test(slug)) {
-      classData = await Class.findById(slug).populate('instructors', 'firstName lastName bio avatar');
+      classData = await Class.findById(slug).populate('instructors', 'firstName lastName bio avatar personnelPhoto specialty');
     }
 
     if (!classData) throw new AppError('Class not found', 404, 'NOT_FOUND');
@@ -342,6 +342,35 @@ export class ClassService {
 
     await Class.findByIdAndUpdate(classId, { $inc: { enrolledCount: 1 } });
 
+    // Credit Instructor Wallet with 70% share
+    const primaryInstructorId = classData.instructors?.[0] || classData.createdBy;
+    if (requiredAmount > 0 && primaryInstructorId) {
+      try {
+        const instructorShare = Math.round(requiredAmount * 0.7);
+        const instructorUser = await User.findById(primaryInstructorId);
+        if (instructorUser) {
+          instructorUser.walletBalance = (instructorUser.walletBalance || 0) + instructorShare;
+          await instructorUser.save();
+
+          await WalletTransaction.create({
+            userId: primaryInstructorId,
+            type: 'instructor_share',
+            direction: 'credit',
+            amount: instructorShare,
+            balanceAfter: instructorUser.walletBalance,
+            status: 'completed',
+            title: `درآمد حاصل از کلاس «${classData.title}»`,
+            description: `سهم ۷۰٪ استاد از ثبت‌نام ${user.firstName || ''} ${user.lastName || ''} در کلاس ${classData.title} (${isDeposit ? 'بیعانه' : 'تسویه کامل'})`,
+            gateway: 'wallet',
+            trackingCode: `INS-CLS-${Date.now().toString().slice(-6)}`,
+            referenceId: `CLS-${classId}`
+          });
+        }
+      } catch (err) {
+        console.error('Failed to credit instructor for class enrollment:', err);
+      }
+    }
+
     // Send Welcome & Confirmation Notification
     if (isDeposit) {
       await Notification.create({
@@ -429,6 +458,35 @@ export class ClassService {
     enrollment.remainingPaid = true;
     enrollment.remainingPaidAt = new Date();
     await enrollment.save();
+
+    // Credit Instructor Wallet with 70% share of remaining payment
+    const primaryInstructorId = classData.instructors?.[0] || classData.createdBy;
+    if (remainingAmount > 0 && primaryInstructorId) {
+      try {
+        const instructorShare = Math.round(remainingAmount * 0.7);
+        const instructorUser = await User.findById(primaryInstructorId);
+        if (instructorUser) {
+          instructorUser.walletBalance = (instructorUser.walletBalance || 0) + instructorShare;
+          await instructorUser.save();
+
+          await WalletTransaction.create({
+            userId: primaryInstructorId,
+            type: 'instructor_share',
+            direction: 'credit',
+            amount: instructorShare,
+            balanceAfter: instructorUser.walletBalance,
+            status: 'completed',
+            title: `درآمد حاصل از تسویه مابقی کلاس «${classData.title}»`,
+            description: `سهم ۷۰٪ استاد از تسویه مابقی شهریه ${user.firstName || ''} ${user.lastName || ''} در کلاس ${classData.title}`,
+            gateway: 'wallet',
+            trackingCode: `INS-REM-${Date.now().toString().slice(-6)}`,
+            referenceId: `CLS-REM-${classId}`
+          });
+        }
+      } catch (err) {
+        console.error('Failed to credit instructor for class remaining payment:', err);
+      }
+    }
 
     // Send confirmation notification
     await Notification.create({

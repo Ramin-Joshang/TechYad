@@ -166,7 +166,7 @@ export function InstructorsList() {
 function InstructorCard({ instructor, featured = false }: { instructor: any, featured?: boolean }) {
   const { userId, title, avatar, specialties } = instructor;
   const fullName = `${userId?.firstName} ${userId?.lastName}`;
-  const displayAvatar = avatar || `https://ui-avatars.com/api/?name=${userId?.firstName}+${userId?.lastName}&background=random`;
+  const displayAvatar = userId?.personnelPhoto || instructor.personnelPhoto || avatar || userId?.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(fullName)}&background=random`;
   
   // Consistent mock data
   // Real accurate data from backend profile

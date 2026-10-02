@@ -39,8 +39,12 @@ export function CourseCard({ course }: CourseCardProps) {
           <div className="flex items-center gap-2 mb-4">
             <div className="flex -space-x-2 -space-x-reverse">
               {course.instructors?.slice(0, 2).map((instructor, i) => (
-                <div key={instructor._id} className="w-8 h-8 rounded-full bg-blue-100 border-2 border-white flex items-center justify-center text-xs font-bold text-blue-600 z-10">
-                  {instructor.firstName.charAt(0)}{instructor.lastName.charAt(0)}
+                <div key={instructor._id} className="w-8 h-8 rounded-full bg-blue-100 border-2 border-white flex items-center justify-center text-xs font-bold text-blue-600 z-10 overflow-hidden shadow-2xs">
+                  {instructor.personnelPhoto || instructor.avatar ? (
+                    <img src={instructor.personnelPhoto || instructor.avatar} alt="" className="w-full h-full object-cover" />
+                  ) : (
+                    `${instructor.firstName.charAt(0)}${instructor.lastName.charAt(0)}`
+                  )}
                 </div>
               ))}
             </div>
