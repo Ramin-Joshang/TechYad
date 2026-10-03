@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/lib/api';
+import toast from 'react-hot-toast';
 import { 
   CheckSquare, Plus, Search, Loader2, Clock, Award, Users, 
   Trash2, Edit, CheckCircle, XCircle, AlertCircle, HelpCircle, 
@@ -75,13 +76,19 @@ export default function InstructorQuizzesPage() {
   // Fetch Courses for dropdown
   const { data: coursesData } = useQuery({
     queryKey: ['instructor-courses-dropdown'],
-    queryFn: () => api.get('/instructor/courses', { params: { limit: 100 } }).then(res => res.data?.data?.courses || [])
+    queryFn: () => api.get('/instructor/courses', { params: { limit: 1000, all: 'true' } }).then((res: any) => {
+      const data = res?.data || res;
+      return data?.courses || (Array.isArray(data) ? data : []);
+    })
   });
 
   // Fetch Classes for dropdown
   const { data: classesData } = useQuery({
     queryKey: ['instructor-classes-dropdown'],
-    queryFn: () => api.get('/instructor/classes').then(res => res.data?.data?.classes || res.data?.classes || res.data || [])
+    queryFn: () => api.get('/instructor/classes').then((res: any) => {
+      const data = res?.data || res;
+      return Array.isArray(data) ? data : data?.classes || [];
+    })
   });
 
   // Fetch attempts for a specific quiz
@@ -94,15 +101,24 @@ export default function InstructorQuizzesPage() {
   // Create / Update Mutation
   const saveQuizMutation = useMutation({
     mutationFn: async (data: typeof formData) => {
+      const payload = {
+        ...data,
+        courseId: targetType === 'course' ? data.courseId : undefined,
+        classId: targetType === 'class' ? data.classId : undefined
+      };
       if (editingQuizId) {
-        return api.patch(`/instructor/quizzes/${editingQuizId}`, data);
+        return api.patch(`/instructor/quizzes/${editingQuizId}`, payload);
       } else {
-        return api.post('/instructor/quizzes', data);
+        return api.post('/instructor/quizzes', payload);
       }
     },
     onSuccess: () => {
+      toast.success(editingQuizId ? 'آزمون با موفقیت ویرایش شد' : 'آزمون جدید با موفقیت ایجاد شد');
       queryClient.invalidateQueries({ queryKey: ['instructor-quizzes'] });
       closeModal();
+    },
+    onError: (err: any) => {
+      toast.error(err.response?.data?.message || 'خطا در ثبت آزمون');
     }
   });
 
@@ -110,7 +126,11 @@ export default function InstructorQuizzesPage() {
   const deleteQuizMutation = useMutation({
     mutationFn: (quizId: string) => api.delete(`/instructor/quizzes/${quizId}`),
     onSuccess: () => {
+      toast.success('آزمون با موفقیت حذف شد');
       queryClient.invalidateQueries({ queryKey: ['instructor-quizzes'] });
+    },
+    onError: (err: any) => {
+      toast.error(err.response?.data?.message || 'خطا در حذف آزمون');
     }
   });
 
@@ -143,15 +163,65 @@ export default function InstructorQuizzesPage() {
 
   const openCreateModal = () => {
     setEditingQuizId(null);
-    setTargetType('course');
-    setFormData(prev => ({
-      ...prev,
-      courseId: coursesData?.[0]?._id || '',
-      classId: '',
+    const hasCourses = coursesData && coursesData.length > 0;
+    const hasClasses = classesData && classesData.length > 0;
+    const defaultType = hasCourses ? 'course' : hasClasses ? 'class' : 'course';
+    setTargetType(defaultType);
+    setFormData({
+      courseId: defaultType === 'course' ? (coursesData?.[0]?._id || '') : '',
+      classId: defaultType === 'class' ? (classesData?.[0]?._id || '') : '',
+      lessonId: '',
       title: '',
-      description: ''
-    }));
+      description: '',
+      duration: 30,
+      passingScore: 70,
+      questions: [
+        {
+          text: '',
+          type: 'single_choice',
+          score: 5,
+          options: [
+            { text: '', isCorrect: true },
+            { text: '', isCorrect: false },
+            { text: '', isCorrect: false },
+            { text: '', isCorrect: false }
+          ]
+        }
+      ]
+    });
     setIsCreateModalOpen(true);
+  };
+
+  const handleSubmitQuiz = () => {
+    if (!formData.title.trim()) {
+      toast.error('لطفاً عنوان آزمون را وارد کنید');
+      return;
+    }
+    if (targetType === 'course' && !formData.courseId) {
+      toast.error('لطفاً دوره آموزشی مربوط به آزمون را انتخاب کنید');
+      return;
+    }
+    if (targetType === 'class' && !formData.classId) {
+      toast.error('لطفاً کلاس آموزشی مربوط به آزمون را انتخاب کنید');
+      return;
+    }
+    if (!formData.questions || formData.questions.length === 0) {
+      toast.error('حداقل یک سوال برای آزمون الزامی است');
+      return;
+    }
+    for (let i = 0; i < formData.questions.length; i++) {
+      const q = formData.questions[i];
+      if (!q.text.trim()) {
+        toast.error(`متن سوال شماره ${i + 1} نمی‌تواند خالی باشد`);
+        return;
+      }
+      const hasCorrect = q.options.some(o => o.isCorrect);
+      if (!hasCorrect) {
+        toast.error(`برای سوال شماره ${i + 1} حداقل یک گزینه صحیح مشخص کنید`);
+        return;
+      }
+    }
+    saveQuizMutation.mutate(formData);
   };
 
   const openEditModal = async (quiz: any) => {
@@ -819,9 +889,9 @@ export default function InstructorQuizzesPage() {
 
               <button
                 type="button"
-                disabled={saveQuizMutation.isPending || !formData.title || !formData.courseId}
-                onClick={() => saveQuizMutation.mutate(formData)}
-                className="px-6 py-2.5 rounded-2xl bg-[var(--neo-primary)] hover:bg-[var(--neo-primary)] text-white text-xs font-bold shadow-lg shadow-[var(--neo-primary)]/20 transition-all disabled:opacity-50 flex items-center gap-2"
+                disabled={saveQuizMutation.isPending}
+                onClick={handleSubmitQuiz}
+                className="px-6 py-2.5 rounded-2xl bg-[var(--neo-primary)] hover:bg-blue-700 text-white text-xs font-bold shadow-lg shadow-[var(--neo-primary)]/20 transition-all disabled:opacity-50 flex items-center gap-2 cursor-pointer"
               >
                 {saveQuizMutation.isPending && <Loader2 className="w-4 h-4 animate-spin" />}
                 {editingQuizId ? 'ذخیره تغییرات آزمون' : 'ایجاد و ذخیره آزمون'}

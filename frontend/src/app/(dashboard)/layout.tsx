@@ -239,6 +239,11 @@ export default function DashboardLayout({
         { name: "مدیریت کیف پول‌ها", href: "/admin/wallet", icon: Wallet },
         { name: "کد تخفیف", href: "/admin/coupons", icon: Tag },
         {
+          name: "ارسال اعلان همگانی",
+          href: "/super-admin/broadcast",
+          icon: Send,
+        },
+        {
           name: "سیستم رفرال و بازاریابی",
           href: "/admin/referrals",
           icon: Share2,
@@ -300,6 +305,11 @@ export default function DashboardLayout({
         },
         { name: "کلاس‌های زنده", href: "/instructor/classes", icon: Video },
         { name: "دانشجویان من", href: "/instructor/students", icon: Users },
+        {
+          name: "اعلان‌ها و پیام‌ها",
+          href: "/instructor/notifications",
+          icon: Bell,
+        },
         {
           name: "نظرات دانشجویان",
           href: "/instructor/comments",

@@ -135,10 +135,10 @@ export class CourseService {
   }
 static async getInstructorCourses(instructorId: string, query: any) {
     const page = parseInt(query.page) || 1;
-    const limit = parseInt(query.limit) || 10;
+    const limit = query.all === 'true' || query.limit === 'all' ? 1000 : (parseInt(query.limit) || 10);
     const skip = (page - 1) * limit;
-    const filter: any = { instructors: instructorId };
-    if (query.status) {
+    const filter: any = { $or: [{ instructors: instructorId }, { createdBy: instructorId }] };
+    if (query.status && query.status !== 'all') {
       filter.status = query.status;
     }
     const courses = await Course.find(filter)
@@ -158,10 +158,9 @@ static async getInstructorCourses(instructorId: string, query: any) {
     };
   }
 
-    static async getInstructorStats(instructorId: string) {
-    const courses = await Course.find({ instructors: instructorId });
-    
-    const classes = await Class.find({ instructors: instructorId });
+  static async getInstructorStats(instructorId: string) {
+    const courses = await Course.find({ $or: [{ instructors: instructorId }, { createdBy: instructorId }] });
+    const classes = await Class.find({ $or: [{ instructors: instructorId }, { createdBy: instructorId }] });
     
     const totalCourses = courses.length;
     const publishedCourses = courses.filter((c: any) => c.status === 'published').length;
@@ -241,8 +240,8 @@ static async getInstructorCourses(instructorId: string, query: any) {
 
   // --- Course Workflows ---
   static async getInstructorAllStudents(instructorId: string, query: any) {
-    const courses = await Course.find({ instructors: instructorId }).select('_id title slug thumbnail');
-    const classes = await Class.find({ instructors: instructorId }).select('_id title slug thumbnail mode');
+    const courses = await Course.find({ $or: [{ instructors: instructorId }, { createdBy: instructorId }] }).select('_id title slug thumbnail');
+    const classes = await Class.find({ $or: [{ instructors: instructorId }, { createdBy: instructorId }] }).select('_id title slug thumbnail mode');
     
     const courseIds = courses.map(c => c._id);
     const classIds = classes.map(c => c._id);

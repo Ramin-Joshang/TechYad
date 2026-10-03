@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/lib/api';
+import toast from 'react-hot-toast';
 import { 
   FileText, Plus, Loader2, CheckCircle, Clock, 
   MessageSquare, Download, Trash2, Edit, Calendar, 
@@ -39,13 +40,19 @@ export default function InstructorAssignmentsPage() {
   // Fetch Courses for Dropdown
   const { data: coursesData } = useQuery({
     queryKey: ['instructor-courses-dropdown'],
-    queryFn: () => api.get('/instructor/courses', { params: { limit: 100 } }).then(res => res.data?.data?.courses || [])
+    queryFn: () => api.get('/instructor/courses', { params: { limit: 1000, all: 'true' } }).then((res: any) => {
+      const data = res?.data || res;
+      return data?.courses || (Array.isArray(data) ? data : []);
+    })
   });
 
   // Fetch Classes for Dropdown
   const { data: classesData } = useQuery({
     queryKey: ['instructor-classes-dropdown'],
-    queryFn: () => api.get('/instructor/classes').then(res => res.data?.data?.classes || res.data?.classes || res.data || [])
+    queryFn: () => api.get('/instructor/classes').then((res: any) => {
+      const data = res?.data || res;
+      return Array.isArray(data) ? data : data?.classes || [];
+    })
   });
 
   // Fetch Submissions
@@ -84,15 +91,24 @@ export default function InstructorAssignmentsPage() {
   // Create / Update Assignment Mutation
   const saveAssignmentMutation = useMutation({
     mutationFn: (data: typeof assignmentForm) => {
+      const payload = {
+        ...data,
+        courseId: targetType === 'course' ? data.courseId : undefined,
+        classId: targetType === 'class' ? data.classId : undefined
+      };
       if (editingAssignmentId) {
-        return api.patch(`/instructor/assignments/${editingAssignmentId}`, data);
+        return api.patch(`/instructor/assignments/${editingAssignmentId}`, payload);
       } else {
-        return api.post('/instructor/assignments', data);
+        return api.post('/instructor/assignments', payload);
       }
     },
     onSuccess: () => {
+      toast.success(editingAssignmentId ? 'تکلیف با موفقیت ویرایش شد' : 'تکلیف جدید با موفقیت ثبت و منتشر شد');
       queryClient.invalidateQueries({ queryKey: ['instructor-assignments'] });
       closeAssignmentModal();
+    },
+    onError: (err: any) => {
+      toast.error(err.response?.data?.message || 'خطا در ثبت تکلیف');
     }
   });
 
@@ -100,7 +116,11 @@ export default function InstructorAssignmentsPage() {
   const deleteAssignmentMutation = useMutation({
     mutationFn: (id: string) => api.delete(`/instructor/assignments/${id}`),
     onSuccess: () => {
+      toast.success('تکلیف با موفقیت حذف شد');
       queryClient.invalidateQueries({ queryKey: ['instructor-assignments'] });
+    },
+    onError: (err: any) => {
+      toast.error(err.response?.data?.message || 'خطا در حذف تکلیف');
     }
   });
 
@@ -109,6 +129,7 @@ export default function InstructorAssignmentsPage() {
     setEditingAssignmentId(null);
     setAssignmentForm({
       courseId: '',
+      classId: '',
       title: '',
       description: '',
       type: 'mixed',
@@ -119,10 +140,13 @@ export default function InstructorAssignmentsPage() {
 
   const openCreateModal = () => {
     setEditingAssignmentId(null);
-    setTargetType('course');
+    const hasCourses = coursesData && coursesData.length > 0;
+    const hasClasses = classesData && classesData.length > 0;
+    const defaultType = hasCourses ? 'course' : hasClasses ? 'class' : 'course';
+    setTargetType(defaultType);
     setAssignmentForm({
-      courseId: coursesData?.[0]?._id || '',
-      classId: '',
+      courseId: defaultType === 'course' ? (coursesData?.[0]?._id || '') : '',
+      classId: defaultType === 'class' ? (classesData?.[0]?._id || '') : '',
       title: '',
       description: '',
       type: 'mixed',
@@ -130,6 +154,22 @@ export default function InstructorAssignmentsPage() {
       deadline: ''
     });
     setIsCreateModalOpen(true);
+  };
+
+  const handleSubmitAssignment = () => {
+    if (!assignmentForm.title.trim()) {
+      toast.error('لطفاً عنوان تکلیف را وارد کنید');
+      return;
+    }
+    if (targetType === 'course' && !assignmentForm.courseId) {
+      toast.error('لطفاً دوره آموزشی مربوط به تکلیف را انتخاب کنید');
+      return;
+    }
+    if (targetType === 'class' && !assignmentForm.classId) {
+      toast.error('لطفاً کلاس آموزشی مربوط به تکلیف را انتخاب کنید');
+      return;
+    }
+    saveAssignmentMutation.mutate(assignmentForm);
   };
 
   const openEditModal = (a: any) => {
@@ -604,9 +644,9 @@ export default function InstructorAssignmentsPage() {
 
               <button
                 type="button"
-                disabled={saveAssignmentMutation.isPending || !assignmentForm.title || !assignmentForm.courseId}
-                onClick={() => saveAssignmentMutation.mutate(assignmentForm)}
-                className="px-6 py-2.5 rounded-2xl bg-[var(--neo-primary)] text-white text-xs font-bold shadow-lg shadow-[var(--neo-primary)]/20 transition-all disabled:opacity-50 flex items-center gap-2"
+                disabled={saveAssignmentMutation.isPending}
+                onClick={handleSubmitAssignment}
+                className="px-6 py-2.5 rounded-2xl bg-[var(--neo-primary)] hover:bg-blue-700 text-white text-xs font-bold shadow-lg shadow-[var(--neo-primary)]/20 transition-all disabled:opacity-50 flex items-center gap-2 cursor-pointer"
               >
                 {saveAssignmentMutation.isPending && <Loader2 className="w-4 h-4 animate-spin" />}
                 {editingAssignmentId ? 'ذخیره تغییرات' : 'ثبت و انتشار تکلیف'}

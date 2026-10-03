@@ -27,10 +27,16 @@ export default function BroadcastNotificationPage() {
   const broadcastMutation = useMutation({
     mutationFn: (data: any) => superAdminApi.sendBroadcast(data),
     onSuccess: (res: any) => {
-      toast.success('پیام سراسری با موفقیت برای کاربران ارسال شد');
-      setSentResult(res.data);
-      setTitle('');
-      setMessage('');
+      const data = res?.data || res;
+      if (data?.recipientCount === 0) {
+        toast.error(data?.message || 'هیچ کاربری با فیلترهای انتخابی یافت نشد');
+        setSentResult(null);
+      } else {
+        toast.success(`پیام با موفقیت برای ${data?.recipientCount?.toLocaleString('fa-IR')} کاربر ارسال شد`);
+        setSentResult(data);
+        setTitle('');
+        setMessage('');
+      }
     },
     onError: (err: any) => {
       toast.error(err.response?.data?.message || 'خطا در ارسال پیام همگانی');

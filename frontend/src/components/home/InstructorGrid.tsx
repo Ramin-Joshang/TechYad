@@ -38,7 +38,7 @@ export function InstructorGrid({ data = [], isLoading = false }: { data?: any[],
                 const fullName = inst.userId
                   ? `${inst.userId.firstName || ''} ${inst.userId.lastName || ''}`.trim()
                   : 'استاد تک‌یاد';
-                const avatarUrl = inst.userId?.avatar || inst.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(fullName)}&background=0284c7&color=fff`;
+                const avatarUrl = inst.userId?.personnelPhoto || inst.personnelPhoto || inst.userId?.avatar || inst.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(fullName)}&background=0284c7&color=fff`;
                 const specialties = inst.specialties || inst.expertise || [];
 
                 return (

@@ -376,7 +376,7 @@ function CourseCard({ course }: { course: any }) {
           title="مشاهده رزومه و دوره‌های استاد"
         >
           <img 
-            src={instructor?.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(instructorName)}&background=0284c7&color=fff`} 
+            src={instructor?.personnelPhoto || instructor?.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(instructorName)}&background=0284c7&color=fff`} 
             className="w-6 h-6 rounded-full object-cover border border-slate-200" 
             alt={instructorName} 
           />

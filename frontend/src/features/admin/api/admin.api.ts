@@ -98,6 +98,17 @@ export const adminApi = {
     return api.post<any, any>(`/admin/courses/${id}/reject`, { reason });
   },
 
+  // Broadcast Notifications & Campaigns
+  sendBroadcast: async (data: {
+    title: string;
+    message: string;
+    targetRole?: string;
+    sendSms?: boolean;
+    courseId?: string;
+  }) => {
+    return api.post<any, any>('/admin/broadcast', data);
+  },
+
   // Settings
   getSettings: async () => {
     return api.get<any, any>('/admin/settings');

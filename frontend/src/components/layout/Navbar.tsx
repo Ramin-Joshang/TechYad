@@ -9,6 +9,7 @@ import { usePathname } from "next/navigation";
 import { useAuthStore } from "@/features/auth/stores/auth.store";
 import { useCartStore } from "@/features/commerce/stores/cart.store";
 import { superAdminApi } from "@/features/admin/api/super-admin.api";
+import { NotificationDropdown } from "@/app/(dashboard)/components/NotificationDropdown";
 import {
   LogOut,
   User,
@@ -195,8 +196,9 @@ export function Navbar() {
                   <div className="w-28 h-9 bg-gray-100 animate-pulse rounded-xl"></div>
                 </div>
               ) : isAuthenticated && user ? (
-                <div className="flex items-center gap-3 sm:gap-4">
-                  <div className="w-px h-6 bg-[var(--neo-border)] mx-1 hidden sm:block"></div>
+                <div className="flex items-center gap-2 sm:gap-3">
+                  <NotificationDropdown role={user.role || 'student'} />
+                  <div className="w-px h-6 bg-[var(--neo-border)] mx-0.5 hidden sm:block"></div>
                   <Link
                     href={userDashboardHref}
                     className="flex items-center gap-2 p-1.5 pr-3 rounded-full border border-[var(--neo-border)] hover:bg-[var(--neo-surface-2)] transition cursor-pointer"

@@ -1415,42 +1415,115 @@ export class AdminService {
   static async sendBroadcastNotification(adminId: string, data: {
     title: string;
     message: string;
-    targetRole?: 'all' | 'student' | 'instructor' | 'admin';
+    targetRole?: 'all' | 'student' | 'instructor' | 'admin' | string;
     type?: string;
     sendSms?: boolean;
     courseId?: string;
   }) {
-    if (!data.title || !data.message) {
+    if (!data.title?.trim() || !data.message?.trim()) {
       throw new AppError('عنوان و پیام اعلان همگانی الزامی است', 400);
     }
 
     const filter: any = {};
+
+    // 1. Role Filtering
     if (data.targetRole && data.targetRole !== 'all') {
-      filter.role = data.targetRole;
+      if (data.targetRole === 'admin') {
+        const adminRoles = await Role.find({ 
+          slug: { $in: ['admin', 'super-admin', 'manager', 'support', 'content-manager'] } 
+        }).select('_id slug');
+        const roleIds = adminRoles.map(r => r._id);
+        const roleSlugs = adminRoles.map(r => r.slug);
+        filter.role = { $in: [...roleIds, ...roleSlugs] };
+      } else if (data.targetRole === 'instructor') {
+        const instructorRoles = await Role.find({ 
+          slug: { $in: ['instructor', 'teacher', 'instructors', 'teachers'] } 
+        }).select('_id slug');
+        const roleIds = instructorRoles.map(r => r._id);
+        const roleSlugs = instructorRoles.map(r => r.slug);
+        filter.role = { $in: [...roleIds, ...roleSlugs] };
+      } else if (data.targetRole === 'student') {
+        const studentRoles = await Role.find({ 
+          slug: { $in: ['student', 'students', 'learner'] } 
+        }).select('_id slug');
+        const roleIds = studentRoles.map(r => r._id);
+        const roleSlugs = studentRoles.map(r => r.slug);
+        filter.role = { $in: [...roleIds, ...roleSlugs] };
+      } else {
+        const roleDocs = await Role.find({ 
+          $or: [
+            { slug: data.targetRole }, 
+            { name: data.targetRole },
+            { slug: new RegExp(`^${data.targetRole}$`, 'i') }
+          ] 
+        }).select('_id slug');
+        if (roleDocs.length > 0) {
+          const roleIds = roleDocs.map(r => r._id);
+          const roleSlugs = roleDocs.map(r => r.slug);
+          filter.role = { $in: [...roleIds, ...roleSlugs] };
+        }
+      }
     }
 
-    // If target is course students
-    let targetUserIds: any[] = [];
-    if (data.courseId) {
-      const enrollments = await Enrollment.find({ courseId: data.courseId }).select('userId').lean();
-      targetUserIds = enrollments.map(e => e.userId);
-      filter._id = { $in: targetUserIds };
+    // 2. Specific Course / Class audience filtering
+    if (data.courseId && data.courseId !== 'all') {
+      const targetUserIds: any[] = [];
+
+      // If target is instructor or all, include instructors of that course or class
+      if (!data.targetRole || data.targetRole === 'all' || data.targetRole === 'instructor') {
+        const [courseItem, classItem] = await Promise.all([
+          Course.findById(data.courseId).select('instructors createdBy').lean(),
+          Class.findById(data.courseId).select('instructors createdBy').lean()
+        ]);
+        if (courseItem) {
+          if (courseItem.instructors && Array.isArray(courseItem.instructors)) {
+            targetUserIds.push(...courseItem.instructors);
+          }
+          if (courseItem.createdBy) targetUserIds.push(courseItem.createdBy);
+        }
+        if (classItem) {
+          if (classItem.instructors && Array.isArray(classItem.instructors)) {
+            targetUserIds.push(...classItem.instructors);
+          }
+          if (classItem.createdBy) targetUserIds.push(classItem.createdBy);
+        }
+      }
+
+      // If target is student or all, include enrolled students of that course or class
+      if (!data.targetRole || data.targetRole === 'all' || data.targetRole === 'student') {
+        const [courseEnrollments, classEnrollments] = await Promise.all([
+          Enrollment.find({ courseId: data.courseId }).select('userId').lean(),
+          ClassEnrollment.find({ classId: data.courseId }).select('userId').lean()
+        ]);
+        targetUserIds.push(...courseEnrollments.map(e => e.userId));
+        targetUserIds.push(...classEnrollments.map(c => c.userId));
+      }
+
+      const validIds = targetUserIds.filter(Boolean);
+      filter._id = { $in: validIds };
     }
 
-    const users = await User.find(filter).select('_id phone email firstName').lean();
+    const users = await User.find(filter).select('_id mobile email firstName lastName').lean();
     if (users.length === 0) {
-      return { recipientCount: 0, message: 'هیچ کاربری با این مشخصات یافت نشد' };
+      throw new AppError('هیچ کاربری با مشخصات و فیلترهای انتخابی یافت نشد', 404);
     }
 
     // Bulk insert notifications
     const notificationsToInsert = users.map(u => ({
       userId: u._id,
-      title: data.title,
-      message: data.message,
+      title: data.title.trim(),
+      message: data.message.trim(),
       type: data.type || 'system_announcement'
     }));
 
-    await Notification.insertMany(notificationsToInsert);
+    if (notificationsToInsert.length > 0) {
+      try {
+        await Notification.insertMany(notificationsToInsert, { ordered: false });
+      } catch (err: any) {
+        // If some duplicates or non-fatal insert issues occurred
+        console.warn('Notification insertMany partial notice:', err.message);
+      }
+    }
 
     // If sendSms was checked, simulate sending SMS via SMS provider configured in Settings
     let smsSent = false;

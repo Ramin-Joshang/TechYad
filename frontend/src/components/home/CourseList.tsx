@@ -59,7 +59,7 @@ export function CourseList({
                 const instructorName = typeof instructorObj === 'object' && instructorObj !== null
                   ? `${instructorObj.firstName || ''} ${instructorObj.lastName || ''}`.trim() || instructorObj.name
                   : (typeof item.instructor === 'string' ? item.instructor : 'استاد تک‌یاد');
-                const instructorAvatar = instructorObj?.avatar;
+                const instructorAvatar = instructorObj?.personnelPhoto || instructorObj?.avatar;
                 const isFree = item.price === 0;
                 const hasDiscount = item.discountPrice && item.discountPrice < item.price;
                 const displayPrice = hasDiscount ? item.discountPrice : item.price;

@@ -11,7 +11,7 @@ import { AuditService } from '../../common/services/audit.service.js';
 
 export class ClassService {
   static async getInstructorClasses(instructorId: string) {
-    return await Class.find({ instructors: instructorId }).sort({ startDate: 1 });
+    return await Class.find({ $or: [{ instructors: instructorId }, { createdBy: instructorId }] }).sort({ startDate: 1 });
   }
 
   static async getClasses(query: any = {}) {

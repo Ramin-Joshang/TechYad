@@ -3,12 +3,58 @@
 import { useState, useRef, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { notificationsApi } from '@/features/notifications/api/notifications.api';
-import { Bell, CheckCircle2, Loader2, BookOpen, CreditCard, Video, FileText, CheckSquare } from 'lucide-react';
+import { 
+  Bell, CheckCircle2, Loader2, BookOpen, CreditCard, Video, 
+  FileText, CheckSquare, Volume2, VolumeX, Sparkles
+} from 'lucide-react';
 import Link from 'next/link';
+
+// Elegant two-tone notification sound synthesizer using Web Audio API
+function playNotificationChime() {
+  try {
+    const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
+    if (!AudioContextClass) return;
+    const ctx = new AudioContextClass();
+
+    if (ctx.state === 'suspended') {
+      ctx.resume();
+    }
+
+    // Tone 1: 587.33 Hz (D5)
+    const osc1 = ctx.createOscillator();
+    const gain1 = ctx.createGain();
+    osc1.type = 'sine';
+    osc1.frequency.setValueAtTime(587.33, ctx.currentTime);
+    gain1.gain.setValueAtTime(0, ctx.currentTime);
+    gain1.gain.linearRampToValueAtTime(0.2, ctx.currentTime + 0.04);
+    gain1.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.35);
+    osc1.connect(gain1);
+    gain1.connect(ctx.destination);
+    osc1.start(ctx.currentTime);
+    osc1.stop(ctx.currentTime + 0.35);
+
+    // Tone 2: 880 Hz (A5) with slight delay
+    const osc2 = ctx.createOscillator();
+    const gain2 = ctx.createGain();
+    osc2.type = 'sine';
+    osc2.frequency.setValueAtTime(880, ctx.currentTime + 0.12);
+    gain2.gain.setValueAtTime(0, ctx.currentTime + 0.12);
+    gain2.gain.linearRampToValueAtTime(0.25, ctx.currentTime + 0.16);
+    gain2.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.55);
+    osc2.connect(gain2);
+    gain2.connect(ctx.destination);
+    osc2.start(ctx.currentTime + 0.12);
+    osc2.stop(ctx.currentTime + 0.55);
+  } catch (e) {
+    // Audio context may be restricted before first gesture
+  }
+}
 
 export function NotificationDropdown({ role }: { role: string }) {
   const [isOpen, setIsOpen] = useState(false);
+  const [soundEnabled, setSoundEnabled] = useState(true);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const prevUnreadCountRef = useRef<number | null>(null);
   const queryClient = useQueryClient();
 
   // Close when clicking outside
@@ -25,7 +71,7 @@ export function NotificationDropdown({ role }: { role: string }) {
   const { data: notificationsData, isLoading } = useQuery({
     queryKey: ['myNotifications'],
     queryFn: () => notificationsApi.getNotifications().then(res => res.data),
-    refetchInterval: 30000 // Refetch every 30s for real-time feel
+    refetchInterval: 12000 // Poll every 12 seconds for real-time alerts
   });
 
   const markReadMutation = useMutation({
@@ -36,17 +82,37 @@ export function NotificationDropdown({ role }: { role: string }) {
     }
   });
 
+  const markAllReadMutation = useMutation({
+    mutationFn: () => notificationsApi.markAllAsRead(),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['myNotifications'] });
+      queryClient.invalidateQueries({ queryKey: ['studentDashboard'] });
+    }
+  });
+
   const notifications = notificationsData || [];
   const unreadCount = notifications.filter((n: any) => !n.readAt).length;
+
+  // Sound & blinking trigger on new unread notifications
+  useEffect(() => {
+    if (prevUnreadCountRef.current !== null && unreadCount > prevUnreadCountRef.current) {
+      if (soundEnabled) {
+        playNotificationChime();
+      }
+    }
+    prevUnreadCountRef.current = unreadCount;
+  }, [unreadCount, soundEnabled]);
   
   const getIcon = (type: string) => {
     switch(type) {
-      case 'course': return <BookOpen className="w-4 h-4 text-[var(--neo-primary)]" />;
-      case 'payment': return <CreditCard className="w-4 h-4 text-emerald-500" />;
+      case 'course': 
+      case 'enrollment': return <BookOpen className="w-4 h-4 text-blue-600" />;
+      case 'payment': 
+      case 'sale': return <CreditCard className="w-4 h-4 text-emerald-500" />;
       case 'class': return <Video className="w-4 h-4 text-purple-500" />;
       case 'assignment': return <FileText className="w-4 h-4 text-orange-500" />;
-      case 'quiz': return <CheckSquare className="w-4 h-4 text-red-500" />;
-      default: return <Bell className="w-4 h-4 text-[var(--neo-text-secondary)]" />;
+      case 'quiz': return <CheckSquare className="w-4 h-4 text-rose-500" />;
+      default: return <Bell className="w-4 h-4 text-slate-500" />;
     }
   };
 
@@ -58,85 +124,130 @@ export function NotificationDropdown({ role }: { role: string }) {
     <div className="relative" ref={dropdownRef}>
       <button 
         onClick={() => setIsOpen(!isOpen)}
-        className="p-2 text-[var(--neo-text-secondary)] hover:text-[var(--neo-primary)] hover:bg-[var(--neo-surface-2)] rounded-full relative transition"
+        className={`p-2.5 rounded-2xl relative transition-all duration-300 ${
+          unreadCount > 0 
+            ? 'bg-amber-50 text-amber-600 hover:bg-amber-100 ring-2 ring-amber-300 ring-offset-1' 
+            : 'text-slate-500 hover:text-slate-800 hover:bg-slate-100'
+        }`}
+        title={unreadCount > 0 ? `${unreadCount} اعلان خوانده‌نشده` : 'اعلان‌ها'}
       >
-        <Bell className="w-5 h-5" />
+        <Bell className={`w-5 h-5 ${unreadCount > 0 ? 'animate-[bounce_2s_infinite] text-amber-600' : ''}`} />
+        
+        {/* Pulsing Blinking Dot Indicator */}
         {unreadCount > 0 && (
-          <span className="absolute top-1.5 right-1.5 w-4 h-4 bg-rose-500 text-white text-[10px] font-bold flex items-center justify-center rounded-full border-2 border-white shadow-sm">
-            {unreadCount > 9 ? '+9' : unreadCount}
+          <span className="absolute -top-1 -right-1 flex h-5 w-5">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
+            <span className="relative inline-flex rounded-full h-5 w-5 bg-rose-600 text-white text-[10px] font-black items-center justify-center border-2 border-white shadow-xs font-mono">
+              {unreadCount > 9 ? '+9' : unreadCount}
+            </span>
           </span>
         )}
       </button>
       
       {isOpen && (
-        <div className="absolute top-12 left-0 w-80 bg-[var(--neo-surface)] rounded-2xl shadow-xl border border-[var(--neo-border)] overflow-hidden z-50 animate-in fade-in zoom-in-95 duration-200">
-          <div className="p-4 border-b border-[var(--neo-border)] flex items-center justify-between bg-[var(--neo-surface-2)]">
-            <h3 className="font-bold text-sm text-[var(--neo-text-main)]">اعلان‌های اخیر</h3>
-            <Link 
-              href={`${getRolePrefix()}/notifications`} 
-              onClick={() => setIsOpen(false)} 
-              className="text-xs font-bold text-[var(--neo-primary)] hover:underline"
-            >
-              مشاهده همه
-            </Link>
+        <div className="absolute top-12 left-0 w-84 sm:w-96 bg-white rounded-3xl shadow-2xl border border-[var(--neo-border)] overflow-hidden z-50 animate-in fade-in zoom-in-95 duration-200">
+          <div className="p-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/80">
+            <div className="flex items-center gap-2">
+              <h3 className="font-black text-sm text-slate-900">اعلان‌های اخیر</h3>
+              {unreadCount > 0 && (
+                <span className="text-[10px] font-bold bg-rose-100 text-rose-700 px-2 py-0.5 rounded-full font-mono">
+                  {unreadCount} جدید
+                </span>
+              )}
+            </div>
+
+            <div className="flex items-center gap-2">
+              {/* Sound Toggle */}
+              <button
+                type="button"
+                onClick={() => {
+                  setSoundEnabled(!soundEnabled);
+                  if (!soundEnabled) playNotificationChime();
+                }}
+                className={`p-1.5 rounded-xl border transition ${
+                  soundEnabled ? 'bg-indigo-50 border-indigo-200 text-indigo-600' : 'bg-slate-100 border-slate-200 text-slate-400'
+                }`}
+                title={soundEnabled ? 'صدا فعال است (کلیک برای بی‌صدا)' : 'صدا غیرفعال است (کلیک برای فعال‌سازی)'}
+              >
+                {soundEnabled ? <Volume2 className="w-3.5 h-3.5" /> : <VolumeX className="w-3.5 h-3.5" />}
+              </button>
+
+              <Link 
+                href={`${getRolePrefix()}/notifications`} 
+                onClick={() => setIsOpen(false)} 
+                className="text-xs font-bold text-indigo-600 hover:text-indigo-800 transition"
+              >
+                مشاهده همه
+              </Link>
+            </div>
           </div>
           
-          <div className="max-h-[350px] overflow-y-auto hide-scrollbar">
+          <div className="max-h-[360px] overflow-y-auto divide-y divide-slate-100">
             {isLoading ? (
               <div className="flex flex-col items-center justify-center p-8 gap-3">
-                <Loader2 className="w-6 h-6 text-[var(--neo-primary)] animate-spin" />
-                <span className="text-xs font-medium text-[var(--neo-text-muted)]">در حال دریافت...</span>
+                <Loader2 className="w-6 h-6 text-indigo-600 animate-spin" />
+                <span className="text-xs font-medium text-slate-400">در حال دریافت اعلان‌ها...</span>
               </div>
             ) : notifications.length > 0 ? (
-              <div className="divide-y divide-[var(--neo-border)]">
-                {notifications.slice(0, 5).map((notif: any) => (
+              notifications.slice(0, 6).map((notif: any) => {
+                const isUnread = !notif.readAt;
+                return (
                   <div 
                     key={notif._id} 
-                    className={`p-4 hover:bg-[var(--neo-surface-2)] transition flex gap-3 relative group ${notif.readAt ? 'opacity-70' : 'bg-[var(--neo-primary)]/5'}`}
+                    className={`p-3.5 hover:bg-slate-50 transition flex gap-3 relative group ${
+                      isUnread ? 'bg-indigo-50/40' : ''
+                    }`}
                   >
-                    <div className="shrink-0 mt-1">
+                    <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 border mt-0.5 ${
+                      isUnread ? 'bg-white border-indigo-200 shadow-2xs' : 'bg-slate-50 border-slate-200'
+                    }`}>
                       {getIcon(notif.type)}
                     </div>
+                    
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-bold text-[var(--neo-text-main)] mb-1">{notif.title}</p>
-                      <p className="text-xs text-[var(--neo-text-secondary)] line-clamp-2 leading-relaxed mb-2">{notif.message}</p>
-                      <span className="text-[10px] font-medium text-[var(--neo-text-muted)]">
-                        {new Date(notif.createdAt).toLocaleDateString('fa-IR')}
-                      </span>
+                      <div className="flex items-center justify-between gap-1 mb-0.5">
+                        <h4 className="font-bold text-xs text-slate-900 truncate">
+                          {notif.title}
+                        </h4>
+                        <span className="text-[10px] text-slate-400 shrink-0 font-mono">
+                          {new Date(notif.createdAt).toLocaleDateString('fa-IR')}
+                        </span>
+                      </div>
+                      
+                      <p className="text-xs text-slate-600 line-clamp-2 leading-relaxed">
+                        {notif.message}
+                      </p>
                     </div>
-                    {!notif.readAt && (
+
+                    {isUnread && (
                       <button
                         onClick={() => markReadMutation.mutate(notif._id)}
-                        disabled={markReadMutation.isPending}
-                        className="absolute left-4 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition p-1.5 bg-[var(--neo-surface)] shadow-sm border border-[var(--neo-border)] rounded-full text-[var(--neo-primary)] hover:bg-[var(--neo-surface-2)]"
-                        title="علامت زدن به عنوان خوانده شده"
+                        className="opacity-0 group-hover:opacity-100 p-1.5 rounded-lg hover:bg-indigo-100 text-indigo-600 transition shrink-0 self-center"
+                        title="علامت‌گذاری به عنوان خوانده‌شده"
                       >
                         <CheckCircle2 className="w-4 h-4" />
                       </button>
                     )}
                   </div>
-                ))}
-              </div>
+                );
+              })
             ) : (
-              <div className="p-8 text-center flex flex-col items-center gap-3">
-                <div className="w-12 h-12 bg-[var(--neo-surface-2)] rounded-full flex items-center justify-center text-[var(--neo-text-muted)]">
-                  <Bell className="w-6 h-6" />
-                </div>
-                <div className="text-sm font-medium text-[var(--neo-text-muted)]">
-                  هیچ اعلانی ندارید
-                </div>
+              <div className="p-8 text-center text-slate-400 text-xs">
+                هیچ اعلان جدیدی وجود ندارد.
               </div>
             )}
           </div>
-          
-          {notifications.length > 5 && (
-            <Link 
-              href={`${getRolePrefix()}/notifications`} 
-              onClick={() => setIsOpen(false)} 
-              className="block p-3 text-center text-xs font-bold text-[var(--neo-text-secondary)] hover:bg-[var(--neo-surface-2)] border-t border-[var(--neo-border)] transition"
-            >
-              مشاهده {notifications.length - 5} اعلان دیگر
-            </Link>
+
+          {unreadCount > 0 && (
+            <div className="p-2.5 border-t border-slate-100 bg-slate-50/60 text-center">
+              <button
+                onClick={() => markAllReadMutation.mutate()}
+                disabled={markAllReadMutation.isPending}
+                className="text-xs font-bold text-slate-600 hover:text-indigo-600 transition"
+              >
+                علامت‌گذاری همه به عنوان خوانده‌شده
+              </button>
+            </div>
           )}
         </div>
       )}

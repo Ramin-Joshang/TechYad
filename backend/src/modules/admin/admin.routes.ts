@@ -71,7 +71,8 @@ router.patch('/admin/comments/:id', isAdmin, asyncHandler(Controller.moderateCom
 router.delete('/admin/comments/:id', isAdmin, asyncHandler(Controller.deleteComment));
 
 // Broadcast Notifications
-router.post('/super-admin/broadcast', isSuperAdmin, asyncHandler(Controller.sendBroadcastNotification));
+router.post('/super-admin/broadcast', isAdmin, asyncHandler(Controller.sendBroadcastNotification));
+router.post('/admin/broadcast', isAdmin, asyncHandler(Controller.sendBroadcastNotification));
 
 // Audit Logs
 router.get('/super-admin/audit-logs', isSuperAdmin, asyncHandler(Controller.getAuditLogs));
