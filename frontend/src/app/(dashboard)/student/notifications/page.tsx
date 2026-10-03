@@ -119,23 +119,23 @@ export default function NotificationsPage() {
             const link = getLink(notif);
             
             const content = (
-              <div className={`p-6 flex items-start gap-4 transition-colors ${isUnread ? 'bg-[var(--neo-primary)]/10/30' : 'hover:bg-[var(--neo-surface-2)]/50'}`}>
-                <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 shadow-sm ${isUnread ? 'bg-[var(--neo-surface)] border-2 border-[var(--neo-primary)]/20' : 'bg-[var(--neo-surface-2)] border border-[var(--neo-border)]'}`}>
+              <div className={`p-4 sm:p-6 flex items-start gap-3 sm:gap-4 transition-colors ${isUnread ? 'bg-[var(--neo-primary)]/10/30' : 'hover:bg-[var(--neo-surface-2)]/50'}`}>
+                <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-2xl flex items-center justify-center shrink-0 shadow-sm ${isUnread ? 'bg-[var(--neo-surface)] border-2 border-[var(--neo-primary)]/20' : 'bg-[var(--neo-surface-2)] border border-[var(--neo-border)]'}`}>
                   {getIcon(notif.type)}
                 </div>
-                <div className="flex-1">
-                  <div className="flex items-center justify-between gap-4 mb-1">
-                    <h4 className={`font-bold text-base ${isUnread ? 'text-[var(--neo-text-main)]' : 'text-[var(--neo-text-main)]'}`}>{notif.title}</h4>
-                    <span className="text-xs font-medium text-[var(--neo-text-muted)] whitespace-nowrap">
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center justify-between gap-2 sm:gap-4 mb-1">
+                    <h4 className={`font-bold text-sm sm:text-base truncate ${isUnread ? 'text-[var(--neo-text-main)]' : 'text-[var(--neo-text-main)]'}`}>{notif.title}</h4>
+                    <span className="text-[11px] sm:text-xs font-medium text-[var(--neo-text-muted)] whitespace-nowrap shrink-0">
                       {new Date(notif.createdAt).toLocaleDateString('fa-IR')}
                     </span>
                   </div>
-                  <p className={`text-sm leading-relaxed ${isUnread ? 'text-[var(--neo-text-secondary)] font-medium' : 'text-[var(--neo-text-secondary)]'}`}>
+                  <p className={`text-xs sm:text-sm leading-relaxed ${isUnread ? 'text-[var(--neo-text-secondary)] font-medium' : 'text-[var(--neo-text-secondary)]'}`}>
                     {notif.message}
                   </p>
                 </div>
                 {isUnread && (
-                  <div className="w-3 h-3 bg-[var(--neo-primary)] rounded-full mt-2 shrink-0 shadow-sm shadow-blue-500/50"></div>
+                  <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 bg-[var(--neo-primary)] rounded-full mt-2 shrink-0 shadow-sm shadow-blue-500/50"></div>
                 )}
               </div>
             );

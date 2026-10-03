@@ -84,8 +84,8 @@ export function InstructorsList() {
       <div className="bg-slate-900 py-20 text-white relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-r from-blue-900/50 to-purple-900/50 opacity-50 mix-blend-multiply"></div>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center">
-          <h1 className="text-4xl md:text-5xl font-bold mb-6">اساتید برتر</h1>
-          <p className="text-xl text-gray-300 max-w-2xl mx-auto leading-relaxed">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4 sm:mb-6">اساتید برتر</h1>
+          <p className="text-base sm:text-xl text-gray-300 max-w-2xl mx-auto leading-relaxed">
             آموزش را از متخصصانی یاد بگیرید که تجربه دانشگاهی و تخصص حرفه‌ای در صنعت دارند.
           </p>
         </div>
@@ -136,7 +136,7 @@ export function InstructorsList() {
                    <Award className="w-6 h-6 text-amber-500" />
                    اساتید برگزیده ماه
                  </h2>
-                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6">
                     {topInstructors.slice(0, 3).map((inst: any) => (
                       <InstructorCard key={inst._id} instructor={inst} featured />
                     ))}
@@ -150,7 +150,7 @@ export function InstructorsList() {
                  <Users className="w-6 h-6 text-[var(--neo-primary)]" />
                  {searchTerm || specialtyFilter !== 'all' ? 'نتایج جستجو' : 'همه اساتید'}
                </h2>
-               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6">
                   {filteredInstructors.map((inst: any) => (
                     <InstructorCard key={inst._id} instructor={inst} />
                   ))}

@@ -67,9 +67,9 @@ export default function StudentProgressPage() {
       </div>
 
       {/* Metric Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-white p-5 rounded-2xl border border-[var(--neo-border)] shadow-xs flex flex-col justify-between">
-          <div className="flex items-center justify-between mb-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+        <div className="bg-white p-4 sm:p-5 rounded-2xl border border-[var(--neo-border)] shadow-xs flex flex-col justify-between">
+          <div className="flex items-center justify-between mb-2 sm:mb-3">
             <span className="text-xs font-bold text-[var(--neo-text-muted)]">میانگین پیشرفت کل</span>
             <div className="p-2 bg-emerald-50 text-emerald-600 rounded-xl">
               <TrendingUp className="w-4 h-4" />
@@ -83,8 +83,8 @@ export default function StudentProgressPage() {
           </div>
         </div>
 
-        <div className="bg-white p-5 rounded-2xl border border-[var(--neo-border)] shadow-xs flex flex-col justify-between">
-          <div className="flex items-center justify-between mb-3">
+        <div className="bg-white p-4 sm:p-5 rounded-2xl border border-[var(--neo-border)] shadow-xs flex flex-col justify-between">
+          <div className="flex items-center justify-between mb-2 sm:mb-3">
             <span className="text-xs font-bold text-[var(--neo-text-muted)]">دوره‌های تکمیل‌شده</span>
             <div className="p-2 bg-blue-50 text-blue-600 rounded-xl">
               <CheckCircle2 className="w-4 h-4" />
@@ -102,8 +102,8 @@ export default function StudentProgressPage() {
           </div>
         </div>
 
-        <div className="bg-white p-5 rounded-2xl border border-[var(--neo-border)] shadow-xs flex flex-col justify-between">
-          <div className="flex items-center justify-between mb-3">
+        <div className="bg-white p-4 sm:p-5 rounded-2xl border border-[var(--neo-border)] shadow-xs flex flex-col justify-between">
+          <div className="flex items-center justify-between mb-2 sm:mb-3">
             <span className="text-xs font-bold text-[var(--neo-text-muted)]">درس‌های مشاهده‌شده</span>
             <div className="p-2 bg-purple-50 text-purple-600 rounded-xl">
               <BookOpen className="w-4 h-4" />
@@ -116,8 +116,8 @@ export default function StudentProgressPage() {
           <span className="text-[11px] text-slate-400 mt-3 block">محتوای ضبط‌شده تماشا شده</span>
         </div>
 
-        <div className="bg-white p-5 rounded-2xl border border-[var(--neo-border)] shadow-xs flex flex-col justify-between">
-          <div className="flex items-center justify-between mb-3">
+        <div className="bg-white p-4 sm:p-5 rounded-2xl border border-[var(--neo-border)] shadow-xs flex flex-col justify-between">
+          <div className="flex items-center justify-between mb-2 sm:mb-3">
             <span className="text-xs font-bold text-[var(--neo-text-muted)]">کلاس‌های فعال</span>
             <div className="p-2 bg-amber-50 text-amber-600 rounded-xl">
               <Video className="w-4 h-4" />

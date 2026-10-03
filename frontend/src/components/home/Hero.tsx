@@ -100,7 +100,7 @@ export function Hero() {
               </span>
             </div>
 
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black text-[var(--neo-text-main)] mb-6 leading-[1.2] tracking-tight">
+            <h1 className="text-3xl sm:text-5xl lg:text-6xl font-black text-[var(--neo-text-main)] mb-6 leading-[1.25] tracking-tight">
               {heroTitle}
             </h1>
 

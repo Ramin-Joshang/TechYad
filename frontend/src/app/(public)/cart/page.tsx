@@ -80,8 +80,8 @@ export default function CartPage() {
   return (
     <main className="bg-[var(--neo-bg)] min-h-screen py-12">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <h1 className="text-3xl font-bold text-[var(--neo-text-main)] mb-8 flex items-center gap-3">
-          <ShoppingCart className="w-8 h-8 text-[var(--neo-primary)]" />
+        <h1 className="text-2xl sm:text-3xl font-bold text-[var(--neo-text-main)] mb-6 sm:mb-8 flex items-center gap-2.5 sm:gap-3">
+          <ShoppingCart className="w-7 h-7 sm:w-8 sm:h-8 text-[var(--neo-primary)]" />
           سبد خرید شما
         </h1>
 

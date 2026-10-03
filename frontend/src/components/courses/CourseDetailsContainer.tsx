@@ -148,8 +148,8 @@ export function CourseDetailsContainer({ slug }: { slug: string }) {
               </span>
             </div>
             
-            <h1 className="text-4xl lg:text-5xl font-black mb-6 leading-tight text-white">{course.title}</h1>
-            <p className="text-xl text-gray-300 mb-8 leading-relaxed max-w-2xl">{course.description}</p>
+            <h1 className="text-2xl sm:text-4xl lg:text-5xl font-black mb-4 sm:mb-6 leading-tight text-white">{course.title}</h1>
+            <p className="text-sm sm:text-lg lg:text-xl text-gray-300 mb-6 sm:mb-8 leading-relaxed max-w-2xl">{course.description}</p>
             
             <div className="flex flex-wrap items-center gap-6 text-gray-300">
               {instructor && (

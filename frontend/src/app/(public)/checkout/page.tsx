@@ -231,15 +231,15 @@ export default function CheckoutPage() {
               </h2>
               <div className="space-y-4">
                 {items.map((item: any) => (
-                  <div key={item.itemId} className="flex items-center justify-between py-4 border-b border-gray-100 last:border-0">
-                    <div className="flex items-center gap-4">
-                      <img src={item.thumbnail || `https://picsum.photos/seed/${item.itemId}/100/100`} alt={item.titleSnapshot} className="w-16 h-16 rounded-xl object-cover border border-slate-100" />
+                  <div key={item.itemId} className="flex flex-col sm:flex-row sm:items-center justify-between py-4 border-b border-gray-100 last:border-0 gap-3">
+                    <div className="flex items-center gap-3 sm:gap-4">
+                      <img src={item.thumbnail || `https://picsum.photos/seed/${item.itemId}/100/100`} alt={item.titleSnapshot} className="w-14 h-14 sm:w-16 sm:h-16 rounded-xl object-cover border border-slate-100 shrink-0" />
                       <div>
-                        <div className="text-xs text-[var(--neo-primary)] font-bold mb-1">{item.itemType === 'course' ? 'دوره آموزشی' : 'کلاس زنده'}</div>
-                        <h4 className="font-bold text-[var(--neo-text-main)]">{item.titleSnapshot}</h4>
+                        <div className="text-xs text-[var(--neo-primary)] font-bold mb-0.5">{item.itemType === 'course' ? 'دوره آموزشی' : 'کلاس زنده'}</div>
+                        <h4 className="font-bold text-[var(--neo-text-main)] text-sm sm:text-base leading-snug">{item.titleSnapshot}</h4>
                       </div>
                     </div>
-                    <div className="font-black text-[var(--neo-text-main)] text-base">
+                    <div className="font-black text-[var(--neo-text-main)] text-base self-end sm:self-auto shrink-0">
                       {item.finalPrice.toLocaleString('fa-IR')} <span className="text-xs font-normal text-[var(--neo-text-muted)]">تومان</span>
                     </div>
                   </div>

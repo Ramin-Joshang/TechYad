@@ -113,9 +113,9 @@ export default function MyClassesPage() {
       </div>
 
       {/* KPI Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between">
-          <div className="flex items-center justify-between text-slate-500 mb-3 text-xs sm:text-sm font-medium">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+        <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between">
+          <div className="flex items-center justify-between text-slate-500 mb-2 sm:mb-3 text-xs sm:text-sm font-medium">
             <span>کل کلاس‌های ثبت‌نامی</span>
             <Video className="w-5 h-5 text-emerald-500" />
           </div>
@@ -125,8 +125,8 @@ export default function MyClassesPage() {
           </div>
         </div>
 
-        <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between">
-          <div className="flex items-center justify-between text-slate-500 mb-3 text-xs sm:text-sm font-medium">
+        <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between">
+          <div className="flex items-center justify-between text-slate-500 mb-2 sm:mb-3 text-xs sm:text-sm font-medium">
             <span>کلاس‌های فعال و پیش‌رو</span>
             <Clock className="w-5 h-5 text-blue-500" />
           </div>
@@ -136,8 +136,8 @@ export default function MyClassesPage() {
           </div>
         </div>
 
-        <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between">
-          <div className="flex items-center justify-between text-slate-500 mb-3 text-xs sm:text-sm font-medium">
+        <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between">
+          <div className="flex items-center justify-between text-slate-500 mb-2 sm:mb-3 text-xs sm:text-sm font-medium">
             <span>کلاس‌های آنلاین تعاملی</span>
             <Radio className="w-5 h-5 text-emerald-500" />
           </div>
@@ -147,8 +147,8 @@ export default function MyClassesPage() {
           </div>
         </div>
 
-        <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between">
-          <div className="flex items-center justify-between text-slate-500 mb-3 text-xs sm:text-sm font-medium">
+        <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between">
+          <div className="flex items-center justify-between text-slate-500 mb-2 sm:mb-3 text-xs sm:text-sm font-medium">
             <span>کارگاه‌های حضوری</span>
             <MapPin className="w-5 h-5 text-amber-500" />
           </div>

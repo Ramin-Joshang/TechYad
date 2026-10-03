@@ -116,9 +116,9 @@ export default function StudentPaymentsHubPage() {
       </div>
 
       {/* Financial KPI Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between">
-          <div className="flex items-center justify-between text-slate-500 mb-3 text-xs sm:text-sm font-medium">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+        <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between">
+          <div className="flex items-center justify-between text-slate-500 mb-2 sm:mb-3 text-xs sm:text-sm font-medium">
             <span>مجموع سرمایه‌گذاری آموزشی</span>
             <CreditCard className="w-5 h-5 text-purple-500" />
           </div>
@@ -130,8 +130,8 @@ export default function StudentPaymentsHubPage() {
           </div>
         </div>
 
-        <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between">
-          <div className="flex items-center justify-between text-slate-500 mb-3 text-xs sm:text-sm font-medium">
+        <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between">
+          <div className="flex items-center justify-between text-slate-500 mb-2 sm:mb-3 text-xs sm:text-sm font-medium">
             <span>مجموع تخفیف‌های دریافت‌شده</span>
             <Tag className="w-5 h-5 text-emerald-500" />
           </div>
@@ -143,8 +143,8 @@ export default function StudentPaymentsHubPage() {
           </div>
         </div>
 
-        <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between">
-          <div className="flex items-center justify-between text-slate-500 mb-3 text-xs sm:text-sm font-medium">
+        <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between">
+          <div className="flex items-center justify-between text-slate-500 mb-2 sm:mb-3 text-xs sm:text-sm font-medium">
             <span>تراکنش‌های موفق</span>
             <CheckCircle2 className="w-5 h-5 text-emerald-500" />
           </div>
@@ -156,8 +156,8 @@ export default function StudentPaymentsHubPage() {
           </div>
         </div>
 
-        <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between">
-          <div className="flex items-center justify-between text-slate-500 mb-3 text-xs sm:text-sm font-medium">
+        <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between">
+          <div className="flex items-center justify-between text-slate-500 mb-2 sm:mb-3 text-xs sm:text-sm font-medium">
             <span>موجودی کیف پول تک‌یاد</span>
             <Wallet className="w-5 h-5 text-indigo-500" />
           </div>
@@ -264,7 +264,67 @@ export default function StudentPaymentsHubPage() {
         </div>
       ) : (
         <div className="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden">
-          <div className="overflow-x-auto">
+          {/* Mobile Orders View */}
+          <div className="md:hidden divide-y divide-slate-100">
+            {filteredOrders.map((order: any) => {
+              const isPaid = order.status === 'paid';
+              const isPending = order.status === 'pending';
+              const walletApplied = order.walletAmountApplied || 0;
+              const gatewayPaid = order.gatewayAmount || (walletApplied === 0 ? order.totalAmount : 0);
+              const isHybrid = walletApplied > 0 && gatewayPaid > 0;
+
+              return (
+                <div key={order._id} className="p-4 space-y-3">
+                  <div className="flex items-start justify-between gap-2">
+                    <div>
+                      <div className="font-mono font-bold text-slate-900 text-sm flex items-center gap-1.5">
+                        <Receipt className="w-4 h-4 text-slate-400" />
+                        #{order._id.slice(-6).toUpperCase()}
+                      </div>
+                      <div className="text-[11px] text-slate-400 mt-0.5">
+                        {new Date(order.createdAt).toLocaleDateString('fa-IR')} · {new Date(order.createdAt).toLocaleTimeString('fa-IR', { hour: '2-digit', minute: '2-digit' })}
+                      </div>
+                    </div>
+                    <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold ${
+                      isPaid ? 'bg-emerald-100 text-emerald-800' :
+                      isPending ? 'bg-amber-100 text-amber-800' :
+                      'bg-red-100 text-red-800'
+                    }`}>
+                      {isPaid ? <CheckCircle2 className="w-3 h-3" /> : isPending ? <Clock className="w-3 h-3" /> : <XCircle className="w-3 h-3" />}
+                      {isPaid ? 'موفق' : isPending ? 'در انتظار' : 'ناموفق'}
+                    </span>
+                  </div>
+
+                  <div className="text-xs text-slate-700 bg-slate-50 p-2.5 rounded-xl border border-slate-100 space-y-1">
+                    <div className="font-medium line-clamp-1">
+                      {order.items?.map((i: any) => i.title).join('، ') || 'خرید دوره آموزشی'}
+                    </div>
+                    <div className="text-[11px] text-slate-500">
+                      روش: {isHybrid ? 'ترکیبی (کیف پول + درگاه)' : walletApplied > 0 ? 'کیف پول' : 'درگاه پرداخت شتاب'}
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between pt-1">
+                    <div>
+                      <span className="text-xs text-slate-400">مبلغ نهایی: </span>
+                      <strong className="text-sm font-black text-slate-900">{order.totalAmount?.toLocaleString('fa-IR')}</strong>
+                      <span className="text-xs text-slate-500"> ت</span>
+                    </div>
+                    <Link 
+                      href={`/student/orders/${order._id}`} 
+                      className="inline-flex items-center gap-1 text-xs font-bold text-purple-600 hover:text-purple-800 bg-purple-50 hover:bg-purple-100 px-3 py-1.5 rounded-lg transition"
+                    >
+                      فاکتور
+                      <ArrowLeft className="w-3.5 h-3.5" />
+                    </Link>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Desktop Table View */}
+          <div className="hidden md:block overflow-x-auto">
             <table className="w-full text-right border-collapse">
               <thead>
                 <tr className="bg-slate-50 border-b border-slate-200 text-xs text-slate-500 uppercase">

@@ -510,14 +510,14 @@ export default function DashboardLayout({
               </div>
             </div>
 
-            <div className="flex items-center gap-2.5 sm:gap-3.5 relative">
+            <div className="flex items-center gap-1.5 sm:gap-3.5 relative">
               {/* Wallet Balance Pill */}
               <Link
                 href={walletHref}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-2xl border border-indigo-200 bg-indigo-50 hover:bg-indigo-100/80 transition text-xs font-bold text-indigo-700 shadow-xs"
+                className="flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3 py-1 sm:py-1.5 rounded-2xl border border-indigo-200 bg-indigo-50 hover:bg-indigo-100/80 transition text-[11px] sm:text-xs font-bold text-indigo-700 shadow-xs shrink-0"
                 title="مشاهده و شارژ آنلاین کیف پول"
               >
-                <Wallet className="w-4 h-4 text-indigo-600 shrink-0" />
+                <Wallet className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-indigo-600 shrink-0" />
                 <span className="hidden sm:inline">کیف پول:</span>
                 <span className="font-black text-indigo-950 font-mono">
                   {(
@@ -525,7 +525,7 @@ export default function DashboardLayout({
                     0
                   ).toLocaleString("fa-IR")}
                 </span>
-                <span className="text-[10px] font-normal text-indigo-600">
+                <span className="text-[9px] sm:text-[10px] font-normal text-indigo-600 hidden xs:inline">
                   تومان
                 </span>
               </Link>
@@ -534,14 +534,14 @@ export default function DashboardLayout({
               <NotificationDropdown role={user?.role || "student"} />
 
               {/* Complete User Profile Card in Header */}
-              <div className="flex items-center gap-2.5 pl-1 pr-2.5 py-1 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-2xl transition group">
+              <div className="flex items-center gap-1.5 sm:gap-2.5 pl-1 pr-1.5 sm:pr-2.5 py-1 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-2xl transition group">
                 <Link
                   href="/profile"
-                  className="flex items-center gap-2.5"
+                  className="flex items-center gap-1.5 sm:gap-2.5"
                   title="مشاهده و ویرایش پروفایل کاربری"
                 >
                   <div className="relative">
-                    <div className="w-9 h-9 rounded-xl bg-blue-600 text-white flex items-center justify-center font-bold text-sm overflow-hidden shadow-xs shrink-0">
+                    <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-blue-600 text-white flex items-center justify-center font-bold text-xs sm:text-sm overflow-hidden shadow-xs shrink-0">
                       {user?.avatar ? (
                         <img
                           src={user.avatar}
@@ -552,11 +552,11 @@ export default function DashboardLayout({
                         user?.firstName?.charAt(0) || "U"
                       )}
                     </div>
-                    <span className="w-2.5 h-2.5 bg-emerald-500 border-2 border-white rounded-full absolute -bottom-0.5 -right-0.5"></span>
+                    <span className="w-2 sm:w-2.5 h-2 sm:h-2.5 bg-emerald-500 border-2 border-white rounded-full absolute -bottom-0.5 -right-0.5"></span>
                   </div>
 
                   <div className="hidden sm:block text-right">
-                    <div className="font-black text-xs text-slate-900 leading-tight">
+                    <div className="font-black text-xs text-slate-900 leading-tight truncate max-w-[100px] md:max-w-none">
                       {user?.firstName} {user?.lastName}
                     </div>
                     <div className="flex items-center gap-1 mt-0.5">
@@ -594,9 +594,73 @@ export default function DashboardLayout({
             </div>
           </header>
 
-          <div className="flex-1 overflow-y-auto bg-[var(--neo-bg)] p-4 md:p-8">
+          <div className="flex-1 overflow-y-auto bg-[var(--neo-bg)] p-3 sm:p-5 md:p-8 pb-24 lg:pb-8">
             <div className="max-w-7xl mx-auto">{children}</div>
           </div>
+
+          {/* Student Mobile Bottom Navigation Bar */}
+          {user?.role === "student" && (
+            <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-slate-200 px-2 py-1 shadow-lg">
+              <div className="grid grid-cols-5 items-center h-14">
+                <Link
+                  href="/student"
+                  className={`flex flex-col items-center justify-center gap-0.5 py-1 rounded-xl transition ${
+                    pathname === "/student"
+                      ? "text-blue-600 font-bold"
+                      : "text-slate-500 hover:text-slate-900"
+                  }`}
+                >
+                  <LayoutDashboard className={`w-5 h-5 ${pathname === "/student" ? "text-blue-600" : "text-slate-400"}`} />
+                  <span className="text-[10px]">داشبورد</span>
+                </Link>
+
+                <Link
+                  href="/student/courses"
+                  className={`flex flex-col items-center justify-center gap-0.5 py-1 rounded-xl transition ${
+                    pathname.startsWith("/student/courses")
+                      ? "text-blue-600 font-bold"
+                      : "text-slate-500 hover:text-slate-900"
+                  }`}
+                >
+                  <BookOpen className={`w-5 h-5 ${pathname.startsWith("/student/courses") ? "text-blue-600" : "text-slate-400"}`} />
+                  <span className="text-[10px]">دوره‌ها</span>
+                </Link>
+
+                <Link
+                  href="/student/classes"
+                  className={`flex flex-col items-center justify-center gap-0.5 py-1 rounded-xl transition ${
+                    pathname.startsWith("/student/classes")
+                      ? "text-purple-600 font-bold"
+                      : "text-slate-500 hover:text-slate-900"
+                  }`}
+                >
+                  <Video className={`w-5 h-5 ${pathname.startsWith("/student/classes") ? "text-purple-600" : "text-slate-400"}`} />
+                  <span className="text-[10px]">کلاس‌ها</span>
+                </Link>
+
+                <Link
+                  href="/student/wallet"
+                  className={`flex flex-col items-center justify-center gap-0.5 py-1 rounded-xl transition ${
+                    pathname.startsWith("/student/wallet")
+                      ? "text-indigo-600 font-bold"
+                      : "text-slate-500 hover:text-slate-900"
+                  }`}
+                >
+                  <Wallet className={`w-5 h-5 ${pathname.startsWith("/student/wallet") ? "text-indigo-600" : "text-slate-400"}`} />
+                  <span className="text-[10px]">کیف پول</span>
+                </Link>
+
+                <button
+                  type="button"
+                  onClick={() => setMobileMenuOpen(true)}
+                  className="flex flex-col items-center justify-center gap-0.5 py-1 text-slate-500 hover:text-blue-600 rounded-xl transition"
+                >
+                  <Menu className="w-5 h-5 text-slate-400" />
+                  <span className="text-[10px]">منو کامل</span>
+                </button>
+              </div>
+            </nav>
+          )}
         </main>
       </div>
     </AuthGuard>

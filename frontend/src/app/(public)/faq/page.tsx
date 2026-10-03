@@ -49,14 +49,14 @@ export default function FAQPage() {
         </p>
         
         {/* Search */}
-        <div className="max-w-2xl mx-auto relative">
-          <Search className="absolute right-4 top-1/2 -translate-y-1/2 text-[var(--neo-text-muted)] w-6 h-6" />
+        <div className="max-w-2xl mx-auto relative px-2 sm:px-0">
+          <Search className="absolute right-6 sm:right-4 top-1/2 -translate-y-1/2 text-[var(--neo-text-muted)] w-5 h-5 sm:w-6 sm:h-6" />
           <input 
             type="text" 
             placeholder="سوال خود را جستجو کنید..." 
             value={searchTerm}
             onChange={e => setSearchTerm(e.target.value)}
-            className="w-full bg-white text-[var(--neo-text-main)] rounded-2xl pl-6 pr-14 py-4 text-lg focus:outline-none focus:ring-4 focus:ring-blue-500/50 shadow-xl"
+            className="w-full bg-white text-[var(--neo-text-main)] rounded-2xl pl-4 sm:pl-6 pr-12 sm:pr-14 py-3 sm:py-4 text-sm sm:text-lg focus:outline-none focus:ring-4 focus:ring-blue-500/50 shadow-xl"
           />
         </div>
       </div>

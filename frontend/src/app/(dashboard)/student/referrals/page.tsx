@@ -319,17 +319,17 @@ export default function StudentReferralPage() {
       </div>
 
       {/* 4 Stat Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         {/* Total Invited */}
-        <div className="bg-[var(--neo-surface)] p-5 rounded-3xl border border-[var(--neo-border)] shadow-sm">
+        <div className="bg-[var(--neo-surface)] p-4 sm:p-5 rounded-3xl border border-[var(--neo-border)] shadow-sm">
           <div className="flex items-center justify-between">
             <span className="text-xs font-bold text-[var(--neo-text-muted)]">دوستان ثبت‌نام کرده</span>
             <div className="w-9 h-9 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center">
               <Users className="w-4 h-4" />
             </div>
           </div>
-          <div className="mt-3 flex items-baseline gap-1.5">
-            <span className="text-2xl font-black text-[var(--neo-text-main)]">
+          <div className="mt-2 sm:mt-3 flex items-baseline gap-1.5">
+            <span className="text-2xl sm:text-3xl font-black text-[var(--neo-text-main)]">
               {stats.totalInvited.toLocaleString('fa-IR')}
             </span>
             <span className="text-xs text-[var(--neo-text-muted)]">نفر</span>
@@ -442,10 +442,10 @@ export default function StudentReferralPage() {
 
       {/* Tabs Section: Referrals List vs Payouts History */}
       <div className="bg-[var(--neo-surface)] rounded-3xl border border-[var(--neo-border)] shadow-sm overflow-hidden">
-        <div className="flex border-b border-[var(--neo-border)] px-6 pt-4 gap-6">
+        <div className="flex border-b border-[var(--neo-border)] px-4 sm:px-6 pt-4 gap-4 sm:gap-6 overflow-x-auto">
           <button
             onClick={() => setActiveTab('referrals')}
-            className={`pb-3 font-bold text-sm border-b-2 transition flex items-center gap-2 ${
+            className={`pb-3 font-bold text-xs sm:text-sm border-b-2 transition flex items-center gap-2 whitespace-nowrap shrink-0 ${
               activeTab === 'referrals'
                 ? 'border-blue-600 text-blue-600'
                 : 'border-transparent text-[var(--neo-text-secondary)] hover:text-[var(--neo-text-main)]'
@@ -456,7 +456,7 @@ export default function StudentReferralPage() {
           </button>
           <button
             onClick={() => setActiveTab('payouts')}
-            className={`pb-3 font-bold text-sm border-b-2 transition flex items-center gap-2 ${
+            className={`pb-3 font-bold text-xs sm:text-sm border-b-2 transition flex items-center gap-2 whitespace-nowrap shrink-0 ${
               activeTab === 'payouts'
                 ? 'border-blue-600 text-blue-600'
                 : 'border-transparent text-[var(--neo-text-secondary)] hover:text-[var(--neo-text-main)]'

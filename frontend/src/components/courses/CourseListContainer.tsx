@@ -112,10 +112,18 @@ export function CourseListContainer() {
 
         <div className="flex flex-col lg:flex-row gap-8">
           
+          {/* Mobile Filter Backdrop */}
+          {isMobileFiltersOpen && (
+            <div 
+              className="fixed inset-0 bg-black/50 backdrop-blur-xs z-40 lg:hidden transition-opacity" 
+              onClick={() => setIsMobileFiltersOpen(false)} 
+            />
+          )}
+
           {/* Sidebar Filters */}
           <div className={`
-            fixed inset-0 z-50 bg-white p-6 overflow-y-auto w-full max-w-sm transform transition-transform duration-300 ease-in-out
-            lg:relative lg:translate-x-0 lg:w-1/4 lg:block lg:bg-transparent lg:p-0 lg:z-auto
+            fixed inset-y-0 right-0 z-50 bg-white p-6 overflow-y-auto w-full max-w-xs sm:max-w-sm transform transition-transform duration-300 ease-in-out shadow-2xl
+            lg:relative lg:inset-auto lg:translate-x-0 lg:w-1/4 lg:block lg:bg-transparent lg:p-0 lg:z-auto lg:shadow-none
             ${isMobileFiltersOpen ? 'translate-x-0' : 'translate-x-full lg:translate-x-0'}
           `}>
             <div className="flex justify-between items-center lg:hidden mb-6">
@@ -278,7 +286,7 @@ export function CourseListContainer() {
                 </button>
               </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5 sm:gap-6">
                 {coursesData?.courses?.map((course: any) => (
                   <CourseCard key={course._id} course={course} />
                 ))}

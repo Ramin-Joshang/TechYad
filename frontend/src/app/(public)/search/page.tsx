@@ -127,7 +127,7 @@ function SearchContent() {
           <BookOpen className="w-5 h-5 text-[var(--neo-primary)]" />
           <span>دوره‌های آموزشی ({results.courses.length})</span>
         </h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6">
           {results.courses.map(course => (
             <Link 
               key={course._id} 
@@ -178,7 +178,7 @@ function SearchContent() {
           <Video className="w-5 h-5 text-purple-600" />
           <span>کلاس‌های آنلاین و حضوری ({results.classes.length})</span>
         </h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6">
           {results.classes.map(cls => (
             <Link 
               key={cls._id} 

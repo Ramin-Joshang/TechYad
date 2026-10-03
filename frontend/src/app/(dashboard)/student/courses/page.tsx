@@ -108,9 +108,9 @@ export default function MyCoursesPage() {
       </div>
 
       {/* KPI Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between">
-          <div className="flex items-center justify-between text-slate-500 mb-3 text-xs sm:text-sm font-medium">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+        <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between">
+          <div className="flex items-center justify-between text-slate-500 mb-2 sm:mb-3 text-xs sm:text-sm font-medium">
             <span>کل دوره‌های ثبت‌نامی</span>
             <BookOpen className="w-5 h-5 text-indigo-500" />
           </div>
@@ -120,8 +120,8 @@ export default function MyCoursesPage() {
           </div>
         </div>
 
-        <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between">
-          <div className="flex items-center justify-between text-slate-500 mb-3 text-xs sm:text-sm font-medium">
+        <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between">
+          <div className="flex items-center justify-between text-slate-500 mb-2 sm:mb-3 text-xs sm:text-sm font-medium">
             <span>دوره‌های در حال یادگیری</span>
             <Clock className="w-5 h-5 text-amber-500" />
           </div>
@@ -131,8 +131,8 @@ export default function MyCoursesPage() {
           </div>
         </div>
 
-        <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between">
-          <div className="flex items-center justify-between text-slate-500 mb-3 text-xs sm:text-sm font-medium">
+        <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between">
+          <div className="flex items-center justify-between text-slate-500 mb-2 sm:mb-3 text-xs sm:text-sm font-medium">
             <span>دوره‌های تکمیل شده</span>
             <CheckCircle2 className="w-5 h-5 text-emerald-500" />
           </div>
@@ -142,8 +142,8 @@ export default function MyCoursesPage() {
           </div>
         </div>
 
-        <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between">
-          <div className="flex items-center justify-between text-slate-500 mb-3 text-xs sm:text-sm font-medium">
+        <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between">
+          <div className="flex items-center justify-between text-slate-500 mb-2 sm:mb-3 text-xs sm:text-sm font-medium">
             <span>درس‌های گذرانده شده</span>
             <Award className="w-5 h-5 text-purple-500" />
           </div>
@@ -265,7 +265,7 @@ export default function MyCoursesPage() {
           </Link>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5 sm:gap-6">
           {filteredCourses.map((enrollment: any) => {
             const course = enrollment.courseId;
             if (!course) return null;

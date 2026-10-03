@@ -98,17 +98,17 @@ export default function ContactPage() {
   return (
     <main className="bg-[var(--neo-bg)] min-h-screen py-16">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center mb-16">
-          <h1 className="text-4xl font-bold text-[var(--neo-text-main)] mb-4">تماس با ما</h1>
-          <p className="text-lg text-[var(--neo-text-secondary)] max-w-2xl mx-auto">
+        <div className="text-center mb-10 sm:mb-16">
+          <h1 className="text-3xl sm:text-4xl font-bold text-[var(--neo-text-main)] mb-3 sm:mb-4">تماس با ما</h1>
+          <p className="text-sm sm:text-lg text-[var(--neo-text-secondary)] max-w-2xl mx-auto">
             سوالی دارید یا نیاز به مشاوره دارید؟ ما همیشه آماده شنیدن صدای شما هستیم. از طریق راه‌های زیر با ما در ارتباط باشید.
           </p>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-16">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8 mb-16">
           {/* Contact Details */}
-          <div className="space-y-8">
-            <div className="bg-white rounded-3xl p-8 shadow-sm border border-[var(--neo-border)]">
+          <div className="space-y-6 sm:space-y-8">
+            <div className="bg-white rounded-2xl sm:rounded-3xl p-5 sm:p-8 shadow-sm border border-[var(--neo-border)]">
               <h3 className="text-xl font-bold text-[var(--neo-text-main)] mb-6">اطلاعات تماس</h3>
               
               <ul className="space-y-6">
@@ -185,7 +185,7 @@ export default function ContactPage() {
 
           {/* Contact Form */}
           <div className="lg:col-span-2">
-            <div className="bg-white rounded-3xl p-8 shadow-sm border border-[var(--neo-border)]">
+            <div className="bg-white rounded-2xl sm:rounded-3xl p-5 sm:p-8 shadow-sm border border-[var(--neo-border)]">
               <h2 className="text-2xl font-bold text-[var(--neo-text-main)] mb-2">ارسال پیام</h2>
               <p className="text-[var(--neo-text-muted)] mb-8">فرم زیر را پر کنید تا کارشناسان ما در اسرع وقت با شما تماس بگیرند.</p>
 

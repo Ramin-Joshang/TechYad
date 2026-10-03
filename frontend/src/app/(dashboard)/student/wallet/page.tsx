@@ -175,7 +175,7 @@ export default function StudentWalletPage() {
           </p>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-2 sm:gap-3 w-full sm:w-auto">
           <button 
             onClick={() => {
               refetchOverview();
@@ -191,7 +191,7 @@ export default function StudentWalletPage() {
           <button 
             onClick={() => setShowWithdrawModal(true)}
             disabled={balance < 50000}
-            className="flex items-center gap-2 px-4 py-2.5 border border-slate-200 text-slate-700 hover:bg-slate-50 rounded-xl text-sm font-bold transition disabled:opacity-50"
+            className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2.5 border border-slate-200 text-slate-700 hover:bg-slate-50 rounded-xl text-xs sm:text-sm font-bold transition disabled:opacity-50"
           >
             <ArrowDownLeft className="w-4 h-4 text-orange-500" />
             درخواست تسویه
@@ -199,7 +199,7 @@ export default function StudentWalletPage() {
 
           <button 
             onClick={() => setShowDepositModal(true)}
-            className="flex items-center gap-2 px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-sm font-bold shadow-lg shadow-indigo-600/20 transition"
+            className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 sm:gap-2 px-4 sm:px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs sm:text-sm font-bold shadow-lg shadow-indigo-600/20 transition"
           >
             <Plus className="w-4 h-4" />
             شارژ کیف پول
@@ -368,8 +368,81 @@ export default function StudentWalletPage() {
           </div>
         </div>
 
-        {/* Transactions Table */}
-        <div className="overflow-x-auto">
+        {/* Mobile Transactions List (cards for small screens) */}
+        <div className="md:hidden divide-y divide-slate-100">
+          {isTxLoading ? (
+            <div className="text-center py-12 text-slate-400 text-sm">
+              در حال بارگذاری تراکنش‌ها...
+            </div>
+          ) : !txData?.items?.length ? (
+            <div className="text-center py-12 px-4">
+              <div className="flex flex-col items-center justify-center text-slate-400">
+                <Wallet className="w-12 h-12 stroke-[1.5] mb-2 text-slate-300" />
+                <p className="font-bold text-slate-600 text-sm">تراکنشی یافت نشد</p>
+                <p className="text-xs text-slate-400 mt-1">با شارژ کیف پول یا ثبت سفارش، گردش حساب شما در اینجا ثبت می‌شود.</p>
+              </div>
+            </div>
+          ) : (
+            txData.items.map((tx: WalletTransactionItem) => {
+              const typeBadge = getTxTypeBadge(tx);
+              const isCredit = tx.direction === 'credit';
+              return (
+                <div key={tx._id} className="p-4 space-y-3">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex items-start gap-2.5">
+                      <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 mt-0.5 ${
+                        isCredit ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'
+                      }`}>
+                        {isCredit ? <ArrowDownLeft className="w-4 h-4" /> : <ArrowUpRight className="w-4 h-4" />}
+                      </div>
+                      <div>
+                        <div className="font-bold text-slate-900 text-sm leading-snug">{tx.title}</div>
+                        <div className="flex items-center gap-2 mt-1">
+                          <span className={`inline-block text-[10px] px-2 py-0.5 rounded-md border font-medium ${typeBadge.color}`}>
+                            {typeBadge.label}
+                          </span>
+                          <span className="text-[11px] text-slate-400">
+                            {new Date(tx.createdAt).toLocaleDateString('fa-IR', {
+                              month: 'short',
+                              day: 'numeric',
+                              hour: '2-digit',
+                              minute: '2-digit'
+                            })}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                    <span className={`font-black text-sm sm:text-base dir-ltr shrink-0 ${
+                      isCredit ? 'text-emerald-600' : 'text-rose-600'
+                    }`}>
+                      {isCredit ? '+' : '-'}{tx.amount.toLocaleString('fa-IR')} <span className="text-xs font-normal">ت</span>
+                    </span>
+                  </div>
+
+                  <div className="flex items-center justify-between pt-2 border-t border-slate-50 text-xs">
+                    <div className="flex items-center gap-2">
+                      {getTxStatusBadge(tx.status)}
+                      {tx.balanceAfter !== undefined && (
+                        <span className="text-slate-400 text-[11px]">
+                          مانده: {tx.balanceAfter.toLocaleString('fa-IR')} ت
+                        </span>
+                      )}
+                    </div>
+                    <button
+                      onClick={() => setSelectedTx(tx)}
+                      className="text-xs text-indigo-600 hover:text-indigo-800 font-bold bg-indigo-50 hover:bg-indigo-100 px-2.5 py-1 rounded-lg transition"
+                    >
+                      رسید
+                    </button>
+                  </div>
+                </div>
+              );
+            })
+          )}
+        </div>
+
+        {/* Transactions Table (for md and up) */}
+        <div className="hidden md:block overflow-x-auto">
           <table className="w-full text-right text-sm">
             <thead className="bg-slate-50/75 text-slate-500 text-xs font-semibold border-b border-slate-100">
               <tr>

@@ -75,7 +75,77 @@ export default function AssignmentsPage() {
         </div>
       ) : (
         <div className="bg-[var(--neo-surface)] rounded-3xl shadow-sm border border-[var(--neo-border)] overflow-hidden">
-          <div className="overflow-x-auto">
+          {/* Mobile Cards View */}
+          <div className="md:hidden divide-y divide-[var(--neo-border)]">
+            {filteredAssignments.map((item: any) => {
+              const { assignment, submission } = item;
+              const isLate = assignment.deadline && new Date() > new Date(assignment.deadline) && !submission;
+
+              return (
+                <div key={assignment._id} className="p-4 space-y-3">
+                  <div className="flex items-start justify-between gap-2">
+                    <div>
+                      <h3 className="font-bold text-sm text-[var(--neo-text-main)] leading-snug">{assignment.title}</h3>
+                      {assignment.lessonId?.title && (
+                        <div className="text-xs text-[var(--neo-text-secondary)] mt-0.5">{assignment.lessonId.title}</div>
+                      )}
+                    </div>
+                    <div>
+                      {!submission ? (
+                        <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-bold ${isLate ? 'bg-red-100 text-red-700' : 'bg-[var(--neo-surface-2)] text-[var(--neo-text-main)]'}`}>
+                          {isLate ? 'گذشت مهلت' : 'در انتظار'}
+                        </span>
+                      ) : submission.status === 'graded' ? (
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-700">
+                          <CheckCircle className="w-3 h-3" /> تصحیح شده
+                        </span>
+                      ) : submission.status === 'reviewing' ? (
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-bold bg-purple-100 text-purple-700">
+                          <Clock className="w-3 h-3" /> در حال بررسی
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-bold bg-blue-100 text-[var(--neo-primary)]">
+                          <FileWarning className="w-3 h-3" /> ارسال شده
+                        </span>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="text-xs text-[var(--neo-text-secondary)] space-y-1 bg-[var(--neo-surface-2)]/60 p-2.5 rounded-xl">
+                    <div className="flex items-center justify-between">
+                      <span>دوره / کلاس:</span>
+                      <span className="font-medium text-[var(--neo-text-main)]">
+                        {assignment.classId ? assignment.classId.title : assignment.courseId?.title || 'دوره آموزشی'}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span>مهلت ارسال:</span>
+                      <span className={isLate ? 'text-red-500 font-bold' : 'text-[var(--neo-text-secondary)]'}>
+                        {assignment.deadline ? new Date(assignment.deadline).toLocaleDateString('fa-IR') : 'بدون مهلت'}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between pt-1">
+                    <div>
+                      {submission?.status === 'graded' ? (
+                        <span className="text-xs font-bold text-[var(--neo-text-main)]">نمره: {submission.score} / {assignment.maxScore}</span>
+                      ) : (
+                        <span className="text-xs text-[var(--neo-text-muted)]">بارم: {assignment.maxScore || 20} نمره</span>
+                      )}
+                    </div>
+                    <Link href={`/student/assignments/${assignment._id}`} className="inline-flex items-center gap-1 text-xs font-bold text-amber-600 hover:text-amber-700 bg-amber-50 hover:bg-amber-100 px-3 py-1.5 rounded-lg transition">
+                      مشاهده و ارسال
+                      <ArrowLeft className="w-3.5 h-3.5" />
+                    </Link>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Desktop Table */}
+          <div className="hidden md:block overflow-x-auto">
             <table className="w-full text-right border-collapse">
               <thead>
                 <tr className="bg-[var(--neo-surface-2)] border-b border-[var(--neo-border)]">

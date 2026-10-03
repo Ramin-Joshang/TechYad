@@ -103,7 +103,7 @@ export function ClassesList() {
       {/* Hero Section */}
       <div className="bg-slate-900 py-16 text-white relative overflow-hidden">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center">
-          <h1 className="text-4xl md:text-5xl font-bold mb-4">کلاس‌های آموزشی</h1>
+          <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4">کلاس‌های آموزشی</h1>
           <p className="text-lg text-gray-300 max-w-2xl mx-auto">
             کلاس‌های حضوری، آنلاین، عمومی و خصوصی را پیدا و مقایسه کنید.
           </p>

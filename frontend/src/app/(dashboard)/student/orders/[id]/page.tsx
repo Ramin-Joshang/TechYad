@@ -170,8 +170,8 @@ export default function OrderInvoiceDetailsPage() {
         </div>
 
         {/* Items Table */}
-        <div className="border border-slate-200 rounded-2xl overflow-hidden">
-          <table className="w-full text-right border-collapse text-xs sm:text-sm">
+        <div className="border border-slate-200 rounded-2xl overflow-x-auto">
+          <table className="w-full text-right border-collapse text-xs sm:text-sm min-w-[550px]">
             <thead>
               <tr className="bg-slate-100/80 border-b border-slate-200 text-slate-700 font-bold">
                 <th className="py-3.5 px-4 w-12 text-center">ردیف</th>

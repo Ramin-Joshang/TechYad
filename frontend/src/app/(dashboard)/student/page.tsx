@@ -175,29 +175,29 @@ export default function StudentDashboard() {
           </div>
 
           {/* Gamification / XP Pill Box */}
-          <div className="shrink-0 flex sm:flex-col gap-3">
-            <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-4 sm:p-5 flex items-center gap-4 shadow-inner">
-              <div className="w-12 h-12 rounded-2xl bg-amber-400/20 text-amber-300 border border-amber-300/30 flex items-center justify-center shrink-0">
-                <Trophy className="w-7 h-7" />
+          <div className="shrink-0 flex flex-col sm:flex-row lg:flex-col gap-3 w-full sm:w-auto">
+            <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-3.5 sm:p-5 flex items-center gap-3 sm:gap-4 shadow-inner">
+              <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-amber-400/20 text-amber-300 border border-amber-300/30 flex items-center justify-center shrink-0">
+                <Trophy className="w-5 h-5 sm:w-7 sm:h-7" />
               </div>
               <div>
-                <span className="text-[11px] text-blue-200 block font-bold">سطح دانشجو و امتیاز</span>
-                <div className="text-xl sm:text-2xl font-black text-white flex items-center gap-1 font-mono">
+                <span className="text-[10px] sm:text-[11px] text-blue-200 block font-bold">سطح دانشجو و امتیاز</span>
+                <div className="text-lg sm:text-2xl font-black text-white flex items-center gap-1 font-mono">
                   <span>{(1250 + (statsData.completedLessons || 0) * 50).toLocaleString('fa-IR')}</span>
-                  <span className="text-xs text-amber-300 font-sans">XP</span>
+                  <span className="text-[10px] sm:text-xs text-amber-300 font-sans">XP</span>
                 </div>
               </div>
             </div>
 
-            <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-4 sm:p-5 flex items-center gap-4 shadow-inner">
-              <div className="w-12 h-12 rounded-2xl bg-rose-400/20 text-rose-300 border border-rose-300/30 flex items-center justify-center shrink-0">
-                <Flame className="w-7 h-7" />
+            <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-3.5 sm:p-5 flex items-center gap-3 sm:gap-4 shadow-inner">
+              <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-rose-400/20 text-rose-300 border border-rose-300/30 flex items-center justify-center shrink-0">
+                <Flame className="w-5 h-5 sm:w-7 sm:h-7" />
               </div>
               <div>
-                <span className="text-[11px] text-blue-200 block font-bold">زنجیره مطالعه مداوم</span>
-                <div className="text-xl sm:text-2xl font-black text-white flex items-center gap-1 font-mono">
+                <span className="text-[10px] sm:text-[11px] text-blue-200 block font-bold">زنجیره مطالعه مداوم</span>
+                <div className="text-lg sm:text-2xl font-black text-white flex items-center gap-1 font-mono">
                   <span>۷</span>
-                  <span className="text-xs text-rose-300 font-sans">روز متوالی</span>
+                  <span className="text-[10px] sm:text-xs text-rose-300 font-sans">روز متوالی</span>
                 </div>
               </div>
             </div>
@@ -257,76 +257,76 @@ export default function StudentDashboard() {
       )}
 
       {/* KPI METRIC CARDS GRID */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6">
         {/* Card 1: Active Courses */}
         <Link 
           href="/student/courses"
-          className="bg-white p-5 sm:p-6 rounded-3xl border border-slate-200 hover:border-blue-300 hover:shadow-md transition-all group relative overflow-hidden"
+          className="bg-white p-3.5 sm:p-6 rounded-3xl border border-slate-200 hover:border-blue-300 hover:shadow-md transition-all group relative overflow-hidden"
         >
-          <div className="flex justify-between items-start mb-3">
-            <div className="w-12 h-12 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center group-hover:scale-110 transition-transform">
-              <BookOpen className="w-6 h-6" />
+          <div className="flex justify-between items-start mb-2 sm:mb-3">
+            <div className="w-9 h-9 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center group-hover:scale-110 transition-transform">
+              <BookOpen className="w-4 h-4 sm:w-6 sm:h-6" />
             </div>
-            <span className="text-2xl sm:text-3xl font-black text-slate-900 font-mono">
+            <span className="text-xl sm:text-3xl font-black text-slate-900 font-mono">
               {statsData.activeCourses || recentEnrollments.length || 0}
             </span>
           </div>
           <h3 className="text-xs sm:text-sm font-bold text-slate-800">دوره‌های در حال یادگیری</h3>
-          <p className="text-[11px] text-slate-400 mt-1">مشاهده محتوا و ویدیوها</p>
+          <p className="text-[10px] sm:text-[11px] text-slate-400 mt-0.5 sm:mt-1">مشاهده محتوا و ویدیوها</p>
         </Link>
 
         {/* Card 2: Classes & Workshops */}
         <Link 
           href="/student/classes"
-          className="bg-white p-5 sm:p-6 rounded-3xl border border-slate-200 hover:border-purple-300 hover:shadow-md transition-all group relative overflow-hidden"
+          className="bg-white p-3.5 sm:p-6 rounded-3xl border border-slate-200 hover:border-purple-300 hover:shadow-md transition-all group relative overflow-hidden"
         >
-          <div className="flex justify-between items-start mb-3">
-            <div className="w-12 h-12 rounded-2xl bg-purple-50 text-purple-600 flex items-center justify-center group-hover:scale-110 transition-transform">
-              <Video className="w-6 h-6" />
+          <div className="flex justify-between items-start mb-2 sm:mb-3">
+            <div className="w-9 h-9 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl bg-purple-50 text-purple-600 flex items-center justify-center group-hover:scale-110 transition-transform">
+              <Video className="w-4 h-4 sm:w-6 sm:h-6" />
             </div>
-            <span className="text-2xl sm:text-3xl font-black text-slate-900 font-mono">
+            <span className="text-xl sm:text-3xl font-black text-slate-900 font-mono">
               {myClasses.length || 0}
             </span>
           </div>
           <h3 className="text-xs sm:text-sm font-bold text-slate-800">کلاس‌های آنلاین و حضوری</h3>
-          <p className="text-[11px] text-slate-400 mt-1">تقویم جلسات و حضور و غیاب</p>
+          <p className="text-[10px] sm:text-[11px] text-slate-400 mt-0.5 sm:mt-1">تقویم جلسات و حضور و غیاب</p>
         </Link>
 
         {/* Card 3: Completed Lessons */}
         <Link 
           href="/student/courses"
-          className="bg-white p-5 sm:p-6 rounded-3xl border border-slate-200 hover:border-emerald-300 hover:shadow-md transition-all group relative overflow-hidden"
+          className="bg-white p-3.5 sm:p-6 rounded-3xl border border-slate-200 hover:border-emerald-300 hover:shadow-md transition-all group relative overflow-hidden"
         >
-          <div className="flex justify-between items-start mb-3">
-            <div className="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center group-hover:scale-110 transition-transform">
-              <CheckSquare className="w-6 h-6" />
+          <div className="flex justify-between items-start mb-2 sm:mb-3">
+            <div className="w-9 h-9 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center group-hover:scale-110 transition-transform">
+              <CheckSquare className="w-4 h-4 sm:w-6 sm:h-6" />
             </div>
-            <span className="text-2xl sm:text-3xl font-black text-slate-900 font-mono">
+            <span className="text-xl sm:text-3xl font-black text-slate-900 font-mono">
               {statsData.completedLessons || 0}
             </span>
           </div>
           <h3 className="text-xs sm:text-sm font-bold text-slate-800">دروس و جلسات پاس شده</h3>
-          <p className="text-[11px] text-slate-400 mt-1">پیشرفت مداوم کلاسی</p>
+          <p className="text-[10px] sm:text-[11px] text-slate-400 mt-0.5 sm:mt-1">پیشرفت مداوم کلاسی</p>
         </Link>
 
         {/* Card 4: Wallet Balance */}
         <Link 
           href="/student/wallet"
-          className="bg-white p-5 sm:p-6 rounded-3xl border border-slate-200 hover:border-indigo-300 hover:shadow-md transition-all group relative overflow-hidden"
+          className="bg-white p-3.5 sm:p-6 rounded-3xl border border-slate-200 hover:border-indigo-300 hover:shadow-md transition-all group relative overflow-hidden"
         >
-          <div className="flex justify-between items-start mb-3">
-            <div className="w-12 h-12 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center group-hover:scale-110 transition-transform">
-              <Wallet className="w-6 h-6" />
+          <div className="flex justify-between items-start mb-2 sm:mb-3">
+            <div className="w-9 h-9 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center group-hover:scale-110 transition-transform">
+              <Wallet className="w-4 h-4 sm:w-6 sm:h-6" />
             </div>
             <div className="text-right">
-              <span className="text-xl sm:text-2xl font-black text-slate-900 font-mono block">
+              <span className="text-base sm:text-2xl font-black text-slate-900 font-mono block">
                 {((walletData?.balance ?? user?.walletBalance) || 0).toLocaleString('fa-IR')}
               </span>
-              <span className="text-[10px] text-indigo-600 font-bold">تومان</span>
+              <span className="text-[9px] sm:text-[10px] text-indigo-600 font-bold">تومان</span>
             </div>
           </div>
           <h3 className="text-xs sm:text-sm font-bold text-slate-800">موجودی کیف پول</h3>
-          <p className="text-[11px] text-slate-400 mt-1">شارژ سریع و سوابق مالی</p>
+          <p className="text-[10px] sm:text-[11px] text-slate-400 mt-0.5 sm:mt-1">شارژ سریع و سوابق مالی</p>
         </Link>
       </div>
 

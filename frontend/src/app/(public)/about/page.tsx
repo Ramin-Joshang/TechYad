@@ -23,29 +23,29 @@ export default function AboutPage() {
   return (
     <main className="bg-[var(--neo-bg)] min-h-screen">
       {/* Hero Section */}
-      <section className="relative bg-slate-900 text-white overflow-hidden py-24 md:py-32">
+      <section className="relative bg-slate-900 text-white overflow-hidden py-16 sm:py-24 md:py-32">
         <div className="absolute inset-0 bg-[url('https://picsum.photos/seed/about/1920/1080')] opacity-10 mix-blend-overlay object-cover"></div>
         <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h1 className="text-4xl md:text-6xl font-bold mb-6 leading-tight">
+          <h1 className="text-3xl sm:text-4xl md:text-6xl font-bold mb-4 sm:mb-6 leading-tight">
             {title}
           </h1>
-          <p className="text-xl md:text-2xl text-gray-300 max-w-3xl mx-auto leading-relaxed">
+          <p className="text-base sm:text-xl md:text-2xl text-gray-300 max-w-3xl mx-auto leading-relaxed">
             {subtitle}
           </p>
         </div>
       </section>
 
       {/* Story, Mission, Vision */}
-      <section className="py-20 bg-white">
+      <section className="py-16 sm:py-20 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16 items-center">
             <div>
               <div className="flex items-center gap-2 mb-4">
                 <Sparkles className="w-5 h-5 text-[var(--neo-primary)]" />
                 <span className="text-[var(--neo-primary)] font-bold tracking-widest text-xs uppercase">هویت و پیشینه ما</span>
               </div>
-              <h2 className="text-3xl font-bold text-[var(--neo-text-main)] mb-6">داستان تک‌یاد</h2>
-              <div className="text-lg text-[var(--neo-text-secondary)] leading-relaxed space-y-4 whitespace-pre-wrap">
+              <h2 className="text-2xl sm:text-3xl font-bold text-[var(--neo-text-main)] mb-4 sm:mb-6">داستان تک‌یاد</h2>
+              <div className="text-sm sm:text-base lg:text-lg text-[var(--neo-text-secondary)] leading-relaxed space-y-4 whitespace-pre-wrap">
                 {story}
               </div>
             </div>
