@@ -1,4 +1,4 @@
-import { Class, IClass } from './class.model.js';
+import { Class, IClass, getClassPhase, isClassRegistrationOpen } from './class.model.js';
 import { ClassEnrollment, IClassEnrollment } from './class-enrollment.model.js';
 import { Attendance, IAttendance } from './attendance.model.js';
 import { User } from '../auth/user.model.js';
@@ -11,7 +11,15 @@ import { AuditService } from '../../common/services/audit.service.js';
 
 export class ClassService {
   static async getInstructorClasses(instructorId: string) {
-    return await Class.find({ $or: [{ instructors: instructorId }, { createdBy: instructorId }] }).sort({ startDate: 1 });
+    const list = await Class.find({ $or: [{ instructors: instructorId }, { createdBy: instructorId }] }).sort({ startDate: 1 });
+    return list.map(c => {
+      const obj = c.toObject();
+      return {
+        ...obj,
+        phase: getClassPhase(obj),
+        isRegistrationOpen: isClassRegistrationOpen(obj),
+      };
+    });
   }
 
   static async getClasses(query: any = {}) {
@@ -47,9 +55,18 @@ export class ClassService {
       .skip(skip)
       .limit(limit);
 
+    const enrichedClasses = classes.map((c) => {
+      const obj = c.toObject();
+      return {
+        ...obj,
+        phase: getClassPhase(obj),
+        isRegistrationOpen: isClassRegistrationOpen(obj),
+      };
+    });
+
     const total = await Class.countDocuments(filter);
     return {
-      classes,
+      classes: enrichedClasses,
       total,
       page,
       limit,
@@ -84,9 +101,18 @@ export class ClassService {
       .skip(skip)
       .limit(limit);
 
+    const enrichedClasses = classes.map((c) => {
+      const obj = c.toObject();
+      return {
+        ...obj,
+        phase: getClassPhase(obj),
+        isRegistrationOpen: isClassRegistrationOpen(obj),
+      };
+    });
+
     const total = await Class.countDocuments(filter);
     return {
-      classes,
+      classes: enrichedClasses,
       total,
       page,
       limit,
@@ -107,10 +133,15 @@ export class ClassService {
     }
 
     if (!classData) throw new AppError('Class not found', 404, 'NOT_FOUND');
-    return classData;
+    const obj = classData.toObject();
+    return {
+      ...obj,
+      phase: getClassPhase(obj),
+      isRegistrationOpen: isClassRegistrationOpen(obj),
+    };
   }
 
-  static async createClass(userId: string, data: any) {
+  static async createClass(userId: string, data: any, userRole: string = 'instructor') {
     const mockRoomLink =
       data.mode === 'online'
         ? data.meetingLink || `https://www.skyroom.online/ch/tecyad/${new Types.ObjectId().toString().substring(0, 8)}`
@@ -137,6 +168,11 @@ export class ClassService {
       payload.allowPreRegistration = true;
     }
 
+    const isPrivilegedAdmin = userRole === 'admin' || userRole === 'super-admin' || userRole === 'super_admin';
+    const initialStatus = isPrivilegedAdmin ? (payload.status || 'published') : 'pending_approval';
+    if (!payload.status) payload.status = initialStatus;
+    if (payload.registrationOpen === undefined) payload.registrationOpen = true;
+
     const createdClass = await Class.create({
       ...payload,
       meetingLink: mockRoomLink,
@@ -144,17 +180,18 @@ export class ClassService {
       instructors: data.instructors?.length > 0 ? data.instructors : [userId],
     });
 
-    // Audit Log for Instructor creating class
+    // Audit Log for creating class
     AuditService.log({
       userId,
-      userRole: 'instructor',
+      userRole: isPrivilegedAdmin ? 'admin' : 'instructor',
       action: 'create_class',
       category: 'class',
-      title: `استاد کلاس جدید «${createdClass.title}» را تعریف کرد`,
+      title: `${isPrivilegedAdmin ? 'ادمین' : 'استاد'} کلاس جدید «${createdClass.title}» را تعریف کرد`,
       targetId: createdClass._id.toString(),
       targetType: 'class',
       targetTitle: createdClass.title,
       details: {
+        status: createdClass.status,
         mode: createdClass.mode,
         price: createdClass.price,
         capacity: createdClass.capacity,
@@ -163,6 +200,129 @@ export class ClassService {
     });
 
     return createdClass;
+  }
+
+  static async approveClass(id: string, adminId: string) {
+    const cls = await Class.findById(id);
+    if (!cls) throw new AppError('کلاس یافت نشد', 404);
+
+    cls.status = 'published';
+    cls.registrationOpen = true;
+    await cls.save();
+
+    AuditService.log({
+      userId: adminId,
+      userRole: 'admin',
+      action: 'approve_class',
+      category: 'class',
+      title: `تایید و انتشار کلاس «${cls.title}»`,
+      targetId: cls._id.toString(),
+      targetType: 'class',
+      targetTitle: cls.title,
+    });
+
+    for (const instId of cls.instructors || []) {
+      await Notification.create({
+        userId: instId,
+        title: 'کلاس شما تایید و منتشر شد',
+        message: `کلاس «${cls.title}» توسط مدیریت تایید و منتشر شد. فاز ثبت‌نام رسماً آغاز گردید و دانشجویان می‌توانند ثبت‌نام کنند.`,
+        type: 'system',
+      });
+    }
+
+    const obj = cls.toObject();
+    return {
+      ...obj,
+      phase: getClassPhase(obj),
+      isRegistrationOpen: isClassRegistrationOpen(obj),
+    };
+  }
+
+  static async toggleRegistration(id: string, userId: string, isOpen?: boolean) {
+    const cls = await Class.findById(id);
+    if (!cls) throw new AppError('کلاس یافت نشد', 404);
+
+    const currentOpen = isClassRegistrationOpen(cls);
+    const newStatus = typeof isOpen === 'boolean' ? isOpen : !currentOpen;
+    cls.registrationOpen = newStatus;
+    await cls.save();
+
+    AuditService.log({
+      userId,
+      userRole: 'admin',
+      action: 'toggle_class_registration',
+      category: 'class',
+      title: `${newStatus ? 'باز کردن' : 'بستن'} ثبت‌نام کلاس «${cls.title}»`,
+      targetId: cls._id.toString(),
+      targetType: 'class',
+      targetTitle: cls.title,
+    });
+
+    const obj = cls.toObject();
+    return {
+      ...obj,
+      phase: getClassPhase(obj),
+      isRegistrationOpen: isClassRegistrationOpen(obj),
+    };
+  }
+
+  static async rescheduleClass(id: string, userId: string, days: number) {
+    if (!days || isNaN(days)) throw new AppError('تعداد روز جابجایی نامعتبر است', 400);
+
+    const cls = await Class.findById(id);
+    if (!cls) throw new AppError('کلاس یافت نشد', 404);
+
+    const msShift = Number(days) * 24 * 60 * 60 * 1000;
+    cls.startDate = new Date(new Date(cls.startDate).getTime() + msShift);
+    if (cls.endDate) {
+      cls.endDate = new Date(new Date(cls.endDate).getTime() + msShift);
+    }
+
+    if (Array.isArray(cls.syllabus)) {
+      cls.syllabus = cls.syllabus.map((s: any) => {
+        if (s.date) {
+          const d = parseDateSafely(s.date) || new Date(s.date);
+          if (d && !isNaN(d.getTime())) {
+            s.date = new Date(d.getTime() + msShift).toISOString().substring(0, 10);
+          }
+        }
+        return s;
+      });
+    }
+
+    await cls.save();
+
+    AuditService.log({
+      userId,
+      userRole: 'admin',
+      action: 'reschedule_class',
+      category: 'class',
+      title: `تغییر زمان‌بندی کلاس «${cls.title}» به میزان ${days} روز`,
+      targetId: cls._id.toString(),
+      targetType: 'class',
+      targetTitle: cls.title,
+      details: { days, newStartDate: cls.startDate, newEndDate: cls.endDate }
+    });
+
+    const enrollments = await ClassEnrollment.find({ classId: cls._id, status: 'active' });
+    const shiftText = days > 0 ? `${days} روز به تعویق افتاد` : `${Math.abs(days)} روز جلو افتاد`;
+    const newDateStr = new Date(cls.startDate).toLocaleDateString('fa-IR');
+
+    for (const enr of enrollments) {
+      await Notification.create({
+        userId: enr.userId,
+        title: `اطلاعیه تغییر زمان کلاس «${cls.title}»`,
+        message: `دانشجوی گرامی، تاریخ برگزاری کلاس «${cls.title}» به میزان ${shiftText}. تاریخ شروع جدید: ${newDateStr}.`,
+        type: 'system',
+      });
+    }
+
+    const obj = cls.toObject();
+    return {
+      ...obj,
+      phase: getClassPhase(obj),
+      isRegistrationOpen: isClassRegistrationOpen(obj),
+    };
   }
 
   static async updateClass(id: string, userId: string, data: any, overrideAuth: boolean = false) {
@@ -271,7 +431,18 @@ export class ClassService {
   static async registerForClass(userId: string, classId: string, data: { paymentType?: 'full' | 'deposit' } = {}) {
     const classData = await Class.findById(classId);
     if (!classData) throw new AppError('کلاس مورد نظر یافت نشد', 404, 'NOT_FOUND');
-    if (classData.status !== 'published') throw new AppError('این کلاس در حال حاضر در دسترس نیست', 400, 'BAD_REQUEST');
+    if (classData.status !== 'published') throw new AppError('این کلاس در حال حاضر در دسترس نیست یا هنوز تایید نشده است', 400, 'BAD_REQUEST');
+
+    const regOpen = isClassRegistrationOpen(classData);
+    if (!regOpen) {
+      const now = new Date();
+      const hasStarted = now >= new Date(classData.startDate);
+      throw new AppError(
+        hasStarted ? 'کلاس آغاز شده و مهلت ثبت‌نام به پایان رسیده است' : 'ثبت‌نام این کلاس در حال حاضر توسط مدیریت بسته شده است',
+        400,
+        'REGISTRATION_CLOSED'
+      );
+    }
 
     const existing = await ClassEnrollment.findOne({ userId, classId, status: 'active' });
     if (existing) throw new AppError('شما قبلاً در این کلاس ثبت‌نام کرده‌اید', 400, 'ALREADY_ENROLLED');

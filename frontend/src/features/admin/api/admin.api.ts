@@ -70,6 +70,15 @@ export const adminApi = {
   deleteClass: async (id: string) => {
     return api.delete<any, any>(`/admin/classes/${id}`);
   },
+  approveClass: async (id: string) => {
+    return api.post<any, any>(`/admin/classes/${id}/approve`);
+  },
+  toggleClassRegistration: async (id: string, registrationOpen?: boolean) => {
+    return api.post<any, any>(`/admin/classes/${id}/toggle-registration`, { registrationOpen });
+  },
+  rescheduleClass: async (id: string, days: number) => {
+    return api.post<any, any>(`/admin/classes/${id}/reschedule`, { days });
+  },
   getRevenueStats: async () => {
     return api.get<any, any>('/admin/revenue');
   },
@@ -87,6 +96,9 @@ export const adminApi = {
   },
   updateCourse: async (id: string, data: any) => {
     return api.patch<any, any>(`/admin/courses/${id}`, data);
+  },
+  toggleCourseRegistration: async (id: string, isRegistrationOpen?: boolean) => {
+    return api.patch<any, any>(`/admin/courses/${id}/toggle-registration`, { isRegistrationOpen });
   },
   deleteCourse: async (id: string) => {
     return api.delete<any, any>(`/admin/courses/${id}`);

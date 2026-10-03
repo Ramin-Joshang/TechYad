@@ -61,4 +61,7 @@ router.post('/admin/chapters/:chapterId/lessons', isAdmin, validate(createLesson
 router.patch('/admin/lessons/:lessonId', isAdmin, asyncHandler(Controller.updateLesson));
 router.delete('/admin/lessons/:lessonId', isAdmin, asyncHandler(Controller.deleteLesson));
 
+router.patch('/instructor/courses/:id/toggle-registration', isInstructor, asyncHandler(Controller.toggleCourseRegistration));
+router.patch('/admin/courses/:id/toggle-registration', isAdmin, asyncHandler(Controller.toggleCourseRegistration));
+
 export default router;

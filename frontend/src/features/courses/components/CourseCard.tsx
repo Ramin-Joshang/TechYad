@@ -21,12 +21,19 @@ export function CourseCard({ course }: CourseCardProps) {
           </div>
         )}
         
-        {/* Category Badge */}
-        {course.categoryId && (
-          <div className="absolute top-3 right-3 px-3 py-1 bg-white/90 backdrop-blur-sm text-xs font-medium text-gray-700 rounded-full">
-            {course.categoryId.name}
-          </div>
-        )}
+        {/* Category & Registration Badges */}
+        <div className="absolute top-3 right-3 flex flex-wrap gap-1.5">
+          {course.categoryId && (
+            <div className="px-3 py-1 bg-white/90 backdrop-blur-sm text-xs font-medium text-gray-700 rounded-full">
+              {course.categoryId.name}
+            </div>
+          )}
+          {(course as any).isRegistrationOpen === false && (
+            <div className="px-2.5 py-1 bg-rose-500 text-white text-xs font-bold rounded-full shadow-xs">
+              ثبت‌نام بسته شد
+            </div>
+          )}
+        </div>
       </div>
 
       <div className="p-5 flex flex-col flex-1">

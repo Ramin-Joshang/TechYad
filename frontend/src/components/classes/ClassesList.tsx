@@ -368,18 +368,21 @@ function ClassCard({ cls }: { cls: any }) {
 
   const enrolled = cls.enrolledCount || 0;
   const isFull = enrolled >= cls.capacity;
-  const isStarted = startDate < new Date();
+  const isStarted = startDate <= new Date();
   const remaining = cls.capacity - enrolled;
+  const isRegistrationClosed = cls.isRegistrationOpen === false || (isStarted && cls.registrationOpen !== true);
 
   const rating = cls.rating || 0;
   const sessions = cls.sessions || ((cls.title?.length % 12) + 4);
 
   let statusBadge = null;
-  if (cls.status === 'completed') statusBadge = <span className="bg-[var(--neo-surface-2)] text-[var(--neo-text-secondary)] px-2 py-1 rounded text-xs font-bold">پایان یافته</span>;
-  else if (cls.status === 'cancelled') statusBadge = <span className="bg-red-100 text-red-600 px-2 py-1 rounded text-xs font-bold">لغو شده</span>;
-  else if (isStarted) statusBadge = <span className="bg-amber-100 text-amber-700 px-2 py-1 rounded text-xs font-bold">شروع شده</span>;
-  else if (isFull) statusBadge = <span className="bg-rose-100 text-rose-700 px-2 py-1 rounded text-xs font-bold">ثبت‌نام تکمیل شده</span>;
-  else if (remaining <= 3) statusBadge = <span className="bg-orange-100 text-orange-700 px-2 py-1 rounded text-xs font-bold">ظرفیت رو به اتمام ({remaining} نفر)</span>;
+  if (cls.status === 'completed') statusBadge = <span className="bg-[var(--neo-surface-2)] text-[var(--neo-text-secondary)] px-2.5 py-1 rounded-lg text-xs font-bold">پایان یافته</span>;
+  else if (cls.status === 'cancelled') statusBadge = <span className="bg-red-100 text-red-600 px-2.5 py-1 rounded-lg text-xs font-bold">لغو شده</span>;
+  else if (isRegistrationClosed) statusBadge = <span className="bg-rose-100 text-rose-700 px-2.5 py-1 rounded-lg text-xs font-bold">ثبت‌نام بسته شد</span>;
+  else if (isStarted) statusBadge = <span className="bg-purple-100 text-purple-700 px-2.5 py-1 rounded-lg text-xs font-bold">فاز برگزاری (ثبت‌نام باز)</span>;
+  else if (isFull) statusBadge = <span className="bg-rose-100 text-rose-700 px-2.5 py-1 rounded-lg text-xs font-bold">تکمیل ظرفیت</span>;
+  else if (remaining <= 3) statusBadge = <span className="bg-orange-100 text-orange-700 px-2.5 py-1 rounded-lg text-xs font-bold">ظرفیت محدود ({remaining} نفر)</span>;
+  else statusBadge = <span className="bg-blue-100 text-blue-700 px-2.5 py-1 rounded-lg text-xs font-bold">در حال ثبت‌نام</span>;
 
   return (
     <div className="bg-white rounded-2xl border border-[var(--neo-border)] overflow-hidden hover:shadow-xl transition flex flex-col h-full group">
@@ -484,9 +487,13 @@ function ClassCard({ cls }: { cls: any }) {
             </div>
             <Link
               href={`/classes/${cls.slug || cls._id}`}
-              className="px-4 py-2 bg-[var(--neo-primary)]/5 text-[var(--neo-primary)] rounded-lg text-sm font-bold hover:bg-[var(--neo-primary)] hover:text-white transition"
+              className={`px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1 ${
+                isRegistrationClosed
+                  ? 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                  : 'bg-[var(--neo-primary)] text-white hover:opacity-90 shadow-xs'
+              }`}
             >
-              مشاهده کلاس
+              {isRegistrationClosed ? 'مشاهده (ثبت‌نام بسته)' : 'ثبت‌نام در کلاس'}
             </Link>
           </div>
         </div>

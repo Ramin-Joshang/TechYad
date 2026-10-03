@@ -278,17 +278,37 @@ export class CommerceService {
     if (exists) throw new AppError('Item already in cart', 400, 'ALREADY_IN_CART');
 
     if (data.itemType === 'course') {
-      throw new AppError('ثبت‌نام مستقیم دوره‌ها موقتاً غیرفعال است. لطفاً از کلاس‌ها و کارگاه‌های تعاملی استفاده فرمایید.', 400, 'COURSE_REGISTRATION_PAUSED');
+      const course = await Course.findById(data.itemId);
+      if (!course) throw new AppError('دوره مورد نظر یافت نشد', 404, 'NOT_FOUND');
+      if (course.status !== 'published') throw new AppError('این دوره در دسترس نیست', 400, 'UNAVAILABLE');
+      if (course.isRegistrationOpen === false) {
+        throw new AppError('ثبت‌نام این دوره در حال حاضر بسته شده است.', 400, 'COURSE_REGISTRATION_CLOSED');
+      }
+
+      const existingEnrollment = await Enrollment.findOne({ userId, courseId: course._id, status: 'active' });
+      if (existingEnrollment) throw new AppError('شما قبلاً در این دوره ثبت‌نام کرده‌اید', 409, 'COURSE_ALREADY_ENROLLED');
     } else if (data.itemType === 'class') {
       const classItem = await Class.findById(data.itemId);
-      if (!classItem) throw new AppError('Class not found', 404, 'NOT_FOUND');
-      if (classItem.status !== 'published') throw new AppError('Class is not available', 400, 'UNAVAILABLE');
+      if (!classItem) throw new AppError('کلاس مورد نظر یافت نشد', 404, 'NOT_FOUND');
+      if (classItem.status !== 'published') throw new AppError('این کلاس در دسترس نیست یا هنوز تایید نشده است', 400, 'UNAVAILABLE');
+      
+      const now = new Date();
+      const hasStarted = now >= new Date(classItem.startDate);
+      const isRegOpen = classItem.registrationOpen === true || (classItem.registrationOpen !== false && !hasStarted);
+      if (!isRegOpen) {
+        throw new AppError(
+          hasStarted ? 'کلاس آغاز شده و مهلت ثبت‌نام به پایان رسیده است' : 'ثبت‌نام این کلاس در حال حاضر توسط مدیریت بسته شده است',
+          400,
+          'CLASS_REGISTRATION_CLOSED'
+        );
+      }
+
       if (classItem.enrolledCount !== undefined && classItem.capacity !== undefined && classItem.enrolledCount >= classItem.capacity) {
-        throw new AppError('Class is full', 400, 'CLASS_FULL');
+        throw new AppError('ظرفیت کلاس تکمیل شده است', 400, 'CLASS_FULL');
       }
 
       const enrollment = await ClassEnrollment.findOne({ userId, classId: classItem._id, status: 'active' });
-      if (enrollment) throw new AppError('You are already enrolled in this class', 409, 'CLASS_ALREADY_ENROLLED');
+      if (enrollment) throw new AppError('شما قبلاً در این کلاس ثبت‌نام کرده‌اید', 409, 'CLASS_ALREADY_ENROLLED');
     }
 
     cart.items.push({ itemType: data.itemType, itemId: data.itemId as any });

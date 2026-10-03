@@ -60,8 +60,35 @@ export interface IClass extends Document {
   sessionDuration?: number;
 
   allowEnrollmentAfterStart?: boolean;
-  status: "draft" | "published" | "completed" | "cancelled";
+  registrationOpen?: boolean;
+  status: "draft" | "pending_approval" | "published" | "completed" | "cancelled";
   createdBy: Types.ObjectId;
+}
+
+export function getClassPhase(cls: { status: string; startDate: Date | string; endDate?: Date | string }): 'pending_approval' | 'registration' | 'started' | 'completed' | 'cancelled' | 'draft' {
+  if (cls.status === 'cancelled') return 'cancelled';
+  if (cls.status === 'completed') return 'completed';
+  if (cls.status === 'draft') return 'draft';
+  if (cls.status === 'pending_approval') return 'pending_approval';
+  
+  const now = new Date();
+  const start = new Date(cls.startDate);
+  const end = cls.endDate ? new Date(cls.endDate) : null;
+  
+  if (end && now > end) return 'completed';
+  if (now >= start) return 'started';
+  return 'registration';
+}
+
+export function isClassRegistrationOpen(cls: { status: string; startDate: Date | string; registrationOpen?: boolean }): boolean {
+  if (cls.status !== 'published') return false;
+  const now = new Date();
+  const hasStarted = now >= new Date(cls.startDate);
+  // If explicitly set by admin:
+  if (cls.registrationOpen === true) return true;
+  if (cls.registrationOpen === false) return false;
+  // If default (undefined / not explicitly set): open before start, closed after start
+  return !hasStarted;
 }
 
 const sessionSyllabusSchema = new Schema<ISessionSyllabus>(
@@ -128,7 +155,8 @@ const classSchema = new Schema<IClass>(
     sessionDuration: { type: Number, default: 90 },
 
     allowEnrollmentAfterStart: { type: Boolean, default: true },
-    status: { type: String, enum: ["draft", "published", "completed", "cancelled"], default: "draft" },
+    registrationOpen: { type: Boolean, default: null },
+    status: { type: String, enum: ["draft", "pending_approval", "published", "completed", "cancelled"], default: "pending_approval" },
     createdBy: { type: Schema.Types.ObjectId, ref: "User", required: true },
   },
   { timestamps: true }

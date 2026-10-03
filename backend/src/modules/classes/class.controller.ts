@@ -14,7 +14,8 @@ export const getClassBySlug = async (req: Request, res: Response) => {
 };
 
 export const createClass = async (req: AuthRequest, res: Response) => {
-  const result = await ClassService.createClass(req.user._id as string, req.body);
+  const userRole = (req.user as any)?.role?.slug || (req.user as any)?.role || 'instructor';
+  const result = await ClassService.createClass(req.user._id as string, req.body, userRole);
   sendSuccess(res, result, 'Class created successfully', 201);
 };
 
@@ -108,4 +109,19 @@ export const updateClassGrades = async (req: AuthRequest, res: Response) => {
     req.body.grades || []
   );
   sendSuccess(res, result, 'نمرات و کارنامه کلاس با موفقیت ثبت شد');
+};
+
+export const approveClass = async (req: AuthRequest, res: Response) => {
+  const result = await ClassService.approveClass(req.params.id as string, req.user._id as string);
+  sendSuccess(res, result, 'کلاس با موفقیت تایید و منتشر شد');
+};
+
+export const toggleRegistration = async (req: AuthRequest, res: Response) => {
+  const result = await ClassService.toggleRegistration(req.params.id as string, req.user._id as string, req.body.registrationOpen);
+  sendSuccess(res, result, 'وضعیت ثبت‌نام کلاس با موفقیت تغییر کرد');
+};
+
+export const rescheduleClass = async (req: AuthRequest, res: Response) => {
+  const result = await ClassService.rescheduleClass(req.params.id as string, req.user._id as string, req.body.days);
+  sendSuccess(res, result, 'زمان‌بندی کلاس با موفقیت تغییر یافت');
 };

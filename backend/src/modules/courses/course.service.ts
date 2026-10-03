@@ -557,4 +557,27 @@ static async getInstructorCourses(instructorId: string, query: any) {
       return lObj;
     });
   }
+
+  static async toggleRegistration(courseId: string, userId: string, isOpen?: boolean) {
+    const course = await Course.findById(courseId);
+    if (!course) throw new AppError('دوره یافت نشد', 404, 'NOT_FOUND');
+
+    const newStatus = typeof isOpen === 'boolean' ? isOpen : !course.isRegistrationOpen;
+    course.isRegistrationOpen = newStatus;
+    await course.save();
+
+    AuditService.log({
+      userId,
+      userRole: 'admin',
+      action: 'toggle_course_registration',
+      category: 'course',
+      title: `${newStatus ? 'باز کردن' : 'بستن'} ثبت‌نام دوره «${course.title}»`,
+      targetId: course._id.toString(),
+      targetType: 'course',
+      targetTitle: course.title,
+      details: { isRegistrationOpen: newStatus }
+    });
+
+    return course;
+  }
 }

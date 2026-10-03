@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import { Course } from '../courses/course.model.js';
 import { Article } from '../blog/article.model.js';
-import { Class } from '../classes/class.model.js';
+import { Class, getClassPhase, isClassRegistrationOpen } from '../classes/class.model.js';
 import { InstructorProfile } from '../instructors/instructor-profile.model.js';
 import { sendSuccess } from '../../common/utils/response.js';
 
@@ -26,13 +26,22 @@ export const globalSearch = async (req: Request, res: Response) => {
     .limit(10);
 
   // 2. Search Classes
-  const classes = await Class.find({
+  const rawClasses = await Class.find({
     status: 'published',
     $or: [{ title: regex }, { description: regex }, { location: regex }]
   })
-    .select('title slug description type mode price capacity enrolledCount startDate thumbnail instructors')
+    .select('title slug description type mode price capacity enrolledCount startDate endDate registrationOpen thumbnail instructors')
     .populate('instructors', 'firstName lastName avatar personnelPhoto specialty')
     .limit(10);
+
+  const classes = rawClasses.map(c => {
+    const obj = c.toObject();
+    return {
+      ...obj,
+      phase: getClassPhase(obj),
+      isRegistrationOpen: isClassRegistrationOpen(obj)
+    };
+  });
 
   // 3. Search Blog Articles (note: field is authorId referencing User)
   const articles = await Article.find({

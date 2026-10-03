@@ -58,13 +58,16 @@ export default function ProfilePage() {
     setPassData(prev => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
+  const isInstructor = user?.role === 'instructor';
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setStatus('loading');
     setMessage('');
     
     try {
-      const response = await authApi.updateProfile(formData);
+      const payload = isInstructor ? formData : { ...formData, personnelPhoto: undefined };
+      const response = await authApi.updateProfile(payload);
       if (response.success) {
         setStatus('success');
         setMessage('اطلاعات کاربری با موفقیت بروزرسانی شد.');
@@ -224,44 +227,46 @@ export default function ProfilePage() {
                 </div>
               </div>
 
-              {/* Personnel / Formal ID Photo Upload */}
-              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6 pb-6 border-b border-[var(--neo-border)]">
-                <div className="w-20 h-24 rounded-2xl bg-amber-50 text-amber-600 border-2 border-dashed border-amber-300 flex items-center justify-center font-bold overflow-hidden shrink-0 shadow-xs relative">
-                  {formData.personnelPhoto ? (
-                    <img src={formData.personnelPhoto} alt="Personnel Photo" className="w-full h-full object-cover" />
-                  ) : (
-                    <div className="flex flex-col items-center justify-center p-1 text-center">
-                      <GraduationCap className="w-7 h-7 text-amber-500 mb-0.5" />
-                      <span className="text-[10px] font-bold text-amber-700">پرسنلی رسمی</span>
-                    </div>
-                  )}
-                </div>
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-1">
-                    <label className="block text-sm font-bold text-[var(--neo-text-main)]">عکس پرسنلی رسمی استاد (۳×۴)</label>
-                    <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 font-bold">نمایش به دانشجویان</span>
-                  </div>
-                  <p className="text-xs text-[var(--neo-text-secondary)] mb-2.5">
-                    این تصویر به عنوان عکس رسمی و پرسنلی استاد در صفحات دوره‌ها، کلاس‌های آموزشی، کارت‌های سایت و پروفایل عمومی استاد به دانشجویان نمایش داده می‌شود.
-                  </p>
-                  <div className="flex items-center gap-3">
-                    <input 
-                      type="file" 
-                      id="personnel-photo-upload" 
-                      className="hidden" 
-                      accept="image/*"
-                      onChange={handlePersonnelPhotoUpload}
-                    />
-                    <label htmlFor="personnel-photo-upload" className="inline-flex items-center gap-2 px-4 py-2 bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200 font-bold text-xs rounded-xl cursor-pointer transition">
-                      {uploadingPersonnel ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
-                      {formData.personnelPhoto ? 'تغییر عکس پرسنلی' : 'آپلود عکس پرسنلی رسمی'}
-                    </label>
-                    {formData.personnelPhoto && (
-                      <button type="button" onClick={() => setFormData(prev => ({ ...prev, personnelPhoto: '' }))} className="text-xs text-red-500 hover:underline">حذف عکس پرسنلی</button>
+              {/* Personnel / Formal ID Photo Upload - Instructors Only */}
+              {isInstructor && (
+                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6 pb-6 border-b border-[var(--neo-border)]">
+                  <div className="w-20 h-24 rounded-2xl bg-amber-50 text-amber-600 border-2 border-dashed border-amber-300 flex items-center justify-center font-bold overflow-hidden shrink-0 shadow-xs relative">
+                    {formData.personnelPhoto ? (
+                      <img src={formData.personnelPhoto} alt="Personnel Photo" className="w-full h-full object-cover" />
+                    ) : (
+                      <div className="flex flex-col items-center justify-center p-1 text-center">
+                        <GraduationCap className="w-7 h-7 text-amber-500 mb-0.5" />
+                        <span className="text-[10px] font-bold text-amber-700">پرسنلی رسمی</span>
+                      </div>
                     )}
                   </div>
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-1">
+                      <label className="block text-sm font-bold text-[var(--neo-text-main)]">عکس پرسنلی رسمی استاد (۳×۴)</label>
+                      <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 font-bold">مخصوص نقش استاد</span>
+                    </div>
+                    <p className="text-xs text-[var(--neo-text-secondary)] mb-2.5">
+                      این تصویر به عنوان عکس رسمی و پرسنلی استاد در صفحات دوره‌ها، کلاس‌های آموزشی، کارت‌های سایت و پروفایل عمومی استاد به دانشجویان نمایش داده می‌شود.
+                    </p>
+                    <div className="flex items-center gap-3">
+                      <input 
+                        type="file" 
+                        id="personnel-photo-upload" 
+                        className="hidden" 
+                        accept="image/*"
+                        onChange={handlePersonnelPhotoUpload}
+                      />
+                      <label htmlFor="personnel-photo-upload" className="inline-flex items-center gap-2 px-4 py-2 bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200 font-bold text-xs rounded-xl cursor-pointer transition">
+                        {uploadingPersonnel ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
+                        {formData.personnelPhoto ? 'تغییر عکس پرسنلی' : 'آپلود عکس پرسنلی رسمی'}
+                      </label>
+                      {formData.personnelPhoto && (
+                        <button type="button" onClick={() => setFormData(prev => ({ ...prev, personnelPhoto: '' }))} className="text-xs text-red-500 hover:underline">حذف عکس پرسنلی</button>
+                      )}
+                    </div>
+                  </div>
                 </div>
-              </div>
+              )}
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>

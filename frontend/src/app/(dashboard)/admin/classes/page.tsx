@@ -23,10 +23,59 @@ export default function AdminClassesPage() {
   const [detailClass, setDetailClass] = useState<any | null>(null);
   const [updatingClassId, setUpdatingClassId] = useState<string | null>(null);
   const [attendanceClass, setAttendanceClass] = useState<any | null>(null);
+  const [rescheduleClass, setRescheduleClass] = useState<any | null>(null);
+  const [customShiftDays, setCustomShiftDays] = useState<number>(7);
 
   const { data: classesData, isLoading } = useQuery({
     queryKey: ['adminClasses'],
     queryFn: () => adminApi.getClasses().then(res => res.data)
+  });
+
+  const approveMutation = useMutation({
+    mutationFn: (id: string) => {
+      setUpdatingClassId(id);
+      return adminApi.approveClass(id);
+    },
+    onSuccess: () => {
+      toast.success('کلاس با موفقیت تایید و منتشر شد. فاز ثبت‌نام رسماً آغاز گردید');
+      queryClient.invalidateQueries({ queryKey: ['adminClasses'] });
+    },
+    onError: (err: any) => {
+      toast.error(err.response?.data?.message || 'خطا در تایید کلاس');
+    },
+    onSettled: () => setUpdatingClassId(null)
+  });
+
+  const toggleRegMutation = useMutation({
+    mutationFn: ({ id, open }: { id: string; open?: boolean }) => {
+      setUpdatingClassId(id);
+      return adminApi.toggleClassRegistration(id, open);
+    },
+    onSuccess: () => {
+      toast.success('وضعیت ثبت‌نام کلاس با موفقیت تغییر کرد');
+      queryClient.invalidateQueries({ queryKey: ['adminClasses'] });
+    },
+    onError: (err: any) => {
+      toast.error(err.response?.data?.message || 'خطا در تغییر وضعیت ثبت‌نام');
+    },
+    onSettled: () => setUpdatingClassId(null)
+  });
+
+  const rescheduleMutation = useMutation({
+    mutationFn: ({ id, days }: { id: string; days: number }) => {
+      setUpdatingClassId(id);
+      return adminApi.rescheduleClass(id, days);
+    },
+    onSuccess: (_, vars) => {
+      const shiftMsg = vars.days > 0 ? `${vars.days} روز به تعویق افتاد` : `${Math.abs(vars.days)} روز جلو افتاد`;
+      toast.success(`زمان‌بندی کلاس با موفقیت ${shiftMsg}`);
+      queryClient.invalidateQueries({ queryKey: ['adminClasses'] });
+      setRescheduleClass(null);
+    },
+    onError: (err: any) => {
+      toast.error(err.response?.data?.message || 'خطا در جابجایی زمان کلاس');
+    },
+    onSettled: () => setUpdatingClassId(null)
   });
 
   const createMutation = useMutation({
@@ -114,6 +163,7 @@ export default function AdminClassesPage() {
   const onlineClasses = classes.filter((c: any) => c.mode === 'online').length;
   const inPersonClasses = classes.filter((c: any) => c.mode === 'in_person').length;
   const activeClasses = classes.filter((c: any) => c.status !== 'cancelled' && c.status !== 'draft').length;
+  const pendingClassesCount = classes.filter((c: any) => c.status === 'pending_approval').length;
 
   return (
     <div className="space-y-6 pb-20">
@@ -123,7 +173,7 @@ export default function AdminClassesPage() {
           <div className="p-3 bg-emerald-50 text-emerald-600 rounded-2xl"><Video className="w-6 h-6" /></div>
           <div>
             <h1 className="text-2xl font-black text-[var(--neo-text-main)]">مدیریت جامع کلاس‌ها و کارگاه‌ها</h1>
-            <p className="text-xs text-[var(--neo-text-secondary)] mt-1">مشاهده، ایجاد، تغییر وضعیت و ویرایش کلاس‌های آنلاین و حضوری</p>
+            <p className="text-xs text-[var(--neo-text-secondary)] mt-1">کنترل دو فاز ثبت‌نام و برگزاری، تایید کلاس‌های اساتید، تغییر زمان‌بندی و مدیریت ظرفیت</p>
           </div>
         </div>
         <button 
@@ -136,12 +186,19 @@ export default function AdminClassesPage() {
       </div>
 
       {/* KPI Stats */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
         <div className="bg-[var(--neo-surface)] p-4 rounded-2xl border border-[var(--neo-border)] flex items-center gap-3">
           <div className="p-3 bg-blue-50 text-blue-600 rounded-xl"><Video className="w-5 h-5" /></div>
           <div>
             <span className="text-xs text-[var(--neo-text-secondary)] font-medium">کل کلاس‌ها</span>
             <h4 className="text-xl font-black text-[var(--neo-text-main)]">{totalClasses}</h4>
+          </div>
+        </div>
+        <div className="bg-[var(--neo-surface)] p-4 rounded-2xl border border-[var(--neo-border)] flex items-center gap-3">
+          <div className="p-3 bg-amber-50 text-amber-600 rounded-xl"><Clock className="w-5 h-5" /></div>
+          <div>
+            <span className="text-xs text-[var(--neo-text-secondary)] font-medium">در انتظار تایید</span>
+            <h4 className="text-xl font-black text-amber-600">{pendingClassesCount}</h4>
           </div>
         </div>
         <div className="bg-[var(--neo-surface)] p-4 rounded-2xl border border-[var(--neo-border)] flex items-center gap-3">
@@ -159,10 +216,10 @@ export default function AdminClassesPage() {
           </div>
         </div>
         <div className="bg-[var(--neo-surface)] p-4 rounded-2xl border border-[var(--neo-border)] flex items-center gap-3">
-          <div className="p-3 bg-amber-50 text-amber-600 rounded-xl"><Calendar className="w-5 h-5" /></div>
+          <div className="p-3 bg-teal-50 text-teal-600 rounded-xl"><Calendar className="w-5 h-5" /></div>
           <div>
             <span className="text-xs text-[var(--neo-text-secondary)] font-medium">کلاس‌های حضوری</span>
-            <h4 className="text-xl font-black text-amber-600">{inPersonClasses}</h4>
+            <h4 className="text-xl font-black text-teal-600">{inPersonClasses}</h4>
           </div>
         </div>
       </div>
@@ -197,7 +254,8 @@ export default function AdminClassesPage() {
             className="px-3 py-2 bg-[var(--neo-surface-2)] border border-[var(--neo-border)] rounded-xl text-xs font-bold outline-none cursor-pointer"
           >
             <option value="all">همه وضعیت‌ها</option>
-            <option value="published">فعال</option>
+            <option value="pending_approval">در انتظار تایید ({pendingClassesCount})</option>
+            <option value="published">فعال (منتشر شده)</option>
             <option value="draft">پیش‌نویس</option>
             <option value="completed">پایان یافته</option>
             <option value="cancelled">لغو شده</option>
@@ -230,11 +288,12 @@ export default function AdminClassesPage() {
                       {cls.mode === 'online' ? '🌐 آنلاین' : '🏛️ حضوری'}
                     </span>
                     <span className={`text-[10px] font-black px-2.5 py-1 rounded-lg shadow-sm ${
+                      cls.status === 'pending_approval' ? 'bg-amber-500 text-white' :
                       cls.status === 'published' ? 'bg-emerald-500 text-white' :
                       cls.status === 'draft' ? 'bg-gray-500 text-white' :
                       cls.status === 'cancelled' ? 'bg-rose-500 text-white' : 'bg-blue-500 text-white'
                     }`}>
-                      {cls.status === 'published' ? 'فعال' : cls.status === 'draft' ? 'پیش‌نویس' : cls.status === 'completed' ? 'تکمیل شده' : 'لغو شده'}
+                      {cls.status === 'pending_approval' ? '⏳ در انتظار تایید' : cls.status === 'published' ? 'منتشر شده' : cls.status === 'draft' ? 'پیش‌نویس' : cls.status === 'completed' ? 'تکمیل شده' : 'لغو شده'}
                     </span>
                   </div>
 
@@ -257,6 +316,24 @@ export default function AdminClassesPage() {
                 </div>
 
                 <div className="p-5 flex-1 flex flex-col">
+                  {/* Approval Action Banner for Pending Classes */}
+                  {cls.status === 'pending_approval' && (
+                    <div className="mb-3 p-3 bg-amber-50 border border-amber-200 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
+                      <div className="flex items-center gap-1.5 text-xs font-bold text-amber-800">
+                        <Clock className="w-4 h-4 text-amber-600 shrink-0" />
+                        <span>در انتظار بررسی و تایید شما</span>
+                      </div>
+                      <button
+                        onClick={() => approveMutation.mutate(cls._id)}
+                        disabled={isUpdating}
+                        className="w-full sm:w-auto px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-black rounded-xl transition flex items-center justify-center gap-1 shadow-xs disabled:opacity-50"
+                      >
+                        <CheckCircle2 className="w-3.5 h-3.5" />
+                        تایید و شروع ثبت‌نام
+                      </button>
+                    </div>
+                  )}
+
                   <div className="flex items-start justify-between gap-2 mb-2">
                     <h3 className="font-bold text-base text-[var(--neo-text-main)] line-clamp-1">{cls.title}</h3>
                   </div>
@@ -264,6 +341,59 @@ export default function AdminClassesPage() {
                     {cls.shortDescription || 'توضیحاتی برای این کلاس ثبت نشده است.'}
                   </p>
                   
+                  {/* Phase & Dynamic Registration Controls */}
+                  <div className="mb-3 p-3 bg-slate-50 border border-slate-200/80 rounded-2xl space-y-2 text-xs">
+                    <div className="flex items-center justify-between">
+                      <span className="text-slate-500 font-medium">فاز فعلی کلاس:</span>
+                      <span className={`px-2.5 py-0.5 rounded-full font-bold text-[11px] ${
+                        cls.status === 'pending_approval' ? 'bg-amber-100 text-amber-800' :
+                        cls.phase === 'started' || (cls.startDate && new Date() >= new Date(cls.startDate))
+                          ? 'bg-purple-100 text-purple-800 border border-purple-200'
+                          : 'bg-blue-100 text-blue-800 border border-blue-200'
+                      }`}>
+                        {cls.status === 'pending_approval' ? 'در انتظار تایید ادمین' :
+                         cls.phase === 'started' || (cls.startDate && new Date() >= new Date(cls.startDate))
+                          ? 'فاز ۲: شروع کلاس (در حال برگزاری)'
+                          : 'فاز ۱: در حال ثبت‌نام'}
+                      </span>
+                    </div>
+
+                    <div className="flex items-center justify-between pt-2 border-t border-slate-200/60">
+                      <span className="text-slate-500 font-medium flex items-center gap-1.5">
+                        ثبت‌نام دانشجو:
+                        <span className={`w-2 h-2 rounded-full ${cls.isRegistrationOpen ? 'bg-emerald-500 animate-pulse' : 'bg-rose-500'}`} />
+                      </span>
+                      <div className="flex items-center gap-2">
+                        <span className={`font-black text-[11px] ${cls.isRegistrationOpen ? 'text-emerald-700' : 'text-rose-600'}`}>
+                          {cls.isRegistrationOpen ? 'باز است' : 'بسته است'}
+                        </span>
+                        <button
+                          onClick={() => toggleRegMutation.mutate({ id: cls._id, open: !cls.isRegistrationOpen })}
+                          disabled={isUpdating}
+                          className={`px-2.5 py-1 rounded-lg text-[10px] font-bold border transition ${
+                            cls.isRegistrationOpen 
+                              ? 'bg-rose-50 hover:bg-rose-100 text-rose-700 border-rose-200'
+                              : 'bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border-emerald-200'
+                          }`}
+                        >
+                          {cls.isRegistrationOpen ? 'بستن ثبت‌نام' : 'باز کردن ثبت‌نام'}
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Reschedule Button */}
+                    <div className="pt-2 border-t border-slate-200/60 flex items-center justify-between">
+                      <span className="text-slate-500 font-medium">زمان‌بندی:</span>
+                      <button
+                        onClick={() => { setRescheduleClass(cls); setCustomShiftDays(7); }}
+                        className="px-2.5 py-1 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 rounded-lg text-[11px] font-bold flex items-center gap-1 transition"
+                      >
+                        <Calendar className="w-3.5 h-3.5" />
+                        جلو/عقب کردن تاریخ
+                      </button>
+                    </div>
+                  </div>
+
                   <div className="mt-auto space-y-2 mb-4 text-xs text-[var(--neo-text-secondary)] bg-[var(--neo-surface-2)]/50 p-3 rounded-2xl">
                     <div className="flex items-center justify-between">
                       <span className="flex items-center gap-1.5">
@@ -281,7 +411,7 @@ export default function AdminClassesPage() {
                         ظرفیت:
                       </span>
                       <span className="font-bold text-[var(--neo-text-main)]">
-                        {cls.capacity || cls.maxStudents || '۵۰'} نفر
+                        {cls.enrolledCount || 0} / {cls.capacity || cls.maxStudents || '۵۰'} نفر
                       </span>
                     </div>
 
@@ -300,7 +430,7 @@ export default function AdminClassesPage() {
                   <div className="flex items-center justify-between gap-2 mb-3">
                     <span className="text-[10px] text-[var(--neo-text-muted)] font-medium flex items-center gap-1">
                       {isUpdating && <Loader2 className="w-3 h-3 animate-spin text-[var(--neo-primary)]" />}
-                      تغییر وضعیت:
+                      وضعیت کلی:
                     </span>
                     <select
                       value={cls.status || 'published'}
@@ -308,6 +438,7 @@ export default function AdminClassesPage() {
                       onChange={(e) => updateStatusMutation.mutate({ id: cls._id, status: e.target.value })}
                       className="px-2 py-1 bg-[var(--neo-surface-2)] border border-[var(--neo-border)] rounded-lg text-[10px] font-bold outline-none cursor-pointer disabled:opacity-50"
                     >
+                      <option value="pending_approval">در انتظار تایید</option>
                       <option value="published">فعال (منتشر شده)</option>
                       <option value="draft">پیش‌نویس</option>
                       <option value="completed">پایان یافته</option>
@@ -413,6 +544,101 @@ export default function AdminClassesPage() {
           onClose={() => setAttendanceClass(null)}
           isAdmin={true}
         />
+      )}
+
+      {/* Reschedule / Schedule Shift Modal for Admin */}
+      {rescheduleClass && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-[var(--neo-surface)] w-full max-w-md rounded-3xl p-6 shadow-2xl border border-[var(--neo-border)] space-y-4">
+            <div className="flex justify-between items-center pb-3 border-b border-[var(--neo-border)]">
+              <div>
+                <h3 className="font-black text-base text-[var(--neo-text-main)]">جابجایی زمان برگزاری کلاس</h3>
+                <p className="text-xs text-[var(--neo-text-secondary)] mt-0.5 line-clamp-1">{rescheduleClass.title}</p>
+              </div>
+              <button onClick={() => setRescheduleClass(null)} className="p-1.5 text-[var(--neo-text-muted)] hover:text-[var(--neo-text-main)] rounded-lg">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="p-3 bg-[var(--neo-surface-2)] rounded-2xl text-xs space-y-1.5">
+              <div className="flex justify-between">
+                <span className="text-[var(--neo-text-secondary)]">تاریخ شروع فعلی:</span>
+                <span className="font-bold text-[var(--neo-text-main)] dir-ltr">
+                  {rescheduleClass.startDate ? new Date(rescheduleClass.startDate).toLocaleDateString('fa-IR') : 'نامشخص'}
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-[var(--neo-text-secondary)]">تاریخ پایان فعلی:</span>
+                <span className="font-bold text-[var(--neo-text-main)] dir-ltr">
+                  {rescheduleClass.endDate ? new Date(rescheduleClass.endDate).toLocaleDateString('fa-IR') : 'نامشخص'}
+                </span>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-xs font-bold text-[var(--neo-text-main)] block">انتخاب سریع بازه تغییر:</label>
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  type="button"
+                  onClick={() => rescheduleMutation.mutate({ id: rescheduleClass._id, days: 7 })}
+                  disabled={rescheduleMutation.isPending}
+                  className="py-2.5 px-3 bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200 rounded-xl font-bold text-xs transition"
+                >
+                  +۷ روز (۱ هفته تعویق)
+                </button>
+                <button
+                  type="button"
+                  onClick={() => rescheduleMutation.mutate({ id: rescheduleClass._id, days: -7 })}
+                  disabled={rescheduleMutation.isPending}
+                  className="py-2.5 px-3 bg-blue-50 hover:bg-blue-100 text-blue-800 border border-blue-200 rounded-xl font-bold text-xs transition"
+                >
+                  -۷ روز (۱ هفته جلوتر)
+                </button>
+                <button
+                  type="button"
+                  onClick={() => rescheduleMutation.mutate({ id: rescheduleClass._id, days: 14 })}
+                  disabled={rescheduleMutation.isPending}
+                  className="py-2.5 px-3 bg-purple-50 hover:bg-purple-100 text-purple-800 border border-purple-200 rounded-xl font-bold text-xs transition"
+                >
+                  +۱۴ روز (۲ هفته تعویق)
+                </button>
+                <button
+                  type="button"
+                  onClick={() => rescheduleMutation.mutate({ id: rescheduleClass._id, days: -14 })}
+                  disabled={rescheduleMutation.isPending}
+                  className="py-2.5 px-3 bg-indigo-50 hover:bg-indigo-100 text-indigo-800 border border-indigo-200 rounded-xl font-bold text-xs transition"
+                >
+                  -۱۴ روز (۲ هفته جلوتر)
+                </button>
+              </div>
+            </div>
+
+            <div className="pt-2 border-t border-[var(--neo-border)] space-y-2">
+              <label className="text-xs font-bold text-[var(--neo-text-main)] block">تعداد روز دلخواه (مثبت برای تعویق، منفی برای جلو انداختن):</label>
+              <div className="flex gap-2">
+                <input
+                  type="number"
+                  value={customShiftDays}
+                  onChange={(e) => setCustomShiftDays(Number(e.target.value))}
+                  placeholder="مثلاً 7 یا -7"
+                  className="flex-1 px-4 py-2 bg-[var(--neo-surface-2)] border border-[var(--neo-border)] rounded-xl text-xs font-bold outline-none dir-ltr text-center"
+                />
+                <button
+                  type="button"
+                  onClick={() => rescheduleMutation.mutate({ id: rescheduleClass._id, days: customShiftDays })}
+                  disabled={rescheduleMutation.isPending || !customShiftDays}
+                  className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold text-xs transition disabled:opacity-50 flex items-center gap-1"
+                >
+                  {rescheduleMutation.isPending && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
+                  اعمال تغییر
+                </button>
+              </div>
+              <p className="text-[10px] text-[var(--neo-text-muted)] leading-relaxed">
+                با تایید تغییر تاریخ، تاریخ شروع، پایان و جلسات سرفصل به میزان انتخابی جابجا شده و اطلاعیه تغییر زمان برای دانشجویان ارسال می‌گردد.
+              </p>
+            </div>
+          </div>
+        </div>
       )}
 
       {/* Full Class Creation & Editing Modal for Admin */}

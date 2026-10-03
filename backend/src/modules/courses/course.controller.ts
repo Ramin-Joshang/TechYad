@@ -126,3 +126,8 @@ export const adminGetCourseById = async (req: Request, res: Response) => {
   const result = await CourseService.getCourseById(req.params.id as string);
   sendSuccess(res, result, 'Course retrieved successfully');
 };
+
+export const toggleCourseRegistration = async (req: AuthRequest, res: Response) => {
+  const result = await CourseService.toggleRegistration(req.params.id as string, req.user._id as string, req.body.isRegistrationOpen);
+  sendSuccess(res, result, 'وضعیت ثبت‌نام دوره تغییر یافت');
+};

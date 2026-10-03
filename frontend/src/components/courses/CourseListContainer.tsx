@@ -344,10 +344,15 @@ function CourseCard({ course }: { course: any }) {
     <Link href={`/courses/${course.slug}`} className="group flex flex-col bg-white rounded-2xl border border-[var(--neo-border)] overflow-hidden hover:shadow-xl hover:shadow-[var(--neo-primary)]/5 transition duration-300">
       <div className="relative aspect-[16/10] overflow-hidden bg-[var(--neo-surface-2)]">
         <img src={course.thumbnail || `https://picsum.photos/seed/${course.slug}/400/250`} alt={course.title} className="w-full h-full object-cover group-hover:scale-105 transition duration-500" />
-        <div className="absolute top-4 right-4 flex gap-2">
+        <div className="absolute top-4 right-4 flex flex-wrap gap-2">
           {course.categoryId?.name && (
             <div className="bg-white/90 backdrop-blur text-[var(--neo-text-main)] text-xs font-bold px-3 py-1 rounded-full">
               {course.categoryId.name}
+            </div>
+          )}
+          {course.isRegistrationOpen === false && (
+            <div className="bg-rose-500 text-white text-xs font-bold px-2.5 py-1 rounded-full shadow-xs">
+              ثبت‌نام بسته شد
             </div>
           )}
         </div>
@@ -416,8 +421,12 @@ function CourseCard({ course }: { course: any }) {
               )}
             </div>
           </div>
-          <div className="w-full py-2 bg-[var(--neo-bg)] group-hover:bg-[var(--neo-primary)] group-hover:text-white text-[var(--neo-primary)] font-medium rounded-lg transition-colors text-center text-sm">
-            مشاهده دوره
+          <div className={`w-full py-2 font-medium rounded-lg transition-colors text-center text-sm ${
+            course.isRegistrationOpen === false
+              ? 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+              : 'bg-[var(--neo-bg)] group-hover:bg-[var(--neo-primary)] group-hover:text-white text-[var(--neo-primary)]'
+          }`}>
+            {course.isRegistrationOpen === false ? 'مشاهده (ثبت‌نام بسته)' : 'مشاهده دوره'}
           </div>
         </div>
       </div>

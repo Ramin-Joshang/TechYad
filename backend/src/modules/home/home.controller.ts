@@ -7,7 +7,7 @@ import { InstructorProfile } from "../instructors/instructor-profile.model.js";
 import { Testimonial } from "./testimonial.model.js";
 import { User } from "../auth/user.model.js";
 import { Role } from "../auth/role.model.js";
-import { Class } from "../classes/class.model.js";
+import { Class, getClassPhase, isClassRegistrationOpen } from "../classes/class.model.js";
 
 // Mock data seeder
 const seedData = async () => {
@@ -124,12 +124,20 @@ export const getHomeData = async (req: Request, res: Response, next: NextFunctio
     const freeCourses = await Course.find({ status: "published", price: 0 }).limit(4).populate('instructors', 'firstName lastName avatar personnelPhoto specialty');
     
     // Classes: Fetch interactive live classes and in-person workshops from Class model if available, fallback to tagged courses
-    let onlineClasses: any[] = await Class.find({ mode: 'online', status: { $ne: 'cancelled' } }).limit(4).populate('instructors', 'firstName lastName avatar personnelPhoto specialty');
+    let rawOnlineClasses: any[] = await Class.find({ mode: 'online', status: 'published' }).limit(4).populate('instructors', 'firstName lastName avatar personnelPhoto specialty');
+    let onlineClasses = rawOnlineClasses.map((c: any) => {
+      const obj = c.toObject();
+      return { ...obj, phase: getClassPhase(obj), isRegistrationOpen: isClassRegistrationOpen(obj) };
+    });
     if (!onlineClasses || onlineClasses.length === 0) {
       onlineClasses = await Course.find({ status: "published", tags: "آنلاین" }).limit(4).populate('instructors', 'firstName lastName avatar personnelPhoto specialty');
     }
 
-    let inPersonClasses: any[] = await Class.find({ mode: 'in_person', status: { $ne: 'cancelled' } }).limit(4).populate('instructors', 'firstName lastName avatar personnelPhoto specialty');
+    let rawInPersonClasses: any[] = await Class.find({ mode: 'in_person', status: 'published' }).limit(4).populate('instructors', 'firstName lastName avatar personnelPhoto specialty');
+    let inPersonClasses = rawInPersonClasses.map((c: any) => {
+      const obj = c.toObject();
+      return { ...obj, phase: getClassPhase(obj), isRegistrationOpen: isClassRegistrationOpen(obj) };
+    });
     if (!inPersonClasses || inPersonClasses.length === 0) {
       inPersonClasses = await Course.find({ status: "published", tags: "حضوری" }).limit(4).populate('instructors', 'firstName lastName avatar personnelPhoto specialty');
     }

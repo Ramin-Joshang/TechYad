@@ -82,6 +82,21 @@ export default function AdminCoursesPage() {
     onSettled: () => setUpdatingCourseId(null)
   });
 
+  const toggleRegMutation = useMutation({
+    mutationFn: ({ id, open }: { id: string; open?: boolean }) => {
+      setUpdatingCourseId(id);
+      return adminApi.toggleCourseRegistration(id, open);
+    },
+    onSuccess: () => {
+      toast.success('وضعیت ثبت‌نام دوره تغییر یافت');
+      queryClient.invalidateQueries({ queryKey: ['adminCourses'] });
+    },
+    onError: (err: any) => {
+      toast.error(err.response?.data?.message || 'خطا در تغییر وضعیت ثبت‌نام دوره');
+    },
+    onSettled: () => setUpdatingCourseId(null)
+  });
+
   const updateCourseMutation = useMutation({
     mutationFn: ({ id, data }: { id: string; data: any }) => adminApi.updateCourse(id, data),
     onSuccess: () => {
@@ -241,6 +256,7 @@ export default function AdminCoursesPage() {
                   <th className="p-4">مدرس(ها)</th>
                   <th className="p-4">دسته‌بندی</th>
                   <th className="p-4">قیمت</th>
+                  <th className="p-4">ثبت‌نام</th>
                   <th className="p-4">وضعیت</th>
                   <th className="p-4 text-center">لینک‌های سریع و عملیات</th>
                 </tr>
@@ -292,6 +308,23 @@ export default function AdminCoursesPage() {
                         ) : (
                           <span className="text-[var(--neo-text-main)]">{Number(course.price).toLocaleString()} تومان</span>
                         )}
+                      </td>
+
+                      {/* Registration Toggle */}
+                      <td className="p-4">
+                        <button
+                          onClick={() => toggleRegMutation.mutate({ id: course._id, open: course.isRegistrationOpen === false ? true : false })}
+                          disabled={isUpdating}
+                          className={`px-2.5 py-1 rounded-xl text-[10px] font-bold border transition flex items-center gap-1.5 ${
+                            course.isRegistrationOpen !== false
+                              ? 'bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100'
+                              : 'bg-rose-50 text-rose-700 border-rose-200 hover:bg-rose-100'
+                          }`}
+                          title="کلیک برای تغییر وضعیت ثبت‌نام دوره"
+                        >
+                          <span className={`w-2 h-2 rounded-full ${course.isRegistrationOpen !== false ? 'bg-emerald-500' : 'bg-rose-500'}`} />
+                          {course.isRegistrationOpen !== false ? 'ثبت‌نام باز' : 'ثبت‌نام بسته'}
+                        </button>
                       </td>
 
                       {/* Status Dropdown */}

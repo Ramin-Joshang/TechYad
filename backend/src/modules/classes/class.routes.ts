@@ -40,5 +40,12 @@ router.get('/admin/classes', isAdmin, asyncHandler(Controller.getAdminClasses));
 router.post('/admin/classes', isAdmin, asyncHandler(Controller.createClass));
 router.patch('/admin/classes/:id', isAdmin, asyncHandler(Controller.adminUpdateClass));
 router.delete('/admin/classes/:id', isAdmin, asyncHandler(Controller.adminDeleteClass));
+router.post('/admin/classes/:id/approve', isAdmin, asyncHandler(Controller.approveClass));
+router.post('/admin/classes/:id/toggle-registration', isAdmin, asyncHandler(Controller.toggleRegistration));
+router.post('/admin/classes/:id/reschedule', isAdmin, asyncHandler(Controller.rescheduleClass));
+
+// Instructor lifecycle controls
+router.post('/instructor/classes/:id/toggle-registration', isInstructor, asyncHandler(Controller.toggleRegistration));
+router.post('/instructor/classes/:id/reschedule', isInstructor, asyncHandler(Controller.rescheduleClass));
 
 export default router;

@@ -40,6 +40,7 @@ export interface ICourse extends Document {
   status: CourseStatus;
   rejectionReason?: string;
   publishedAt?: Date;
+  isRegistrationOpen?: boolean;
 
   createdBy: Types.ObjectId;
 }
@@ -155,6 +156,10 @@ const courseSchema = new Schema<ICourse>(
     },
     rejectionReason: String,
     publishedAt: Date,
+    isRegistrationOpen: {
+      type: Boolean,
+      default: true,
+    },
     createdBy: {
       type: Schema.Types.ObjectId,
       ref: "User",

@@ -225,27 +225,49 @@ export function CourseDetailsContainer({ slug }: { slug: string }) {
                   <Play className="w-5 h-5 fill-current" /> مشاهده دوره و شروع یادگیری
                 </button>
               ) : isFree ? (
-                <button 
-                  onClick={handleAction}
-                  disabled={enrollFreeMutation.isPending}
-                  className="w-full py-4 rounded-xl font-bold text-lg transition shadow-xl flex items-center justify-center gap-2 bg-[var(--neo-primary)] text-white hover:bg-blue-700 shadow-[var(--neo-primary)]/30 disabled:opacity-70"
-                >
-                  {enrollFreeMutation.isPending ? <Loader2 className="w-6 h-6 animate-spin" /> : 'شروع یادگیری (رایگان)'}
-                </button>
-              ) : (
+                course.isRegistrationOpen === false ? (
+                  <div className="space-y-3">
+                    <div className="w-full py-3.5 px-4 rounded-xl font-bold text-sm flex items-center justify-center gap-2 bg-rose-50 text-rose-800 border border-rose-200 text-center select-none">
+                      <Clock className="w-5 h-5 text-rose-600 shrink-0" />
+                      <span>ثبت‌نام این دوره موقتاً بسته شده است</span>
+                    </div>
+                    <p className="text-xs text-center text-gray-500 leading-relaxed">
+                      مهلت ثبت‌نام در این دوره به پایان رسیده یا موقتاً توسط مدیریت غیرفعال شده است.
+                    </p>
+                  </div>
+                ) : (
+                  <button 
+                    onClick={handleAction}
+                    disabled={enrollFreeMutation.isPending}
+                    className="w-full py-4 rounded-xl font-bold text-lg transition shadow-xl flex items-center justify-center gap-2 bg-[var(--neo-primary)] text-white hover:bg-blue-700 shadow-[var(--neo-primary)]/30 disabled:opacity-70"
+                  >
+                    {enrollFreeMutation.isPending ? <Loader2 className="w-6 h-6 animate-spin" /> : 'شروع یادگیری (رایگان)'}
+                  </button>
+                )
+              ) : course.isRegistrationOpen === false ? (
                 <div className="space-y-3">
-                  <div className="w-full py-3.5 px-4 rounded-xl font-bold text-sm flex items-center justify-center gap-2 bg-amber-500/10 text-amber-800 border border-amber-300 text-center select-none shadow-2xs">
-                    <Clock className="w-5 h-5 text-amber-600 shrink-0" />
-                    <span>ثبت‌نام مستقیم دوره‌ها موقتاً غیرفعال است</span>
+                  <div className="w-full py-3.5 px-4 rounded-xl font-bold text-sm flex items-center justify-center gap-2 bg-rose-50 text-rose-800 border border-rose-200 text-center select-none shadow-2xs">
+                    <Clock className="w-5 h-5 text-rose-600 shrink-0" />
+                    <span>ثبت‌نام این دوره در حال حاضر بسته است</span>
                   </div>
                   <p className="text-xs text-center text-gray-500 leading-relaxed">
-                    جهت شرکت در کلاس‌های تعاملی آنلاین و کارگاه‌های تخصصی حضوری، لطفاً به بخش{' '}
-                    <Link href="/classes" className="text-blue-600 font-bold hover:underline">
-                      کلاس‌ها و کارگاه‌ها
-                    </Link>{' '}
-                    مراجعه فرمایید.
+                    مهلت ثبت‌نام در این دوره به پایان رسیده یا توسط مدیریت بسته شده است.
                   </p>
                 </div>
+              ) : (
+                <button
+                  onClick={handleAction}
+                  disabled={addToCartMutation.isPending}
+                  className="w-full py-4 rounded-xl font-bold text-lg transition shadow-xl flex items-center justify-center gap-2 bg-[var(--neo-primary)] text-white hover:bg-blue-700 shadow-[var(--neo-primary)]/30 disabled:opacity-70 cursor-pointer"
+                >
+                  {addToCartMutation.isPending ? (
+                    <Loader2 className="w-6 h-6 animate-spin" />
+                  ) : isInCart ? (
+                    'مشاهده سبد خرید و تسویه'
+                  ) : (
+                    'ثبت‌نام در دوره و افزودن به سبد'
+                  )}
+                </button>
               )}
             </div>
           </div>

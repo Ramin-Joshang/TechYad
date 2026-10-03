@@ -259,9 +259,30 @@ export class AuthService {
   }
 
   static async updateProfile(userId: string, data: { firstName?: string, lastName?: string, avatar?: string, personnelPhoto?: string, bio?: string, specialty?: string }) {
+    const existingUser = await User.findById(userId).populate('role');
+    if (!existingUser) throw new AppError('User not found', 404, 'NOT_FOUND');
+
+    const roleSlug = (existingUser.role as any)?.slug || (existingUser.role as any) || '';
+    const isInstructor = roleSlug === 'instructor' || roleSlug === 'teacher';
+
+    const updatePayload: any = { ...data };
+    const unsetPayload: any = {};
+
+    if (!isInstructor) {
+      delete updatePayload.personnelPhoto;
+      if (existingUser.personnelPhoto) {
+        unsetPayload.personnelPhoto = 1;
+      }
+    }
+
+    const updateOp: any = { $set: updatePayload };
+    if (Object.keys(unsetPayload).length > 0) {
+      updateOp.$unset = unsetPayload;
+    }
+
     const user = await User.findByIdAndUpdate(
       userId,
-      { $set: data },
+      updateOp,
       { new: true, runValidators: true }
     ).populate('role');
     

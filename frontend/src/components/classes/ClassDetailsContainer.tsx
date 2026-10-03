@@ -191,7 +191,8 @@ export function ClassDetailsContainer({ slug }: { slug: string }) {
   
   const enrolled = cls.enrolledCount || 0; 
   const isFull = enrolled >= cls.capacity;
-  const isStarted = startDate < new Date();
+  const isStarted = startDate <= new Date();
+  const isRegistrationClosed = cls.isRegistrationOpen === false || (isStarted && cls.registrationOpen !== true);
   const remaining = Math.max(0, cls.capacity - enrolled);
   
   const rating = cls.rating || 0;
@@ -227,6 +228,10 @@ export function ClassDetailsContainer({ slug }: { slug: string }) {
     ctaText = 'کلاس لغو شده';
     ctaClass = 'bg-rose-100 text-rose-600 cursor-not-allowed';
     ctaDisabled = true;
+  } else if (isRegistrationClosed) {
+    ctaText = isStarted ? 'مهلت ثبت‌نام به پایان رسیده (کلاس شروع شده)' : 'ثبت‌نام این کلاس در حال حاضر بسته است';
+    ctaClass = 'bg-rose-100 text-rose-700 border border-rose-300 cursor-not-allowed';
+    ctaDisabled = true;
   } else if (isFull) {
     ctaText = 'ظرفیت تکمیل شده است';
     ctaClass = 'bg-slate-200 text-slate-500 cursor-not-allowed';
@@ -261,6 +266,22 @@ export function ClassDetailsContainer({ slug }: { slug: string }) {
                 {isOnline ? <Monitor className="w-4 h-4" /> : <MapPin className="w-4 h-4" />}
                 {isOnline ? 'کلاس آنلاین تعاملی (وبینار)' : 'کارگاه تخصصی حضوری'}
               </span>
+
+              {/* Class Phase Badge */}
+              <span className={`px-3 py-1 rounded-full text-xs font-bold border flex items-center gap-1 shadow-sm ${
+                isStarted
+                  ? 'bg-purple-500/20 text-purple-200 border-purple-400/40'
+                  : 'bg-cyan-500/20 text-cyan-200 border-cyan-400/40'
+              }`}>
+                <Clock className="w-3.5 h-3.5" />
+                {isStarted ? 'فاز ۲: شروع کلاس / در حال برگزاری' : 'فاز ۱: در حال ثبت‌نام'}
+              </span>
+
+              {isRegistrationClosed && (
+                <span className="px-3 py-1 rounded-full text-xs font-bold bg-rose-500/30 text-rose-200 border border-rose-400/40 flex items-center gap-1">
+                  ثبت‌نام بسته شد
+                </span>
+              )}
 
               {cls.allowPreRegistration && (
                 <span className="px-3 py-1 rounded-full text-xs font-bold bg-amber-500/20 text-amber-300 border border-amber-400/30 flex items-center gap-1">
