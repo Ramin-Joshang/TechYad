@@ -11,6 +11,7 @@ interface MediaUploaderProps {
   onChange: (url: string) => void;
   accept?: string;
   maxSizeMB?: number;
+  folder?: string;
   helpText?: string;
   previewType?: 'image' | 'video' | 'auto';
   className?: string;
@@ -22,7 +23,8 @@ export const MediaUploader: React.FC<MediaUploaderProps> = ({
   value,
   onChange,
   accept = 'image/*',
-  maxSizeMB = 50,
+  maxSizeMB = 5,
+  folder = 'general',
   helpText,
   previewType = 'auto',
   className = '',
@@ -44,13 +46,18 @@ export const MediaUploader: React.FC<MediaUploaderProps> = ({
       return;
     }
 
+    if (accept === 'image/*' && !file.type.startsWith('image/')) {
+      toast.error('تنها فایل‌های تصویری (JPG, PNG, WebP) مجاز هستند');
+      return;
+    }
+
     setIsUploading(true);
     try {
-      const response = await mediaApi.uploadFile(file);
+      const response = await mediaApi.uploadFile(file, folder);
       const url = response.data?.url;
       if (url) {
         onChange(url);
-        toast.success('فایل با موفقیت آپلود شد');
+        toast.success('فایل با موفقیت آپلود و ذخیره شد');
       } else {
         toast.error('خطا در دریافت نشانی فایل آپلود شده');
       }

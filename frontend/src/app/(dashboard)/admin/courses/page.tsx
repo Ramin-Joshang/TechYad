@@ -588,6 +588,8 @@ export default function AdminCoursesPage() {
                   value={editingCourse.thumbnail}
                   onChange={(url) => setEditingCourse({ ...editingCourse, thumbnail: url })}
                   accept="image/*"
+                  folder="courses"
+                  maxSizeMB={5}
                   previewType="image"
                 />
               </div>
@@ -710,6 +712,8 @@ export default function AdminCoursesPage() {
                   value={newCourseData.thumbnail}
                   onChange={(url) => setNewCourseData({ ...newCourseData, thumbnail: url })}
                   accept="image/*"
+                  folder="courses"
+                  maxSizeMB={5}
                   previewType="image"
                 />
               </div>

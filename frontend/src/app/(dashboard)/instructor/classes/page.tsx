@@ -106,8 +106,8 @@ export default function InstructorClassesPage() {
           </div>
         </div>
 
-        <div className="flex items-center gap-3 w-full sm:w-auto">
-          <div className="relative flex-1 sm:w-64">
+        <div className="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto">
+          <div className="relative w-full sm:w-64">
             <Search className="w-4 h-4 text-slate-400 absolute right-3 top-3" />
             <input
               type="text"
@@ -120,7 +120,7 @@ export default function InstructorClassesPage() {
 
           <button 
             onClick={handleCreate} 
-            className="flex items-center justify-center gap-2 bg-emerald-600 text-white px-5 py-2.5 rounded-xl font-bold text-sm hover:bg-emerald-700 transition shrink-0 shadow-sm"
+            className="w-full sm:w-auto flex items-center justify-center gap-2 bg-emerald-600 text-white px-5 py-2.5 rounded-xl font-bold text-sm hover:bg-emerald-700 transition shrink-0 shadow-sm"
           >
             <Plus className="w-4 h-4" /> تعریف کلاس جدید
           </button>

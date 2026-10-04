@@ -5,18 +5,19 @@ export function LatestArticles({ data = [], isLoading = false }: { data?: any[],
   if (!isLoading && !data?.length) return null;
 
   return (
-    <section className="py-24 bg-[var(--neo-bg)] border-b border-[var(--neo-border)]">
+    <section className="py-16 sm:py-24 bg-[var(--neo-bg)] border-b border-[var(--neo-border)]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex flex-col md:flex-row justify-between items-end mb-12 gap-6">
-          <div>
-            <div className="flex items-center gap-2 mb-3">
-              <span className="w-8 h-px bg-[var(--neo-primary)]"></span>
-              <span className="text-[var(--neo-primary)] font-bold tracking-widest text-sm uppercase">دانشنامه</span>
+        <div dir="rtl" className="flex flex-row justify-between items-center sm:items-end mb-8 sm:mb-12 gap-3 sm:gap-6 text-right w-full">
+          <div className="text-right flex-1 min-w-0">
+            <div className="flex items-center gap-2 mb-2 sm:mb-3 justify-start">
+              <span className="w-6 sm:w-8 h-px bg-[var(--neo-primary)] shrink-0"></span>
+              <span className="text-[var(--neo-primary)] font-bold tracking-widest text-xs sm:text-sm uppercase truncate">دانشنامه</span>
             </div>
-            <h2 className="text-3xl font-black text-[var(--neo-text-main)]">آخرین مقالات آموزشی</h2>
+            <h2 className="text-xl sm:text-2xl md:text-3xl font-black text-[var(--neo-text-main)] text-right truncate">آخرین مقالات آموزشی</h2>
           </div>
-          <Link href="/blog" className="text-[var(--neo-text-secondary)] hover:text-[var(--neo-primary)] transition font-medium flex items-center gap-2 pb-1 border-b border-transparent hover:border-[var(--neo-primary)]">
-            مشاهده همه مقالات
+          <Link href="/blog" className="text-[var(--neo-text-secondary)] hover:text-[var(--neo-primary)] transition font-medium inline-flex items-center gap-1.5 text-xs sm:text-sm shrink-0 pb-1 border-b border-transparent hover:border-[var(--neo-primary)] whitespace-nowrap">
+            <span>همه مقالات</span>
+            <span className="text-base leading-none">←</span>
           </Link>
         </div>
 
@@ -38,7 +39,7 @@ export function LatestArticles({ data = [], isLoading = false }: { data?: any[],
                 </div>
               ))
             : data.slice(0, 3).map((article: any) => (
-                <Link key={article._id} href={`/blog/${article.slug}`} className="group flex flex-col bg-white rounded-[20px] border border-[var(--neo-border)] overflow-hidden hover:border-[var(--neo-primary)]/50 transition duration-300 neo-card">
+                <Link key={article._id} href={`/blog/${article.slug}`} dir="rtl" className="group flex flex-col bg-white rounded-[20px] border border-[var(--neo-border)] overflow-hidden hover:border-[var(--neo-primary)]/50 transition duration-300 neo-card text-right">
                   <div className="aspect-video relative overflow-hidden bg-[var(--neo-surface-2)]">
                     {article.coverImage || article.thumbnail ? (
                       <img src={article.coverImage || article.thumbnail} alt={article.title} className="w-full h-full object-cover group-hover:scale-105 transition duration-700 ease-out" />
@@ -52,14 +53,14 @@ export function LatestArticles({ data = [], isLoading = false }: { data?: any[],
                     </div>
                   </div>
 
-                  <div className="p-6 flex flex-col flex-grow">
-                    <div className="flex items-center gap-2 text-xs text-[var(--neo-text-muted)] mb-3">
-                      <Calendar className="w-3.5 h-3.5" />
+                  <div className="p-6 flex flex-col flex-grow text-right">
+                    <div className="flex items-center gap-2 text-xs text-[var(--neo-text-muted)] mb-3 text-right">
+                      <Calendar className="w-3.5 h-3.5 shrink-0" />
                       {new Date(article.createdAt || Date.now()).toLocaleDateString('fa-IR')}
                     </div>
 
-                    <h3 className="font-bold text-[var(--neo-text-main)] mb-3 text-lg line-clamp-2 group-hover:text-[var(--neo-primary)] transition-colors">{article.title}</h3>
-                    <p className="text-sm text-[var(--neo-text-secondary)] line-clamp-2 mb-6 leading-relaxed">{article.excerpt || "در این مقاله به بررسی این موضوع جذاب می‌پردازیم..."}</p>
+                    <h3 className="font-bold text-[var(--neo-text-main)] mb-3 text-lg line-clamp-2 group-hover:text-[var(--neo-primary)] transition-colors text-right w-full">{article.title}</h3>
+                    <p className="text-sm text-[var(--neo-text-secondary)] line-clamp-2 mb-6 leading-relaxed text-right w-full">{article.excerpt || "در این مقاله به بررسی این موضوع جذاب می‌پردازیم..."}</p>
 
                     <div className="mt-auto pt-4 border-t border-[var(--neo-border)] flex items-center justify-between text-[var(--neo-primary)] text-sm font-bold">
                       <span>مطالعه مقاله</span>

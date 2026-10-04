@@ -286,74 +286,127 @@ export default function InstructorAssignmentsPage() {
                 هیچ پاسخی در این بخش یافت نشد.
               </div>
             ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full text-right">
-                  <thead>
-                    <tr className="border-b border-[var(--neo-border)] bg-[var(--neo-surface-2)]/60">
-                      <th className="p-4 font-bold text-[var(--neo-text-secondary)] text-sm">دانشجو</th>
-                      <th className="p-4 font-bold text-[var(--neo-text-secondary)] text-sm">عنوان تکلیف</th>
-                      <th className="p-4 font-bold text-[var(--neo-text-secondary)] text-sm">تاریخ ارسال</th>
-                      <th className="p-4 font-bold text-[var(--neo-text-secondary)] text-sm text-center">وضعیت / نمره</th>
-                      <th className="p-4 font-bold text-[var(--neo-text-secondary)] text-sm text-center">عملیات</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-[var(--neo-border)]">
-                    {submissionsList.map((sub: any) => (
-                      <tr key={sub._id} className="hover:bg-[var(--neo-surface-2)]/40 transition-colors">
-                        <td className="p-4">
-                          <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-2xl bg-[var(--neo-primary)]/10 text-[var(--neo-primary)] flex items-center justify-center font-bold text-sm">
-                              {sub.userId?.firstName?.[0] || 'د'}
-                            </div>
-                            <div>
-                              <div className="font-bold text-sm text-[var(--neo-text-main)]">
-                                {sub.userId?.firstName} {sub.userId?.lastName}
-                              </div>
-                              <div className="text-xs text-[var(--neo-text-secondary)]">
-                                {sub.userId?.email}
-                              </div>
-                            </div>
-                          </div>
-                        </td>
-                        <td className="p-4">
-                          <div className="font-bold text-sm text-[var(--neo-text-main)]">
-                            {sub.assignmentId?.title || 'تکلیف بدون نام'}
-                          </div>
-                          {sub.assignmentId?.maxScore && (
-                            <div className="text-xs text-[var(--neo-text-secondary)] mt-0.5">
-                              حداکثر نمره: {sub.assignmentId.maxScore}
-                            </div>
-                          )}
-                        </td>
-                        <td className="p-4 text-xs font-medium text-[var(--neo-text-secondary)]">
-                          {new Date(sub.submittedAt || sub.createdAt).toLocaleDateString('fa-IR')}
-                        </td>
-                        <td className="p-4 text-center">
-                          {sub.status === 'graded' ? (
-                            <span className="px-3 py-1 rounded-xl text-xs font-bold bg-emerald-50 text-emerald-700 inline-flex items-center gap-1">
-                              <CheckCircle className="w-3.5 h-3.5" />
-                              نمره: {sub.score}
-                            </span>
-                          ) : (
-                            <span className="px-3 py-1 rounded-xl text-xs font-bold bg-amber-50 text-amber-700 inline-flex items-center gap-1">
-                              <Clock className="w-3.5 h-3.5" />
-                              در انتظار بررسی
-                            </span>
-                          )}
-                        </td>
-                        <td className="p-4 text-center">
-                          <button
-                            onClick={() => openGradeModal(sub)}
-                            className="px-4 py-2 rounded-xl bg-[var(--neo-primary)] text-white text-xs font-bold hover:bg-[var(--neo-primary)] shadow-sm transition-all"
-                          >
-                            {sub.status === 'graded' ? 'مشاهده و ویرایش نمره' : 'بررسی و ثبت نمره'}
-                          </button>
-                        </td>
+              <>
+                {/* Desktop Table View */}
+                <div className="hidden md:block overflow-x-auto">
+                  <table className="w-full text-right">
+                    <thead>
+                      <tr className="border-b border-[var(--neo-border)] bg-[var(--neo-surface-2)]/60">
+                        <th className="p-4 font-bold text-[var(--neo-text-secondary)] text-sm">دانشجو</th>
+                        <th className="p-4 font-bold text-[var(--neo-text-secondary)] text-sm">عنوان تکلیف</th>
+                        <th className="p-4 font-bold text-[var(--neo-text-secondary)] text-sm">تاریخ ارسال</th>
+                        <th className="p-4 font-bold text-[var(--neo-text-secondary)] text-sm text-center">وضعیت / نمره</th>
+                        <th className="p-4 font-bold text-[var(--neo-text-secondary)] text-sm text-center">عملیات</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+                    </thead>
+                    <tbody className="divide-y divide-[var(--neo-border)]">
+                      {submissionsList.map((sub: any) => (
+                        <tr key={sub._id} className="hover:bg-[var(--neo-surface-2)]/40 transition-colors">
+                          <td className="p-4">
+                            <div className="flex items-center gap-3">
+                              <div className="w-10 h-10 rounded-2xl bg-[var(--neo-primary)]/10 text-[var(--neo-primary)] flex items-center justify-center font-bold text-sm">
+                                {sub.userId?.firstName?.[0] || 'د'}
+                              </div>
+                              <div>
+                                <div className="font-bold text-sm text-[var(--neo-text-main)]">
+                                  {sub.userId?.firstName} {sub.userId?.lastName}
+                                </div>
+                                <div className="text-xs text-[var(--neo-text-secondary)]">
+                                  {sub.userId?.email}
+                                </div>
+                              </div>
+                            </div>
+                          </td>
+                          <td className="p-4">
+                            <div className="font-bold text-sm text-[var(--neo-text-main)]">
+                              {sub.assignmentId?.title || 'تکلیف بدون نام'}
+                            </div>
+                            {sub.assignmentId?.maxScore && (
+                              <div className="text-xs text-[var(--neo-text-secondary)] mt-0.5">
+                                حداکثر نمره: {sub.assignmentId.maxScore}
+                              </div>
+                            )}
+                          </td>
+                          <td className="p-4 text-xs font-medium text-[var(--neo-text-secondary)]">
+                            {new Date(sub.submittedAt || sub.createdAt).toLocaleDateString('fa-IR')}
+                          </td>
+                          <td className="p-4 text-center">
+                            {sub.status === 'graded' ? (
+                              <span className="px-3 py-1 rounded-xl text-xs font-bold bg-emerald-50 text-emerald-700 inline-flex items-center gap-1">
+                                <CheckCircle className="w-3.5 h-3.5" />
+                                نمره: {sub.score}
+                              </span>
+                            ) : (
+                              <span className="px-3 py-1 rounded-xl text-xs font-bold bg-amber-50 text-amber-700 inline-flex items-center gap-1">
+                                <Clock className="w-3.5 h-3.5" />
+                                در انتظار بررسی
+                              </span>
+                            )}
+                          </td>
+                          <td className="p-4 text-center">
+                            <button
+                              onClick={() => openGradeModal(sub)}
+                              className="px-4 py-2 rounded-xl bg-[var(--neo-primary)] text-white text-xs font-bold hover:bg-[var(--neo-primary)] shadow-sm transition-all"
+                            >
+                              {sub.status === 'graded' ? 'مشاهده و ویرایش نمره' : 'بررسی و ثبت نمره'}
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+
+                {/* Mobile Cards View */}
+                <div className="md:hidden divide-y divide-[var(--neo-border)]">
+                  {submissionsList.map((sub: any) => (
+                    <div key={sub._id} className="p-4 space-y-3">
+                      <div className="flex items-center justify-between gap-3">
+                        <div className="flex items-center gap-2.5 min-w-0">
+                          <div className="w-9 h-9 rounded-2xl bg-[var(--neo-primary)]/10 text-[var(--neo-primary)] flex items-center justify-center font-bold text-sm shrink-0">
+                            {sub.userId?.firstName?.[0] || 'د'}
+                          </div>
+                          <div className="min-w-0">
+                            <div className="font-bold text-sm text-[var(--neo-text-main)] truncate">
+                              {sub.userId?.firstName} {sub.userId?.lastName}
+                            </div>
+                            <div className="text-[11px] text-[var(--neo-text-secondary)] font-mono truncate">
+                              {sub.userId?.email}
+                            </div>
+                          </div>
+                        </div>
+
+                        {sub.status === 'graded' ? (
+                          <span className="px-2.5 py-0.5 rounded-lg text-xs font-bold bg-emerald-50 text-emerald-700 shrink-0">
+                            نمره: {sub.score}
+                          </span>
+                        ) : (
+                          <span className="px-2.5 py-0.5 rounded-lg text-xs font-bold bg-amber-50 text-amber-700 shrink-0">
+                            در انتظار بررسی
+                          </span>
+                        )}
+                      </div>
+
+                      <div className="bg-[var(--neo-surface-2)] p-2.5 rounded-xl border border-[var(--neo-border)] text-xs">
+                        <div className="font-bold text-[var(--neo-text-main)] truncate">
+                          {sub.assignmentId?.title || 'تکلیف بدون نام'}
+                        </div>
+                        <div className="text-[11px] text-[var(--neo-text-secondary)] mt-1 flex items-center justify-between">
+                          <span>تاریخ ارسال: {new Date(sub.submittedAt || sub.createdAt).toLocaleDateString('fa-IR')}</span>
+                          {sub.assignmentId?.maxScore && <span>حداکثر نمره: {sub.assignmentId.maxScore}</span>}
+                        </div>
+                      </div>
+
+                      <button
+                        onClick={() => openGradeModal(sub)}
+                        className="w-full py-2.5 rounded-xl bg-[var(--neo-primary)] text-white text-xs font-bold flex items-center justify-center gap-1.5 shadow-xs"
+                      >
+                        {sub.status === 'graded' ? 'مشاهده و ویرایش نمره' : 'بررسی و ثبت نمره دانشجو'}
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </>
             )}
           </div>
         </div>
@@ -377,95 +430,149 @@ export default function InstructorAssignmentsPage() {
                 </button>
               </div>
             ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full text-right">
-                  <thead>
-                    <tr className="border-b border-[var(--neo-border)] bg-[var(--neo-surface-2)]/60">
-                      <th className="p-4 font-bold text-[var(--neo-text-secondary)] text-sm">عنوان تکلیف و دوره</th>
-                      <th className="p-4 font-bold text-[var(--neo-text-secondary)] text-sm text-center">نوع ارسال</th>
-                      <th className="p-4 font-bold text-[var(--neo-text-secondary)] text-sm text-center">حداکثر نمره</th>
-                      <th className="p-4 font-bold text-[var(--neo-text-secondary)] text-sm text-center">مهلت تحویل</th>
-                      <th className="p-4 font-bold text-[var(--neo-text-secondary)] text-sm text-center">پاسخ‌های دریافتی</th>
-                      <th className="p-4 font-bold text-[var(--neo-text-secondary)] text-sm text-center">عملیات</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-[var(--neo-border)]">
-                    {assignments.map((a: any) => (
-                      <tr key={a._id} className="hover:bg-[var(--neo-surface-2)]/40 transition-colors">
-                        <td className="p-4">
-                          <div>
-                            <div className="font-black text-sm text-[var(--neo-text-main)]">{a.title}</div>
-                            <div className="flex items-center gap-2 mt-1">
-                              {a.classId ? (
-                                <span className="inline-flex items-center gap-1 text-xs px-2.5 py-0.5 rounded-lg bg-purple-100 text-purple-700 font-bold">
-                                  <Users className="w-3 h-3 text-purple-600" />
-                                  کلاس: {a.classId.title}
-                                </span>
-                              ) : (
-                                <span className="inline-flex items-center gap-1 text-xs px-2.5 py-0.5 rounded-lg bg-[var(--neo-primary)]/10 text-[var(--neo-primary)] font-bold">
-                                  <BookOpen className="w-3 h-3" />
-                                  {a.courseId?.title || 'دوره نامشخص'}
-                                </span>
-                              )}
-                              {a.lessonId?.title && (
-                                <span className="text-xs text-[var(--neo-text-secondary)]">
-                                  • درس: {a.lessonId.title}
+              <>
+                {/* Desktop Table */}
+                <div className="hidden md:block overflow-x-auto">
+                  <table className="w-full text-right">
+                    <thead>
+                      <tr className="border-b border-[var(--neo-border)] bg-[var(--neo-surface-2)]/60">
+                        <th className="p-4 font-bold text-[var(--neo-text-secondary)] text-sm">عنوان تکلیف و دوره</th>
+                        <th className="p-4 font-bold text-[var(--neo-text-secondary)] text-sm text-center">نوع ارسال</th>
+                        <th className="p-4 font-bold text-[var(--neo-text-secondary)] text-sm text-center">حداکثر نمره</th>
+                        <th className="p-4 font-bold text-[var(--neo-text-secondary)] text-sm text-center">مهلت تحویل</th>
+                        <th className="p-4 font-bold text-[var(--neo-text-secondary)] text-sm text-center">پاسخ‌های دریافتی</th>
+                        <th className="p-4 font-bold text-[var(--neo-text-secondary)] text-sm text-center">عملیات</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-[var(--neo-border)]">
+                      {assignments.map((a: any) => (
+                        <tr key={a._id} className="hover:bg-[var(--neo-surface-2)]/40 transition-colors">
+                          <td className="p-4">
+                            <div>
+                              <div className="font-black text-sm text-[var(--neo-text-main)]">{a.title}</div>
+                              <div className="flex items-center gap-2 mt-1">
+                                {a.classId ? (
+                                  <span className="inline-flex items-center gap-1 text-xs px-2.5 py-0.5 rounded-lg bg-purple-100 text-purple-700 font-bold">
+                                    <Users className="w-3 h-3 text-purple-600" />
+                                    کلاس: {a.classId.title}
+                                  </span>
+                                ) : (
+                                  <span className="inline-flex items-center gap-1 text-xs px-2.5 py-0.5 rounded-lg bg-[var(--neo-primary)]/10 text-[var(--neo-primary)] font-bold">
+                                    <BookOpen className="w-3 h-3" />
+                                    {a.courseId?.title || 'دوره نامشخص'}
+                                  </span>
+                                )}
+                                {a.lessonId?.title && (
+                                  <span className="text-xs text-[var(--neo-text-secondary)]">
+                                    • درس: {a.lessonId.title}
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                          </td>
+                          <td className="p-4 text-center">
+                            <span className="text-xs font-bold px-2.5 py-1 rounded-xl bg-[var(--neo-surface-2)] text-[var(--neo-text-secondary)]">
+                              {a.type === 'file_upload' ? 'ارسال فایل' : a.type === 'text_answer' ? 'پاسخ متنی' : 'ترکیبی (متن یا فایل)'}
+                            </span>
+                          </td>
+                          <td className="p-4 text-center">
+                            <span className="text-xs font-black text-[var(--neo-text-main)] bg-[var(--neo-surface-2)] px-2.5 py-1 rounded-xl">
+                              {a.maxScore || 100} نمره
+                            </span>
+                          </td>
+                          <td className="p-4 text-center text-xs font-medium text-[var(--neo-text-secondary)]">
+                            {a.deadline ? new Date(a.deadline).toLocaleDateString('fa-IR') : 'نامحدود'}
+                          </td>
+                          <td className="p-4 text-center">
+                            <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-[var(--neo-surface-2)] rounded-xl text-xs font-bold">
+                              <Users className="w-3.5 h-3.5 text-[var(--neo-primary)]" />
+                              <span>{a.totalSubmissions || 0} پاسخ</span>
+                              {a.pendingSubmissions > 0 && (
+                                <span className="px-1.5 py-0.5 bg-amber-100 text-amber-800 rounded-md text-[10px]">
+                                  {a.pendingSubmissions} نیازمند نمره
                                 </span>
                               )}
                             </div>
-                          </div>
-                        </td>
-                        <td className="p-4 text-center">
-                          <span className="text-xs font-bold px-2.5 py-1 rounded-xl bg-[var(--neo-surface-2)] text-[var(--neo-text-secondary)]">
-                            {a.type === 'file_upload' ? 'ارسال فایل' : a.type === 'text_answer' ? 'پاسخ متنی' : 'ترکیبی (متن یا فایل)'}
-                          </span>
-                        </td>
-                        <td className="p-4 text-center">
-                          <span className="text-xs font-black text-[var(--neo-text-main)] bg-[var(--neo-surface-2)] px-2.5 py-1 rounded-xl">
-                            {a.maxScore || 100} نمره
-                          </span>
-                        </td>
-                        <td className="p-4 text-center text-xs font-medium text-[var(--neo-text-secondary)]">
-                          {a.deadline ? new Date(a.deadline).toLocaleDateString('fa-IR') : 'نامحدود'}
-                        </td>
-                        <td className="p-4 text-center">
-                          <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-[var(--neo-surface-2)] rounded-xl text-xs font-bold">
-                            <Users className="w-3.5 h-3.5 text-[var(--neo-primary)]" />
-                            <span>{a.totalSubmissions || 0} پاسخ</span>
-                            {a.pendingSubmissions > 0 && (
-                              <span className="px-1.5 py-0.5 bg-amber-100 text-amber-800 rounded-md text-[10px]">
-                                {a.pendingSubmissions} نیازمند نمره
+                          </td>
+                          <td className="p-4">
+                            <div className="flex items-center justify-center gap-1.5">
+                              <button
+                                onClick={() => openEditModal(a)}
+                                title="ویرایش تکلیف"
+                                className="p-2 text-[var(--neo-text-secondary)] hover:text-amber-600 hover:bg-amber-50 rounded-xl transition-colors"
+                              >
+                                <Edit className="w-4 h-4" />
+                              </button>
+                              <button
+                                onClick={() => {
+                                  if (confirm(`آیا از حذف تکلیف «${a.title}» اطمینان دارید؟`)) {
+                                    deleteAssignmentMutation.mutate(a._id);
+                                  }
+                                }}
+                                title="حذف تکلیف"
+                                className="p-2 text-[var(--neo-text-secondary)] hover:text-red-600 hover:bg-red-50 rounded-xl transition-colors"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+
+                {/* Mobile Cards View */}
+                <div className="md:hidden divide-y divide-[var(--neo-border)]">
+                  {assignments.map((a: any) => (
+                    <div key={a._id} className="p-4 space-y-3">
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="min-w-0">
+                          <h4 className="font-bold text-sm text-[var(--neo-text-main)] truncate">{a.title}</h4>
+                          <div className="flex items-center gap-2 mt-1">
+                            {a.classId ? (
+                              <span className="text-[10px] px-2 py-0.5 rounded bg-purple-100 text-purple-700 font-bold truncate">
+                                کلاس: {a.classId.title}
+                              </span>
+                            ) : (
+                              <span className="text-[10px] px-2 py-0.5 rounded bg-[var(--neo-primary)]/10 text-[var(--neo-primary)] font-bold truncate">
+                                {a.courseId?.title || 'دوره'}
                               </span>
                             )}
                           </div>
-                        </td>
-                        <td className="p-4">
-                          <div className="flex items-center justify-center gap-1.5">
-                            <button
-                              onClick={() => openEditModal(a)}
-                              title="ویرایش تکلیف"
-                              className="p-2 text-[var(--neo-text-secondary)] hover:text-amber-600 hover:bg-amber-50 rounded-xl transition-colors"
-                            >
-                              <Edit className="w-4 h-4" />
-                            </button>
-                            <button
-                              onClick={() => {
-                                if (confirm(`آیا از حذف تکلیف «${a.title}» اطمینان دارید؟`)) {
-                                  deleteAssignmentMutation.mutate(a._id);
-                                }
-                              }}
-                              title="حذف تکلیف"
-                              className="p-2 text-[var(--neo-text-secondary)] hover:text-red-600 hover:bg-red-50 rounded-xl transition-colors"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+                        </div>
+
+                        <div className="flex items-center gap-1 shrink-0">
+                          <button
+                            onClick={() => openEditModal(a)}
+                            className="p-2 rounded-xl bg-[var(--neo-surface-2)] text-[var(--neo-text-secondary)] hover:text-amber-600"
+                            title="ویرایش"
+                          >
+                            <Edit className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={() => {
+                              if (confirm(`آیا از حذف تکلیف «${a.title}» اطمینان دارید؟`)) {
+                                deleteAssignmentMutation.mutate(a._id);
+                              }
+                            }}
+                            className="p-2 rounded-xl bg-red-50 text-red-600"
+                            title="حذف"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-2 text-xs bg-[var(--neo-surface-2)] p-2.5 rounded-xl border border-[var(--neo-border)]">
+                        <div>نمره: <strong className="text-[var(--neo-text-main)]">{a.maxScore || 100}</strong></div>
+                        <div>پاسخ‌ها: <strong className="text-[var(--neo-primary)]">{a.totalSubmissions || 0}</strong> {a.pendingSubmissions > 0 && <span className="text-amber-600 text-[10px]">({a.pendingSubmissions} جدید)</span>}</div>
+                        <div className="col-span-2 text-[11px] text-[var(--neo-text-secondary)]">مهلت: {a.deadline ? new Date(a.deadline).toLocaleDateString('fa-IR') : 'نامحدود'}</div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </>
             )}
           </div>
         </div>
@@ -473,24 +580,24 @@ export default function InstructorAssignmentsPage() {
 
       {/* CREATE / EDIT ASSIGNMENT MODAL */}
       {isCreateModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in">
-          <div className="bg-[var(--neo-surface)] w-full max-w-xl rounded-3xl shadow-2xl border border-[var(--neo-border)] overflow-hidden flex flex-col">
-            <div className="p-6 border-b border-[var(--neo-border)] flex justify-between items-center bg-[var(--neo-surface-2)]/50">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-sm animate-in fade-in">
+          <div className="bg-[var(--neo-surface)] w-full max-w-xl max-h-[92vh] rounded-3xl shadow-2xl border border-[var(--neo-border)] overflow-hidden flex flex-col">
+            <div className="p-4 sm:p-6 border-b border-[var(--neo-border)] flex justify-between items-center bg-[var(--neo-surface-2)]/50 shrink-0">
               <div>
-                <h3 className="text-lg font-black text-[var(--neo-text-main)]">
+                <h3 className="text-base sm:text-lg font-black text-[var(--neo-text-main)]">
                   {editingAssignmentId ? 'ویرایش تکلیف' : 'تعریف تکلیف جدید'}
                 </h3>
-                <p className="text-xs text-[var(--neo-text-secondary)] mt-1">مشخصات تکلیف و صورت سوال را وارد کنید.</p>
+                <p className="text-xs text-[var(--neo-text-secondary)] mt-0.5 sm:mt-1">مشخصات تکلیف و صورت سوال را وارد کنید.</p>
               </div>
               <button 
                 onClick={closeAssignmentModal}
-                className="w-9 h-9 rounded-2xl bg-[var(--neo-surface)] border border-[var(--neo-border)] flex items-center justify-center text-[var(--neo-text-secondary)] hover:text-red-500"
+                className="w-9 h-9 rounded-2xl bg-[var(--neo-surface)] border border-[var(--neo-border)] flex items-center justify-center text-[var(--neo-text-secondary)] hover:text-red-500 shrink-0"
               >
                 ✕
               </button>
             </div>
 
-            <div className="p-6 space-y-4">
+            <div className="p-4 sm:p-6 space-y-4 overflow-y-auto flex-1">
               {/* Type Switcher: Course vs Class */}
               <div>
                 <label className="block text-xs font-bold text-[var(--neo-text-secondary)] mb-2">
@@ -658,27 +765,27 @@ export default function InstructorAssignmentsPage() {
 
       {/* GRADING MODAL */}
       {gradingSubmission && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in">
-          <div className="bg-[var(--neo-surface)] w-full max-w-xl rounded-3xl shadow-2xl border border-[var(--neo-border)] overflow-hidden flex flex-col">
-            <div className="p-6 border-b border-[var(--neo-border)] flex justify-between items-center bg-[var(--neo-surface-2)]/50">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-sm animate-in fade-in">
+          <div className="bg-[var(--neo-surface)] w-full max-w-xl max-h-[92vh] rounded-3xl shadow-2xl border border-[var(--neo-border)] overflow-hidden flex flex-col">
+            <div className="p-4 sm:p-6 border-b border-[var(--neo-border)] flex justify-between items-center bg-[var(--neo-surface-2)]/50 shrink-0">
               <div>
-                <h3 className="text-lg font-black text-[var(--neo-text-main)] flex items-center gap-2">
+                <h3 className="text-base sm:text-lg font-black text-[var(--neo-text-main)] flex items-center gap-2">
                   <Award className="w-5 h-5 text-[var(--neo-primary)]" />
                   ارزیابی و نمره‌دهی تکلیف
                 </h3>
-                <p className="text-xs text-[var(--neo-text-secondary)] mt-1">
+                <p className="text-xs text-[var(--neo-text-secondary)] mt-0.5 sm:mt-1">
                   دانشجو: {gradingSubmission.userId?.firstName} {gradingSubmission.userId?.lastName}
                 </p>
               </div>
               <button 
                 onClick={() => setGradingSubmission(null)}
-                className="w-9 h-9 rounded-2xl bg-[var(--neo-surface)] border border-[var(--neo-border)] flex items-center justify-center text-[var(--neo-text-secondary)] hover:text-red-500"
+                className="w-9 h-9 rounded-2xl bg-[var(--neo-surface)] border border-[var(--neo-border)] flex items-center justify-center text-[var(--neo-text-secondary)] hover:text-red-500 shrink-0"
               >
                 ✕
               </button>
             </div>
 
-            <div className="p-6 space-y-4 max-h-[70vh] overflow-y-auto">
+            <div className="p-4 sm:p-6 space-y-4 overflow-y-auto flex-1">
               {/* Submission Answer Content */}
               <div className="p-4 rounded-2xl bg-[var(--neo-surface-2)] border border-[var(--neo-border)]">
                 <div className="text-xs font-bold text-[var(--neo-text-secondary)] mb-2">

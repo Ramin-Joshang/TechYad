@@ -466,6 +466,8 @@ export function ClassFormModal({
                     value={formData.thumbnail}
                     onChange={(url) => setFormData(prev => ({ ...prev, thumbnail: url }))}
                     accept="image/*"
+                    folder="classes"
+                    maxSizeMB={5}
                     previewType="image"
                   />
                 </div>

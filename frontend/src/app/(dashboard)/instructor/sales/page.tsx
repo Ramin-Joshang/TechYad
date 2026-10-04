@@ -175,104 +175,171 @@ export default function InstructorSalesPage() {
                 <p className="text-xs text-slate-400">می‌توانید ماه یا سال دیگری را برای مشاهده انتخاب کنید.</p>
               </div>
             ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full text-right text-xs">
-                  <thead className="bg-slate-50/80 text-slate-600 font-bold border-b border-slate-100">
-                    <tr>
-                      <th className="p-4">دانشجو / خریدار</th>
-                      <th className="p-4">عنوان و نوع آموزش</th>
-                      <th className="p-4">تاریخ تراکنش</th>
-                      <th className="p-4">مبلغ کل پرداخت</th>
-                      <th className="p-4 text-left">سهم شما (۷۰٪)</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100">
-                    {filteredSales.map((sale: any) => {
-                      const user = sale.userId;
-                      const studentName = user 
-                        ? `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.email 
-                        : 'دانشجو';
+              <>
+                <div className="hidden md:block overflow-x-auto">
+                  <table className="w-full text-right text-xs">
+                    <thead className="bg-slate-50/80 text-slate-600 font-bold border-b border-slate-100">
+                      <tr>
+                        <th className="p-4">دانشجو / خریدار</th>
+                        <th className="p-4">عنوان و نوع آموزش</th>
+                        <th className="p-4">تاریخ تراکنش</th>
+                        <th className="p-4">مبلغ کل پرداخت</th>
+                        <th className="p-4 text-left">سهم شما (۷۰٪)</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100">
+                      {filteredSales.map((sale: any) => {
+                        const user = sale.userId;
+                        const studentName = user 
+                          ? `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.email 
+                          : 'دانشجو';
 
-                      return (
-                        <tr key={sale._id} className="hover:bg-slate-50/70 transition-colors">
-                          
-                          {/* Student */}
-                          <td className="p-4 whitespace-nowrap">
-                            <div className="flex items-center gap-3">
-                              <div className="w-9 h-9 rounded-2xl bg-indigo-50 text-indigo-700 flex items-center justify-center font-bold overflow-hidden shrink-0 border border-indigo-100">
-                                {user?.avatar ? (
-                                  <img src={user.avatar} alt="Avatar" className="w-full h-full object-cover" />
-                                ) : (
-                                  user?.firstName?.charAt(0) || 'U'
-                                )}
-                              </div>
-                              <div>
-                                <div className="font-bold text-slate-900 text-sm">
-                                  {studentName}
+                        return (
+                          <tr key={sale._id} className="hover:bg-slate-50/70 transition-colors">
+                            
+                            {/* Student */}
+                            <td className="p-4 whitespace-nowrap">
+                              <div className="flex items-center gap-3">
+                                <div className="w-9 h-9 rounded-2xl bg-indigo-50 text-indigo-700 flex items-center justify-center font-bold overflow-hidden shrink-0 border border-indigo-100">
+                                  {user?.avatar ? (
+                                    <img src={user.avatar} alt="Avatar" className="w-full h-full object-cover" />
+                                  ) : (
+                                    user?.firstName?.charAt(0) || 'U'
+                                  )}
                                 </div>
-                                <div className="text-[10px] text-slate-400 font-mono mt-0.5">
-                                  {user?.email || '-'}
-                                </div>
-                              </div>
-                            </div>
-                          </td>
-
-                          {/* Item(s) */}
-                          <td className="p-4">
-                            <div className="space-y-1">
-                              {sale.items?.map((item: any, idx: number) => {
-                                const isClass = item.itemType === 'class';
-                                return (
-                                  <div key={idx} className="flex items-center gap-2">
-                                    <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[10px] font-bold border ${
-                                      isClass 
-                                        ? 'bg-purple-50 text-purple-700 border-purple-200' 
-                                        : 'bg-blue-50 text-blue-700 border-blue-200'
-                                    }`}>
-                                      {isClass ? <GraduationCap className="w-3 h-3" /> : <BookOpen className="w-3 h-3" />}
-                                      {isClass ? 'کلاس آموزشی' : 'دوره آموزشی'}
-                                    </span>
-                                    <span className="font-bold text-slate-800 text-xs">
-                                      {item.title || item.titleSnapshot || 'عنوان دوره/کلاس'}
-                                    </span>
-                                    {item.paymentType === 'deposit' && (
-                                      <span className="text-[9px] bg-amber-50 text-amber-700 border border-amber-200 px-1.5 py-0.5 rounded-md font-bold">
-                                        بیعانه
-                                      </span>
-                                    )}
+                                <div>
+                                  <div className="font-bold text-slate-900 text-sm">
+                                    {studentName}
                                   </div>
-                                );
-                              })}
+                                  <div className="text-[10px] text-slate-400 font-mono mt-0.5">
+                                    {user?.email || '-'}
+                                  </div>
+                                </div>
+                              </div>
+                            </td>
+
+                            {/* Item(s) */}
+                            <td className="p-4">
+                              <div className="space-y-1">
+                                {sale.items?.map((item: any, idx: number) => {
+                                  const isClass = item.itemType === 'class';
+                                  return (
+                                    <div key={idx} className="flex items-center gap-2">
+                                      <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[10px] font-bold border ${
+                                        isClass 
+                                          ? 'bg-purple-50 text-purple-700 border-purple-200' 
+                                          : 'bg-blue-50 text-blue-700 border-blue-200'
+                                      }`}>
+                                        {isClass ? <GraduationCap className="w-3 h-3" /> : <BookOpen className="w-3 h-3" />}
+                                        {isClass ? 'کلاس آموزشی' : 'دوره آموزشی'}
+                                      </span>
+                                      <span className="font-bold text-slate-800 text-xs">
+                                        {item.title || item.titleSnapshot || 'عنوان دوره/کلاس'}
+                                      </span>
+                                      {item.paymentType === 'deposit' && (
+                                        <span className="text-[9px] bg-amber-50 text-amber-700 border border-amber-200 px-1.5 py-0.5 rounded-md font-bold">
+                                          بیعانه
+                                        </span>
+                                      )}
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            </td>
+
+                            {/* Date */}
+                            <td className="p-4 whitespace-nowrap text-slate-500 font-medium">
+                              <div>{new Date(sale.createdAt).toLocaleDateString('fa-IR')}</div>
+                              <div className="text-[10px] text-slate-400 font-mono">
+                                {new Date(sale.createdAt).toLocaleTimeString('fa-IR', { hour: '2-digit', minute: '2-digit' })}
+                              </div>
+                            </td>
+
+                            {/* Total Paid */}
+                            <td className="p-4 whitespace-nowrap font-bold text-slate-700 font-mono">
+                              {sale.total?.toLocaleString('fa-IR')} تومان
+                            </td>
+
+                            {/* Instructor Share */}
+                            <td className="p-4 whitespace-nowrap text-left">
+                              <div className="inline-flex items-center gap-1 font-black text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-xl border border-emerald-100 font-mono">
+                                <ArrowDownRight className="w-3.5 h-3.5" />
+                                {sale.instructorShare?.toLocaleString('fa-IR')} تومان
+                              </div>
+                            </td>
+
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+
+                {/* Mobile Cards View for Transactions */}
+                <div className="md:hidden divide-y divide-slate-100">
+                  {filteredSales.map((sale: any) => {
+                    const user = sale.userId;
+                    const studentName = user 
+                      ? `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.email 
+                      : 'دانشجو';
+
+                    return (
+                      <div key={sale._id} className="p-4 space-y-3 hover:bg-slate-50/60 transition">
+                        <div className="flex items-center justify-between gap-3">
+                          <div className="flex items-center gap-2.5 min-w-0">
+                            <div className="w-9 h-9 rounded-2xl bg-indigo-50 text-indigo-700 flex items-center justify-center font-bold overflow-hidden shrink-0 border border-indigo-100">
+                              {user?.avatar ? (
+                                <img src={user.avatar} alt="Avatar" className="w-full h-full object-cover" />
+                              ) : (
+                                user?.firstName?.charAt(0) || 'U'
+                              )}
                             </div>
-                          </td>
-
-                          {/* Date */}
-                          <td className="p-4 whitespace-nowrap text-slate-500 font-medium">
-                            <div>{new Date(sale.createdAt).toLocaleDateString('fa-IR')}</div>
-                            <div className="text-[10px] text-slate-400 font-mono">
-                              {new Date(sale.createdAt).toLocaleTimeString('fa-IR', { hour: '2-digit', minute: '2-digit' })}
+                            <div className="min-w-0">
+                              <div className="font-bold text-slate-900 text-sm truncate">{studentName}</div>
+                              <div className="text-[10px] text-slate-400 font-mono truncate">{user?.email || '-'}</div>
                             </div>
-                          </td>
+                          </div>
 
-                          {/* Total Paid */}
-                          <td className="p-4 whitespace-nowrap font-bold text-slate-700 font-mono">
-                            {sale.total?.toLocaleString('fa-IR')} تومان
-                          </td>
-
-                          {/* Instructor Share */}
-                          <td className="p-4 whitespace-nowrap text-left">
-                            <div className="inline-flex items-center gap-1 font-black text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-xl border border-emerald-100 font-mono">
-                              <ArrowDownRight className="w-3.5 h-3.5" />
-                              {sale.instructorShare?.toLocaleString('fa-IR')} تومان
+                          <div className="text-left shrink-0">
+                            <div className="inline-flex items-center gap-1 font-black text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-lg border border-emerald-100 font-mono text-xs">
+                              <ArrowDownRight className="w-3 h-3" />
+                              {(sale.instructorShare || 0).toLocaleString('fa-IR')} ت
                             </div>
-                          </td>
+                            <div className="text-[10px] text-slate-400 font-mono text-left mt-0.5">
+                              کل: {(sale.total || 0).toLocaleString('fa-IR')} ت
+                            </div>
+                          </div>
+                        </div>
 
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
+                        <div className="space-y-1 bg-slate-50 p-2.5 rounded-xl border border-slate-100">
+                          {sale.items?.map((item: any, idx: number) => {
+                            const isClass = item.itemType === 'class';
+                            return (
+                              <div key={idx} className="flex items-center gap-1.5 text-xs text-slate-800 font-bold">
+                                <span className={`text-[10px] px-1.5 py-0.5 rounded font-bold shrink-0 ${
+                                  isClass ? 'bg-purple-100 text-purple-700' : 'bg-blue-100 text-blue-700'
+                                }`}>
+                                  {isClass ? 'کلاس' : 'دوره'}
+                                </span>
+                                <span className="truncate">{item.title || item.titleSnapshot || 'عنوان دوره'}</span>
+                              </div>
+                            );
+                          })}
+                        </div>
+
+                        <div className="flex items-center justify-between text-[11px] text-slate-400 pt-1">
+                          <span className="font-mono">
+                            {new Date(sale.createdAt).toLocaleDateString('fa-IR')}
+                          </span>
+                          <span className="font-mono">
+                            {new Date(sale.createdAt).toLocaleTimeString('fa-IR', { hour: '2-digit', minute: '2-digit' })}
+                          </span>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </>
             )}
           </div>
         </>

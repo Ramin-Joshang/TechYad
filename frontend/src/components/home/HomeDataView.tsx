@@ -21,7 +21,7 @@ export function HomeDataView() {
   const d = data || {};
 
   return (
-    <div className="min-h-screen flex flex-col bg-[var(--neo-bg)]">
+    <div dir="rtl" className="min-h-screen flex flex-col bg-[var(--neo-bg)] w-full overflow-x-hidden text-right">
       <Hero />
       <Intro />
       

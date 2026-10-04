@@ -13,17 +13,17 @@ export function CourseGrid({ title, description, courses, viewAllLink }: Props) 
   return (
     <section className="py-20 bg-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
-          <div className="max-w-2xl">
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">{title}</h2>
-            <p className="text-gray-600">{description}</p>
+        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-8 sm:mb-12 text-right">
+          <div className="max-w-2xl text-right">
+            <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2 sm:mb-4 text-right">{title}</h2>
+            <p className="text-sm sm:text-base text-gray-600 text-right">{description}</p>
           </div>
           <Link 
             href={viewAllLink}
-            className="inline-flex items-center text-blue-600 font-medium hover:text-blue-700 transition"
+            className="inline-flex items-center text-blue-600 font-medium hover:text-blue-700 transition text-sm self-start sm:self-auto shrink-0"
           >
-            مشاهده همه
-            <svg className="w-5 h-5 mr-2 rotate-180" viewBox="0 0 20 20" fill="currentColor">
+            <span>مشاهده همه</span>
+            <svg className="w-4 h-4 mr-1.5 rotate-180" viewBox="0 0 20 20" fill="currentColor">
               <path fillRule="evenodd" d="M12.293 5.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-2.293-2.293a1 1 0 010-1.414z" clipRule="evenodd" />
             </svg>
           </Link>

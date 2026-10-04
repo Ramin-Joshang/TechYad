@@ -181,6 +181,8 @@ export default function NewCoursePage() {
               value={formData.thumbnail}
               onChange={(url) => setFormData(prev => ({ ...prev, thumbnail: url }))}
               accept="image/*"
+              folder="courses"
+              maxSizeMB={5}
               previewType="image"
             />
 
@@ -190,6 +192,8 @@ export default function NewCoursePage() {
               value={formData.previewVideo}
               onChange={(url) => setFormData(prev => ({ ...prev, previewVideo: url }))}
               accept="video/*"
+              folder="lessons"
+              maxSizeMB={100}
               previewType="video"
             />
           </div>

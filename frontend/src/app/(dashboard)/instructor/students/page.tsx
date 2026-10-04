@@ -217,7 +217,9 @@ export default function InstructorStudentsPage() {
             <p className="text-xs text-slate-400">فیلتر انتخاب شده را بررسی کنید یا عبارت جستجو را تغییر دهید.</p>
           </div>
         ) : (
-          <div className="overflow-x-auto">
+          <>
+            {/* Desktop Table View */}
+            <div className="hidden md:block overflow-x-auto">
             <table className="w-full text-right text-xs">
               <thead className="border-b border-slate-100 bg-slate-50/80 text-slate-600 font-bold">
                 <tr>
@@ -366,7 +368,93 @@ export default function InstructorStudentsPage() {
               </tbody>
             </table>
           </div>
-        )}
+
+          {/* Mobile Cards View */}
+          <div className="md:hidden divide-y divide-slate-100">
+            {filteredStudents.map((enrollment: any) => {
+              const student = enrollment.userId;
+              const item = enrollment.item || {};
+              const isClass = enrollment.type === 'class';
+              const isDeposit = enrollment.paymentType === 'deposit';
+
+              return (
+                <div key={enrollment._id} className="p-4 space-y-3 hover:bg-slate-50/60 transition">
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className="w-10 h-10 rounded-2xl bg-indigo-100 text-indigo-700 flex items-center justify-center font-bold overflow-hidden shrink-0 border border-indigo-200">
+                        {student?.avatar ? (
+                          <img src={student.avatar} alt="Avatar" className="w-full h-full object-cover" />
+                        ) : (
+                          student?.firstName?.charAt(0) || 'د'
+                        )}
+                      </div>
+                      <div className="min-w-0">
+                        <div className="font-bold text-slate-900 text-sm truncate">
+                          {student?.firstName} {student?.lastName}
+                        </div>
+                        <div className="text-[11px] text-slate-400 font-mono truncate">
+                          {student?.email}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-1.5 shrink-0">
+                      {student?.email && (
+                        <a 
+                          href={`mailto:${student.email}`}
+                          className="p-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-xl"
+                          title="ایمیل"
+                        >
+                          <Mail className="w-3.5 h-3.5" />
+                        </a>
+                      )}
+                      {student?.mobile && (
+                        <a 
+                          href={`tel:${student.mobile}`}
+                          className="p-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 rounded-xl"
+                          title="تماس"
+                        >
+                          <Phone className="w-3.5 h-3.5" />
+                        </a>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-1.5 text-xs text-slate-800 font-bold bg-slate-50 p-2.5 rounded-xl border border-slate-100">
+                    {isClass ? (
+                      <span className="text-emerald-700 text-[10px] bg-emerald-100 px-1.5 py-0.5 rounded font-bold shrink-0">
+                        کلاس
+                      </span>
+                    ) : (
+                      <span className="text-blue-700 text-[10px] bg-blue-100 px-1.5 py-0.5 rounded font-bold shrink-0">
+                        دوره
+                      </span>
+                    )}
+                    <span className="truncate">{item.title || enrollment.courseId?.title || 'عنوان دوره'}</span>
+                  </div>
+
+                  <div className="flex items-center justify-between text-xs pt-1 text-slate-500">
+                    <div>
+                      {isClass ? (
+                        isDeposit ? (
+                          <span className="text-amber-700 font-bold text-[11px]">بیعانه: {(enrollment.depositAmount || enrollment.amount || 0).toLocaleString('fa-IR')} ت</span>
+                        ) : (
+                          <span className="text-emerald-700 font-bold text-[11px]">تسویه کامل: {(enrollment.amount || 0).toLocaleString('fa-IR')} ت</span>
+                        )
+                      ) : (
+                        <span className="text-blue-700 font-bold text-[11px]">پیشرفت: {enrollment.progress || 0}٪</span>
+                      )}
+                    </div>
+                    <span className="text-[10px] text-slate-400 font-mono">
+                      {new Date(enrollment.enrolledAt || enrollment.createdAt).toLocaleDateString('fa-IR')}
+                    </span>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </>
+      )}
 
         {/* Pagination Bar */}
         {(data?.pages || 1) > 1 && (

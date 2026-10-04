@@ -15,18 +15,19 @@ export function CourseList({
   if (!isLoading && !data?.length) return null;
 
   return (
-    <section className="py-20 bg-[var(--neo-bg)] border-b border-[var(--neo-border)]">
+    <section className="py-12 sm:py-20 bg-[var(--neo-bg)] border-b border-[var(--neo-border)]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex flex-col md:flex-row justify-between items-end mb-12 gap-6">
-          <div>
-            <div className="flex items-center gap-2 mb-3">
-              <span className="w-8 h-px bg-[var(--neo-primary)]"></span>
-              <span className="text-[var(--neo-primary)] font-bold tracking-widest text-sm uppercase">{sectionName}</span>
+        <div dir="rtl" className="flex flex-row justify-between items-center sm:items-end mb-8 sm:mb-12 gap-3 sm:gap-6 text-right w-full">
+          <div className="text-right flex-1 min-w-0">
+            <div className="flex items-center gap-2 mb-2 sm:mb-3 justify-start">
+              <span className="w-6 sm:w-8 h-px bg-[var(--neo-primary)] shrink-0"></span>
+              <span className="text-[var(--neo-primary)] font-bold tracking-widest text-xs sm:text-sm uppercase truncate">{sectionName}</span>
             </div>
-            <h2 className="text-3xl font-black text-[var(--neo-text-main)]">{title}</h2>
+            <h2 className="text-xl sm:text-2xl md:text-3xl font-black text-[var(--neo-text-main)] text-right truncate">{title}</h2>
           </div>
-          <Link href="/courses" className="text-[var(--neo-text-secondary)] hover:text-[var(--neo-primary)] transition font-medium flex items-center gap-2 pb-1 border-b border-transparent hover:border-[var(--neo-primary)]">
-            مشاهده همه
+          <Link href={title.includes('کلاس') ? '/classes' : '/courses'} className="text-[var(--neo-text-secondary)] hover:text-[var(--neo-primary)] transition font-medium inline-flex items-center gap-1.5 text-xs sm:text-sm shrink-0 pb-1 border-b border-transparent hover:border-[var(--neo-primary)] whitespace-nowrap">
+            <span>مشاهده همه</span>
+            <span className="text-base leading-none">←</span>
           </Link>
         </div>
 
@@ -65,7 +66,7 @@ export function CourseList({
                 const displayPrice = hasDiscount ? item.discountPrice : item.price;
 
                 return (
-                  <Link key={item._id} href={linkHref} className="neo-card group flex flex-col overflow-hidden relative bg-white border border-[var(--neo-border)] rounded-2xl hover:shadow-lg transition-all duration-300">
+                  <Link key={item._id} href={linkHref} dir="rtl" className="neo-card group flex flex-col overflow-hidden relative bg-white border border-[var(--neo-border)] rounded-2xl hover:shadow-lg transition-all duration-300 text-right">
                     <div className="relative aspect-[16/10] overflow-hidden bg-[var(--neo-surface-2)]">
                       <img
                         src={item.coverImage || item.thumbnail || `https://picsum.photos/seed/${item.slug || item._id}/400/250`}
@@ -98,7 +99,7 @@ export function CourseList({
                       </div>
                     </div>
 
-                    <div className="p-4 sm:p-5 flex flex-col flex-grow">
+                    <div className="p-4 sm:p-5 flex flex-col flex-grow text-right">
                       <div className="flex items-center justify-between mb-2.5">
                         <div className="text-[var(--neo-text-muted)] text-[11px] font-medium bg-[var(--neo-surface-2)] px-2 py-0.5 rounded-md">
                           {item.categoryId?.name || item.category?.name || (isClass ? 'کلاس تعاملی' : 'دوره آموزشی')}
@@ -109,11 +110,11 @@ export function CourseList({
                         </div>
                       </div>
 
-                      <h3 className="font-bold text-[var(--neo-text-main)] mb-2 text-sm sm:text-base line-clamp-2 leading-relaxed group-hover:text-[var(--neo-primary)] transition-colors">
+                      <h3 className="font-bold text-[var(--neo-text-main)] mb-2 text-sm sm:text-base line-clamp-2 leading-relaxed group-hover:text-[var(--neo-primary)] transition-colors text-right w-full">
                         {item.title}
                       </h3>
 
-                      <div className="flex items-center gap-2 mb-4">
+                      <div className="flex items-center gap-2 mb-4 text-right">
                         <div className="w-6 h-6 rounded-full bg-blue-50 flex items-center justify-center text-blue-600 overflow-hidden border border-blue-100 shrink-0">
                           {instructorAvatar ? (
                             <img
@@ -125,7 +126,7 @@ export function CourseList({
                             <Users className="w-3 h-3" />
                           )}
                         </div>
-                        <span className="text-xs text-[var(--neo-text-secondary)] font-medium line-clamp-1">
+                        <span className="text-xs text-[var(--neo-text-secondary)] font-medium line-clamp-1 text-right">
                           {instructorName || 'استاد تک‌یاد'}
                         </span>
                       </div>
@@ -138,7 +139,7 @@ export function CourseList({
                             <span>{item.totalLessons || 12} درس</span>
                           )}
                         </div>
-                        <div className="font-bold text-xs sm:text-sm text-[var(--neo-primary)] font-mono">
+                        <div className="font-bold text-xs sm:text-sm text-[var(--neo-primary)] font-mono text-left dir-ltr">
                           {isFree ? (
                             <span className="text-emerald-600">رایگان</span>
                           ) : (

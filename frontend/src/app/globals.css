@@ -39,7 +39,18 @@
   --color-neo-error: var(--neo-error);
 }
 
+html {
+  direction: rtl;
+  text-align: right;
+  overflow-x: hidden;
+  max-width: 100vw;
+}
+
 body {
+  direction: rtl;
+  text-align: right;
+  overflow-x: hidden;
+  max-width: 100vw;
   background-color: var(--neo-bg);
   color: var(--neo-text-main);
   font-family: 'Vazirmatn', sans-serif;

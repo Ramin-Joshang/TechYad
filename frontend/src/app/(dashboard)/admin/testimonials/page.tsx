@@ -268,8 +268,10 @@ export default function AdminTestimonialsPage() {
                     className="flex-1 px-3.5 py-2 rounded-xl border border-[var(--neo-border)] bg-[var(--neo-surface-2)] text-xs dir-ltr font-mono"
                   />
                   <MediaUploader
-                    onUploadSuccess={(url) => setForm(prev => ({ ...prev, avatar: url }))}
-                    category="image"
+                    onChange={(url) => setForm(prev => ({ ...prev, avatar: url }))}
+                    folder="avatars"
+                    maxSizeMB={5}
+                    accept="image/*"
                     label="آپلود"
                   />
                 </div>

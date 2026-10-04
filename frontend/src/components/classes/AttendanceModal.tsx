@@ -280,7 +280,8 @@ export function AttendanceModal({ classItem, onClose, isAdmin = false }: Attenda
 
               {/* Student Attendance List */}
               <div className="border border-slate-200 rounded-2xl overflow-hidden shadow-2xs divide-y divide-slate-100">
-                <div className="bg-slate-100/80 px-4 py-2.5 text-xs font-bold text-slate-600 grid grid-cols-12 gap-2 items-center">
+                {/* Desktop Table Header */}
+                <div className="hidden md:grid bg-slate-100/80 px-4 py-2.5 text-xs font-bold text-slate-600 grid-cols-12 gap-2 items-center">
                   <span className="col-span-5">نام و مشخصات دانشجو</span>
                   <span className="col-span-4 text-center">وضعیت حضور</span>
                   <span className="col-span-3 text-center">یادداشت استاد</span>
@@ -294,35 +295,37 @@ export function AttendanceModal({ classItem, onClose, isAdmin = false }: Attenda
                   const isPreRegistered = enroll.paymentType === 'deposit' && !enroll.remainingPaid;
 
                   return (
-                    <div key={studentId} className="p-3 sm:px-4 sm:py-3.5 bg-white hover:bg-slate-50/80 transition grid grid-cols-12 gap-2 items-center">
+                    <div key={studentId} className="p-3 sm:px-4 sm:py-3.5 bg-white hover:bg-slate-50/80 transition flex flex-col md:grid md:grid-cols-12 gap-3 md:gap-2 md:items-center">
                       {/* Student info */}
-                      <div className="col-span-5 flex items-center gap-2.5">
-                        <img
-                          src={student.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(student.firstName + ' ' + student.lastName)}&background=random`}
-                          alt=""
-                          className="w-9 h-9 rounded-full object-cover shrink-0 border border-slate-200"
-                        />
-                        <div className="min-w-0">
-                          <div className="font-bold text-xs sm:text-sm text-slate-900 truncate">
-                            {student.firstName} {student.lastName}
-                          </div>
-                          <div className="text-[11px] text-slate-500 flex items-center gap-1.5 truncate">
-                            <span>{student.email || student.mobile || 'بدون ایمیل'}</span>
-                            {isPreRegistered && (
-                              <span className="text-[10px] bg-amber-50 text-amber-700 border border-amber-200 px-1 rounded font-bold">
-                                پیش‌ثبت‌نام (بدهکار)
-                              </span>
-                            )}
+                      <div className="md:col-span-5 flex items-center justify-between md:justify-start gap-2.5">
+                        <div className="flex items-center gap-2.5 min-w-0">
+                          <img
+                            src={student.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(student.firstName + ' ' + student.lastName)}&background=random`}
+                            alt=""
+                            className="w-9 h-9 rounded-full object-cover shrink-0 border border-slate-200"
+                          />
+                          <div className="min-w-0">
+                            <div className="font-bold text-xs sm:text-sm text-slate-900 truncate">
+                              {student.firstName} {student.lastName}
+                            </div>
+                            <div className="text-[11px] text-slate-500 flex items-center gap-1.5 truncate">
+                              <span>{student.email || student.mobile || 'بدون ایمیل'}</span>
+                            </div>
                           </div>
                         </div>
+                        {isPreRegistered && (
+                          <span className="text-[10px] bg-amber-50 text-amber-700 border border-amber-200 px-1.5 py-0.5 rounded font-bold shrink-0">
+                            پیش‌ثبت‌نام (بدهکار)
+                          </span>
+                        )}
                       </div>
 
                       {/* Status toggle buttons */}
-                      <div className="col-span-4 flex items-center justify-center gap-1">
+                      <div className="md:col-span-4 grid grid-cols-4 md:flex md:items-center md:justify-center gap-1.5 sm:gap-1">
                         <button
                           type="button"
                           onClick={() => updateStudentStatus(studentId, 'present')}
-                          className={`px-2 py-1 rounded-lg text-xs font-bold transition flex items-center gap-1 ${
+                          className={`py-1.5 px-2 md:px-2 md:py-1 rounded-xl md:rounded-lg text-xs font-bold transition flex items-center justify-center gap-1 ${
                             currentRec.status === 'present'
                               ? 'bg-emerald-600 text-white shadow-xs'
                               : 'bg-slate-100 text-slate-600 hover:bg-emerald-50 hover:text-emerald-700'
@@ -330,13 +333,13 @@ export function AttendanceModal({ classItem, onClose, isAdmin = false }: Attenda
                           title="حاضر"
                         >
                           <CheckCircle2 className="w-3.5 h-3.5" />
-                          <span className="hidden sm:inline">حاضر</span>
+                          <span>حاضر</span>
                         </button>
 
                         <button
                           type="button"
                           onClick={() => updateStudentStatus(studentId, 'late')}
-                          className={`px-2 py-1 rounded-lg text-xs font-bold transition flex items-center gap-1 ${
+                          className={`py-1.5 px-2 md:px-2 md:py-1 rounded-xl md:rounded-lg text-xs font-bold transition flex items-center justify-center gap-1 ${
                             currentRec.status === 'late'
                               ? 'bg-amber-500 text-white shadow-xs'
                               : 'bg-slate-100 text-slate-600 hover:bg-amber-50 hover:text-amber-700'
@@ -344,13 +347,13 @@ export function AttendanceModal({ classItem, onClose, isAdmin = false }: Attenda
                           title="با تأخیر"
                         >
                           <Clock className="w-3.5 h-3.5" />
-                          <span className="hidden sm:inline">تأخیر</span>
+                          <span>تأخیر</span>
                         </button>
 
                         <button
                           type="button"
                           onClick={() => updateStudentStatus(studentId, 'absent')}
-                          className={`px-2 py-1 rounded-lg text-xs font-bold transition flex items-center gap-1 ${
+                          className={`py-1.5 px-2 md:px-2 md:py-1 rounded-xl md:rounded-lg text-xs font-bold transition flex items-center justify-center gap-1 ${
                             currentRec.status === 'absent'
                               ? 'bg-rose-600 text-white shadow-xs'
                               : 'bg-slate-100 text-slate-600 hover:bg-rose-50 hover:text-rose-700'
@@ -358,31 +361,31 @@ export function AttendanceModal({ classItem, onClose, isAdmin = false }: Attenda
                           title="غایب"
                         >
                           <XCircle className="w-3.5 h-3.5" />
-                          <span className="hidden sm:inline">غایب</span>
+                          <span>غایب</span>
                         </button>
 
                         <button
                           type="button"
                           onClick={() => updateStudentStatus(studentId, 'excused')}
-                          className={`px-2 py-1 rounded-lg text-xs font-bold transition flex items-center gap-1 ${
+                          className={`py-1.5 px-2 md:px-2 md:py-1 rounded-xl md:rounded-lg text-xs font-bold transition flex items-center justify-center gap-1 ${
                             currentRec.status === 'excused'
                               ? 'bg-blue-600 text-white shadow-xs'
                               : 'bg-slate-100 text-slate-600 hover:bg-blue-50 hover:text-blue-700'
                           }`}
                           title="مرخصی موجه"
                         >
-                          <span className="hidden sm:inline">موجه</span>
+                          <span>موجه</span>
                         </button>
                       </div>
 
                       {/* Note */}
-                      <div className="col-span-3">
+                      <div className="md:col-span-3">
                         <input
                           type="text"
                           value={currentRec.note || ''}
                           onChange={(e) => updateStudentNote(studentId, e.target.value)}
-                          placeholder="توضیح کوتاه..."
-                          className="w-full bg-slate-50 border border-slate-200 rounded-lg px-2 py-1 text-xs text-slate-700 focus:bg-white focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                          placeholder="یادداشت و توضیح استاد..."
+                          className="w-full bg-slate-50 border border-slate-200 rounded-xl md:rounded-lg px-2.5 py-1.5 md:py-1 text-xs text-slate-700 focus:bg-white focus:outline-none focus:ring-1 focus:ring-emerald-500"
                         />
                       </div>
                     </div>
@@ -398,7 +401,7 @@ export function AttendanceModal({ classItem, onClose, isAdmin = false }: Attenda
               </div>
 
               <div className="border border-slate-200 rounded-2xl overflow-hidden divide-y divide-slate-100">
-                <div className="bg-slate-100/80 px-4 py-2.5 text-xs font-bold text-slate-600 grid grid-cols-12 gap-2">
+                <div className="hidden md:grid bg-slate-100/80 px-4 py-2.5 text-xs font-bold text-slate-600 grid-cols-12 gap-2">
                   <span className="col-span-4">دانشجو</span>
                   <span className="col-span-3 text-center">تعداد جلسات حضور</span>
                   <span className="col-span-2 text-center">درصد حضور</span>
@@ -422,21 +425,31 @@ export function AttendanceModal({ classItem, onClose, isAdmin = false }: Attenda
                   const isPre = enroll.paymentType === 'deposit';
 
                   return (
-                    <div key={studentId} className="px-4 py-3 bg-white hover:bg-slate-50/80 transition grid grid-cols-12 gap-2 items-center text-xs">
-                      <div className="col-span-4 flex items-center gap-2">
-                        <img
-                          src={student.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(student.firstName + ' ' + student.lastName)}`}
-                          alt=""
-                          className="w-7 h-7 rounded-full object-cover shrink-0"
-                        />
-                        <span className="font-bold text-slate-900 truncate">{student.firstName} {student.lastName}</span>
+                    <div key={studentId} className="p-3 sm:px-4 sm:py-3 bg-white hover:bg-slate-50/80 transition flex flex-col md:grid md:grid-cols-12 gap-2 md:items-center text-xs">
+                      <div className="md:col-span-4 flex items-center justify-between md:justify-start gap-2">
+                        <div className="flex items-center gap-2">
+                          <img
+                            src={student.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(student.firstName + ' ' + student.lastName)}`}
+                            alt=""
+                            className="w-7 h-7 rounded-full object-cover shrink-0"
+                          />
+                          <span className="font-bold text-slate-900 truncate">{student.firstName} {student.lastName}</span>
+                        </div>
+                        <div className="md:hidden">
+                          <span className={`px-2 py-0.5 rounded-full font-bold text-xs ${
+                            pct >= 80 ? 'bg-emerald-100 text-emerald-800' :
+                            pct >= 50 ? 'bg-amber-100 text-amber-800' : 'bg-rose-100 text-rose-800'
+                          }`}>
+                            {pct}٪ حضور
+                          </span>
+                        </div>
                       </div>
 
-                      <div className="col-span-3 text-center font-bold text-slate-700">
+                      <div className="md:col-span-3 text-right md:text-center font-bold text-slate-700">
                         {present} از {totalRecorded} جلسه ثبت شده
                       </div>
 
-                      <div className="col-span-2 text-center">
+                      <div className="hidden md:block md:col-span-2 text-center">
                         <span className={`px-2 py-0.5 rounded-full font-bold text-xs ${
                           pct >= 80 ? 'bg-emerald-100 text-emerald-800' :
                           pct >= 50 ? 'bg-amber-100 text-amber-800' : 'bg-rose-100 text-rose-800'
@@ -445,7 +458,7 @@ export function AttendanceModal({ classItem, onClose, isAdmin = false }: Attenda
                         </span>
                       </div>
 
-                      <div className="col-span-3 text-center">
+                      <div className="md:col-span-3 text-right md:text-center">
                         {isPre ? (
                           enroll.remainingPaid ? (
                             <span className="text-emerald-700 font-bold bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">

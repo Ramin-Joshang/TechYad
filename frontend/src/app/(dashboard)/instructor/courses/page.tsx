@@ -285,7 +285,8 @@ export default function InstructorCoursesPage() {
       ) : (
         /* TABLE VIEW */
         <div className="bg-[var(--neo-surface)] rounded-3xl shadow-sm border border-[var(--neo-border)] overflow-hidden">
-          <div className="overflow-x-auto">
+          {/* Desktop Table */}
+          <div className="hidden md:block overflow-x-auto">
             <table className="w-full text-right">
               <thead>
                 <tr className="border-b border-[var(--neo-border)] bg-[var(--neo-surface-2)]/60">
@@ -361,6 +362,54 @@ export default function InstructorCoursesPage() {
                 ))}
               </tbody>
             </table>
+          </div>
+
+          {/* Mobile Table Cards View */}
+          <div className="md:hidden divide-y divide-[var(--neo-border)]">
+            {filteredCourses.map((course: any) => (
+              <div key={course._id} className="p-4 space-y-3">
+                <div className="flex items-start gap-3">
+                  <div className="w-16 h-12 rounded-xl bg-[var(--neo-surface-2)] overflow-hidden shrink-0 border border-[var(--neo-border)]">
+                    {course.thumbnail ? (
+                      <img src={course.thumbnail} alt={course.title} className="w-full h-full object-cover" />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-[var(--neo-text-secondary)]">
+                        <BookOpen className="w-5 h-5" />
+                      </div>
+                    )}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="font-bold text-sm text-[var(--neo-text-main)] line-clamp-1">{course.title}</div>
+                    <div className="flex items-center gap-2 mt-1 flex-wrap">
+                      {getStatusBadge(course.status)}
+                      <span className="text-xs text-[var(--neo-text-secondary)] font-medium">
+                        {course.price === 0 ? 'رایگان' : `${course.price?.toLocaleString()} ت`}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-between text-xs text-[var(--neo-text-secondary)] pt-1 border-t border-[var(--neo-border)]/60">
+                  <span>دانشجویان: <strong>{course.studentsCount || course.enrollmentsCount || 0} نفر</strong></span>
+                  <div className="flex items-center gap-2">
+                    <Link
+                      href={`/instructor/courses/${course._id}/edit`}
+                      className="px-3 py-1.5 rounded-xl bg-[var(--neo-primary)] text-white font-bold text-xs flex items-center gap-1 shadow-xs"
+                    >
+                      <Edit className="w-3.5 h-3.5" />
+                      ویرایش
+                    </Link>
+                    <Link
+                      href={`/instructor/students?course=${course._id}`}
+                      className="p-1.5 rounded-xl bg-[var(--neo-surface-2)] text-[var(--neo-text-secondary)] hover:text-emerald-600"
+                      title="دانشجویان"
+                    >
+                      <Users className="w-4 h-4" />
+                    </Link>
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       )}

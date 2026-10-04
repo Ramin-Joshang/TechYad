@@ -474,111 +474,191 @@ export default function InstructorQuizzesPage() {
             </button>
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-right">
-              <thead>
-                <tr className="border-b border-[var(--neo-border)] bg-[var(--neo-surface-2)]/60">
-                  <th className="p-4 font-bold text-[var(--neo-text-secondary)] text-sm">عنوان آزمون و دوره</th>
-                  <th className="p-4 font-bold text-[var(--neo-text-secondary)] text-sm text-center">تعداد سوالات</th>
-                  <th className="p-4 font-bold text-[var(--neo-text-secondary)] text-sm text-center">مدت زمان</th>
-                  <th className="p-4 font-bold text-[var(--neo-text-secondary)] text-sm text-center">حد نصاب قبولی</th>
-                  <th className="p-4 font-bold text-[var(--neo-text-secondary)] text-sm text-center">شرکت‌کنندگان</th>
-                  <th className="p-4 font-bold text-[var(--neo-text-secondary)] text-sm text-center">میانگین نمره</th>
-                  <th className="p-4 font-bold text-[var(--neo-text-secondary)] text-sm text-center">عملیات</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-[var(--neo-border)]">
-                {filteredQuizzes.map((quiz: any) => (
-                  <tr key={quiz._id} className="hover:bg-[var(--neo-surface-2)]/40 transition-colors">
-                    <td className="p-4">
-                      <div>
-                        <div className="font-black text-[var(--neo-text-main)] text-base">{quiz.title}</div>
-                        <div className="flex items-center gap-2 mt-1">
-                          <span className="inline-flex items-center gap-1 text-xs px-2.5 py-0.5 rounded-lg bg-[var(--neo-primary)]/10 text-[var(--neo-primary)] font-bold">
-                            {quiz.classId ? (
-                              <span className="text-purple-600 flex items-center gap-1">
-                                <Users className="w-3 h-3" />
-                                کلاس: {quiz.classId.title}
-                              </span>
-                            ) : (
-                              <>
-                                <BookOpen className="w-3 h-3" />
-                                {quiz.courseId?.title || 'دوره نامشخص'}
-                              </>
-                            )}
-                          </span>
-                          {quiz.lessonId?.title && (
-                            <span className="text-xs text-[var(--neo-text-secondary)]">
-                              • درس: {quiz.lessonId.title}
+          <>
+            {/* Desktop Table */}
+            <div className="hidden md:block overflow-x-auto">
+              <table className="w-full text-right">
+                <thead>
+                  <tr className="border-b border-[var(--neo-border)] bg-[var(--neo-surface-2)]/60">
+                    <th className="p-4 font-bold text-[var(--neo-text-secondary)] text-sm">عنوان آزمون و دوره</th>
+                    <th className="p-4 font-bold text-[var(--neo-text-secondary)] text-sm text-center">تعداد سوالات</th>
+                    <th className="p-4 font-bold text-[var(--neo-text-secondary)] text-sm text-center">مدت زمان</th>
+                    <th className="p-4 font-bold text-[var(--neo-text-secondary)] text-sm text-center">حد نصاب قبولی</th>
+                    <th className="p-4 font-bold text-[var(--neo-text-secondary)] text-sm text-center">شرکت‌کنندگان</th>
+                    <th className="p-4 font-bold text-[var(--neo-text-secondary)] text-sm text-center">میانگین نمره</th>
+                    <th className="p-4 font-bold text-[var(--neo-text-secondary)] text-sm text-center">عملیات</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-[var(--neo-border)]">
+                  {filteredQuizzes.map((quiz: any) => (
+                    <tr key={quiz._id} className="hover:bg-[var(--neo-surface-2)]/40 transition-colors">
+                      <td className="p-4">
+                        <div>
+                          <div className="font-black text-[var(--neo-text-main)] text-base">{quiz.title}</div>
+                          <div className="flex items-center gap-2 mt-1">
+                            <span className="inline-flex items-center gap-1 text-xs px-2.5 py-0.5 rounded-lg bg-[var(--neo-primary)]/10 text-[var(--neo-primary)] font-bold">
+                              {quiz.classId ? (
+                                <span className="text-purple-600 flex items-center gap-1">
+                                  <Users className="w-3 h-3" />
+                                  کلاس: {quiz.classId.title}
+                                </span>
+                              ) : (
+                                <>
+                                  <BookOpen className="w-3 h-3" />
+                                  {quiz.courseId?.title || 'دوره نامشخص'}
+                                </>
+                              )}
                             </span>
-                          )}
+                            {quiz.lessonId?.title && (
+                              <span className="text-xs text-[var(--neo-text-secondary)]">
+                                • درس: {quiz.lessonId.title}
+                              </span>
+                            )}
+                          </div>
                         </div>
-                      </div>
-                    </td>
-                    <td className="p-4 text-center">
-                      <span className="font-bold text-sm px-2.5 py-1 rounded-xl bg-[var(--neo-surface-2)] text-[var(--neo-text-main)]">
-                        {quiz.questionsCount || 0} سوال
-                      </span>
-                    </td>
-                    <td className="p-4 text-center">
-                      <div className="inline-flex items-center gap-1 text-xs font-bold text-[var(--neo-text-secondary)]">
-                        <Clock className="w-3.5 h-3.5 text-amber-500" />
-                        {quiz.duration || 30} دقیقه
-                      </div>
-                    </td>
-                    <td className="p-4 text-center">
-                      <span className="text-xs font-bold text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-xl">
-                        {quiz.passingScore || 70}٪
-                      </span>
-                    </td>
-                    <td className="p-4 text-center">
-                      <button
-                        onClick={() => setViewAttemptsQuizId(quiz._id)}
-                        className="inline-flex items-center gap-1.5 px-3 py-1 bg-[var(--neo-surface-2)] hover:bg-[var(--neo-primary)]/10 hover:text-[var(--neo-primary)] rounded-xl text-xs font-bold transition-colors"
-                      >
-                        <Users className="w-3.5 h-3.5" />
-                        <span>{quiz.totalAttempts || 0} نفر</span>
-                      </button>
-                    </td>
-                    <td className="p-4 text-center">
-                      <div className="font-bold text-sm text-[var(--neo-text-main)]">
-                        {quiz.totalAttempts > 0 ? `${quiz.avgScore}٪` : '-'}
-                      </div>
-                    </td>
-                    <td className="p-4">
-                      <div className="flex items-center justify-center gap-1.5">
+                      </td>
+                      <td className="p-4 text-center">
+                        <span className="font-bold text-sm px-2.5 py-1 rounded-xl bg-[var(--neo-surface-2)] text-[var(--neo-text-main)]">
+                          {quiz.questionsCount || 0} سوال
+                        </span>
+                      </td>
+                      <td className="p-4 text-center">
+                        <div className="inline-flex items-center gap-1 text-xs font-bold text-[var(--neo-text-secondary)]">
+                          <Clock className="w-3.5 h-3.5 text-amber-500" />
+                          {quiz.duration || 30} دقیقه
+                        </div>
+                      </td>
+                      <td className="p-4 text-center">
+                        <span className="text-xs font-bold text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-xl">
+                          {quiz.passingScore || 70}٪
+                        </span>
+                      </td>
+                      <td className="p-4 text-center">
                         <button
                           onClick={() => setViewAttemptsQuizId(quiz._id)}
-                          title="مشاهده نتایج شرکت‌کنندگان"
-                          className="p-2 text-[var(--neo-text-secondary)] hover:text-[var(--neo-primary)] hover:bg-[var(--neo-primary)]/10 rounded-xl transition-colors"
+                          className="inline-flex items-center gap-1.5 px-3 py-1 bg-[var(--neo-surface-2)] hover:bg-[var(--neo-primary)]/10 hover:text-[var(--neo-primary)] rounded-xl text-xs font-bold transition-colors"
                         >
-                          <Eye className="w-4 h-4" />
+                          <Users className="w-3.5 h-3.5" />
+                          <span>{quiz.totalAttempts || 0} نفر</span>
                         </button>
-                        <button
-                          onClick={() => openEditModal(quiz)}
-                          title="ویرایش آزمون و سوالات"
-                          className="p-2 text-[var(--neo-text-secondary)] hover:text-amber-600 hover:bg-amber-50 rounded-xl transition-colors"
-                        >
-                          <Edit className="w-4 h-4" />
-                        </button>
-                        <button
-                          onClick={() => {
-                            if (confirm(`آیا از حذف آزمون «${quiz.title}» مطمئن هستید؟`)) {
-                              deleteQuizMutation.mutate(quiz._id);
-                            }
-                          }}
-                          title="حذف آزمون"
-                          className="p-2 text-[var(--neo-text-secondary)] hover:text-red-600 hover:bg-red-50 rounded-xl transition-colors"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
+                      </td>
+                      <td className="p-4 text-center">
+                        <div className="font-bold text-sm text-[var(--neo-text-main)]">
+                          {quiz.totalAttempts > 0 ? `${quiz.avgScore}٪` : '-'}
+                        </div>
+                      </td>
+                      <td className="p-4">
+                        <div className="flex items-center justify-center gap-1.5">
+                          <button
+                            onClick={() => setViewAttemptsQuizId(quiz._id)}
+                            title="مشاهده نتایج شرکت‌کنندگان"
+                            className="p-2 text-[var(--neo-text-secondary)] hover:text-[var(--neo-primary)] hover:bg-[var(--neo-primary)]/10 rounded-xl transition-colors"
+                          >
+                            <Eye className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={() => openEditModal(quiz)}
+                            title="ویرایش آزمون و سوالات"
+                            className="p-2 text-[var(--neo-text-secondary)] hover:text-amber-600 hover:bg-amber-50 rounded-xl transition-colors"
+                          >
+                            <Edit className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={() => {
+                              if (confirm(`آیا از حذف آزمون «${quiz.title}» مطمئن هستید؟`)) {
+                                deleteQuizMutation.mutate(quiz._id);
+                              }
+                            }}
+                            title="حذف آزمون"
+                            className="p-2 text-[var(--neo-text-secondary)] hover:text-red-600 hover:bg-red-50 rounded-xl transition-colors"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Mobile Cards View */}
+            <div className="md:hidden divide-y divide-[var(--neo-border)]">
+              {filteredQuizzes.map((quiz: any) => (
+                <div key={quiz._id} className="p-4 space-y-3">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <h4 className="font-bold text-sm text-[var(--neo-text-main)] truncate">{quiz.title}</h4>
+                      <div className="flex items-center gap-2 mt-1">
+                        {quiz.classId ? (
+                          <span className="text-[10px] px-2 py-0.5 rounded bg-purple-100 text-purple-700 font-bold truncate">
+                            کلاس: {quiz.classId.title}
+                          </span>
+                        ) : (
+                          <span className="text-[10px] px-2 py-0.5 rounded bg-[var(--neo-primary)]/10 text-[var(--neo-primary)] font-bold truncate">
+                            {quiz.courseId?.title || 'دوره'}
+                          </span>
+                        )}
                       </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                    </div>
+
+                    <div className="flex items-center gap-1 shrink-0">
+                      <button
+                        onClick={() => setViewAttemptsQuizId(quiz._id)}
+                        className="p-2 rounded-xl bg-blue-50 text-[var(--neo-primary)]"
+                        title="نتایج"
+                      >
+                        <Eye className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={() => openEditModal(quiz)}
+                        className="p-2 rounded-xl bg-[var(--neo-surface-2)] text-[var(--neo-text-secondary)] hover:text-amber-600"
+                        title="ویرایش"
+                      >
+                        <Edit className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={() => {
+                          if (confirm(`آیا از حذف آزمون «${quiz.title}» مطمئن هستید؟`)) {
+                            deleteQuizMutation.mutate(quiz._id);
+                          }
+                        }}
+                        className="p-2 rounded-xl bg-red-50 text-red-600"
+                        title="حذف"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-3 gap-2 text-xs bg-[var(--neo-surface-2)] p-2.5 rounded-xl border border-[var(--neo-border)] text-center">
+                    <div>
+                      <span className="text-[10px] text-[var(--neo-text-secondary)] block">سوالات</span>
+                      <strong className="text-[var(--neo-text-main)]">{quiz.questionsCount || 0}</strong>
+                    </div>
+                    <div>
+                      <span className="text-[10px] text-[var(--neo-text-secondary)] block">مدت</span>
+                      <strong className="text-[var(--neo-text-main)]">{quiz.duration || 30} دق</strong>
+                    </div>
+                    <div>
+                      <span className="text-[10px] text-[var(--neo-text-secondary)] block">قبولی</span>
+                      <strong className="text-emerald-600">{quiz.passingScore || 70}٪</strong>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between text-xs pt-1">
+                    <span className="text-[var(--neo-text-secondary)]">شرکت‌کنندگان: <strong>{quiz.totalAttempts || 0} نفر</strong></span>
+                    <button
+                      onClick={() => setViewAttemptsQuizId(quiz._id)}
+                      className="text-xs font-bold text-[var(--neo-primary)] hover:underline"
+                    >
+                      مشاهده کارنامه دانشجویان ←
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </>
         )}
       </div>
 

@@ -14,14 +14,19 @@ const nextConfig: NextConfig = {
     '*.run.app'
   ],
   async rewrites() {
+    const backendUrl = process.env.INTERNAL_BACKEND_URL || 'http://127.0.0.1:5000';
     return [
       {
+        source: "/uploads/:path*",
+        destination: `${backendUrl}/uploads/:path*`,
+      },
+      {
         source: "/api/:path*",
-        destination: "http://62.220.123.21:5000/api/:path*",
+        destination: `${backendUrl}/api/:path*`,
       },
       {
         source: "/api-docs/:path*",
-        destination: "http://62.220.123.21:5000/api-docs/:path*",
+        destination: `${backendUrl}/api-docs/:path*`,
       },
     ];
   },

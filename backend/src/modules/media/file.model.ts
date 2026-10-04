@@ -6,6 +6,8 @@ export interface IFile extends Document {
   mimeType: string;
   size: number;
   url: string;
+  folder?: string;
+  path?: string;
   uploadedBy: Types.ObjectId;
 }
 
@@ -16,6 +18,8 @@ const fileSchema = new Schema<IFile>(
     mimeType: { type: String, required: true },
     size: { type: Number, required: true },
     url: { type: String, required: true },
+    folder: { type: String, default: "general" },
+    path: { type: String },
     uploadedBy: { type: Schema.Types.ObjectId, ref: "User", required: true },
   },
   { timestamps: true }

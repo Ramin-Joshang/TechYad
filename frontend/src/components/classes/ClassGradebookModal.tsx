@@ -235,7 +235,7 @@ export function ClassGradebookModal({ classItem, onClose }: ClassGradebookModalP
                     </div>
 
                     {/* Note */}
-                    <div className="flex-1 min-w-[200px]">
+                    <div className="flex-1 w-full sm:w-auto min-w-0 sm:min-w-[200px]">
                       <input 
                         type="text"
                         value={gradeState.evaluationNote}

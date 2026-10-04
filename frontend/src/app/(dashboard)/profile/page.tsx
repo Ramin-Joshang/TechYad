@@ -119,10 +119,20 @@ export default function ProfilePage() {
   const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('حجم تصویر پروفایل نباید بیشتر از ۵ مگابایت باشد.');
+      return;
+    }
+
+    if (!file.type.startsWith('image/')) {
+      toast.error('تنها فایل‌های تصویری (JPG, PNG, WebP) مجاز هستند.');
+      return;
+    }
     
     try {
       setUploading(true);
-      const res = await mediaApi.uploadFile(file);
+      const res = await mediaApi.uploadFile(file, 'avatars');
       const newAvatar = res.data.url;
       setFormData(prev => ({ ...prev, avatar: newAvatar }));
       try {
@@ -131,11 +141,12 @@ export default function ProfilePage() {
           updateUser({ avatar: newAvatar });
           setMessage('تصویر پروفایل با موفقیت بروزرسانی شد.');
           setStatus('success');
+          toast.success('تصویر پروفایل ذخیره شد');
         }
       } catch (e) { console.error('auto save failed', e); }
-    } catch (err) {
+    } catch (err: any) {
       console.error('File upload failed', err);
-      alert('خطا در آپلود تصویر');
+      toast.error(err.response?.data?.message || 'خطا در آپلود تصویر');
     } finally {
       setUploading(false);
     }
@@ -144,10 +155,20 @@ export default function ProfilePage() {
   const handlePersonnelPhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('حجم عکس پرسنلی نباید بیشتر از ۵ مگابایت باشد.');
+      return;
+    }
+
+    if (!file.type.startsWith('image/')) {
+      toast.error('تنها فایل‌های تصویری (JPG, PNG, WebP) مجاز هستند.');
+      return;
+    }
     
     try {
       setUploadingPersonnel(true);
-      const res = await mediaApi.uploadFile(file);
+      const res = await mediaApi.uploadFile(file, 'personnel');
       const newPhoto = res.data.url;
       setFormData(prev => ({ ...prev, personnelPhoto: newPhoto }));
       try {
@@ -156,11 +177,12 @@ export default function ProfilePage() {
           updateUser({ personnelPhoto: newPhoto });
           setMessage('عکس پرسنلی رسمی با موفقیت بروزرسانی شد.');
           setStatus('success');
+          toast.success('عکس پرسنلی با موفقیت ذخیره شد');
         }
       } catch (e) { console.error('auto save failed', e); }
-    } catch (err) {
+    } catch (err: any) {
       console.error('Personnel photo upload failed', err);
-      alert('خطا در آپلود عکس پرسنلی');
+      toast.error(err.response?.data?.message || 'خطا در آپلود عکس پرسنلی');
     } finally {
       setUploadingPersonnel(false);
     }

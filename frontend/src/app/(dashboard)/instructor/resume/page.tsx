@@ -264,7 +264,9 @@ export default function InstructorResumePage() {
               <MediaUploader
                 value={formData.avatar}
                 onChange={(url) => setFormData(prev => ({ ...prev, avatar: url }))}
-                folder="instructors/avatars"
+                folder="personnel"
+                maxSizeMB={5}
+                accept="image/*"
                 label="آپلود تصویر پرسنلی / آواتار رسمی"
               />
               <p className="text-[11px] text-[var(--neo-text-muted)]">

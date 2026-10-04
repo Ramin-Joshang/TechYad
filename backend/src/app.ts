@@ -8,6 +8,9 @@ import { errorHandler } from './common/middleware/errorHandler.js';
 import { persianNormalizeMiddleware } from './common/middleware/persianNormalize.js';
 import { AppError } from './common/errors/AppError.js';
 import { swaggerDocument } from './docs/swagger.js';
+import { UPLOADS_ROOT, initUploadDirectories } from './modules/media/storage.config.js';
+
+initUploadDirectories();
 
 const app = express();
 
@@ -75,6 +78,10 @@ app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 app.use(cookieParser());
 app.use(persianNormalizeMiddleware);
+
+// Serve static uploads folder (both directly at /uploads and at /api/v1/uploads)
+app.use('/uploads', express.static(UPLOADS_ROOT));
+app.use('/api/v1/uploads', express.static(UPLOADS_ROOT));
 
 // API Routes
 app.use('/api/v1', routes);

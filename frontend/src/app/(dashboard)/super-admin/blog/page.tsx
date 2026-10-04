@@ -186,12 +186,23 @@ export default function AdminBlogManagement() {
   const handleThumbnailUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+
+    if (file.size > 5 * 1024 * 1024) {
+      alert('حجم تصویر شاخص مقاله نباید بیشتر از ۵ مگابایت باشد.');
+      return;
+    }
+
+    if (!file.type.startsWith('image/')) {
+      alert('تنها فایل‌های تصویری مجاز هستند.');
+      return;
+    }
+
     try {
       setUploadingThumb(true);
-      const res = await mediaApi.uploadFile(file);
+      const res = await mediaApi.uploadFile(file, 'blog');
       setArticleForm(prev => ({ ...prev, thumbnail: res.data.url }));
-    } catch (e) {
-      alert('خطا در آپلود تصویر');
+    } catch (e: any) {
+      alert(e.response?.data?.message || 'خطا در آپلود تصویر');
     } finally {
       setUploadingThumb(false);
     }

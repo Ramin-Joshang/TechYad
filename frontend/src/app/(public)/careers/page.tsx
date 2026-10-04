@@ -177,9 +177,11 @@ export default function CareersPage() {
                 <div className="flex gap-2 items-center">
                   <input type="url" placeholder="https://..." value={formData.resumeUrl} onChange={e => setFormData({...formData, resumeUrl: e.target.value})} className="flex-1 bg-[var(--neo-bg)] border border-[var(--neo-border)] rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 dir-ltr text-left text-sm" />
                   <MediaUploader
-                    onUploadSuccess={(url) => setFormData(prev => ({ ...prev, resumeUrl: url }))}
-                    category="document"
-                    label="آپلود"
+                    onChange={(url) => setFormData(prev => ({ ...prev, resumeUrl: url }))}
+                    folder="resumes"
+                    maxSizeMB={20}
+                    accept=".pdf,.doc,.docx,.zip"
+                    label="آپلود رزومه"
                   />
                 </div>
               </div>

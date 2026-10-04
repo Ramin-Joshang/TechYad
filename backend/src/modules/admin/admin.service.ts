@@ -1,3 +1,4 @@
+import mongoose from 'mongoose';
 import * as argon2 from 'argon2';
 import { Setting } from './setting.model.js';
 import { User } from '../auth/user.model.js';
@@ -1426,41 +1427,75 @@ export class AdminService {
 
     const filter: any = {};
 
+    const targetRoleRaw = (data as any).targetRole || (data as any).role || (data as any).audience;
+    const targetRole = typeof targetRoleRaw === 'string' ? targetRoleRaw.trim() : (Array.isArray(targetRoleRaw) ? String(targetRoleRaw[0] || 'all').trim() : 'all');
+
     // 1. Role Filtering
-    if (data.targetRole && data.targetRole !== 'all') {
-      if (data.targetRole === 'admin') {
-        const adminRoles = await Role.find({ 
-          slug: { $in: ['admin', 'super-admin', 'manager', 'support', 'content-manager'] } 
-        }).select('_id slug');
-        const roleIds = adminRoles.map(r => r._id);
-        const roleSlugs = adminRoles.map(r => r.slug);
-        filter.role = { $in: [...roleIds, ...roleSlugs] };
-      } else if (data.targetRole === 'instructor') {
-        const instructorRoles = await Role.find({ 
-          slug: { $in: ['instructor', 'teacher', 'instructors', 'teachers'] } 
-        }).select('_id slug');
-        const roleIds = instructorRoles.map(r => r._id);
-        const roleSlugs = instructorRoles.map(r => r.slug);
-        filter.role = { $in: [...roleIds, ...roleSlugs] };
-      } else if (data.targetRole === 'student') {
-        const studentRoles = await Role.find({ 
-          slug: { $in: ['student', 'students', 'learner'] } 
-        }).select('_id slug');
-        const roleIds = studentRoles.map(r => r._id);
-        const roleSlugs = studentRoles.map(r => r.slug);
-        filter.role = { $in: [...roleIds, ...roleSlugs] };
+    if (targetRole && targetRole !== 'all') {
+      if (targetRole === 'instructor' || targetRole === 'teacher' || targetRole === 'teachers') {
+        const [matchedRoles, instructorProfiles] = await Promise.all([
+          Role.find({
+            $or: [
+              { slug: { $in: ['instructor', 'teacher', 'instructors', 'teachers'] } },
+              { name: /استاد/i },
+              { name: /مدرس/i }
+            ]
+          }).select('_id').lean(),
+          InstructorProfile.find().select('userId').lean()
+        ]);
+        const rIds = matchedRoles.map(r => r._id).filter(id => mongoose.Types.ObjectId.isValid(id)).map(id => new mongoose.Types.ObjectId(id));
+        const uIds = instructorProfiles.map(p => p.userId).filter(Boolean).filter(id => mongoose.Types.ObjectId.isValid(id)).map(id => new mongoose.Types.ObjectId(id));
+
+        const conditions: any[] = [];
+        if (rIds.length > 0) conditions.push({ role: { $in: rIds } });
+        if (uIds.length > 0) conditions.push({ _id: { $in: uIds } });
+
+        if (conditions.length > 0) {
+          filter.$or = conditions;
+        } else {
+          filter.role = { $in: [new mongoose.Types.ObjectId()] };
+        }
       } else {
-        const roleDocs = await Role.find({ 
-          $or: [
-            { slug: data.targetRole }, 
-            { name: data.targetRole },
-            { slug: new RegExp(`^${data.targetRole}$`, 'i') }
-          ] 
-        }).select('_id slug');
-        if (roleDocs.length > 0) {
-          const roleIds = roleDocs.map(r => r._id);
-          const roleSlugs = roleDocs.map(r => r.slug);
-          filter.role = { $in: [...roleIds, ...roleSlugs] };
+        let roleDocs: any[] = [];
+        if (targetRole === 'admin') {
+          roleDocs = await Role.find({ 
+            slug: { $in: ['admin', 'super-admin', 'manager', 'support', 'content-manager'] } 
+          }).select('_id');
+        } else if (targetRole === 'student' || targetRole === 'students') {
+          roleDocs = await Role.find({ 
+            slug: { $in: ['student', 'students', 'learner'] } 
+          }).select('_id');
+          if (roleDocs.length === 0) {
+            roleDocs = await Role.find({
+              $or: [{ slug: /student/i }, { name: /دانشجو/i }]
+            }).select('_id');
+          }
+        } else {
+          if (mongoose.Types.ObjectId.isValid(targetRole)) {
+            roleDocs = [{ _id: new mongoose.Types.ObjectId(targetRole) }];
+          } else {
+            roleDocs = await Role.find({ 
+              $or: [
+                { slug: targetRole }, 
+                { name: targetRole },
+                { slug: new RegExp(`^${targetRole}$`, 'i') }
+              ] 
+            }).select('_id');
+          }
+        }
+
+        const roleIds: mongoose.Types.ObjectId[] = [];
+        for (const r of roleDocs) {
+          const idStr = r?._id ? r._id.toString() : String(r);
+          if (mongoose.Types.ObjectId.isValid(idStr)) {
+            roleIds.push(new mongoose.Types.ObjectId(idStr));
+          }
+        }
+
+        if (roleIds.length > 0) {
+          filter.role = { $in: roleIds };
+        } else {
+          filter.role = { $in: [new mongoose.Types.ObjectId()] };
         }
       }
     }
@@ -1470,7 +1505,7 @@ export class AdminService {
       const targetUserIds: any[] = [];
 
       // If target is instructor or all, include instructors of that course or class
-      if (!data.targetRole || data.targetRole === 'all' || data.targetRole === 'instructor') {
+      if (!targetRole || targetRole === 'all' || targetRole === 'instructor') {
         const [courseItem, classItem] = await Promise.all([
           Course.findById(data.courseId).select('instructors createdBy').lean(),
           Class.findById(data.courseId).select('instructors createdBy').lean()
@@ -1490,7 +1525,7 @@ export class AdminService {
       }
 
       // If target is student or all, include enrolled students of that course or class
-      if (!data.targetRole || data.targetRole === 'all' || data.targetRole === 'student') {
+      if (!targetRole || targetRole === 'all' || targetRole === 'student') {
         const [courseEnrollments, classEnrollments] = await Promise.all([
           Enrollment.find({ courseId: data.courseId }).select('userId').lean(),
           ClassEnrollment.find({ classId: data.courseId }).select('userId').lean()
@@ -1499,7 +1534,11 @@ export class AdminService {
         targetUserIds.push(...classEnrollments.map(c => c.userId));
       }
 
-      const validIds = targetUserIds.filter(Boolean);
+      const validIds = targetUserIds
+        .filter(Boolean)
+        .map(id => id.toString())
+        .filter(id => mongoose.Types.ObjectId.isValid(id))
+        .map(id => new mongoose.Types.ObjectId(id));
       filter._id = { $in: validIds };
     }
 

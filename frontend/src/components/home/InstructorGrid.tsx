@@ -5,18 +5,19 @@ export function InstructorGrid({ data = [], isLoading = false }: { data?: any[],
   if (!isLoading && !data?.length) return null;
 
   return (
-    <section className="py-24 bg-white border-b border-[var(--neo-border)]">
+    <section className="py-16 sm:py-24 bg-white border-b border-[var(--neo-border)]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex flex-col md:flex-row justify-between items-end mb-16 gap-6">
-          <div>
-            <div className="flex items-center gap-2 mb-3">
-              <span className="w-8 h-px bg-[var(--neo-primary)]"></span>
-              <span className="text-[var(--neo-primary)] font-bold tracking-widest text-sm uppercase">اساتید برتر</span>
+        <div dir="rtl" className="flex flex-row justify-between items-center sm:items-end mb-8 sm:mb-16 gap-3 sm:gap-6 text-right w-full">
+          <div className="text-right flex-1 min-w-0">
+            <div className="flex items-center gap-2 mb-2 sm:mb-3 justify-start">
+              <span className="w-6 sm:w-8 h-px bg-[var(--neo-primary)] shrink-0"></span>
+              <span className="text-[var(--neo-primary)] font-bold tracking-widest text-xs sm:text-sm uppercase truncate">اساتید برتر</span>
             </div>
-            <h2 className="text-3xl md:text-4xl font-black text-[var(--neo-text-main)]">تجربه یادگیری از بهترین‌ها</h2>
+            <h2 className="text-xl sm:text-3xl md:text-4xl font-black text-[var(--neo-text-main)] text-right truncate">تجربه یادگیری از بهترین‌ها</h2>
           </div>
-          <Link href="/instructors" className="text-[var(--neo-text-secondary)] hover:text-[var(--neo-primary)] transition font-medium flex items-center gap-2 pb-1 border-b border-transparent hover:border-[var(--neo-primary)]">
-            مشاهده همه اساتید
+          <Link href="/instructors" className="text-[var(--neo-text-secondary)] hover:text-[var(--neo-primary)] transition font-medium inline-flex items-center gap-1.5 text-xs sm:text-sm shrink-0 pb-1 border-b border-transparent hover:border-[var(--neo-primary)] whitespace-nowrap">
+            <span>همه اساتید</span>
+            <span className="text-base leading-none">←</span>
           </Link>
         </div>
 

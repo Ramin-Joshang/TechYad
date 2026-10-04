@@ -123,7 +123,8 @@ export default function RootLayout({
         />
       </head>
       <body
-        className="min-h-full flex flex-col font-sans bg-gray-50 text-gray-900"
+        dir="rtl"
+        className="min-h-full flex flex-col font-sans bg-gray-50 text-gray-900 overflow-x-hidden text-right"
         style={{ fontFamily: "'Vazirmatn', sans-serif" }}
         suppressHydrationWarning
       >

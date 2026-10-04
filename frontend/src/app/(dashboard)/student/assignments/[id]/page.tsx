@@ -35,14 +35,19 @@ export default function AssignmentDetailsPage({ params }: { params: Promise<{ id
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+
+    if (file.size > 25 * 1024 * 1024) {
+      alert('حجم فایل ارسالی نباید بیشتر از ۲۵ مگابایت باشد.');
+      return;
+    }
     
     try {
       setUploading(true);
-      const res = await mediaApi.uploadFile(file);
+      const res = await mediaApi.uploadFile(file, 'assignments');
       setFileId(res.data._id);
-    } catch (err) {
+    } catch (err: any) {
       console.error('File upload failed', err);
-      alert('خطا در آپلود فایل');
+      alert(err.response?.data?.message || 'خطا در آپلود فایل');
     } finally {
       setUploading(false);
     }

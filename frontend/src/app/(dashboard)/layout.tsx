@@ -598,6 +598,70 @@ export default function DashboardLayout({
             <div className="max-w-7xl mx-auto">{children}</div>
           </div>
 
+          {/* Instructor Mobile Bottom Navigation Bar */}
+          {user?.role === "instructor" && (
+            <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-slate-200 px-2 py-1 shadow-lg">
+              <div className="grid grid-cols-5 items-center h-14">
+                <Link
+                  href="/instructor"
+                  className={`flex flex-col items-center justify-center gap-0.5 py-1 rounded-xl transition ${
+                    pathname === "/instructor"
+                      ? "text-[var(--neo-primary)] font-bold"
+                      : "text-slate-500 hover:text-slate-900"
+                  }`}
+                >
+                  <LayoutDashboard className={`w-5 h-5 ${pathname === "/instructor" ? "text-[var(--neo-primary)]" : "text-slate-400"}`} />
+                  <span className="text-[10px]">داشبورد</span>
+                </Link>
+
+                <Link
+                  href="/instructor/courses"
+                  className={`flex flex-col items-center justify-center gap-0.5 py-1 rounded-xl transition ${
+                    pathname.startsWith("/instructor/courses")
+                      ? "text-[var(--neo-primary)] font-bold"
+                      : "text-slate-500 hover:text-slate-900"
+                  }`}
+                >
+                  <BookOpen className={`w-5 h-5 ${pathname.startsWith("/instructor/courses") ? "text-[var(--neo-primary)]" : "text-slate-400"}`} />
+                  <span className="text-[10px]">دوره‌ها</span>
+                </Link>
+
+                <Link
+                  href="/instructor/classes"
+                  className={`flex flex-col items-center justify-center gap-0.5 py-1 rounded-xl transition ${
+                    pathname.startsWith("/instructor/classes")
+                      ? "text-emerald-600 font-bold"
+                      : "text-slate-500 hover:text-slate-900"
+                  }`}
+                >
+                  <Video className={`w-5 h-5 ${pathname.startsWith("/instructor/classes") ? "text-emerald-600" : "text-slate-400"}`} />
+                  <span className="text-[10px]">کلاس‌ها</span>
+                </Link>
+
+                <Link
+                  href="/instructor/wallet"
+                  className={`flex flex-col items-center justify-center gap-0.5 py-1 rounded-xl transition ${
+                    pathname.startsWith("/instructor/wallet")
+                      ? "text-indigo-600 font-bold"
+                      : "text-slate-500 hover:text-slate-900"
+                  }`}
+                >
+                  <Wallet className={`w-5 h-5 ${pathname.startsWith("/instructor/wallet") ? "text-indigo-600" : "text-slate-400"}`} />
+                  <span className="text-[10px]">درآمد و کیف</span>
+                </Link>
+
+                <button
+                  type="button"
+                  onClick={() => setMobileMenuOpen(true)}
+                  className="flex flex-col items-center justify-center gap-0.5 py-1 text-slate-500 hover:text-[var(--neo-primary)] rounded-xl transition"
+                >
+                  <Menu className="w-5 h-5 text-slate-400" />
+                  <span className="text-[10px]">منو کامل</span>
+                </button>
+              </div>
+            </nav>
+          )}
+
           {/* Student Mobile Bottom Navigation Bar */}
           {user?.role === "student" && (
             <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-slate-200 px-2 py-1 shadow-lg">
@@ -647,6 +711,70 @@ export default function DashboardLayout({
                   }`}
                 >
                   <Wallet className={`w-5 h-5 ${pathname.startsWith("/student/wallet") ? "text-indigo-600" : "text-slate-400"}`} />
+                  <span className="text-[10px]">کیف پول</span>
+                </Link>
+
+                <button
+                  type="button"
+                  onClick={() => setMobileMenuOpen(true)}
+                  className="flex flex-col items-center justify-center gap-0.5 py-1 text-slate-500 hover:text-blue-600 rounded-xl transition"
+                >
+                  <Menu className="w-5 h-5 text-slate-400" />
+                  <span className="text-[10px]">منو کامل</span>
+                </button>
+              </div>
+            </nav>
+          )}
+
+          {/* Instructor Mobile Bottom Navigation Bar */}
+          {user?.role === "instructor" && (
+            <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-slate-200 px-2 py-1 shadow-lg">
+              <div className="grid grid-cols-5 items-center h-14">
+                <Link
+                  href="/instructor"
+                  className={`flex flex-col items-center justify-center gap-0.5 py-1 rounded-xl transition ${
+                    pathname === "/instructor"
+                      ? "text-blue-600 font-bold"
+                      : "text-slate-500 hover:text-slate-900"
+                  }`}
+                >
+                  <LayoutDashboard className={`w-5 h-5 ${pathname === "/instructor" ? "text-blue-600" : "text-slate-400"}`} />
+                  <span className="text-[10px]">داشبورد</span>
+                </Link>
+
+                <Link
+                  href="/instructor/courses"
+                  className={`flex flex-col items-center justify-center gap-0.5 py-1 rounded-xl transition ${
+                    pathname.startsWith("/instructor/courses")
+                      ? "text-blue-600 font-bold"
+                      : "text-slate-500 hover:text-slate-900"
+                  }`}
+                >
+                  <BookOpen className={`w-5 h-5 ${pathname.startsWith("/instructor/courses") ? "text-blue-600" : "text-slate-400"}`} />
+                  <span className="text-[10px]">دوره‌ها</span>
+                </Link>
+
+                <Link
+                  href="/instructor/classes"
+                  className={`flex flex-col items-center justify-center gap-0.5 py-1 rounded-xl transition ${
+                    pathname.startsWith("/instructor/classes")
+                      ? "text-emerald-600 font-bold"
+                      : "text-slate-500 hover:text-slate-900"
+                  }`}
+                >
+                  <Video className={`w-5 h-5 ${pathname.startsWith("/instructor/classes") ? "text-emerald-600" : "text-slate-400"}`} />
+                  <span className="text-[10px]">کلاس‌ها</span>
+                </Link>
+
+                <Link
+                  href="/instructor/wallet"
+                  className={`flex flex-col items-center justify-center gap-0.5 py-1 rounded-xl transition ${
+                    pathname.startsWith("/instructor/wallet")
+                      ? "text-indigo-600 font-bold"
+                      : "text-slate-500 hover:text-slate-900"
+                  }`}
+                >
+                  <Wallet className={`w-5 h-5 ${pathname.startsWith("/instructor/wallet") ? "text-indigo-600" : "text-slate-400"}`} />
                   <span className="text-[10px]">کیف پول</span>
                 </Link>
 

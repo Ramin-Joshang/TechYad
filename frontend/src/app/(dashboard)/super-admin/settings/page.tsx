@@ -204,6 +204,9 @@ export default function SettingsPage() {
                     label="لوگوی اصلی هدر سایت (Header Logo)"
                     value={formData.siteLogo}
                     onChange={(url) => handleChange('siteLogo', url)}
+                    folder="general"
+                    maxSizeMB={5}
+                    accept="image/*"
                     helpText="ابعاد پیشنهادی: 240x80 پیکسل با فرمت شفاف PNG، SVG یا WebP"
                     previewType="image"
                   />
@@ -222,6 +225,9 @@ export default function SettingsPage() {
                     label="فاوآیکون مرورگر (Favicon)"
                     value={formData.siteFavicon}
                     onChange={(url) => handleChange('siteFavicon', url)}
+                    folder="general"
+                    maxSizeMB={2}
+                    accept="image/*"
                     helpText="آیکون ۳۲x۳۲ یا ۶۴x۶۴ در فرمت PNG یا ICO برای نمایش در تب مرورگر"
                     previewType="image"
                   />
@@ -240,6 +246,9 @@ export default function SettingsPage() {
                     label="لوگوی اختصاصی فوتر (اختیاری)"
                     value={formData.siteFooterLogo}
                     onChange={(url) => handleChange('siteFooterLogo', url)}
+                    folder="general"
+                    maxSizeMB={5}
+                    accept="image/*"
                     helpText="در صورت عدم آپلود، همان لوگوی اصلی هدر در فوتر استفاده می‌شود."
                     previewType="image"
                   />
@@ -336,6 +345,9 @@ export default function SettingsPage() {
                     label="آپلود نشان اختصاصی نماد اعتماد یا گواهینامه بین‌المللی"
                     value={formData.customTrustBadgeUrl}
                     onChange={(url) => handleChange('customTrustBadgeUrl', url)}
+                    folder="general"
+                    maxSizeMB={5}
+                    accept="image/*"
                     helpText="تصویر گواهینامه‌ها، استاندارد ایزو، یا نماد اختصاصی موسسه برای نمایش در فوتر"
                     previewType="image"
                   />

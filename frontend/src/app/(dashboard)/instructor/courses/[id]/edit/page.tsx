@@ -340,7 +340,9 @@ export default function EditCoursePage() {
                   value={formData.thumbnail}
                   onChange={(url) => setFormData(prev => ({ ...prev, thumbnail: url }))}
                   accept="image/*"
-                  helpText="فرمت‌های JPG، PNG و WebP (حداکثر ۱۰ مگابایت)"
+                  folder="courses"
+                  maxSizeMB={5}
+                  helpText="فرمت‌های JPG، PNG و WebP (حداکثر ۵ مگابایت)"
                   previewType="image"
                 />
               </div>
@@ -352,6 +354,8 @@ export default function EditCoursePage() {
                   value={formData.previewVideo}
                   onChange={(url) => setFormData(prev => ({ ...prev, previewVideo: url }))}
                   accept="video/*"
+                  folder="lessons"
+                  maxSizeMB={100}
                   helpText="فرمت MP4، WebM یا لینک مستقیم آپارات / یوتیوب"
                   previewType="video"
                 />

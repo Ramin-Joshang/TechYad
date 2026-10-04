@@ -127,6 +127,8 @@ const LessonItem = ({ lesson, chapterId }: LessonItemProps) => {
               value={editLessonData.videoUrl}
               onChange={(url) => setEditLessonData({...editLessonData, videoUrl: url})}
               accept="video/*"
+              folder="lessons"
+              maxSizeMB={200}
               helpText="می‌توانید فایل ویدیویی آپلود کنید یا لینک مستقیم قرار دهید"
               previewType="video"
             />
@@ -516,6 +518,8 @@ const ChapterItem = ({ chapter, courseId }: { chapter: any; courseId: string }) 
                   value={lessonData.videoUrl}
                   onChange={(url) => setLessonData({...lessonData, videoUrl: url})}
                   accept="video/*"
+                  folder="lessons"
+                  maxSizeMB={200}
                   helpText="می‌توانید فایل ویدیویی آپلود کنید تا بلافاصله پیش‌نمایش شود یا لینک مستقیم وارد کنید"
                   previewType="video"
                 />
