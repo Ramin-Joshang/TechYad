@@ -172,13 +172,33 @@ export default function SettingsPage() {
                     />
                   </div>
                   <div className="space-y-2">
-                    <label className="text-xs font-bold text-gray-800">تلفن پشتیبانی و تماس</label>
+                    <label className="text-xs font-bold text-gray-800">تلفن پشتیبانی و تماس / واتس‌اپ</label>
                     <input
                       type="tel"
                       value={formData.supportPhone || ''}
                       onChange={e => handleChange('supportPhone', e.target.value)}
                       className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[var(--neo-primary)]/20 outline-none text-xs text-left dir-ltr"
-                      placeholder="021-91234567"
+                      placeholder="09372731037"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold text-gray-800">لینک کانال تلگرام</label>
+                    <input
+                      type="url"
+                      value={formData.telegramUrl || ''}
+                      onChange={e => handleChange('telegramUrl', e.target.value)}
+                      className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[var(--neo-primary)]/20 outline-none text-xs text-left dir-ltr"
+                      placeholder="https://t.me/tecyad_ir"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold text-gray-800">لینک صفحه اینستاگرام</label>
+                    <input
+                      type="url"
+                      value={formData.instagramUrl || ''}
+                      onChange={e => handleChange('instagramUrl', e.target.value)}
+                      className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[var(--neo-primary)]/20 outline-none text-xs text-left dir-ltr"
+                      placeholder="https://instagram.com/tecyad.ir"
                     />
                   </div>
                 </div>

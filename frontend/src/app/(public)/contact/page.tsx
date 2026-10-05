@@ -127,9 +127,12 @@ export default function ContactPage() {
                     <Phone className="w-6 h-6" />
                   </div>
                   <div>
-                    <div className="font-bold text-[var(--neo-text-main)] mb-1">شماره‌های تماس</div>
-                    <div className="text-[var(--neo-text-secondary)] text-sm dir-ltr text-right">021 - 88997766</div>
-                    <div className="text-[var(--neo-text-secondary)] text-sm dir-ltr text-right">0912 - 0001122</div>
+                    <div className="font-bold text-[var(--neo-text-main)] mb-1">شماره تماس و واتس‌اپ</div>
+                    <div className="text-[var(--neo-text-secondary)] text-sm dir-ltr text-right">
+                      <a href="tel:09372731037" className="hover:text-[var(--neo-primary)] transition-colors font-mono">
+                        09372731037
+                      </a>
+                    </div>
                   </div>
                 </li>
 
@@ -139,8 +142,11 @@ export default function ContactPage() {
                   </div>
                   <div>
                     <div className="font-bold text-[var(--neo-text-main)] mb-1">پست الکترونیک</div>
-                    <div className="text-[var(--neo-text-secondary)] text-sm">info@tecyad.ir</div>
-                    <div className="text-[var(--neo-text-secondary)] text-sm">support@tecyad.ir</div>
+                    <div className="text-[var(--neo-text-secondary)] text-sm">
+                      <a href="mailto:support@tecyad.ir" className="hover:text-[var(--neo-primary)] transition-colors font-mono">
+                        support@tecyad.ir
+                      </a>
+                    </div>
                   </div>
                 </li>
 
@@ -161,22 +167,55 @@ export default function ContactPage() {
             <div className="bg-gradient-to-br from-slate-900 to-slate-800 rounded-3xl p-8 text-white shadow-xl relative overflow-hidden">
               <div className="relative z-10">
                 <h3 className="text-xl font-bold mb-2">نیاز به پشتیبانی سریع دارید؟</h3>
-                <p className="text-slate-300 text-sm mb-6">پاسخگویی آنلاین در کمتر از ۱۰ دقیقه</p>
+                <p className="text-slate-300 text-sm mb-6">پاسخگویی آنلاین در کمترین زمان</p>
                 
                 <div className="space-y-3">
-                  <a href="#" className="flex items-center justify-between bg-white/10 hover:bg-white/20 px-4 py-3 rounded-xl transition border border-white/5">
+                  <a 
+                    href="https://t.me/tecyad_ir" 
+                    target="_blank" 
+                    rel="noopener noreferrer" 
+                    className="flex items-center justify-between bg-white/10 hover:bg-white/20 px-4 py-3 rounded-xl transition border border-white/5 group"
+                  >
                     <div className="flex items-center gap-3">
-                      <MessageSquare className="w-5 h-5 text-blue-400" />
-                      <span className="font-medium text-sm">گفتگو در تلگرام</span>
+                      <MessageSquare className="w-5 h-5 text-blue-400 group-hover:scale-110 transition-transform" />
+                      <div className="text-right">
+                        <span className="font-bold text-sm block">کانال و پشتیبانی تلگرام</span>
+                        <span className="text-xs text-slate-300 font-mono dir-ltr block">@tecyad_ir</span>
+                      </div>
                     </div>
-                    <ArrowLeft className="w-4 h-4 text-slate-400" />
+                    <ArrowLeft className="w-4 h-4 text-slate-400 group-hover:translate-x-1 transition-transform" />
                   </a>
-                  <a href="#" className="flex items-center justify-between bg-white/10 hover:bg-white/20 px-4 py-3 rounded-xl transition border border-white/5">
+
+                  <a 
+                    href="https://wa.me/989372731037" 
+                    target="_blank" 
+                    rel="noopener noreferrer" 
+                    className="flex items-center justify-between bg-white/10 hover:bg-white/20 px-4 py-3 rounded-xl transition border border-white/5 group"
+                  >
                     <div className="flex items-center gap-3">
-                      <MessageSquare className="w-5 h-5 text-emerald-400" />
-                      <span className="font-medium text-sm">گفتگو در واتس‌اپ</span>
+                      <Phone className="w-5 h-5 text-emerald-400 group-hover:scale-110 transition-transform" />
+                      <div className="text-right">
+                        <span className="font-bold text-sm block">ارتباط در واتس‌اپ</span>
+                        <span className="text-xs text-slate-300 font-mono dir-ltr block">09372731037</span>
+                      </div>
                     </div>
-                    <ArrowLeft className="w-4 h-4 text-slate-400" />
+                    <ArrowLeft className="w-4 h-4 text-slate-400 group-hover:translate-x-1 transition-transform" />
+                  </a>
+
+                  <a 
+                    href="https://instagram.com/tecyad.ir" 
+                    target="_blank" 
+                    rel="noopener noreferrer" 
+                    className="flex items-center justify-between bg-white/10 hover:bg-white/20 px-4 py-3 rounded-xl transition border border-white/5 group"
+                  >
+                    <div className="flex items-center gap-3">
+                      <MessageSquare className="w-5 h-5 text-rose-400 group-hover:scale-110 transition-transform" />
+                      <div className="text-right">
+                        <span className="font-bold text-sm block">صفحه رسمی اینستاگرام</span>
+                        <span className="text-xs text-slate-300 font-mono dir-ltr block">@tecyad.ir</span>
+                      </div>
+                    </div>
+                    <ArrowLeft className="w-4 h-4 text-slate-400 group-hover:translate-x-1 transition-transform" />
                   </a>
                 </div>
               </div>

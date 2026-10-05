@@ -15,7 +15,7 @@ export class NotificationService {
 
   static async markAllAsRead(userId: string) {
     await Notification.updateMany(
-      { userId, readAt: { $exists: false } },
+      { userId, $or: [{ readAt: { $exists: false } }, { readAt: null }] },
       { readAt: new Date() }
     );
     return { success: true };

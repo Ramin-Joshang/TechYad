@@ -89,9 +89,8 @@ export default function RootLayout({
         "logo": "https://picsum.photos/seed/tecyad-logo/512/512",
         "description": "پلتفرم جامع آموزش آنلاین، دوره‌ها و کلاس‌های تخصصی دانشگاهی و مهندسی",
         "sameAs": [
-          "https://twitter.com/tecyad",
-          "https://instagram.com/tecyad",
-          "https://linkedin.com/company/tecyad"
+          "https://t.me/tecyad_ir",
+          "https://instagram.com/tecyad.ir"
         ]
       },
       {

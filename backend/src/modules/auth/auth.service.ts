@@ -22,9 +22,44 @@ const signRefreshToken = (id: string) => {
 
 export class AuthService {
   static async register(data: any, clientInfo: { ip?: string; userAgent?: string } = {}) {
-    const existingUser = await User.findOne({ email: data.email });
-    if (existingUser) {
-      throw new AppError('Email already in use', 400, 'AUTH_EMAIL_EXISTS');
+    // Normalization of mobile and email
+    let email = data.email ? String(data.email).toLowerCase().trim() : undefined;
+    let mobile = data.mobile ? String(data.mobile).trim() : undefined;
+
+    // Check if flexible identifier was passed instead
+    if (!email && !mobile && data.identifier) {
+      const cleanIdent = String(data.identifier).trim();
+      if (cleanIdent.includes('@')) {
+        email = cleanIdent.toLowerCase();
+      } else {
+        mobile = cleanIdent;
+      }
+    }
+
+    if (mobile) {
+      // Normalize Persian / Arabic numbers to English digits
+      mobile = mobile.replace(/[۰-۹]/g, (d: string) => "۰۱۲۳۴۵۶۷۸۹".indexOf(d).toString());
+      mobile = mobile.replace(/[\s\-_]/g, '');
+      if (mobile.startsWith('+98')) mobile = '0' + mobile.slice(3);
+      else if (mobile.startsWith('0098')) mobile = '0' + mobile.slice(4);
+    }
+
+    if (!email && !mobile) {
+      throw new AppError('وارد کردن ایمیل یا شماره موبایل الزامی است', 400, 'AUTH_IDENTIFIER_REQUIRED');
+    }
+
+    if (email) {
+      const existingUser = await User.findOne({ email });
+      if (existingUser) {
+        throw new AppError('این ایمیل قبلاً در سیستم ثبت شده است', 400, 'AUTH_EMAIL_EXISTS');
+      }
+    }
+
+    if (mobile) {
+      const existingMobile = await User.findOne({ mobile });
+      if (existingMobile) {
+        throw new AppError('این شماره موبایل قبلاً در سیستم ثبت شده است', 400, 'AUTH_MOBILE_EXISTS');
+      }
     }
 
     // Assign 'student' role by default
@@ -42,10 +77,13 @@ export class AuthService {
     const newUser = await User.create({
       firstName: data.firstName,
       lastName: data.lastName,
-      email: data.email,
+      email: email || undefined,
+      mobile: mobile || undefined,
       passwordHash,
       role: studentRole._id,
       status: 'active',
+      emailVerified: false,
+      mobileVerified: !!mobile
     });
 
     // Ensure newly created user gets a unique referral code

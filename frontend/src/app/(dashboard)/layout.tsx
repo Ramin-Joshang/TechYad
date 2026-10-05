@@ -176,6 +176,11 @@ export default function DashboardLayout({
           icon: Quote,
         },
         {
+          name: "اعلان‌ها و هشدارها",
+          href: "/super-admin/notifications",
+          icon: Bell,
+        },
+        {
           name: "لاگ‌های امنیتی و رویدادها",
           href: "/super-admin/audit-logs",
           icon: History,
@@ -270,6 +275,11 @@ export default function DashboardLayout({
           name: "نظرات صفحه اصلی",
           href: "/admin/testimonials",
           icon: Quote,
+        },
+        {
+          name: "اعلان‌ها و هشدارها",
+          href: "/admin/notifications",
+          icon: Bell,
         },
         {
           name: "لاگ‌ها و رویدادها",

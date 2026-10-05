@@ -44,8 +44,11 @@ export function Footer() {
   const siteTitle = publicSettings?.siteName
     ? publicSettings.siteName.split("|")[0].trim()
     : "تک‌یاد";
-  const supportEmail = publicSettings?.supportEmail || "hello@tecyad.ir";
-  const supportPhone = publicSettings?.supportPhone || "021 - 91234567";
+  const supportEmail = publicSettings?.supportEmail || "support@tecyad.ir";
+  const supportPhone = publicSettings?.supportPhone || "09372731037";
+  const telegramUrl = publicSettings?.telegramUrl || "https://t.me/tecyad_ir";
+  const instagramUrl = publicSettings?.instagramUrl || "https://instagram.com/tecyad.ir";
+  const whatsappUrl = "https://wa.me/989372731037";
 
   return (
     <footer className="bg-white border-t border-[var(--neo-border)] pt-20 pb-10 text-[var(--neo-text-secondary)] relative overflow-hidden">
@@ -92,22 +95,31 @@ export function Footer() {
             </p>
             <div className="flex gap-3">
               <a
-                href={publicSettings?.instagramUrl || "#"}
-                target={publicSettings?.instagramUrl ? "_blank" : undefined}
-                rel="noreferrer"
-                title="اینستاگرام"
-                className="w-9 h-9 rounded-full border border-[var(--neo-border)] bg-[var(--neo-bg)] flex items-center justify-center hover:bg-[var(--neo-primary)] hover:text-white hover:border-[var(--neo-primary)] transition-colors"
+                href={instagramUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                title="اینستاگرام tecyad.ir"
+                className="w-9 h-9 rounded-full border border-[var(--neo-border)] bg-[var(--neo-bg)] flex items-center justify-center hover:bg-gradient-to-tr hover:from-amber-500 hover:via-rose-500 hover:to-purple-600 hover:text-white hover:border-transparent transition-all"
               >
                 <Camera className="w-4 h-4" />
               </a>
               <a
-                href={publicSettings?.telegramUrl || "#"}
-                target={publicSettings?.telegramUrl ? "_blank" : undefined}
-                rel="noreferrer"
-                title="تلگرام"
-                className="w-9 h-9 rounded-full border border-[var(--neo-border)] bg-[var(--neo-bg)] flex items-center justify-center hover:bg-[var(--neo-secondary)] hover:text-white hover:border-[var(--neo-secondary)] transition-colors"
+                href={telegramUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                title="کانال تلگرام tecyad_ir"
+                className="w-9 h-9 rounded-full border border-[var(--neo-border)] bg-[var(--neo-bg)] flex items-center justify-center hover:bg-[#229ED9] hover:text-white hover:border-transparent transition-all"
               >
                 <MessageCircle className="w-4 h-4" />
+              </a>
+              <a
+                href={whatsappUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                title="واتس‌اپ 09372731037"
+                className="w-9 h-9 rounded-full border border-[var(--neo-border)] bg-[var(--neo-bg)] flex items-center justify-center hover:bg-emerald-600 hover:text-white hover:border-transparent transition-all"
+              >
+                <Phone className="w-4 h-4" />
               </a>
               <a
                 href={publicSettings?.linkedinUrl || "#"}
@@ -212,11 +224,15 @@ export function Footer() {
             <ul className="space-y-3 font-medium text-xs">
               <li className="flex items-center gap-2 text-gray-700">
                 <Phone className="w-4 h-4 text-[var(--neo-secondary)] shrink-0" />
-                <span className="font-mono dir-ltr">{supportPhone}</span>
+                <a href={`tel:${supportPhone}`} className="font-mono dir-ltr hover:text-[var(--neo-primary)] transition-colors">
+                  {supportPhone}
+                </a>
               </li>
               <li className="flex items-center gap-2 text-gray-700">
                 <Mail className="w-4 h-4 text-[var(--neo-accent)] shrink-0" />
-                <span className="font-mono dir-ltr">{supportEmail}</span>
+                <a href={`mailto:${supportEmail}`} className="font-mono dir-ltr hover:text-[var(--neo-primary)] transition-colors">
+                  {supportEmail}
+                </a>
               </li>
             </ul>
 

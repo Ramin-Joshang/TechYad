@@ -6,6 +6,7 @@ export interface LogAuditParams {
   req?: any;
   userId?: any;
   userEmail?: string;
+  userPhone?: string;
   userName?: string;
   userRole?: 'student' | 'instructor' | 'admin' | 'super-admin' | 'guest';
   action: string;
@@ -18,6 +19,7 @@ export interface LogAuditParams {
   targetId?: string;
   targetType?: string;
   targetTitle?: string;
+  targetResource?: string;
   details?: any;
   status?: 'success' | 'failure' | 'warning';
   severity?: 'info' | 'warning' | 'critical';
@@ -179,6 +181,11 @@ export class AuditService {
       cpuArch = chArch;
     }
 
+    // 5. Geolocation / Region inference from headers
+    const cfCountry = req?.headers?.['cf-ipcountry'];
+    const xCountry = req?.headers?.['x-country-code'] || req?.headers?.['x-client-country'];
+    const detectedLocation = cfCountry ? `کشور: ${cfCountry}` : xCountry ? `کشور: ${xCountry}` : (acceptLang.includes('fa') ? 'ایران (IR)' : 'موقعیت شبکه / کلاینت');
+
     // Friendly summaries for concise columns
     const cleanOs = osVersion ? `${osName} ${osVersion}` : osName;
     const cleanBrowser = browserVersion ? `${browserName} ${browserVersion.split('.')[0]}` : browserName;
@@ -196,6 +203,7 @@ export class AuditService {
       cpuArch,
       platform: chPlatform || osName,
       language: acceptLang ? acceptLang.split(',')[0] : 'fa-IR',
+      location: detectedLocation,
       isMobile,
       isTablet,
       isDesktop,
@@ -236,6 +244,7 @@ export class AuditService {
       const { req } = params;
       let userId = params.userId || req?.user?._id || req?.user?.id;
       let userEmail = params.userEmail || req?.user?.email;
+      let userPhone = params.userPhone || req?.user?.mobile;
       let userName = params.userName;
       let userRole = params.userRole || req?.user?.role;
 
@@ -245,12 +254,13 @@ export class AuditService {
       const { device, browser, os, deviceDetails } = this.parseUserAgent(userAgent, req);
 
       // If user details are still missing, try to resolve from database
-      if (userId && (!userEmail || !userName || !userRole)) {
+      if (userId && (!userEmail || !userName || !userRole || !userPhone)) {
         try {
-          const userDoc = await User.findById(userId).select('firstName lastName email role').lean();
+          const userDoc = await User.findById(userId).select('firstName lastName email mobile role').lean();
           if (userDoc) {
             userEmail = userEmail || userDoc.email;
-            userName = userName || `${userDoc.firstName || ''} ${userDoc.lastName || ''}`.trim() || userDoc.email;
+            userPhone = userPhone || userDoc.mobile;
+            userName = userName || `${userDoc.firstName || ''} ${userDoc.lastName || ''}`.trim() || userDoc.email || userDoc.mobile;
             userRole = (userRole || userDoc.role) as any;
           }
         } catch {
@@ -261,6 +271,7 @@ export class AuditService {
       await AuditLog.create({
         userId: userId ? new Types.ObjectId(userId) : undefined,
         userEmail,
+        userPhone,
         userName,
         userRole: userRole || 'guest',
         action: params.action,
@@ -269,6 +280,7 @@ export class AuditService {
         targetId: params.targetId,
         targetType: params.targetType,
         targetTitle: params.targetTitle,
+        targetResource: params.targetResource || params.targetType || params.targetTitle || params.category,
         details: params.details,
         ip,
         userAgent,
@@ -326,8 +338,10 @@ export class AuditService {
         { action: { $regex: s, $options: 'i' } },
         { title: { $regex: s, $options: 'i' } },
         { userEmail: { $regex: s, $options: 'i' } },
+        { userPhone: { $regex: s, $options: 'i' } },
         { userName: { $regex: s, $options: 'i' } },
         { targetTitle: { $regex: s, $options: 'i' } },
+        { targetResource: { $regex: s, $options: 'i' } },
         { ip: { $regex: s, $options: 'i' } },
       ];
     }
@@ -341,7 +355,7 @@ export class AuditService {
         .sort({ createdAt: -1 })
         .skip(skip)
         .limit(limit)
-        .populate('userId', 'firstName lastName email role avatar')
+        .populate('userId', 'firstName lastName email mobile role avatar')
         .lean(),
       AuditLog.countDocuments(filter),
     ]);

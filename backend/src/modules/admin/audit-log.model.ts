@@ -3,6 +3,7 @@ import { Schema, Types, model, Document } from "mongoose";
 export interface IAuditLog extends Document {
   userId?: Types.ObjectId;
   userEmail?: string;
+  userPhone?: string;
   userName?: string;
   userRole?: 'student' | 'instructor' | 'admin' | 'super-admin' | 'guest';
   action: string;
@@ -11,6 +12,7 @@ export interface IAuditLog extends Document {
   targetId?: string;
   targetType?: string;
   targetTitle?: string;
+  targetResource?: string;
   details?: any;
   ip?: string;
   userAgent?: string;
@@ -30,6 +32,7 @@ export interface IAuditLog extends Document {
     platform?: string;
     screenResolution?: string;
     language?: string;
+    location?: string;
     clientIp?: string;
     forwardedFor?: string;
     protocol?: string;
@@ -48,6 +51,7 @@ const auditLogSchema = new Schema<IAuditLog>(
   {
     userId: { type: Schema.Types.ObjectId, ref: "User", index: true },
     userEmail: { type: String, index: true },
+    userPhone: { type: String, index: true },
     userName: { type: String },
     userRole: { 
       type: String, 
@@ -62,7 +66,7 @@ const auditLogSchema = new Schema<IAuditLog>(
         'auth', 'course', 'class', 'assignment', 'quiz', 
         'wallet', 'order', 'referral', 'support', 'security', 
         'profile', 'settings', 'settlement', 'notification', 
-        'system', 'sms', 'payment', 'user', 'user'
+        'system', 'sms', 'payment', 'user'
       ], 
       default: 'system',
       index: true
@@ -70,6 +74,7 @@ const auditLogSchema = new Schema<IAuditLog>(
     targetId: { type: String, index: true },
     targetType: { type: String },
     targetTitle: { type: String },
+    targetResource: { type: String },
     details: { type: Schema.Types.Mixed },
     ip: { type: String },
     userAgent: { type: String },

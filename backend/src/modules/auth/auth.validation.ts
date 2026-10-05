@@ -2,11 +2,30 @@ import { z } from 'zod';
 
 export const registerSchema = z.object({
   body: z.object({
-    firstName: z.string().min(2, 'First name must be at least 2 characters'),
-    lastName: z.string().min(2, 'Last name must be at least 2 characters'),
-    email: z.string().email('Invalid email address'),
-    password: z.string().min(6, 'Password must be at least 6 characters'),
+    firstName: z.string().min(2, 'نام باید حداقل ۲ کاراکتر باشد'),
+    lastName: z.string().min(2, 'نام خانوادگی باید حداقل ۲ کاراکتر باشد'),
+    email: z.string().email('آدرس ایمیل نامعتبر است').optional().or(z.literal('')),
+    mobile: z.string().optional().or(z.literal('')),
+    identifier: z.string().optional(),
+    password: z.string().min(6, 'رمز عبور باید حداقل ۶ کاراکتر باشد'),
     referralCode: z.string().optional(),
+  }).refine((data) => {
+    const hasEmail = Boolean(data.email && data.email.trim());
+    const hasMobile = Boolean(data.mobile && data.mobile.trim());
+    const hasIdent = Boolean(data.identifier && data.identifier.trim());
+    return hasEmail || hasMobile || hasIdent;
+  }, {
+    message: 'وارد کردن ایمیل یا شماره موبایل الزامی است',
+    path: ['mobile']
+  }).refine((data) => {
+    if (data.mobile && data.mobile.trim()) {
+      const clean = data.mobile.replace(/[\s\-_]/g, '');
+      return /^(\+98|0)?9\d{9}$/.test(clean);
+    }
+    return true;
+  }, {
+    message: 'شماره موبایل نامعتبر است. فرمت صحیح: 09123456789',
+    path: ['mobile']
   })
 });
 

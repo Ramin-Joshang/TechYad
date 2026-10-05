@@ -11,7 +11,7 @@ export interface IUser extends Document {
   firstName: string;
   lastName: string;
 
-  email: string;
+  email?: string;
   mobile?: string;
 
   passwordHash: string;
@@ -58,8 +58,8 @@ const userSchema = new Schema<IUser>(
 
     email: {
       type: String,
-      required: true,
       unique: true,
+      sparse: true,
       lowercase: true,
       trim: true,
       index: true,

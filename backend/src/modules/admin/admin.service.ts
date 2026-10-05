@@ -46,10 +46,19 @@ export class AdminService {
       key: { $nin: privateKeys },
       group: { $ne: 'secret' }
     }).lean();
-    return settings.reduce((acc, curr) => {
+    const dbSettings = settings.reduce((acc, curr) => {
        acc[curr.key] = curr.value;
        return acc;
     }, {} as Record<string, any>);
+
+    return {
+      supportPhone: '09372731037',
+      supportEmail: 'support@tecyad.ir',
+      telegramUrl: 'https://t.me/tecyad_ir',
+      instagramUrl: 'https://instagram.com/tecyad.ir',
+      whatsappPhone: '09372731037',
+      ...dbSettings
+    };
   }
 
   static async updateSettings(data: Record<string, any>) {

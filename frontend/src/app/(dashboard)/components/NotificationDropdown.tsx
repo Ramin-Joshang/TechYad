@@ -127,7 +127,10 @@ export function NotificationDropdown({ role }: { role: string }) {
   };
 
   const getRolePrefix = () => {
-    return role === 'super-admin' || role === 'admin' ? '/admin' : role === 'instructor' ? '/instructor' : '/student';
+    if (role === 'super-admin') return '/super-admin';
+    if (role === 'admin') return '/admin';
+    if (role === 'instructor') return '/instructor';
+    return '/student';
   };
 
   // Reusable notification list content
