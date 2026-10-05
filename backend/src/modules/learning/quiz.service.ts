@@ -149,7 +149,12 @@ export class QuizService {
       ...data,
       duration: data.duration ?? data.timeLimit ?? quiz.duration,
       passingScore: data.passingScore ?? data.passMark ?? quiz.passingScore,
-      ...(data.questions ? { questions: data.questions } : {})
+      ...(data.questions ? { 
+        questions: data.questions.map((q: any, idx: number) => ({
+          ...q,
+          order: q.order ?? (idx + 1)
+        }))
+      } : {})
     };
 
     return await Quiz.findByIdAndUpdate(quizId, updatePayload, { new: true });
@@ -212,7 +217,10 @@ export class QuizService {
       ...payload,
       duration: payload.duration ?? payload.timeLimit ?? 30,
       passingScore: payload.passingScore ?? payload.passMark ?? 70,
-      questions: payload.questions || [],
+      questions: (payload.questions || []).map((q: any, idx: number) => ({
+        ...q,
+        order: q.order ?? (idx + 1)
+      })),
       courseId: courseId || undefined,
       classId: classId || undefined,
       lessonId: targetLessonId || undefined,

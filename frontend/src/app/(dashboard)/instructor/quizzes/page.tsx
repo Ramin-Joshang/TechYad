@@ -289,48 +289,98 @@ export default function InstructorQuizzesPage() {
 
   const updateQuestionField = (qIndex: number, field: string, value: any) => {
     setFormData(prev => {
-      const newQuestions = [...prev.questions];
-      newQuestions[qIndex] = { ...newQuestions[qIndex], [field]: value };
+      const newQuestions = prev.questions.map((q, qI) => {
+        if (qI !== qIndex) return q;
+        const updated = { ...q, [field]: value };
+        if (field === 'type') {
+          if (value === 'true_false') {
+            updated.options = [
+              { text: 'صحیح', isCorrect: true },
+              { text: 'غلط', isCorrect: false }
+            ];
+          } else if (value === 'single_choice') {
+            // Keep only the first correct one if multiple were selected
+            let firstFound = false;
+            updated.options = q.options.map(opt => {
+              if (opt.isCorrect && !firstFound) {
+                firstFound = true;
+                return { ...opt, isCorrect: true };
+              }
+              return { ...opt, isCorrect: false };
+            });
+            if (!firstFound && updated.options.length > 0) {
+              updated.options[0].isCorrect = true;
+            }
+          }
+        }
+        return updated;
+      });
       return { ...prev, questions: newQuestions };
     });
   };
 
   const addOption = (qIndex: number) => {
     setFormData(prev => {
-      const newQuestions = [...prev.questions];
-      newQuestions[qIndex].options.push({ text: '', isCorrect: false });
+      const newQuestions = prev.questions.map((q, qI) => {
+        if (qI !== qIndex) return q;
+        return {
+          ...q,
+          options: [...q.options, { text: '', isCorrect: false }]
+        };
+      });
       return { ...prev, questions: newQuestions };
     });
   };
 
   const removeOption = (qIndex: number, optIndex: number) => {
     setFormData(prev => {
-      const newQuestions = [...prev.questions];
-      newQuestions[qIndex].options = newQuestions[qIndex].options.filter((_, idx) => idx !== optIndex);
+      const newQuestions = prev.questions.map((q, qI) => {
+        if (qI !== qIndex) return q;
+        const filtered = q.options.filter((_, idx) => idx !== optIndex);
+        return {
+          ...q,
+          options: filtered
+        };
+      });
       return { ...prev, questions: newQuestions };
     });
   };
 
   const updateOptionText = (qIndex: number, optIndex: number, text: string) => {
     setFormData(prev => {
-      const newQuestions = [...prev.questions];
-      newQuestions[qIndex].options[optIndex].text = text;
+      const newQuestions = prev.questions.map((q, qI) => {
+        if (qI !== qIndex) return q;
+        return {
+          ...q,
+          options: q.options.map((opt, oI) => (oI === optIndex ? { ...opt, text } : opt))
+        };
+      });
       return { ...prev, questions: newQuestions };
     });
   };
 
   const setCorrectOption = (qIndex: number, optIndex: number) => {
     setFormData(prev => {
-      const newQuestions = [...prev.questions];
-      const q = newQuestions[qIndex];
-      if (q.type === 'multiple_choice') {
-        q.options[optIndex].isCorrect = !q.options[optIndex].isCorrect;
-      } else {
-        q.options = q.options.map((opt, idx) => ({
-          ...opt,
-          isCorrect: idx === optIndex
-        }));
-      }
+      const newQuestions = prev.questions.map((q, qI) => {
+        if (qI !== qIndex) return q;
+        const isMultiple = q.type === 'multiple_choice';
+        const newOptions = q.options.map((opt, oI) => {
+          if (isMultiple) {
+            // In multiple choice, toggle this option independently
+            if (oI === optIndex) {
+              return { ...opt, isCorrect: !opt.isCorrect };
+            }
+            return { ...opt };
+          } else {
+            // In single choice or true_false, only the clicked option is correct
+            return {
+              ...opt,
+              isCorrect: oI === optIndex
+            };
+          }
+        });
+        return { ...q, options: newOptions };
+      });
       return { ...prev, questions: newQuestions };
     });
   };
@@ -664,27 +714,27 @@ export default function InstructorQuizzesPage() {
 
       {/* CREATE / EDIT MODAL WITH QUESTION BUILDER */}
       {isCreateModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in">
-          <div className="bg-[var(--neo-surface)] w-full max-w-4xl max-h-[90vh] rounded-3xl shadow-2xl border border-[var(--neo-border)] overflow-hidden flex flex-col">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-black/60 backdrop-blur-sm animate-in fade-in">
+          <div className="bg-[var(--neo-surface)] w-full max-w-4xl max-h-[95vh] sm:max-h-[90vh] rounded-2xl sm:rounded-3xl shadow-2xl border border-[var(--neo-border)] overflow-hidden flex flex-col">
             
             {/* Modal Header */}
-            <div className="p-6 border-b border-[var(--neo-border)] flex justify-between items-center bg-[var(--neo-surface-2)]/50">
+            <div className="p-4 sm:p-6 border-b border-[var(--neo-border)] flex justify-between items-center bg-[var(--neo-surface-2)]/50 shrink-0">
               <div>
-                <h3 className="text-xl font-black text-[var(--neo-text-main)]">
+                <h3 className="text-lg sm:text-xl font-black text-[var(--neo-text-main)]">
                   {editingQuizId ? 'ویرایش آزمون و سوالات' : 'طراحی آزمون جدید'}
                 </h3>
-                <p className="text-xs text-[var(--neo-text-secondary)] mt-1">مشخصات آزمون را تنظیم کرده و سوالات آن را ایجاد کنید.</p>
+                <p className="text-xs text-[var(--neo-text-secondary)] mt-0.5 sm:mt-1">مشخصات آزمون را تنظیم کرده و سوالات آن را ایجاد کنید.</p>
               </div>
               <button 
                 onClick={closeModal}
-                className="w-9 h-9 rounded-2xl bg-[var(--neo-surface)] border border-[var(--neo-border)] flex items-center justify-center text-[var(--neo-text-secondary)] hover:text-red-500 transition-colors"
+                className="w-9 h-9 rounded-2xl bg-[var(--neo-surface)] border border-[var(--neo-border)] flex items-center justify-center text-[var(--neo-text-secondary)] hover:text-red-500 transition-colors shrink-0"
               >
                 ✕
               </button>
             </div>
 
             {/* Modal Body (Scrollable) */}
-            <div className="p-6 overflow-y-auto space-y-6 flex-1">
+            <div className="p-3 sm:p-6 overflow-y-auto space-y-5 flex-1">
               
               {/* Target Switcher: Course vs Class */}
               <div className="bg-[var(--neo-surface-2)]/60 p-3 rounded-2xl border border-[var(--neo-border)]">
@@ -822,35 +872,36 @@ export default function InstructorQuizzesPage() {
 
               {/* Questions Section */}
               <div className="pt-4 border-t border-[var(--neo-border)]">
-                <div className="flex justify-between items-center mb-4">
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4">
                   <div>
                     <h4 className="font-black text-base text-[var(--neo-text-main)] flex items-center gap-2">
                       <HelpCircle className="w-5 h-5 text-[var(--neo-primary)]" />
                       سوالات آزمون ({formData.questions.length} سوال)
                     </h4>
-                    <p className="text-xs text-[var(--neo-text-secondary)]">متن هر سوال و گزینه‌های آن را وارد کرده و پاسخ صحیح را علامت بزنید.</p>
+                    <p className="text-xs text-[var(--neo-text-secondary)]">متن هر سوال و گزینه‌های آن را وارد کرده و پاسخ‌های صحیح را علامت بزنید.</p>
                   </div>
                   <button
                     type="button"
                     onClick={addQuestion}
-                    className="px-4 py-2 bg-[var(--neo-primary)]/10 text-[var(--neo-primary)] hover:bg-[var(--neo-primary)] hover:text-white rounded-xl text-xs font-bold transition-colors flex items-center gap-1.5"
+                    className="px-4 py-2 bg-[var(--neo-primary)]/10 text-[var(--neo-primary)] hover:bg-[var(--neo-primary)] hover:text-white rounded-xl text-xs font-bold transition-colors flex items-center gap-1.5 shrink-0"
                   >
                     <Plus className="w-4 h-4" />
                     افزودن سوال جدید
                   </button>
                 </div>
 
-                <div className="space-y-4">
+                <div className="space-y-5">
                   {formData.questions.map((question, qIdx) => (
-                    <div key={qIdx} className="p-4 rounded-3xl bg-[var(--neo-surface-2)]/60 border border-[var(--neo-border)] relative group">
-                      <div className="flex justify-between items-center mb-3">
-                        <span className="px-3 py-1 rounded-xl bg-[var(--neo-surface)] text-xs font-black text-[var(--neo-primary)] border border-[var(--neo-border)]">
-                          سوال {qIdx + 1}
+                    <div key={qIdx} className="p-3.5 sm:p-5 rounded-3xl bg-[var(--neo-surface-2)]/70 border border-[var(--neo-border)] relative space-y-3">
+                      {/* Question Header & Controls */}
+                      <div className="flex flex-wrap items-center justify-between gap-2 pb-2 border-b border-[var(--neo-border)]/60">
+                        <span className="px-3 py-1 rounded-xl bg-[var(--neo-surface)] text-xs font-black text-[var(--neo-primary)] border border-[var(--neo-border)] shrink-0">
+                          سوال شماره {qIdx + 1}
                         </span>
                         
-                        <div className="flex items-center gap-3">
-                          <div className="flex items-center gap-1.5">
-                            <span className="text-xs text-[var(--neo-text-secondary)]">نمره:</span>
+                        <div className="flex flex-wrap items-center gap-2">
+                          <div className="flex items-center gap-1.5 bg-[var(--neo-surface)] px-2 py-1 rounded-xl border border-[var(--neo-border)]">
+                            <span className="text-[11px] text-[var(--neo-text-secondary)]">نمره:</span>
                             <input
                               type="text"
                               inputMode="numeric"
@@ -859,7 +910,7 @@ export default function InstructorQuizzesPage() {
                                 const val = toEnDigits(e.target.value).replace(/[^0-9]/g, '');
                                 updateQuestionField(qIdx, 'score', val ? Number(val) : 1);
                               }}
-                              className="w-16 px-2 py-1 rounded-xl bg-[var(--neo-surface)] border border-[var(--neo-border)] text-xs font-bold text-center"
+                              className="w-10 text-xs font-bold text-center bg-transparent border-0 focus:outline-none"
                               dir="ltr"
                             />
                           </div>
@@ -867,10 +918,10 @@ export default function InstructorQuizzesPage() {
                           <select
                             value={question.type}
                             onChange={(e) => updateQuestionField(qIdx, 'type', e.target.value)}
-                            className="px-2.5 py-1 rounded-xl bg-[var(--neo-surface)] border border-[var(--neo-border)] text-xs font-bold"
+                            className="px-2.5 py-1.5 rounded-xl bg-[var(--neo-surface)] border border-[var(--neo-border)] text-xs font-bold text-[var(--neo-text-main)] focus:outline-none"
                           >
-                            <option value="single_choice">تک‌گزینه‌ای (یک جواب)</option>
-                            <option value="multiple_choice">چندگزینه‌ای (چند جواب)</option>
+                            <option value="single_choice">تک‌گزینه‌ای (یک پاسخ صحیح)</option>
+                            <option value="multiple_choice">چندگزینه‌ای (چند پاسخ صحیح)</option>
                             <option value="true_false">صحیح / غلط</option>
                           </select>
 
@@ -878,7 +929,7 @@ export default function InstructorQuizzesPage() {
                             <button
                               type="button"
                               onClick={() => removeQuestion(qIdx)}
-                              className="p-1.5 text-[var(--neo-text-secondary)] hover:text-red-500 rounded-lg transition-colors"
+                              className="p-1.5 text-[var(--neo-text-secondary)] hover:text-red-500 rounded-lg hover:bg-red-50 transition-colors shrink-0"
                               title="حذف این سوال"
                             >
                               <Trash2 className="w-4 h-4" />
@@ -888,55 +939,93 @@ export default function InstructorQuizzesPage() {
                       </div>
 
                       {/* Question Text */}
-                      <input
-                        type="text"
-                        placeholder="متن سوال را اینجا تایپ کنید..."
-                        value={question.text}
-                        onChange={(e) => updateQuestionField(qIdx, 'text', e.target.value)}
-                        className="w-full px-3.5 py-2.5 rounded-2xl bg-[var(--neo-surface)] border border-[var(--neo-border)] text-sm font-bold mb-3 focus:outline-none focus:border-[var(--neo-primary)]"
-                      />
+                      <div>
+                        <input
+                          type="text"
+                          placeholder="متن سوال را اینجا تایپ کنید..."
+                          value={question.text}
+                          onChange={(e) => updateQuestionField(qIdx, 'text', e.target.value)}
+                          className="w-full px-3.5 py-2.5 rounded-2xl bg-[var(--neo-surface)] border border-[var(--neo-border)] text-sm font-bold focus:outline-none focus:border-[var(--neo-primary)]"
+                        />
+                      </div>
+
+                      {/* Help Banner based on Question Type */}
+                      <div className="text-xs rounded-xl px-3 py-1.5 font-medium flex items-center gap-1.5 bg-blue-50/70 text-blue-700 border border-blue-100">
+                        {question.type === 'multiple_choice' ? (
+                          <span>💡 <strong>آزمون چندگزینه‌ای:</strong> می‌توانید با کلیک روی هر گزینه، چندین گزینه را به عنوان پاسخ صحیح تیک بزنید.</span>
+                        ) : question.type === 'true_false' ? (
+                          <span>💡 <strong>صحیح یا غلط:</strong> روی گزینه صحیح کلیک کنید تا پاسخ درست مشخص شود.</span>
+                        ) : (
+                          <span>💡 <strong>آزمون تک‌گزینه‌ای:</strong> روی گزینه درست کلیک کنید تا به عنوان تنها پاسخ صحیح انتخاب شود.</span>
+                        )}
+                      </div>
 
                       {/* Options */}
-                      <div className="space-y-2 mr-2">
-                        <div className="text-xs font-bold text-[var(--neo-text-secondary)] mb-1">
-                          گزینه‌ها (روی دایره یا مربع تیک بزنید تا گزینه صحیح مشخص شود):
-                        </div>
-
+                      <div className="space-y-2">
                         {question.options.map((option, optIdx) => (
-                          <div key={optIdx} className="flex items-center gap-2">
-                            <button
-                              type="button"
-                              onClick={() => setCorrectOption(qIdx, optIdx)}
-                              className={`w-7 h-7 rounded-xl flex items-center justify-center transition-colors shrink-0 ${
-                                option.isCorrect 
-                                  ? 'bg-emerald-500 text-white shadow-sm' 
-                                  : 'bg-[var(--neo-surface)] border border-[var(--neo-border)] text-transparent hover:border-emerald-500'
-                              }`}
-                              title={option.isCorrect ? 'پاسخ صحیح' : 'علامت زدن به عنوان پاسخ صحیح'}
-                            >
-                              <Check className="w-4 h-4 stroke-[3]" />
-                            </button>
-
-                            <input
-                              type="text"
-                              placeholder={`گزینه ${optIdx + 1}`}
-                              value={option.text}
-                              onChange={(e) => updateOptionText(qIdx, optIdx, e.target.value)}
-                              className={`flex-1 px-3 py-1.5 rounded-xl bg-[var(--neo-surface)] border text-xs font-medium focus:outline-none ${
-                                option.isCorrect ? 'border-emerald-500 bg-emerald-50/20' : 'border-[var(--neo-border)]'
-                              }`}
-                            />
-
-                            {question.options.length > 2 && (
+                          <div 
+                            key={optIdx} 
+                            className={`p-2 sm:p-2.5 rounded-2xl border transition-all ${
+                              option.isCorrect 
+                                ? 'border-emerald-500 bg-emerald-50/30' 
+                                : 'border-[var(--neo-border)] bg-[var(--neo-surface)]'
+                            }`}
+                          >
+                            <div className="flex items-center gap-2">
+                              {/* Toggle Correct Button */}
                               <button
                                 type="button"
-                                onClick={() => removeOption(qIdx, optIdx)}
-                                className="p-1 text-[var(--neo-text-secondary)] hover:text-red-500"
-                                title="حذف گزینه"
+                                onClick={() => setCorrectOption(qIdx, optIdx)}
+                                className={`px-2.5 py-1.5 rounded-xl text-xs font-bold transition-all shrink-0 flex items-center gap-1.5 cursor-pointer ${
+                                  option.isCorrect
+                                    ? 'bg-emerald-600 text-white shadow-xs'
+                                    : 'bg-[var(--neo-surface-2)] text-[var(--neo-text-secondary)] hover:text-emerald-700 hover:bg-emerald-50 border border-[var(--neo-border)]'
+                                }`}
+                                title={
+                                  question.type === 'multiple_choice' 
+                                    ? (option.isCorrect ? 'کلیک کنید تا از حالت صحیح خارج شود' : 'کلیک کنید تا به عنوان پاسخ صحیح اضافه شود') 
+                                    : 'کلیک کنید تا این گزینه پاسخ صحیح شود'
+                                }
                               >
-                                ✕
+                                <div className={`w-4 h-4 flex items-center justify-center shrink-0 ${
+                                  question.type === 'multiple_choice' ? 'rounded-md' : 'rounded-full'
+                                } ${
+                                  option.isCorrect 
+                                    ? 'bg-white text-emerald-600' 
+                                    : 'border border-current'
+                                }`}>
+                                  {option.isCorrect && <Check className="w-3 h-3 stroke-[3]" />}
+                                </div>
+                                <span className="hidden sm:inline">
+                                  {option.isCorrect ? 'پاسخ صحیح ✓' : 'علامت پاسخ'}
+                                </span>
                               </button>
-                            )}
+
+                              {/* Option Input */}
+                              <input
+                                type="text"
+                                placeholder={`متن گزینه ${optIdx + 1}`}
+                                value={option.text}
+                                onChange={(e) => updateOptionText(qIdx, optIdx, e.target.value)}
+                                className={`flex-1 px-3 py-1.5 rounded-xl text-xs sm:text-sm font-medium focus:outline-none ${
+                                  option.isCorrect 
+                                    ? 'bg-emerald-50/50 text-emerald-950 font-bold border border-emerald-300' 
+                                    : 'bg-[var(--neo-surface-2)] text-[var(--neo-text-main)] border border-[var(--neo-border)]'
+                                }`}
+                              />
+
+                              {/* Remove Option Button */}
+                              {question.options.length > 2 && question.type !== 'true_false' && (
+                                <button
+                                  type="button"
+                                  onClick={() => removeOption(qIdx, optIdx)}
+                                  className="p-1.5 text-[var(--neo-text-secondary)] hover:text-red-500 rounded-lg hover:bg-red-50 transition-colors shrink-0"
+                                  title="حذف گزینه"
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </button>
+                              )}
+                            </div>
                           </div>
                         ))}
 
@@ -944,9 +1033,9 @@ export default function InstructorQuizzesPage() {
                           <button
                             type="button"
                             onClick={() => addOption(qIdx)}
-                            className="text-xs font-bold text-[var(--neo-primary)] hover:underline mt-1 inline-flex items-center gap-1"
+                            className="text-xs font-bold text-[var(--neo-primary)] hover:underline mt-2 inline-flex items-center gap-1 px-2 py-1 rounded-lg hover:bg-[var(--neo-primary)]/5"
                           >
-                            + افزودن گزینه دیگر
+                            + افزودن گزینه دیگر به این سوال
                           </button>
                         )}
                       </div>
@@ -958,11 +1047,11 @@ export default function InstructorQuizzesPage() {
             </div>
 
             {/* Modal Footer */}
-            <div className="p-5 border-t border-[var(--neo-border)] flex justify-between items-center bg-[var(--neo-surface-2)]/50">
+            <div className="p-3.5 sm:p-5 border-t border-[var(--neo-border)] flex flex-col-reverse sm:flex-row justify-between items-stretch sm:items-center gap-2 bg-[var(--neo-surface-2)]/50 shrink-0">
               <button
                 type="button"
                 onClick={closeModal}
-                className="px-5 py-2.5 rounded-2xl bg-[var(--neo-surface)] border border-[var(--neo-border)] text-xs font-bold text-[var(--neo-text-secondary)] hover:bg-[var(--neo-surface-2)] transition-colors"
+                className="w-full sm:w-auto px-5 py-2.5 rounded-2xl bg-[var(--neo-surface)] border border-[var(--neo-border)] text-xs font-bold text-[var(--neo-text-secondary)] hover:bg-[var(--neo-surface-2)] transition-colors text-center"
               >
                 انصراف
               </button>
@@ -971,7 +1060,7 @@ export default function InstructorQuizzesPage() {
                 type="button"
                 disabled={saveQuizMutation.isPending}
                 onClick={handleSubmitQuiz}
-                className="px-6 py-2.5 rounded-2xl bg-[var(--neo-primary)] hover:bg-blue-700 text-white text-xs font-bold shadow-lg shadow-[var(--neo-primary)]/20 transition-all disabled:opacity-50 flex items-center gap-2 cursor-pointer"
+                className="w-full sm:w-auto px-6 py-2.5 rounded-2xl bg-[var(--neo-primary)] hover:bg-blue-700 text-white text-xs font-bold shadow-lg shadow-[var(--neo-primary)]/20 transition-all disabled:opacity-50 flex items-center justify-center gap-2 cursor-pointer"
               >
                 {saveQuizMutation.isPending && <Loader2 className="w-4 h-4 animate-spin" />}
                 {editingQuizId ? 'ذخیره تغییرات آزمون' : 'ایجاد و ذخیره آزمون'}
@@ -984,63 +1073,63 @@ export default function InstructorQuizzesPage() {
 
       {/* VIEW ATTEMPTS MODAL */}
       {viewAttemptsQuizId && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in">
-          <div className="bg-[var(--neo-surface)] w-full max-w-2xl max-h-[85vh] rounded-3xl shadow-2xl border border-[var(--neo-border)] overflow-hidden flex flex-col">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-black/60 backdrop-blur-sm animate-in fade-in">
+          <div className="bg-[var(--neo-surface)] w-full max-w-2xl max-h-[90vh] sm:max-h-[85vh] rounded-2xl sm:rounded-3xl shadow-2xl border border-[var(--neo-border)] overflow-hidden flex flex-col">
             
-            <div className="p-6 border-b border-[var(--neo-border)] flex justify-between items-center bg-[var(--neo-surface-2)]/50">
+            <div className="p-4 sm:p-6 border-b border-[var(--neo-border)] flex justify-between items-center bg-[var(--neo-surface-2)]/50 shrink-0">
               <div>
-                <h3 className="text-lg font-black text-[var(--neo-text-main)] flex items-center gap-2">
+                <h3 className="text-base sm:text-lg font-black text-[var(--neo-text-main)] flex items-center gap-2">
                   <Users className="w-5 h-5 text-[var(--neo-primary)]" />
                   کارنامه و نتایج شرکت‌کنندگان آزمون
                 </h3>
-                <p className="text-xs text-[var(--neo-text-secondary)] mt-1">مشاهده نمرات و وضعیت قبولی هر دانشجو در این آزمون</p>
+                <p className="text-xs text-[var(--neo-text-secondary)] mt-0.5 sm:mt-1">مشاهده نمرات و وضعیت قبولی هر دانشجو در این آزمون</p>
               </div>
               <button 
                 onClick={() => setViewAttemptsQuizId(null)}
-                className="w-9 h-9 rounded-2xl bg-[var(--neo-surface)] border border-[var(--neo-border)] flex items-center justify-center text-[var(--neo-text-secondary)] hover:text-red-500 transition-colors"
+                className="w-9 h-9 rounded-2xl bg-[var(--neo-surface)] border border-[var(--neo-border)] flex items-center justify-center text-[var(--neo-text-secondary)] hover:text-red-500 transition-colors shrink-0"
               >
                 ✕
               </button>
             </div>
 
-            <div className="p-6 overflow-y-auto flex-1">
+            <div className="p-4 sm:p-6 overflow-y-auto flex-1">
               {isLoadingAttempts ? (
                 <div className="p-12 flex justify-center text-[var(--neo-primary)]">
                   <Loader2 className="w-8 h-8 animate-spin" />
                 </div>
               ) : attempts.length === 0 ? (
-                <div className="text-center py-12 text-[var(--neo-text-secondary)]">
+                <div className="text-center py-12 text-[var(--neo-text-secondary)] text-sm">
                   هنوز هیچ دانشجویی در این آزمون شرکت نکرده است.
                 </div>
               ) : (
                 <div className="divide-y divide-[var(--neo-border)]">
                   {attempts.map((att: any) => (
-                    <div key={att._id} className="py-3.5 flex items-center justify-between gap-4">
+                    <div key={att._id} className="py-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                       <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-2xl bg-[var(--neo-primary)]/10 text-[var(--neo-primary)] flex items-center justify-center font-bold text-sm">
+                        <div className="w-10 h-10 rounded-2xl bg-[var(--neo-primary)]/10 text-[var(--neo-primary)] flex items-center justify-center font-bold text-sm shrink-0">
                           {att.user?.firstName?.[0] || 'د'}
                         </div>
-                        <div>
-                          <div className="font-bold text-sm text-[var(--neo-text-main)]">
+                        <div className="min-w-0">
+                          <div className="font-bold text-sm text-[var(--neo-text-main)] truncate">
                             {att.user?.firstName} {att.user?.lastName}
                           </div>
-                          <div className="text-xs text-[var(--neo-text-secondary)]">
+                          <div className="text-xs text-[var(--neo-text-secondary)] truncate font-mono">
                             {att.user?.email}
                           </div>
                         </div>
                       </div>
 
-                      <div className="flex items-center gap-4">
-                        <div className="text-left">
+                      <div className="flex items-center justify-between sm:justify-end gap-4 border-t sm:border-t-0 pt-2 sm:pt-0 border-[var(--neo-border)]/50">
+                        <div className="text-right sm:text-left">
                           <div className="font-black text-sm text-[var(--neo-text-main)]">
                             {att.percentage}٪
                           </div>
-                          <div className="text-xs text-[var(--neo-text-secondary)]">
+                          <div className="text-[11px] text-[var(--neo-text-secondary)]">
                             نمره: {att.score} از {att.totalScore}
                           </div>
                         </div>
 
-                        <span className={`px-3 py-1 rounded-xl text-xs font-bold flex items-center gap-1 ${
+                        <span className={`px-3 py-1 rounded-xl text-xs font-bold flex items-center gap-1 shrink-0 ${
                           att.passed 
                             ? 'bg-emerald-50 text-emerald-700' 
                             : 'bg-red-50 text-red-700'
@@ -1055,10 +1144,10 @@ export default function InstructorQuizzesPage() {
               )}
             </div>
 
-            <div className="p-4 border-t border-[var(--neo-border)] bg-[var(--neo-surface-2)]/50 text-left">
+            <div className="p-3.5 sm:p-4 border-t border-[var(--neo-border)] bg-[var(--neo-surface-2)]/50 text-left shrink-0">
               <button
                 onClick={() => setViewAttemptsQuizId(null)}
-                className="px-5 py-2 rounded-2xl bg-[var(--neo-surface)] border border-[var(--neo-border)] text-xs font-bold text-[var(--neo-text-secondary)] hover:bg-[var(--neo-surface-2)]"
+                className="w-full sm:w-auto px-5 py-2 rounded-2xl bg-[var(--neo-surface)] border border-[var(--neo-border)] text-xs font-bold text-[var(--neo-text-secondary)] hover:bg-[var(--neo-surface-2)] transition-colors text-center"
               >
                 بستن
               </button>

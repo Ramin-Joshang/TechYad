@@ -17,6 +17,27 @@ export interface IAuditLog extends Document {
   device?: string;
   browser?: string;
   os?: string;
+  deviceDetails?: {
+    deviceType?: string;
+    brand?: string;
+    model?: string;
+    osName?: string;
+    osVersion?: string;
+    browserName?: string;
+    browserVersion?: string;
+    engine?: string;
+    cpuArch?: string;
+    platform?: string;
+    screenResolution?: string;
+    language?: string;
+    clientIp?: string;
+    forwardedFor?: string;
+    protocol?: string;
+    isMobile?: boolean;
+    isTablet?: boolean;
+    isDesktop?: boolean;
+    isBot?: boolean;
+  };
   status: 'success' | 'failure' | 'warning';
   severity?: 'info' | 'warning' | 'critical';
   createdAt: Date;
@@ -55,6 +76,7 @@ const auditLogSchema = new Schema<IAuditLog>(
     device: { type: String },
     browser: { type: String },
     os: { type: String },
+    deviceDetails: { type: Schema.Types.Mixed },
     status: { type: String, enum: ['success', 'failure', 'warning'], default: 'success', index: true },
     severity: { type: String, enum: ['info', 'warning', 'critical'], default: 'info', index: true },
   },

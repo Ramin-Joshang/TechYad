@@ -202,15 +202,15 @@ export default function InstructorAssignmentsPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-2xl font-black text-[var(--neo-text-main)] flex items-center gap-2">
-            <FileText className="w-7 h-7 text-[var(--neo-primary)]" />
+          <h1 className="text-xl sm:text-2xl font-black text-[var(--neo-text-main)] flex items-center gap-2">
+            <FileText className="w-6 h-6 sm:w-7 sm:h-7 text-[var(--neo-primary)]" />
             مدیریت تکالیف و پروژه‌ها
           </h1>
-          <p className="text-[var(--neo-text-secondary)] mt-1">تعریف تمرین و پروژه برای دوره‌ها و بررسی و نمره‌دهی به پاسخ‌های دانشجویان</p>
+          <p className="text-xs sm:text-sm text-[var(--neo-text-secondary)] mt-1">تعریف تمرین و پروژه برای دوره‌ها و بررسی و نمره‌دهی به پاسخ‌های دانشجویان</p>
         </div>
         <button 
           onClick={openCreateModal}
-          className="bg-[var(--neo-primary)] hover:bg-[var(--neo-primary)] text-white px-5 py-2.5 rounded-2xl font-bold flex items-center gap-2 shadow-lg shadow-[var(--neo-primary)]/20 transition-all hover:scale-105"
+          className="w-full sm:w-auto justify-center bg-[var(--neo-primary)] hover:bg-[var(--neo-primary)] text-white px-5 py-2.5 rounded-2xl font-bold flex items-center gap-2 shadow-lg shadow-[var(--neo-primary)]/20 transition-all hover:scale-105 shrink-0"
         >
           <Plus className="w-5 h-5" />
           تعریف تکلیف جدید
@@ -218,16 +218,21 @@ export default function InstructorAssignmentsPage() {
       </div>
 
       {/* Main Tabs */}
-      <div className="flex gap-3 border-b border-[var(--neo-border)] pb-2">
+      <div className="flex gap-2 sm:gap-3 border-b border-[var(--neo-border)] pb-2 overflow-x-auto no-scrollbar">
         <button
           onClick={() => setActiveMainTab('submissions')}
-          className={`pb-2 px-4 text-sm font-black transition-colors relative ${
+          className={`pb-2 px-3 sm:px-4 text-xs sm:text-sm font-black transition-colors relative whitespace-nowrap ${
             activeMainTab === 'submissions' 
               ? 'text-[var(--neo-primary)]' 
               : 'text-[var(--neo-text-secondary)] hover:text-[var(--neo-text-main)]'
           }`}
         >
           بررسی پاسخ‌ها و نمره‌دهی
+          {pendingCount > 0 && (
+            <span className="mr-1.5 px-2 py-0.5 rounded-full text-[10px] bg-amber-500 text-white font-bold">
+              {pendingCount}
+            </span>
+          )}
           {activeMainTab === 'submissions' && (
             <span className="absolute bottom-0 right-0 left-0 h-0.5 bg-[var(--neo-primary)] rounded-full" />
           )}
@@ -235,7 +240,7 @@ export default function InstructorAssignmentsPage() {
 
         <button
           onClick={() => setActiveMainTab('assignments')}
-          className={`pb-2 px-4 text-sm font-black transition-colors relative ${
+          className={`pb-2 px-3 sm:px-4 text-xs sm:text-sm font-black transition-colors relative whitespace-nowrap ${
             activeMainTab === 'assignments' 
               ? 'text-[var(--neo-primary)]' 
               : 'text-[var(--neo-text-secondary)] hover:text-[var(--neo-text-main)]'
@@ -252,10 +257,10 @@ export default function InstructorAssignmentsPage() {
       {activeMainTab === 'submissions' && (
         <div className="space-y-6">
           {/* Sub-Tabs */}
-          <div className="flex gap-2 bg-[var(--neo-surface)] p-1.5 rounded-2xl border border-[var(--neo-border)] shadow-sm w-fit">
+          <div className="flex gap-2 bg-[var(--neo-surface)] p-1.5 rounded-2xl border border-[var(--neo-border)] shadow-sm w-full sm:w-fit overflow-x-auto">
             <button
               onClick={() => { setSubmissionTab('pending'); setPage(1); }}
-              className={`px-5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
+              className={`flex-1 sm:flex-initial px-4 sm:px-5 py-2 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 whitespace-nowrap ${
                 submissionTab === 'pending' 
                   ? 'bg-amber-50 text-amber-700 shadow-sm' 
                   : 'text-[var(--neo-text-secondary)] hover:text-[var(--neo-text-main)]'
@@ -266,7 +271,7 @@ export default function InstructorAssignmentsPage() {
             </button>
             <button
               onClick={() => { setSubmissionTab('graded'); setPage(1); }}
-              className={`px-5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
+              className={`flex-1 sm:flex-initial px-4 sm:px-5 py-2 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 whitespace-nowrap ${
                 submissionTab === 'graded' 
                   ? 'bg-emerald-50 text-emerald-700 shadow-sm' 
                   : 'text-[var(--neo-text-secondary)] hover:text-[var(--neo-text-main)]'
@@ -740,11 +745,11 @@ export default function InstructorAssignmentsPage() {
               </div>
             </div>
 
-            <div className="p-5 border-t border-[var(--neo-border)] flex justify-between items-center bg-[var(--neo-surface-2)]/50">
+            <div className="p-3.5 sm:p-5 border-t border-[var(--neo-border)] flex flex-col-reverse sm:flex-row justify-between items-stretch sm:items-center gap-2 bg-[var(--neo-surface-2)]/50 shrink-0">
               <button
                 type="button"
                 onClick={closeAssignmentModal}
-                className="px-5 py-2.5 rounded-2xl bg-[var(--neo-surface)] border border-[var(--neo-border)] text-xs font-bold text-[var(--neo-text-secondary)]"
+                className="w-full sm:w-auto px-5 py-2.5 rounded-2xl bg-[var(--neo-surface)] border border-[var(--neo-border)] text-xs font-bold text-[var(--neo-text-secondary)] hover:bg-[var(--neo-surface-2)] transition-colors text-center"
               >
                 انصراف
               </button>
@@ -753,7 +758,7 @@ export default function InstructorAssignmentsPage() {
                 type="button"
                 disabled={saveAssignmentMutation.isPending}
                 onClick={handleSubmitAssignment}
-                className="px-6 py-2.5 rounded-2xl bg-[var(--neo-primary)] hover:bg-blue-700 text-white text-xs font-bold shadow-lg shadow-[var(--neo-primary)]/20 transition-all disabled:opacity-50 flex items-center gap-2 cursor-pointer"
+                className="w-full sm:w-auto px-6 py-2.5 rounded-2xl bg-[var(--neo-primary)] hover:bg-blue-700 text-white text-xs font-bold shadow-lg shadow-[var(--neo-primary)]/20 transition-all disabled:opacity-50 flex items-center justify-center gap-2 cursor-pointer"
               >
                 {saveAssignmentMutation.isPending && <Loader2 className="w-4 h-4 animate-spin" />}
                 {editingAssignmentId ? 'ذخیره تغییرات' : 'ثبت و انتشار تکلیف'}
@@ -845,11 +850,11 @@ export default function InstructorAssignmentsPage() {
               </div>
             </div>
 
-            <div className="p-5 border-t border-[var(--neo-border)] flex justify-between items-center bg-[var(--neo-surface-2)]/50">
+            <div className="p-3.5 sm:p-5 border-t border-[var(--neo-border)] flex flex-col-reverse sm:flex-row justify-between items-stretch sm:items-center gap-2 bg-[var(--neo-surface-2)]/50 shrink-0">
               <button
                 type="button"
                 onClick={() => setGradingSubmission(null)}
-                className="px-5 py-2.5 rounded-2xl bg-[var(--neo-surface)] border border-[var(--neo-border)] text-xs font-bold text-[var(--neo-text-secondary)]"
+                className="w-full sm:w-auto px-5 py-2.5 rounded-2xl bg-[var(--neo-surface)] border border-[var(--neo-border)] text-xs font-bold text-[var(--neo-text-secondary)] hover:bg-[var(--neo-surface-2)] transition-colors text-center"
               >
                 انصراف
               </button>
@@ -862,7 +867,7 @@ export default function InstructorAssignmentsPage() {
                   score: Number(gradeScore),
                   feedback: gradeFeedback
                 })}
-                className="px-6 py-2.5 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-lg shadow-emerald-600/20 transition-all disabled:opacity-50 flex items-center gap-2"
+                className="w-full sm:w-auto px-6 py-2.5 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-lg shadow-emerald-600/20 transition-all disabled:opacity-50 flex items-center justify-center gap-2 cursor-pointer"
               >
                 {gradeMutation.isPending && <Loader2 className="w-4 h-4 animate-spin" />}
                 ثبت نمره و ارسال بازخورد
