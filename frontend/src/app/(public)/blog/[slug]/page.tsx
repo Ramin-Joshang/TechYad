@@ -28,12 +28,12 @@ export async function generateMetadata({
 
   if (!article) {
     return {
-      title: 'مقاله تخصصی | وبلاگ تک‌یاد (Tecyad)',
-      description: 'جدیدترین مقالات آموزشی، راهنماهای برنامه‌نویسی و فناوری در وبلاگ تک‌یاد (Tecyad).',
+      title: 'مقاله تخصصی | تک‌یاد',
+      description: 'جدیدترین مقالات آموزشی، راهنماهای برنامه‌نویسی و فناوری در وبلاگ تک‌یاد.',
     };
   }
 
-  const title = `${article.title} | وبلاگ تک‌یاد (Tecyad)`;
+  const title = `${article.title} | تک‌یاد`;
   const rawExcerpt = article.excerpt || article.content || '';
   const cleanExcerpt = rawExcerpt.replace(/<[^>]*>/g, '').slice(0, 155);
   const description = cleanExcerpt.length > 50

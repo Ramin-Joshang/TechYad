@@ -9,10 +9,11 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/features/auth/stores/auth.store';
 import toast from 'react-hot-toast';
+import { CommentsSection } from '@/features/comments/components/CommentsSection';
 
 export function CourseDetailsContainer({ slug }: { slug: string }) {
   const router = useRouter();
-  const { isAuthenticated, isInitializing } = useAuthStore();
+  const { isAuthenticated, isInitializing, user } = useAuthStore();
   const queryClient = useQueryClient();
 
   // Fetch Course
@@ -354,6 +355,16 @@ export function CourseDetailsContainer({ slug }: { slug: string }) {
                </div>
              </div>
            )}
+
+           {/* Comments and Reviews Section */}
+           <CommentsSection 
+             courseId={course._id} 
+             courseSlug={course.slug} 
+             isInstructor={user?.role === 'instructor' && (
+               course.instructors?.some((inst: any) => (inst._id || inst).toString() === user?._id?.toString()) ||
+               (instructor?._id || instructor)?.toString() === user?._id?.toString()
+             )} 
+           />
         </div>
 
         {/* Sidebar Info */}

@@ -29,12 +29,12 @@ export async function generateMetadata({
 
   if (!course) {
     return {
-      title: 'دوره آموزشی | تک‌یاد (Tecyad)',
-      description: 'مشاهده سرفصل‌ها، ویدیوهای پیش‌نمایش و ثبت‌نام در دوره‌های تخصصی آموزشگاه آنلاین تک‌یاد (Tecyad).',
+      title: 'دوره آموزشی | تک‌یاد',
+      description: 'مشاهده سرفصل‌ها، ویدیوهای پیش‌نمایش و ثبت‌نام در دوره‌های تخصصی آموزشگاه آنلاین تک‌یاد.',
     };
   }
 
-  const title = `${course.title} | دوره آموزش تخصصی تک‌یاد (Tecyad)`;
+  const title = `${course.title} | تک‌یاد`;
   const rawDescription = course.description || course.shortDescription || '';
   const cleanDescription = rawDescription.replace(/<[^>]*>/g, '').slice(0, 155);
   const description = cleanDescription.length > 50 

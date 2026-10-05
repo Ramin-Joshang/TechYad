@@ -15,11 +15,12 @@ import {
 import { format } from 'date-fns-jalali';
 import Link from 'next/link';
 import { useState } from 'react';
+import { CommentsSection } from '@/features/comments/components/CommentsSection';
 
 export function ClassDetailsContainer({ slug }: { slug: string }) {
   const router = useRouter();
   const queryClient = useQueryClient();
-  const { isAuthenticated, isInitializing } = useAuthStore();
+  const { isAuthenticated, isInitializing, user } = useAuthStore();
 
   const [paymentChoice, setPaymentChoice] = useState<'full' | 'deposit'>('full');
   const [copiedAddress, setCopiedAddress] = useState(false);
@@ -724,6 +725,16 @@ export function ClassDetailsContainer({ slug }: { slug: string }) {
                 </div>
               </section>
             ) : null}
+
+            {/* Comments and QA Section */}
+            <CommentsSection 
+              classId={cls._id} 
+              classSlug={cls.slug} 
+              isInstructor={user?.role === 'instructor' && (
+                cls.instructors?.some((inst: any) => (inst._id || inst).toString() === user?._id?.toString()) ||
+                (instructor?._id || instructor)?.toString() === user?._id?.toString()
+              )} 
+            />
 
           </div>
 

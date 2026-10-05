@@ -28,12 +28,12 @@ export async function generateMetadata({
 
   if (!classItem) {
     return {
-      title: 'کلاس آنلاین و وبینار تخصصی | تک‌یاد (Tecyad)',
-      description: 'شرکت در کلاس‌های تعاملی آنلاین، کارگاه‌های زنده و دوره‌های مهارتی با حضور اساتید برتر در تک‌یاد (Tecyad).',
+      title: 'کلاس آنلاین و وبینار تخصصی | تک‌یاد',
+      description: 'شرکت در کلاس‌های تعاملی آنلاین، کارگاه‌های زنده و دوره‌های مهارتی با حضور اساتید برتر در تک‌یاد.',
     };
   }
 
-  const title = `${classItem.title} | کلاس تعاملی آنلاین تک‌یاد (Tecyad)`;
+  const title = `${classItem.title} | تک‌یاد`;
   const rawDesc = classItem.description || '';
   const cleanDesc = rawDesc.replace(/<[^>]*>/g, '').slice(0, 155);
   const description = cleanDesc.length > 50

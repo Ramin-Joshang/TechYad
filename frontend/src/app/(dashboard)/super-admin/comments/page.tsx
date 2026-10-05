@@ -152,10 +152,15 @@ export default function CommentsModerationPage() {
                       </div>
                       <div className="text-xs text-gray-500 flex items-center gap-2 mt-0.5">
                         <span className="font-medium text-gray-700">مربوط به: {item.targetTitle}</span>
-                        {item.itemType === 'review' ? (
+                        {item.itemType === 'comment' ? (
+                          <span className="px-2 py-0.5 rounded bg-indigo-50 text-indigo-700 text-[10px] font-bold">دیدگاه و پرسش</span>
+                        ) : item.itemType === 'review' ? (
                           <span className="px-2 py-0.5 rounded bg-purple-50 text-purple-700 text-[10px] font-bold">دیدگاه دوره</span>
                         ) : (
                           <span className="px-2 py-0.5 rounded bg-blue-50 text-blue-700 text-[10px] font-bold">نظر درس</span>
+                        )}
+                        {item.isTeacherReply && (
+                          <span className="px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 text-[10px] font-bold">پاسخ مدرس</span>
                         )}
                         {item.rating && (
                           <span className="flex items-center gap-0.5 text-amber-500 font-bold text-xs">

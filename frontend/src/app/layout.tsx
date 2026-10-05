@@ -9,10 +9,21 @@ import { Footer } from "@/components/layout/Footer";
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || 'https://tecyad.ir'),
   title: {
-    default: "تک‌یاد | پلتفرم جامع آموزش آنلاین، دوره‌ها و کلاس‌های تخصصی (Tecyad)",
-    template: "%s | تک‌یاد - Tecyad"
+    default: "تک‌یاد | پلتفرم جامع آموزش آنلاین، دوره‌ها و کلاس‌های تخصصی",
+    template: "%s | تک‌یاد"
   },
-  description: "سامانه جامع یادگیری آنلاین تک‌یاد (Tecyad)؛ مرجع تخصصی دوره‌های برنامه‌نویسی، طراحی وب، هوش مصنوعی و مهارت‌های دانشگاهی با اساتید برتر، پروژه‌محور و گواهی معتبر.",
+  description: "سامانه جامع یادگیری آنلاین تک‌یاد؛ مرجع تخصصی دوره‌های برنامه‌نویسی، طراحی وب، هوش مصنوعی و مهارت‌های دانشگاهی با اساتید برتر، پروژه‌محور و گواهی معتبر.",
+  icons: {
+    icon: [
+      { url: '/favicon.ico', sizes: 'any' },
+      { url: '/logo.png', type: 'image/png', sizes: '32x32' },
+      { url: '/logo.png', type: 'image/png', sizes: '192x192' },
+    ],
+    shortcut: '/favicon.ico',
+    apple: [
+      { url: '/apple-touch-icon.png', sizes: '180x180', type: 'image/png' },
+    ],
+  },
   keywords: [
     "آموزش آنلاین",
     "دوره‌های برنامه‌نویسی",

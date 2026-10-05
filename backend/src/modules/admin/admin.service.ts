@@ -17,6 +17,7 @@ import { AuditLog } from './audit-log.model.js';
 import { Settlement } from '../commerce/settlement.model.js';
 import { CourseReview } from '../community/course-review.model.js';
 import { LessonComment } from '../courses/lesson-comment.model.js';
+import { Comment } from '../comments/comment.model.js';
 import { Notification } from '../notifications/notification.model.js';
 import { parseDateSafely } from '../../common/utils/date.js';
 import { AuditService } from '../../common/services/audit.service.js';
@@ -1336,17 +1337,36 @@ export class AdminService {
   // --- Comments & Reviews Moderation ---
   static async getCommentsAndReviews(query: any = {}) {
     const status = query.status || 'all';
-    const type = query.type || 'all'; // 'all' | 'review' | 'lesson'
+    const type = query.type || 'all'; // 'all' | 'comment' | 'review' | 'lesson'
 
     const reviewFilter: any = {};
     const commentFilter: any = {};
+    const generalCommentFilter: any = {};
+
     if (status !== 'all') {
       reviewFilter.status = status;
       commentFilter.status = status;
+      generalCommentFilter.status = status;
     }
 
     let reviews: any[] = [];
     let lessonComments: any[] = [];
+    let generalComments: any[] = [];
+
+    if (type === 'all' || type === 'comment' || type === 'course' || type === 'class') {
+      generalComments = await Comment.find(generalCommentFilter)
+        .sort({ createdAt: -1 })
+        .limit(100)
+        .populate('userId', 'firstName lastName email avatar role')
+        .populate('courseId', 'title slug')
+        .populate('classId', 'title slug')
+        .populate({
+          path: 'parentId',
+          select: 'content userId',
+          populate: { path: 'userId', select: 'firstName lastName' }
+        })
+        .lean();
+    }
 
     if (type === 'all' || type === 'review') {
       reviews = await CourseReview.find(reviewFilter)
@@ -1368,6 +1388,19 @@ export class AdminService {
 
     // Unify format
     const unifiedList = [
+      ...generalComments.map(c => ({
+        _id: c._id,
+        itemType: 'comment',
+        user: c.userId,
+        targetTitle: c.courseId ? `دوره: ${(c.courseId as any).title}` : c.classId ? `کلاس: ${(c.classId as any).title}` : 'دوره / کلاس',
+        targetLink: c.courseId?.slug ? `/courses/${c.courseId.slug}` : c.classId?.slug ? `/classes/${c.classId.slug}` : undefined,
+        text: c.content || '',
+        rating: c.rating,
+        status: c.status,
+        isTeacherReply: c.isTeacherReply,
+        parentId: c.parentId,
+        createdAt: c.createdAt
+      })),
       ...reviews.map(r => ({
         _id: r._id,
         itemType: 'review',
@@ -1401,7 +1434,11 @@ export class AdminService {
   }
 
   static async moderateComment(id: string, itemType: string, status: 'approved' | 'rejected') {
-    if (itemType === 'review') {
+    if (itemType === 'comment') {
+      const comment = await Comment.findByIdAndUpdate(id, { status }, { new: true });
+      if (!comment) throw new AppError('دیدگاه یافت نشد', 404);
+      return comment;
+    } else if (itemType === 'review') {
       const review = await CourseReview.findByIdAndUpdate(id, { status }, { new: true });
       if (!review) throw new AppError('دیدگاه دوره یافت نشد', 404);
       return review;
@@ -1413,7 +1450,10 @@ export class AdminService {
   }
 
   static async deleteComment(id: string, itemType: string) {
-    if (itemType === 'review') {
+    if (itemType === 'comment') {
+      await Comment.deleteMany({ parentId: id });
+      await Comment.findByIdAndDelete(id);
+    } else if (itemType === 'review') {
       await CourseReview.findByIdAndDelete(id);
     } else {
       await LessonComment.findByIdAndDelete(id);
