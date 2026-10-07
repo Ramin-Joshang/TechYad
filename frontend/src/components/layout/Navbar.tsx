@@ -139,7 +139,7 @@ export function Navbar() {
                       ? publicSettings.siteName.split("|")[0].trim()
                       : "تک‌یاد"}
                   </span>
-                  <span className="text-[10px] font-mono tracking-wider font-semibold text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded uppercase">
+                  <span className="text-[10px] tracking-wider font-semibold text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded uppercase">
                     Tecyad
                   </span>
                 </span>
@@ -315,7 +315,7 @@ export function Navbar() {
                   >
                     <Phone className="w-4 h-4" />
                     <span>تماس تلفنی:</span>
-                    <span className="font-mono dir-ltr font-black">۰۹۳۷ ۲۷۳ ۱۰۳۷</span>
+                    <span dir="ltr" style={{ direction: 'ltr', unicodeBidi: 'plaintext' }} className="font-bold">۰۹۳۷ ۲۷۳ ۱۰۳۷</span>
                   </a>
                   <div className="grid grid-cols-3 gap-1.5 pt-1 text-[11px] font-bold text-center">
                     <a

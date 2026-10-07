@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import "./globals.css";
+import { iranYekan } from "@/app/fonts";
 import { QueryProvider } from "@/lib/QueryProvider";
 import { AuthProvider } from "@/features/auth/components/AuthProvider";
 import { Toaster } from "react-hot-toast";
@@ -19,11 +20,13 @@ export const metadata: Metadata = {
   description: "سامانه جامع یادگیری آنلاین تک‌یاد؛ مرجع تخصصی دوره‌های برنامه‌نویسی، طراحی وب، هوش مصنوعی و مهارت‌های دانشگاهی با اساتید برتر، پروژه‌محور و گواهی معتبر.",
   icons: {
     icon: [
+      { url: '/favicon-32x32.png', type: 'image/png', sizes: '32x32' },
+      { url: '/favicon-16x16.png', type: 'image/png', sizes: '16x16' },
+      { url: '/android-chrome-192x192.png', type: 'image/png', sizes: '192x192' },
+      { url: '/android-chrome-512x512.png', type: 'image/png', sizes: '512x512' },
       { url: '/favicon.ico', sizes: 'any' },
-      { url: '/logo.png', type: 'image/png', sizes: '32x32' },
-      { url: '/logo.png', type: 'image/png', sizes: '192x192' },
     ],
-    shortcut: '/favicon.ico',
+    shortcut: '/favicon-32x32.png',
     apple: [
       { url: '/apple-touch-icon.png', sizes: '180x180', type: 'image/png' },
     ],
@@ -127,7 +130,7 @@ export default function RootLayout({
     <html
       lang="fa"
       dir="rtl"
-      className="h-full antialiased"
+      className={`h-full antialiased ${iranYekan.variable}`}
       suppressHydrationWarning
     >
       <head>
@@ -138,8 +141,7 @@ export default function RootLayout({
       </head>
       <body
         dir="rtl"
-        className="min-h-full flex flex-col font-sans bg-gray-50 text-gray-900 overflow-x-hidden text-right"
-        style={{ fontFamily: "'Vazirmatn', sans-serif" }}
+        className={`min-h-full flex flex-col font-sans bg-gray-50 text-gray-900 overflow-x-hidden text-right ${iranYekan.className}`}
         suppressHydrationWarning
       >
         <QueryProvider>

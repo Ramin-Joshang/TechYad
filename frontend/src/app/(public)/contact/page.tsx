@@ -133,8 +133,8 @@ export default function ContactPage() {
                       <a 
                         href="tel:+989372731037" 
                         dir="ltr"
-                        style={{ direction: 'ltr', unicodeBidi: 'bidi-override' }}
-                        className="hover:text-[var(--neo-primary)] transition-colors font-mono tracking-wider font-bold"
+                        style={{ direction: 'ltr', unicodeBidi: 'plaintext' }}
+                        className="hover:text-[var(--neo-primary)] transition-colors tracking-wide font-bold"
                       >
                         +98 937 273 1037
                       </a>
@@ -152,8 +152,8 @@ export default function ContactPage() {
                       <a 
                         href="mailto:support@tecyad.ir" 
                         dir="ltr"
-                        style={{ direction: 'ltr' }}
-                        className="hover:text-[var(--neo-primary)] transition-colors font-mono"
+                        style={{ direction: 'ltr', unicodeBidi: 'plaintext' }}
+                        className="hover:text-[var(--neo-primary)] transition-colors font-medium"
                       >
                         support@tecyad.ir
                       </a>
@@ -193,7 +193,7 @@ export default function ContactPage() {
                       </div>
                       <div className="text-right">
                         <span className="font-bold text-sm block">کانال و پشتیبانی تلگرام</span>
-                        <span dir="ltr" style={{ direction: 'ltr' }} className="text-xs text-slate-300 font-mono block">@tecyad_ir</span>
+                        <span dir="ltr" style={{ direction: 'ltr', unicodeBidi: 'plaintext' }} className="text-xs text-slate-300 block">@tecyad_ir</span>
                       </div>
                     </div>
                     <ArrowLeft className="w-4 h-4 text-slate-400 group-hover:-translate-x-1 transition-transform" />
@@ -211,7 +211,7 @@ export default function ContactPage() {
                       </div>
                       <div className="text-right">
                         <span className="font-bold text-sm block">ارتباط در واتس‌اپ</span>
-                        <span dir="ltr" style={{ direction: 'ltr' }} className="text-xs text-slate-300 font-mono block">0937 273 1037</span>
+                        <span dir="ltr" style={{ direction: 'ltr', unicodeBidi: 'plaintext' }} className="text-xs text-slate-300 block">0937 273 1037</span>
                       </div>
                     </div>
                     <ArrowLeft className="w-4 h-4 text-slate-400 group-hover:-translate-x-1 transition-transform" />
@@ -229,7 +229,7 @@ export default function ContactPage() {
                       </div>
                       <div className="text-right">
                         <span className="font-bold text-sm block">صفحه رسمی اینستاگرام</span>
-                        <span dir="ltr" style={{ direction: 'ltr' }} className="text-xs text-slate-300 font-mono block">@tecyad.ir</span>
+                        <span dir="ltr" style={{ direction: 'ltr', unicodeBidi: 'plaintext' }} className="text-xs text-slate-300 block">@tecyad.ir</span>
                       </div>
                     </div>
                     <ArrowLeft className="w-4 h-4 text-slate-400 group-hover:-translate-x-1 transition-transform" />
