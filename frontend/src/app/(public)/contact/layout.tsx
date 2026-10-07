@@ -1,8 +1,16 @@
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'تماس با ما',
-  description: 'ارتباط مستقیم با تیم پشتیبانی تک‌یاد؛ شماره تماس، پشتیبانی واتس‌اپ و تلگرام، ایمیل سازمانی و فرم ارسال پیام.',
+  title: 'تماس با ما و ارتباط مستقیم | تک‌یاد',
+  description: 'راه‌های ارتباطی با پشتیبانی تک‌یاد؛ شماره تلفن مستقیم، پیام در تلگرام، واتس‌اپ، اینستاگرام، آدرس دفتر مرکزی و فرم ارسال پیام آنلاین.',
+  keywords: [
+    'تماس با تک‌یاد',
+    'پشتیبانی تک‌یاد',
+    'شماره تماس آموزشگاه آنلاین',
+    'مشاوره رایگان تک‌یاد',
+    'آدرس تک‌یاد',
+    'Tecyad Contact',
+  ],
   alternates: {
     canonical: '/contact',
   },
@@ -10,12 +18,11 @@ export const metadata: Metadata = {
     type: 'website',
     locale: 'fa_IR',
     url: 'https://tecyad.ir/contact',
-    siteName: 'تک‌یاد | Tecyad',
-    title: 'تماس با ما | تک‌یاد',
-    description: 'ارتباط مستقیم با تیم پشتیبانی تک‌یاد؛ شماره تماس، پشتیبانی واتس‌اپ و تلگرام، ایمیل سازمانی و فرم ارسال پیام.',
+    title: 'تماس با ما | پلتفرم آموزش آنلاین تک‌یاد (Tecyad)',
+    description: 'راه‌های ارتباطی مستقیم، پشتیبانی تلفنی، تلگرام و واتس‌اپ با کارشناسان تک‌یاد.',
     images: [
       {
-        url: 'https://picsum.photos/seed/tecyad-contact/1200/630',
+        url: 'https://picsum.photos/seed/contact/1200/630',
         width: 1200,
         height: 630,
         alt: 'تماس با تک‌یاد',
@@ -25,8 +32,8 @@ export const metadata: Metadata = {
   twitter: {
     card: 'summary_large_image',
     title: 'تماس با ما | تک‌یاد',
-    description: 'راه‌های ارتباطی و پشتیبانی تک‌یاد از طریق تلگرام، واتس‌اپ، تلفن و فرم پیام.',
-    images: ['https://picsum.photos/seed/tecyad-contact/1200/630'],
+    description: 'راه‌های ارتباطی مستقیم و پشتیبانی آنلاین در تک‌یاد.',
+    images: ['https://picsum.photos/seed/contact/1200/630'],
   },
 };
 

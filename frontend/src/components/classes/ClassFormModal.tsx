@@ -18,6 +18,65 @@ export const DAYS_OF_WEEK = [
   'شنبه', 'یکشنبه', 'دوشنبه', 'سه‌شنبه', 'چهارشنبه', 'پنج‌شنبه', 'جمعه'
 ];
 
+export const PERSIAN_DAY_TO_JS: Record<string, number> = {
+  'یکشنبه': 0,
+  'دوشنبه': 1,
+  'سه‌شنبه': 2,
+  'چهارشنبه': 3,
+  'پنج‌شنبه': 4,
+  'جمعه': 5,
+  'شنبه': 6,
+};
+
+/**
+ * Automatically calculates the final session end date based on:
+ * - Start Date
+ * - Total Sessions count
+ * - Selected Weekly Days (e.g. Saturday & Wednesday)
+ */
+export function computeClassEndDate(
+  startDateStr: string | null | undefined,
+  sessionsCount: number,
+  selectedDays: string[]
+): string {
+  if (!startDateStr || sessionsCount <= 0) return '';
+  const start = new Date(startDateStr);
+  if (isNaN(start.getTime())) return '';
+
+  const dayNumbers = Array.isArray(selectedDays) && selectedDays.length > 0
+    ? selectedDays.map(d => PERSIAN_DAY_TO_JS[d]).filter(n => n !== undefined)
+    : [6, 3]; // Default: Saturday & Wednesday
+
+  const curr = new Date(start.getTime());
+
+  if (dayNumbers.length > 0) {
+    // 1. Move to the first session date that falls on a selected day
+    let safetyCounter = 0;
+    while (!dayNumbers.includes(curr.getDay()) && safetyCounter < 14) {
+      curr.setDate(curr.getDate() + 1);
+      safetyCounter++;
+    }
+
+    // 2. Iterate to find the remaining (sessionsCount - 1) sessions
+    let sessionsFound = 1;
+    safetyCounter = 0;
+    while (sessionsFound < sessionsCount && safetyCounter < 500) {
+      curr.setDate(curr.getDate() + 1);
+      if (dayNumbers.includes(curr.getDay())) {
+        sessionsFound++;
+      }
+      safetyCounter++;
+    }
+  } else {
+    curr.setDate(curr.getDate() + (sessionsCount - 1) * 7);
+  }
+
+  // Preserve hours and minutes from start date
+  curr.setHours(start.getHours(), start.getMinutes(), 0, 0);
+
+  return curr.toISOString();
+}
+
 interface ClassFormModalProps {
   initialData?: any;
   isOpen: boolean;
@@ -115,13 +174,69 @@ export function ClassFormModal({
   const [newAudienceInput, setNewAudienceInput] = useState('');
   const [newPrereqInput, setNewPrereqInput] = useState('');
 
+  const handleStartDateChange = (val: string) => {
+    setFormData(prev => {
+      const nextEndDate = computeClassEndDate(val, Number(prev.sessions) || 10, prev.scheduleDays);
+      return {
+        ...prev,
+        startDate: val,
+        endDate: nextEndDate || prev.endDate
+      };
+    });
+  };
+
+  const handleSessionsChange = (num: number) => {
+    setFormData(prev => {
+      const s = Math.max(1, num || 1);
+      const dur = Number(prev.sessionDuration) || 90;
+      const calcHours = Math.round(((s * dur) / 60) * 10) / 10;
+      const nextEndDate = prev.startDate ? computeClassEndDate(prev.startDate, s, prev.scheduleDays) : prev.endDate;
+      return {
+        ...prev,
+        sessions: s,
+        totalHours: calcHours,
+        endDate: nextEndDate || prev.endDate
+      };
+    });
+  };
+
+  const handleSessionDurationChange = (dur: number) => {
+    setFormData(prev => {
+      const s = Number(prev.sessions) || 10;
+      const d = Math.max(1, dur || 90);
+      const calcHours = Math.round(((s * d) / 60) * 10) / 10;
+      return {
+        ...prev,
+        sessionDuration: d,
+        totalHours: calcHours
+      };
+    });
+  };
+
   const toggleDay = (day: string) => {
-    setFormData(prev => ({
-      ...prev,
-      scheduleDays: prev.scheduleDays.includes(day)
+    setFormData(prev => {
+      const nextDays = prev.scheduleDays.includes(day)
         ? prev.scheduleDays.filter(d => d !== day)
-        : [...prev.scheduleDays, day]
-    }));
+        : [...prev.scheduleDays, day];
+      const nextEndDate = prev.startDate ? computeClassEndDate(prev.startDate, Number(prev.sessions) || 10, nextDays) : prev.endDate;
+      return {
+        ...prev,
+        scheduleDays: nextDays,
+        endDate: nextEndDate || prev.endDate
+      };
+    });
+  };
+
+  const handleRecalculateEndDate = () => {
+    if (!formData.startDate) {
+      toast.error('لطفاً ابتدا تاریخ شروع کلاس را انتخاب کنید');
+      return;
+    }
+    const computed = computeClassEndDate(formData.startDate, Number(formData.sessions) || 10, formData.scheduleDays);
+    if (computed) {
+      setFormData(prev => ({ ...prev, endDate: computed }));
+      toast.success('تاریخ پایان کلاس با موفقیت محاسبه و تنظیم شد');
+    }
   };
 
   const addAudienceItem = () => {
@@ -552,10 +667,13 @@ export function ClassFormModal({
                   <PersianDatePicker
                     includeTime={true}
                     value={formData.startDate}
-                    onChange={val => setFormData({ ...formData, startDate: val })}
-                    label="تاریخ و ساعت شروع کلاس"
+                    onChange={handleStartDateChange}
+                    label="تاریخ و ساعت شروع کلاس *"
                     placeholder="انتخاب تاریخ و ساعت شروع..."
                   />
+                  <span className="text-[11px] text-slate-500 mt-1 block">
+                    با انتخاب تاریخ شروع، تاریخ پایان به صورت هوشمند محاسبه می‌شود.
+                  </span>
                 </div>
 
                 <div>
@@ -563,9 +681,25 @@ export function ClassFormModal({
                     includeTime={true}
                     value={formData.endDate}
                     onChange={val => setFormData({ ...formData, endDate: val })}
-                    label="تاریخ پایان کلاس (اختیاری)"
+                    label="تاریخ پایان کلاس (محاسبه خودکار)"
                     placeholder="انتخاب تاریخ پایان..."
                   />
+                  {formData.endDate && (
+                    <div className="mt-1.5 flex items-center justify-between text-[11px] text-emerald-700 bg-emerald-50 px-2.5 py-1.5 rounded-xl border border-emerald-200">
+                      <span className="flex items-center gap-1 font-bold">
+                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                        محاسبه هوشمند بر اساس {formData.sessions} جلسه در روزهای ({formData.scheduleDays.join('، ')})
+                      </span>
+                      <button
+                        type="button"
+                        onClick={handleRecalculateEndDate}
+                        className="text-[10px] bg-white hover:bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-lg border border-emerald-300 font-bold transition cursor-pointer"
+                        title="محاسبه مجدد تاریخ پایان"
+                      >
+                        محاسبه مجدد
+                      </button>
+                    </div>
+                  )}
                 </div>
 
                 <div>
@@ -581,37 +715,47 @@ export function ClassFormModal({
 
                 <div>
                   <NumericInput
-                    label="مدت هر جلسه"
+                    label="مدت هر جلسه *"
                     unit="دقیقه"
                     value={formData.sessionDuration}
-                    onChange={num => setFormData({ ...formData, sessionDuration: num })}
+                    onChange={handleSessionDurationChange}
                     placeholder="۹۰"
                   />
+                  <span className="text-[10px] text-slate-400 mt-1 block">
+                    مدت زمان استاندارد هر جلسه (مثلاً ۹۰ دقیقه)
+                  </span>
                 </div>
 
                 <div>
                   <NumericInput
-                    label="تعداد جلسات رسمی"
+                    label="تعداد جلسات رسمی *"
                     unit="جلسه"
                     value={formData.sessions}
-                    onChange={num => setFormData({ ...formData, sessions: num })}
+                    onChange={handleSessionsChange}
                     placeholder="۱۰"
                   />
+                  <span className="text-[10px] text-slate-400 mt-1 block">
+                    تعداد جلساتی که برای دوره یا کلاس برنامه‌ریزی شده است
+                  </span>
                 </div>
 
                 <div>
                   <NumericInput
-                    label="مجموع ساعات آموزش"
+                    label="مجموع ساعات آموزش (خودکار)"
                     unit="ساعت"
                     value={formData.totalHours}
                     onChange={num => setFormData({ ...formData, totalHours: num })}
                     placeholder="۲۰"
                   />
+                  <div className="mt-1 text-[11px] text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-200 font-bold flex items-center gap-1">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                    <span>محاسبه خودکار: {formData.sessions} جلسه × {formData.sessionDuration} دقیقه = {formData.totalHours} ساعت</span>
+                  </div>
                 </div>
 
                 <div>
                   <NumericInput
-                    label="حداکثر ظرفیت پذیرش"
+                    label="حداکثر ظرفیت پذیرش *"
                     unit="نفر"
                     required
                     value={formData.capacity}

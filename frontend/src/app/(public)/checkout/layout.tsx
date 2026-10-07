@@ -1,8 +1,11 @@
-import { Metadata } from 'next';
+import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'تسویه حساب و پرداخت | تک‌یاد',
-  description: 'نهایی‌سازی سفارش و اتصال به درگاه پرداخت اینترنتی تک‌یاد',
+  title: 'تکمیل سفارش و درگاه پرداخت | تک‌یاد',
+  robots: {
+    index: false,
+    follow: false,
+  },
 };
 
 export default function CheckoutLayout({

@@ -1,10 +1,14 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import "./globals.css";
 import { QueryProvider } from "@/lib/QueryProvider";
 import { AuthProvider } from "@/features/auth/components/AuthProvider";
 import { Toaster } from "react-hot-toast";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
+import { TopContactBar } from "@/components/layout/TopContactBar";
+import { FloatingContactWidget } from "@/components/common/FloatingContactWidget";
+import { ReferralCapture } from "@/components/common/ReferralCapture";
 
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || 'https://tecyad.ir'),
@@ -140,9 +144,14 @@ export default function RootLayout({
       >
         <QueryProvider>
           <AuthProvider>
+            <Suspense fallback={null}>
+              <ReferralCapture />
+            </Suspense>
+            <TopContactBar />
             <Navbar />
             <main className="flex-1 flex flex-col">{children}</main>
             <Footer />
+            <FloatingContactWidget />
             <Toaster position="top-center" />
           </AuthProvider>
         </QueryProvider>

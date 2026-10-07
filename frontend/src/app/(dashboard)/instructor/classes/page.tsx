@@ -5,10 +5,11 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/lib/api';
 import { 
   Loader2, Search, Video, Calendar, Users, Plus, Edit, Trash2, 
-  MapPin, ClipboardCheck, Link as LinkIcon
+  MapPin, ClipboardCheck, Link as LinkIcon, Share2, CheckCircle2, Copy
 } from 'lucide-react';
 import Link from 'next/link';
 import toast from 'react-hot-toast';
+import { referralApi } from '@/features/referral/api/referral.api';
 import { AttendanceModal } from '@/components/classes/AttendanceModal';
 import { ClassFormModal } from '@/components/classes/ClassFormModal';
 import { ClassSessionsModal } from '@/components/classes/ClassSessionsModal';
@@ -22,6 +23,28 @@ export default function InstructorClassesPage() {
   const [attendanceClass, setAttendanceClass] = useState<any | null>(null);
   const [sessionsClass, setSessionsClass] = useState<any | null>(null);
   const [gradebookClass, setGradebookClass] = useState<any | null>(null);
+  const [copiedClassId, setCopiedClassId] = useState<string | null>(null);
+
+  const { data: referralData } = useQuery({
+    queryKey: ['instructor-referral-info'],
+    queryFn: async () => {
+      const res = await referralApi.getInstructorInfo();
+      return res.data;
+    }
+  });
+
+  const referralCode = referralData?.referralCode || '';
+
+  const handleCopyClassReferralLink = (cls: any) => {
+    const origin = typeof window !== 'undefined' ? window.location.origin : 'https://tecyad.ir';
+    const slugOrId = cls.slug || cls._id;
+    const refParam = referralCode ? `?ref=${referralCode}` : '';
+    const shareUrl = `${origin}/classes/${slugOrId}${refParam}`;
+    navigator.clipboard.writeText(shareUrl);
+    setCopiedClassId(cls._id);
+    toast.success(`لینک رفرال کلاس «${cls.title}» با موفقیت کپی شد!`);
+    setTimeout(() => setCopiedClassId(null), 2500);
+  };
 
   const { data: classesData, isLoading } = useQuery({
     queryKey: ['instructor-classes'],
@@ -319,6 +342,25 @@ export default function InstructorClassesPage() {
                         </button>
                       )}
                     </div>
+
+                    {/* Dedicated Instructor Referral Link for Class */}
+                    <button
+                      onClick={() => handleCopyClassReferralLink(cls)}
+                      className="w-full py-2 px-3 bg-gradient-to-r from-indigo-50 to-purple-50 hover:from-indigo-100 hover:to-purple-100 text-indigo-700 text-xs font-bold rounded-xl transition flex items-center justify-center gap-1.5 border border-indigo-200/80 shadow-2xs cursor-pointer"
+                      title="کپی لینک اختصاصی بازاریابی و رفرال این کلاس با کد معرف شما"
+                    >
+                      {copiedClassId === cls._id ? (
+                        <>
+                          <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                          <span className="text-emerald-700 font-bold">لینک رفرال کلاس کپی شد!</span>
+                        </>
+                      ) : (
+                        <>
+                          <Share2 className="w-3.5 h-3.5 text-indigo-600" />
+                          <span>کپی لینک رفرال کلاس {referralCode ? `(${referralCode})` : ''}</span>
+                        </>
+                      )}
+                    </button>
                   </div>
 
                 </div>

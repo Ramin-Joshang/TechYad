@@ -1,4 +1,5 @@
 import { ClassesList } from '@/components/classes/ClassesList';
+import { fetchClasses } from '@/lib/server-api';
 import { Suspense } from 'react';
 import type { Metadata } from 'next';
 
@@ -40,7 +41,14 @@ export const metadata: Metadata = {
   },
 };
 
-export default function ClassesPage() {
+export default async function ClassesPage({
+  searchParams,
+}: {
+  searchParams?: Promise<{ [key: string]: string | undefined }>;
+}) {
+  const resolvedParams = searchParams ? await searchParams : {};
+  const classesData = await fetchClasses({ ...resolvedParams, limit: '8' });
+
   const classesJsonLd = {
     "@context": "https://schema.org",
     "@type": "CollectionPage",
@@ -61,7 +69,7 @@ export default function ClassesPage() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(classesJsonLd) }}
       />
       <Suspense fallback={<div className="min-h-screen flex items-center justify-center text-slate-500 font-bold">درحال بارگذاری کلاس‌ها...</div>}>
-        <ClassesList />
+        <ClassesList initialData={classesData} />
       </Suspense>
     </>
   );

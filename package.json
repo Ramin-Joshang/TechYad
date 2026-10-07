@@ -7,17 +7,18 @@
     "backend"
   ],
   "scripts": {
-    "dev": "concurrently \"npm run dev -w backend\" \"npm run dev -w frontend\" \"node scripts/port-bridge.cjs\"",
+    "dev": "concurrently --names \"BACKEND,FRONTEND,BRIDGE\" -c \"blue,green,magenta\" \"npm run dev -w backend\" \"npm run dev -w frontend\" \"node scripts/port-bridge.cjs\"",
     "build": "cross-env NODE_ENV=production npm run build -w backend && cross-env NODE_ENV=production npm run build -w frontend",
     "lint": "npm run lint -w frontend",
-    "start": "npm run start -w backend & npm run start -w frontend",
+    "start": "concurrently --names \"BACKEND,FRONTEND,BRIDGE\" -c \"blue,green,magenta\" \"npm run start -w backend\" \"npm run start -w frontend\" \"node scripts/port-bridge.cjs\"",
+    "start:frontend": "npm run start -w frontend",
+    "start:backend": "npm run start -w backend",
     "seed": "npm run seed -w backend"
   },
-  "devDependencies": {
+  "devDependencies": {},
+  "dependencies": {
+    "axios": "^1.20.0",
     "concurrently": "^10.0.5",
     "cross-env": "^10.1.0"
-  },
-  "dependencies": {
-    "axios": "^1.20.0"
   }
 }

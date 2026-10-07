@@ -34,6 +34,7 @@ router.get('/articles', asyncHandler(Controller.getArticles));
 router.get('/articles/:slug', asyncHandler(Controller.getArticle));
 router.get('/categories', asyncHandler(Controller.getCategories));
 router.get('/tags', asyncHandler(Controller.getTags));
+router.get('/:slug', asyncHandler(Controller.getArticle));
 
 // --- Instructor routes ---
 router.get('/instructor/articles', isInstructor, asyncHandler(Controller.getInstructorArticles));

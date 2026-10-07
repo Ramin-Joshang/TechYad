@@ -1,8 +1,8 @@
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'قوانین و مقررات',
-  description: 'قوانین و مقررات استفاده از خدمات، دوره‌ها و کلاس‌های آنلاین پلتفرم آموزشی تک‌یاد.',
+  title: 'قوانین و مقررات استفاده از خدمات | تک‌یاد',
+  description: 'قوانین و مقررات آموزشی، حریم خصوصی، شرایط بازپرداخت شهریه و حقوق مالکیت فکری محتوای آموزشی در پلتفرم آنلاین تک‌یاد.',
   alternates: {
     canonical: '/rules',
   },
@@ -10,9 +10,8 @@ export const metadata: Metadata = {
     type: 'website',
     locale: 'fa_IR',
     url: 'https://tecyad.ir/rules',
-    siteName: 'تک‌یاد | Tecyad',
-    title: 'قوانین و مقررات | تک‌یاد',
-    description: 'قوانین و مقررات استفاده از خدمات، دوره‌ها و کلاس‌های آنلاین پلتفرم آموزشی تک‌یاد.',
+    title: 'قوانین و مقررات تک‌یاد',
+    description: 'قوانین و مقررات آموزشی و شرایط استفاده از خدمات تک‌یاد.',
   },
 };
 

@@ -1,9 +1,12 @@
 import { MetadataRoute } from 'next';
 
+export const revalidate = 3600; // Cache sitemap for 1 hour
+
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://tecyad.ir';
+  const baseUrl = (process.env.NEXT_PUBLIC_APP_URL || 'https://tecyad.ir').replace(/\/+$/, '');
   const currentDate = new Date().toISOString();
 
+  // Core Static Public Pages
   const staticRoutes: MetadataRoute.Sitemap = [
     {
       url: `${baseUrl}`,
@@ -15,123 +18,191 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       url: `${baseUrl}/courses`,
       lastModified: currentDate,
       changeFrequency: 'daily',
-      priority: 0.9,
+      priority: 0.95,
     },
     {
       url: `${baseUrl}/classes`,
       lastModified: currentDate,
       changeFrequency: 'daily',
+      priority: 0.95,
+    },
+    {
+      url: `${baseUrl}/instructors`,
+      lastModified: currentDate,
+      changeFrequency: 'weekly',
       priority: 0.9,
     },
     {
       url: `${baseUrl}/blog`,
       lastModified: currentDate,
       changeFrequency: 'daily',
-      priority: 0.8,
-    },
-    {
-      url: `${baseUrl}/instructors`,
-      lastModified: currentDate,
-      changeFrequency: 'weekly',
-      priority: 0.8,
+      priority: 0.85,
     },
     {
       url: `${baseUrl}/about`,
       lastModified: currentDate,
       changeFrequency: 'monthly',
-      priority: 0.6,
+      priority: 0.7,
     },
     {
       url: `${baseUrl}/contact`,
       lastModified: currentDate,
       changeFrequency: 'monthly',
-      priority: 0.6,
+      priority: 0.7,
     },
     {
       url: `${baseUrl}/faq`,
       lastModified: currentDate,
       changeFrequency: 'weekly',
-      priority: 0.6,
+      priority: 0.7,
     },
     {
       url: `${baseUrl}/rules`,
       lastModified: currentDate,
       changeFrequency: 'monthly',
-      priority: 0.4,
+      priority: 0.5,
     },
     {
       url: `${baseUrl}/privacy`,
       lastModified: currentDate,
       changeFrequency: 'monthly',
-      priority: 0.4,
+      priority: 0.5,
     },
     {
       url: `${baseUrl}/careers`,
       lastModified: currentDate,
       changeFrequency: 'monthly',
-      priority: 0.5,
+      priority: 0.6,
     },
   ];
 
-  // Dynamic courses
+  const seenUrls = new Set<string>(staticRoutes.map(r => r.url));
+
+  // Dynamic Courses Fetching
   let courseRoutes: MetadataRoute.Sitemap = [];
   try {
-    const res = await fetch('http://localhost:5000/api/v1/courses?limit=100', {
+    const res = await fetch('http://localhost:5000/api/v1/courses?limit=500&status=published', {
       next: { revalidate: 3600 },
     });
     if (res.ok) {
       const data = await res.json();
       const courses = data?.data?.courses || data?.data || [];
-      courseRoutes = courses.map((c: any) => ({
-        url: `${baseUrl}/courses/${c.slug || c._id}`,
-        lastModified: c.updatedAt || currentDate,
-        changeFrequency: 'weekly',
-        priority: 0.9,
-      }));
+      if (Array.isArray(courses)) {
+        for (const c of courses) {
+          const slugOrId = c.slug || c._id;
+          if (!slugOrId) continue;
+          const url = `${baseUrl}/courses/${encodeURIComponent(slugOrId)}`;
+          if (!seenUrls.has(url)) {
+            seenUrls.add(url);
+            courseRoutes.push({
+              url,
+              lastModified: c.updatedAt || c.createdAt || currentDate,
+              changeFrequency: 'weekly',
+              priority: 0.9,
+            });
+          }
+        }
+      }
     }
   } catch (err) {
-    // Fail silently in build/dev if backend is not yet populated
+    // Fail silently in build if backend not populated
   }
 
-  // Dynamic classes
+  // Dynamic Classes Fetching
   let classRoutes: MetadataRoute.Sitemap = [];
   try {
-    const res = await fetch('http://localhost:5000/api/v1/classes?limit=100', {
+    const res = await fetch('http://localhost:5000/api/v1/classes?limit=500', {
       next: { revalidate: 3600 },
     });
     if (res.ok) {
       const data = await res.json();
       const classes = data?.data?.classes || data?.data || [];
-      classRoutes = classes.map((c: any) => ({
-        url: `${baseUrl}/classes/${c.slug || c._id}`,
-        lastModified: c.updatedAt || currentDate,
-        changeFrequency: 'weekly',
-        priority: 0.85,
-      }));
+      if (Array.isArray(classes)) {
+        for (const c of classes) {
+          const slugOrId = c.slug || c._id;
+          if (!slugOrId) continue;
+          const url = `${baseUrl}/classes/${encodeURIComponent(slugOrId)}`;
+          if (!seenUrls.has(url)) {
+            seenUrls.add(url);
+            classRoutes.push({
+              url,
+              lastModified: c.updatedAt || c.createdAt || currentDate,
+              changeFrequency: 'weekly',
+              priority: 0.85,
+            });
+          }
+        }
+      }
     }
   } catch (err) {
-    // Fail silently in build/dev if backend is not yet populated
+    // Fail silently
   }
 
-  // Dynamic blog articles
-  let blogRoutes: MetadataRoute.Sitemap = [];
+  // Dynamic Instructors Fetching
+  let instructorRoutes: MetadataRoute.Sitemap = [];
   try {
-    const res = await fetch('http://localhost:5000/api/v1/blog?limit=100', {
+    const res = await fetch('http://localhost:5000/api/v1/instructors?limit=200', {
       next: { revalidate: 3600 },
     });
     if (res.ok) {
       const data = await res.json();
-      const articles = data?.data || [];
-      blogRoutes = articles.map((a: any) => ({
-        url: `${baseUrl}/blog/${a.slug || a._id}`,
-        lastModified: a.updatedAt || currentDate,
-        changeFrequency: 'weekly',
-        priority: 0.8,
-      }));
+      const instructors = data?.data || [];
+      if (Array.isArray(instructors)) {
+        for (const inst of instructors) {
+          const id = inst._id || inst.id;
+          if (!id) continue;
+          const url = `${baseUrl}/instructors/${encodeURIComponent(id)}`;
+          if (!seenUrls.has(url)) {
+            seenUrls.add(url);
+            instructorRoutes.push({
+              url,
+              lastModified: inst.updatedAt || currentDate,
+              changeFrequency: 'weekly',
+              priority: 0.8,
+            });
+          }
+        }
+      }
     }
   } catch (err) {
-    // Fail silently in build/dev if backend is not yet populated
+    // Fail silently
   }
 
-  return [...staticRoutes, ...courseRoutes, ...classRoutes, ...blogRoutes];
+  // Dynamic Blog Posts Fetching
+  let blogRoutes: MetadataRoute.Sitemap = [];
+  try {
+    const res = await fetch('http://localhost:5000/api/v1/blog?limit=500&status=published', {
+      next: { revalidate: 3600 },
+    });
+    if (res.ok) {
+      const data = await res.json();
+      const articles = data?.data?.articles || data?.data || [];
+      if (Array.isArray(articles)) {
+        for (const a of articles) {
+          const slugOrId = a.slug || a._id;
+          if (!slugOrId) continue;
+          const url = `${baseUrl}/blog/${encodeURIComponent(slugOrId)}`;
+          if (!seenUrls.has(url)) {
+            seenUrls.add(url);
+            blogRoutes.push({
+              url,
+              lastModified: a.updatedAt || a.createdAt || currentDate,
+              changeFrequency: 'weekly',
+              priority: 0.8,
+            });
+          }
+        }
+      }
+    }
+  } catch (err) {
+    // Fail silently
+  }
+
+  return [
+    ...staticRoutes,
+    ...courseRoutes,
+    ...classRoutes,
+    ...instructorRoutes,
+    ...blogRoutes,
+  ];
 }

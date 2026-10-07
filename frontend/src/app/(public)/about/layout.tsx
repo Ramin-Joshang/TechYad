@@ -1,8 +1,16 @@
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'درباره ما',
-  description: 'آشنایی با آکادمی آموزشی تک‌یاد؛ داستان شکل‌گیری، مأموریت، چشم‌انداز، ارزش‌ها و اساتید مجرب در ارتقای مهارت‌های تخصصی.',
+  title: 'درباره ما | پلتفرم آموزش تخصصی و آنلاین تک‌یاد',
+  description: 'آشنایی با آکادمی آنلاین تک‌یاد (Tecyad)؛ تاریخچه، اهداف، چشم‌انداز آموزشی و تعهد ما به توانمندسازی دانشجویان با برترین اساتید و آموزش‌های مهارتی.',
+  keywords: [
+    'درباره تک‌یاد',
+    'آکادمی تک‌یاد',
+    'آموزشگاه آنلاین',
+    'یادگیری مهارت',
+    'Tecyad',
+    'تیم آموزشی تک‌یاد',
+  ],
   alternates: {
     canonical: '/about',
   },
@@ -10,12 +18,11 @@ export const metadata: Metadata = {
     type: 'website',
     locale: 'fa_IR',
     url: 'https://tecyad.ir/about',
-    siteName: 'تک‌یاد | Tecyad',
-    title: 'درباره ما | تک‌یاد',
-    description: 'آشنایی با آکادمی آموزشی تک‌یاد؛ داستان شکل‌گیری، مأموریت، چشم‌انداز، ارزش‌ها و اساتید مجرب در ارتقای مهارت‌های تخصصی.',
+    title: 'درباره ما | پلتفرم آموزش تخصصی تک‌یاد (Tecyad)',
+    description: 'آشنایی با آکادمی آنلاین تک‌یاد؛ تاریخچه، اهداف و تعهد به توانمندسازی مهارتی دانشجویان.',
     images: [
       {
-        url: 'https://picsum.photos/seed/tecyad-about/1200/630',
+        url: 'https://picsum.photos/seed/about/1200/630',
         width: 1200,
         height: 630,
         alt: 'درباره تک‌یاد',
@@ -24,9 +31,9 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'درباره ما | تک‌یاد',
-    description: 'آشنایی با آکادمی آموزشی تک‌یاد؛ مأموریت و چشم‌انداز در ارتقای آموزش مهارت‌های فنی و دانشگاهی.',
-    images: ['https://picsum.photos/seed/tecyad-about/1200/630'],
+    title: 'درباره ما | پلتفرم آموزش تخصصی تک‌یاد',
+    description: 'آشنایی با آکادمی آنلاین تک‌یاد و چشم‌انداز آموزش مهارتی در ایران.',
+    images: ['https://picsum.photos/seed/about/1200/630'],
   },
 };
 

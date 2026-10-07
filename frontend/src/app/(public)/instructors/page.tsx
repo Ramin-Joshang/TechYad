@@ -1,4 +1,5 @@
 import { InstructorsList } from '@/components/instructors/InstructorsList';
+import { fetchInstructors } from '@/lib/server-api';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
@@ -40,6 +41,29 @@ export const metadata: Metadata = {
   },
 };
 
-export default function InstructorsPage() {
-  return <InstructorsList />;
+export default async function InstructorsPage() {
+  const instructors = await fetchInstructors();
+
+  const collectionJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "CollectionPage",
+    "name": "اساتید و مدرسان تک‌یاد | Tecyad",
+    "description": "فهرست اساتید متخصص و حرفه‌ای تک‌یاد در حوزه‌های برنامه‌نویسی و مهندسی نرم‌افزار",
+    "url": "https://tecyad.ir/instructors",
+    "provider": {
+      "@type": "EducationalOrganization",
+      "name": "تک‌یاد | Tecyad",
+      "url": "https://tecyad.ir"
+    }
+  };
+
+  return (
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(collectionJsonLd) }}
+      />
+      <InstructorsList initialData={instructors} />
+    </>
+  );
 }

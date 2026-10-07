@@ -1,19 +1,8 @@
 import { CourseDetailsContainer } from "@/components/courses/CourseDetailsContainer";
+import { fetchCourse } from "@/lib/server-api";
+import { Breadcrumbs } from "@/components/common/Breadcrumbs";
 import { Suspense } from "react";
 import type { Metadata } from "next";
-
-async function fetchCourseData(identifier: string) {
-  try {
-    const res = await fetch(`http://localhost:5000/api/v1/courses/${encodeURIComponent(identifier)}`, {
-      next: { revalidate: 60 }
-    });
-    if (!res.ok) return null;
-    const json = await res.json();
-    return json?.data || null;
-  } catch (e) {
-    return null;
-  }
-}
 
 export async function generateMetadata({ 
   params 
@@ -22,7 +11,7 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const resolvedParams = await params;
   const identifier = resolvedParams.slug || resolvedParams.id || '';
-  const course = await fetchCourseData(identifier);
+  const course = await fetchCourse(identifier);
 
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://tecyad.ir';
   const pageUrl = `${baseUrl}/courses/${encodeURIComponent(identifier)}`;
@@ -89,7 +78,7 @@ export default async function CoursePage({
   params: Promise<{ slug: string }> 
 }) {
   const resolvedParams = await params;
-  const course = await fetchCourseData(resolvedParams.slug);
+  const course = await fetchCourse(resolvedParams.slug);
 
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://tecyad.ir';
   const pageUrl = `${baseUrl}/courses/${encodeURIComponent(resolvedParams.slug)}`;
@@ -135,8 +124,19 @@ export default async function CoursePage({
           dangerouslySetInnerHTML={{ __html: JSON.stringify(courseJsonLd) }}
         />
       )}
+      <div className="bg-slate-900 border-b border-slate-800 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto">
+          <Breadcrumbs
+            items={[
+              { label: 'دوره‌های آموزشی', href: '/courses' },
+              ...(course?.category?.name ? [{ label: course.category.name, href: `/courses?category=${course.category._id || course.category.slug}` }] : []),
+              { label: course?.title || resolvedParams.slug },
+            ]}
+          />
+        </div>
+      </div>
       <Suspense fallback={<div className="min-h-screen flex items-center justify-center font-bold text-slate-600">درحال بارگذاری دوره...</div>}>
-        <CourseDetailsContainer slug={resolvedParams.slug} />
+        <CourseDetailsContainer slug={resolvedParams.slug} initialData={course} />
       </Suspense>
     </>
   );

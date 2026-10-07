@@ -1,14 +1,14 @@
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'ورود و عضویت در تک‌یاد',
+  title: 'وضعیت پرداخت | تک‌یاد',
   robots: {
     index: false,
     follow: false,
   },
 };
 
-export default function AuthLayout({
+export default function PaymentLayout({
   children,
 }: {
   children: React.ReactNode;

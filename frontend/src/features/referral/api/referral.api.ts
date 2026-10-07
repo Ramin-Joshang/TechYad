@@ -77,6 +77,18 @@ export interface InstructorReferralInfo extends UserReferralInfo {
     thumbnail?: string;
     affiliateUrl: string;
     telegramShareUrl: string;
+    whatsappShareUrl?: string;
+  }>;
+  instructorClasses?: Array<{
+    classId: string;
+    title: string;
+    price: number;
+    thumbnail?: string;
+    type?: string;
+    mode?: string;
+    affiliateUrl: string;
+    telegramShareUrl: string;
+    whatsappShareUrl?: string;
   }>;
 }
 

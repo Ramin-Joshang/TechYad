@@ -35,11 +35,14 @@ function RegisterForm() {
   const [checkingCode, setCheckingCode] = useState(false);
 
   useEffect(() => {
-    const refCode = searchParams.get('ref');
+    let refCode = searchParams.get('ref');
+    if (!refCode && typeof window !== 'undefined') {
+      refCode = localStorage.getItem('tecyad_referral_code');
+    }
     if (refCode) {
-      setFormData(prev => ({ ...prev, referralCode: refCode.trim().toUpperCase() }));
+      setFormData(prev => ({ ...prev, referralCode: refCode!.trim().toUpperCase() }));
       setShowReferralInput(true);
-      validateCode(refCode.trim().toUpperCase());
+      validateCode(refCode!.trim().toUpperCase());
     }
   }, [searchParams]);
 

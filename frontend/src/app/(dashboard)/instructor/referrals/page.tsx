@@ -6,7 +6,7 @@ import { referralApi, InstructorReferralInfo } from '@/features/referral/api/ref
 import {
   Share2, Gift, Copy, Check, Users, DollarSign, Wallet,
   TrendingUp, Award, BookOpen, AlertCircle, ArrowUpRight,
-  ExternalLink, Send, QrCode, X, Sparkles, CheckCircle2, Clock
+  ExternalLink, Send, QrCode, X, Sparkles, CheckCircle2, Clock, Video, MessageCircle
 } from 'lucide-react';
 import { toEnDigits } from '@/lib/utils';
 
@@ -14,7 +14,7 @@ export default function InstructorReferralPage() {
   const queryClient = useQueryClient();
   const [copiedLinkIndex, setCopiedLinkIndex] = useState<string | null>(null);
   const [generalCopied, setGeneralCopied] = useState(false);
-  const [activeTab, setActiveTab] = useState<'courses' | 'referrals' | 'payouts'>('courses');
+  const [activeTab, setActiveTab] = useState<'courses' | 'classes' | 'referrals' | 'payouts'>('courses');
   const [showPayoutModal, setShowPayoutModal] = useState(false);
 
   // Payout Form State
@@ -116,7 +116,7 @@ export default function InstructorReferralPage() {
     );
   }
 
-  const { stats, tier, referrals, payouts, shareLinks, instructorCourses = [] } = data;
+  const { stats, tier, referrals, payouts, shareLinks, instructorCourses = [], instructorClasses = [] } = data;
 
   return (
     <div className="space-y-6 pb-12 max-w-7xl mx-auto px-4 sm:px-6">
@@ -261,7 +261,18 @@ export default function InstructorReferralPage() {
             }`}
           >
             <BookOpen className="w-4 h-4" />
-            لینک‌های بازاریابی دوره‌های من ({instructorCourses.length})
+            لینک‌های بازاریابی دوره‌ها ({instructorCourses.length})
+          </button>
+          <button
+            onClick={() => setActiveTab('classes')}
+            className={`pb-3 font-bold text-sm border-b-2 transition flex items-center gap-2 ${
+              activeTab === 'classes'
+                ? 'border-indigo-600 text-indigo-600'
+                : 'border-transparent text-[var(--neo-text-secondary)] hover:text-[var(--neo-text-main)]'
+            }`}
+          >
+            <Video className="w-4 h-4" />
+            لینک‌های بازاریابی کلاس‌ها ({instructorClasses.length})
           </button>
           <button
             onClick={() => setActiveTab('referrals')}
@@ -314,7 +325,7 @@ export default function InstructorReferralPage() {
                     <div className="pt-2 border-t border-[var(--neo-border)] flex items-center justify-between gap-2">
                       <button
                         onClick={() => handleCopyCourseLink(c.courseId, c.affiliateUrl)}
-                        className="flex-1 py-1.5 px-3 bg-[var(--neo-surface)] hover:bg-gray-100 dark:hover:bg-gray-700 border border-[var(--neo-border)] rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5"
+                        className="flex-1 py-1.5 px-3 bg-[var(--neo-surface)] hover:bg-gray-100 dark:hover:bg-gray-700 border border-[var(--neo-border)] rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 cursor-pointer"
                       >
                         {copiedLinkIndex === c.courseId ? (
                           <Check className="w-3.5 h-3.5 text-emerald-600" />
@@ -328,10 +339,94 @@ export default function InstructorReferralPage() {
                         target="_blank"
                         rel="noreferrer"
                         className="py-1.5 px-3 bg-sky-500 hover:bg-sky-600 text-white rounded-xl text-xs font-bold transition flex items-center gap-1"
+                        title="اشتراک در تلگرام"
                       >
                         <Send className="w-3.5 h-3.5" />
                         تلگرام
                       </a>
+                      {c.whatsappShareUrl && (
+                        <a
+                          href={c.whatsappShareUrl}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="py-1.5 px-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition flex items-center gap-1"
+                          title="اشتراک در واتس‌اپ"
+                        >
+                          <MessageCircle className="w-3.5 h-3.5" />
+                          واتس‌اپ
+                        </a>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Tab 1.5: Class Affiliate Links */}
+        {activeTab === 'classes' && (
+          <div className="p-6">
+            <p className="text-xs text-[var(--neo-text-secondary)] mb-4">
+              با اشتراک‌گذاری لینک‌های زیر برای کلاس‌های تعاملی یا کارگاه‌های حضوری/آنلاین، دانشجویانی که از طریق لینک اختصاصی شما ثبت‌نام کنند، پاداش رفرال و پورسانت ویژه در کیف پول استادی شما منظور خواهد شد.
+            </p>
+            {instructorClasses.length === 0 ? (
+              <div className="text-center py-8 text-[var(--neo-text-muted)] text-sm">
+                شما هنوز کلاس یا کارگاهی تعریف نکرده‌اید. پس از ثبت کلاس، لینک‌های بازاریابی اختصاصی در اینجا ایجاد خواهند شد.
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {instructorClasses.map((cls) => (
+                  <div
+                    key={cls.classId}
+                    className="p-4 rounded-2xl bg-gray-50 dark:bg-gray-800/40 border border-[var(--neo-border)] flex flex-col justify-between gap-3"
+                  >
+                    <div>
+                      <div className="flex items-center justify-between gap-2">
+                        <h4 className="font-bold text-sm text-[var(--neo-text-main)] line-clamp-1">{cls.title}</h4>
+                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-indigo-50 text-indigo-700 border border-indigo-200">
+                          {cls.mode === 'online' ? 'کلاس آنلاین' : 'کارگاه حضوری'}
+                        </span>
+                      </div>
+                      <div className="mt-1 text-xs text-[var(--neo-text-secondary)]">
+                        شهریه: {cls.price > 0 ? `${cls.price.toLocaleString('fa-IR')} تومان` : 'رایگان'}
+                      </div>
+                    </div>
+
+                    <div className="pt-2 border-t border-[var(--neo-border)] flex items-center justify-between gap-2">
+                      <button
+                        onClick={() => handleCopyCourseLink(cls.classId, cls.affiliateUrl)}
+                        className="flex-1 py-1.5 px-3 bg-[var(--neo-surface)] hover:bg-gray-100 dark:hover:bg-gray-700 border border-[var(--neo-border)] rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 cursor-pointer"
+                      >
+                        {copiedLinkIndex === cls.classId ? (
+                          <Check className="w-3.5 h-3.5 text-emerald-600" />
+                        ) : (
+                          <Copy className="w-3.5 h-3.5" />
+                        )}
+                        {copiedLinkIndex === cls.classId ? 'کپی شد!' : 'کپی لینک کلاس'}
+                      </button>
+                      <a
+                        href={cls.telegramShareUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="py-1.5 px-3 bg-sky-500 hover:bg-sky-600 text-white rounded-xl text-xs font-bold transition flex items-center gap-1"
+                        title="اشتراک در تلگرام"
+                      >
+                        <Send className="w-3.5 h-3.5" />
+                        تلگرام
+                      </a>
+                      {cls.whatsappShareUrl && (
+                        <a
+                          href={cls.whatsappShareUrl}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="py-1.5 px-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition flex items-center gap-1"
+                          title="اشتراک در واتس‌اپ"
+                        >
+                          <MessageCircle className="w-3.5 h-3.5" />
+                          واتس‌اپ
+                        </a>
+                      )}
                     </div>
                   </div>
                 ))}

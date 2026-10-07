@@ -8,7 +8,19 @@ import { Search, Filter, Clock, Book, User, Star, CheckSquare, Square, ChevronLe
 import { useRouter, useSearchParams } from 'next/navigation';
 import { toEnDigits } from '@/lib/utils';
 
-export function CourseListContainer() {
+interface CourseListContainerProps {
+  initialData?: any;
+  initialCategories?: any[];
+  initialLevels?: any[];
+  initialInstructors?: any[];
+}
+
+export function CourseListContainer({
+  initialData,
+  initialCategories,
+  initialLevels,
+  initialInstructors,
+}: CourseListContainerProps = {}) {
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -29,20 +41,24 @@ export function CourseListContainer() {
 
   const [isMobileFiltersOpen, setIsMobileFiltersOpen] = useState(false);
 
-  // Sync state to URL
+  // Sync state to URL only when user changes filters
+  const [hasInteracted, setHasInteracted] = useState(false);
   useEffect(() => {
+    if (!hasInteracted) return;
     const params = new URLSearchParams();
     Object.entries(filters).forEach(([key, value]) => {
       if (value) params.set(key, value.toString());
     });
     router.replace(`/courses?${params.toString()}`);
-  }, [filters, router]);
+  }, [filters, router, hasInteracted]);
 
   const handleFilterChange = (key: string, value: any) => {
+    setHasInteracted(true);
     setFilters(prev => ({ ...prev, [key]: value, page: key === 'page' ? value : 1 }));
   };
 
   const clearFilters = () => {
+    setHasInteracted(true);
     setFilters({
       search: '', category: '', subject: '', field: '', level: '', instructor: '',
       minPrice: '', maxPrice: '', isFree: false, sort: 'newest', page: 1
@@ -52,21 +68,24 @@ export function CourseListContainer() {
   // Fetch filter options from working endpoints
   const { data: categories } = useQuery({
     queryKey: ['categories'],
-    queryFn: () => api.get('/categories').then((res: any) => res.data || [])
+    queryFn: () => api.get('/categories').then((res: any) => res.data || []),
+    initialData: initialCategories,
   });
 
   const { data: levels } = useQuery({
     queryKey: ['levels'],
-    queryFn: () => api.get('/levels').then((res: any) => res.data || [])
+    queryFn: () => api.get('/levels').then((res: any) => res.data || []),
+    initialData: initialLevels,
   });
 
   const { data: instructors } = useQuery({
     queryKey: ['instructors'],
-    queryFn: () => api.get('/instructors').then((res: any) => res.data || [])
+    queryFn: () => api.get('/instructors').then((res: any) => res.data || []),
+    initialData: initialInstructors,
   });
 
   // Fetch courses with backend pagination
-  const { data: coursesData, isLoading, isError } = useQuery({
+  const { data: coursesData, isLoading: queryLoading, isError } = useQuery({
     queryKey: ['courses', filters],
     queryFn: async () => {
       const params = new URLSearchParams();
@@ -76,8 +95,12 @@ export function CourseListContainer() {
       if (!params.has('limit')) params.set('limit', '9');
       const res: any = await api.get(`/courses?${params.toString()}`);
       return res.data;
-    }
+    },
+    initialData: initialData,
   });
+
+  const resolvedData = coursesData || initialData;
+  const isLoading = !resolvedData ? queryLoading : false;
 
   return (
     <div className="bg-[var(--neo-bg)] min-h-screen py-12">
@@ -274,7 +297,7 @@ export function CourseListContainer() {
               <div className="bg-red-50 text-red-600 p-8 rounded-2xl text-center border border-red-100">
                 خطا در دریافت اطلاعات. لطفا دوباره تلاش کنید.
               </div>
-            ) : coursesData?.courses?.length === 0 ? (
+            ) : (resolvedData?.courses?.length || 0) === 0 ? (
               <div className="bg-white p-12 rounded-2xl border border-[var(--neo-border)] text-center flex flex-col items-center">
                 <div className="w-16 h-16 bg-[var(--neo-surface-2)] rounded-full flex items-center justify-center mb-4">
                   <Search className="w-8 h-8 text-[var(--neo-text-muted)]" />
@@ -287,14 +310,14 @@ export function CourseListContainer() {
               </div>
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5 sm:gap-6">
-                {coursesData?.courses?.map((course: any) => (
+                {resolvedData?.courses?.map((course: any) => (
                   <CourseCard key={course._id} course={course} />
                 ))}
               </div>
             )}
 
             {/* Pagination */}
-            {coursesData?.pages > 1 && (
+            {(resolvedData?.pages || 0) > 1 && (
               <div className="mt-12 flex justify-center items-center gap-2">
                 <button 
                   disabled={filters.page === 1}

@@ -297,6 +297,53 @@ export function Navbar() {
                     );
                   })}
                 </nav>
+
+                {/* Direct Contact & Socials Banner for Mobile */}
+                <div className="p-4 mx-3 mb-2 bg-gradient-to-br from-emerald-50 to-teal-50 rounded-2xl border border-emerald-200/80 shadow-xs space-y-2.5">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-black text-emerald-950 flex items-center gap-1.5">
+                      <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                      مشاوره و پشتیبانی فوری
+                    </span>
+                    <span className="text-[10px] font-bold text-emerald-700 bg-white px-2 py-0.5 rounded-full border border-emerald-200">
+                      پاسخگویی
+                    </span>
+                  </div>
+                  <a
+                    href="tel:09372731037"
+                    className="flex items-center justify-center gap-2 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition shadow-xs"
+                  >
+                    <Phone className="w-4 h-4" />
+                    <span>تماس تلفنی:</span>
+                    <span className="font-mono dir-ltr font-black">۰۹۳۷ ۲۷۳ ۱۰۳۷</span>
+                  </a>
+                  <div className="grid grid-cols-3 gap-1.5 pt-1 text-[11px] font-bold text-center">
+                    <a
+                      href="https://t.me/tecyad_ir"
+                      target="_blank"
+                      rel="noreferrer"
+                      className="py-1.5 bg-white hover:bg-sky-50 text-sky-600 border border-sky-200 rounded-lg transition"
+                    >
+                      تلگرام
+                    </a>
+                    <a
+                      href="https://wa.me/989372731037"
+                      target="_blank"
+                      rel="noreferrer"
+                      className="py-1.5 bg-white hover:bg-emerald-50 text-emerald-600 border border-emerald-200 rounded-lg transition"
+                    >
+                      واتس‌اپ
+                    </a>
+                    <a
+                      href="https://instagram.com/tecyad.ir"
+                      target="_blank"
+                      rel="noreferrer"
+                      className="py-1.5 bg-white hover:bg-rose-50 text-rose-600 border border-rose-200 rounded-lg transition"
+                    >
+                      اینستاگرام
+                    </a>
+                  </div>
+                </div>
               </div>
 
               {/* User Section in Drawer */}

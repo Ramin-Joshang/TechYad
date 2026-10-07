@@ -1,8 +1,12 @@
-import { Metadata } from 'next';
+import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'سبد خرید | تک‌یاد',
-  description: 'مشاهده دوره‌ها و کلاس‌های انتخاب شده در سبد خرید تک‌یاد',
+  title: 'سبد خرید شما | تک‌یاد',
+  description: 'مشاهده دوره‌ها و کارگاه‌های آموزشی انتخابی و تسویه حساب در تک‌یاد.',
+  robots: {
+    index: false,
+    follow: false,
+  },
 };
 
 export default function CartLayout({

@@ -1,18 +1,7 @@
 import { ClassDetailsContainer } from '@/components/classes/ClassDetailsContainer';
+import { fetchClass } from '@/lib/server-api';
+import { Breadcrumbs } from '@/components/common/Breadcrumbs';
 import type { Metadata } from 'next';
-
-async function fetchClassData(identifier: string) {
-  try {
-    const res = await fetch(`http://localhost:5000/api/v1/classes/${encodeURIComponent(identifier)}`, {
-      next: { revalidate: 60 }
-    });
-    if (!res.ok) return null;
-    const json = await res.json();
-    return json?.data || null;
-  } catch (e) {
-    return null;
-  }
-}
 
 export async function generateMetadata({ 
   params 
@@ -21,7 +10,7 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const resolvedParams = await params;
   const identifier = resolvedParams.slug || resolvedParams.id || '';
-  const classItem = await fetchClassData(identifier);
+  const classItem = await fetchClass(identifier);
 
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://tecyad.ir';
   const pageUrl = `${baseUrl}/classes/${encodeURIComponent(identifier)}`;
@@ -88,7 +77,7 @@ export default async function ClassDetailsPage({
   params: Promise<{ slug: string }> 
 }) {
   const resolvedParams = await params;
-  const classItem = await fetchClassData(resolvedParams.slug);
+  const classItem = await fetchClass(resolvedParams.slug);
 
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://tecyad.ir';
   const pageUrl = `${baseUrl}/classes/${encodeURIComponent(resolvedParams.slug)}`;
@@ -129,7 +118,18 @@ export default async function ClassDetailsPage({
           dangerouslySetInnerHTML={{ __html: JSON.stringify(classJsonLd) }}
         />
       )}
-      <ClassDetailsContainer slug={resolvedParams.slug} />
+      <div className="bg-slate-900 border-b border-slate-800 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto">
+          <Breadcrumbs
+            items={[
+              { label: 'کلاس‌های زنده و آنلاین', href: '/classes' },
+              ...(classItem?.category?.name ? [{ label: classItem.category.name, href: `/classes?category=${classItem.category._id || classItem.category.slug}` }] : []),
+              { label: classItem?.title || resolvedParams.slug },
+            ]}
+          />
+        </div>
+      </div>
+      <ClassDetailsContainer slug={resolvedParams.slug} initialData={classItem} />
     </>
   );
 }

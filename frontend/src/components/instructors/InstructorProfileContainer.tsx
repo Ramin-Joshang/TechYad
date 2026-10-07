@@ -30,12 +30,16 @@ function InstagramIcon(props: React.SVGProps<SVGSVGElement>) {
   );
 }
 
-export function InstructorProfileContainer({ id }: { id: string }) {
+export function InstructorProfileContainer({ id, initialData }: { id: string; initialData?: any }) {
   // Fetch instructor profile (now includes real courses, classes & calculated stats from backend)
-  const { data: profile, isLoading } = useQuery({
+  const { data: profileData, isLoading: queryLoading } = useQuery({
     queryKey: ['instructor', id],
-    queryFn: () => api.get(`/instructors/${id}`).then((res: any) => res.data?.data || res.data)
+    queryFn: () => api.get(`/instructors/${id}`).then((res: any) => res.data?.data || res.data),
+    initialData: initialData,
   });
+
+  const profile = profileData || initialData;
+  const isLoading = !profile && queryLoading;
 
   // Fallback queries for courses and classes if not bundled
   const { data: allClassesData } = useQuery({

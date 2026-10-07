@@ -1,8 +1,8 @@
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'حریم خصوصی',
-  description: 'سیاست‌های حفظ حریم خصوصی، امنیت داده‌ها و اطلاعات کاربران در سامانه آموزشی تک‌یاد.',
+  title: 'سیاست حفظ حریم خصوصی کاربران | تک‌یاد',
+  description: 'تعهدات تک‌یاد در زمینه حفظ و صیانت از اطلاعات خصوصی، امنیت داده‌های کاربران، تراکنش‌ها و حریم شخصی دانش‌پذیران.',
   alternates: {
     canonical: '/privacy',
   },
@@ -10,9 +10,8 @@ export const metadata: Metadata = {
     type: 'website',
     locale: 'fa_IR',
     url: 'https://tecyad.ir/privacy',
-    siteName: 'تک‌یاد | Tecyad',
     title: 'حریم خصوصی | تک‌یاد',
-    description: 'سیاست‌های حفظ حریم خصوصی، امنیت داده‌ها و اطلاعات کاربران در سامانه آموزشی تک‌یاد.',
+    description: 'تعهدات تک‌یاد در زمینه صیانت از داده‌ها و حریم خصوصی کاربران.',
   },
 };
 

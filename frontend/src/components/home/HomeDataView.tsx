@@ -12,13 +12,15 @@ import { Testimonials } from './Testimonials';
 import { LatestArticles } from './LatestArticles';
 import { CTA } from './CTA';
 
-export function HomeDataView() {
-  const { data, isLoading, error } = useQuery({
+export function HomeDataView({ initialData }: { initialData?: any }) {
+  const { data, isLoading: queryLoading } = useQuery({
     queryKey: ['homeData'],
     queryFn: () => api.get('/home').then(res => res.data),
+    initialData: initialData,
   });
 
-  const d = data || {};
+  const d = data || initialData || {};
+  const isLoading = !d || Object.keys(d).length === 0 ? queryLoading : false;
 
   return (
     <div dir="rtl" className="min-h-screen flex flex-col bg-[var(--neo-bg)] w-full overflow-x-hidden text-right">

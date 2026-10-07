@@ -1,4 +1,5 @@
 import { BlogPostContainer } from '@/components/blog/BlogPostContainer';
+import { Breadcrumbs } from '@/components/common/Breadcrumbs';
 import type { Metadata } from 'next';
 
 async function fetchArticleData(identifier: string) {
@@ -132,6 +133,17 @@ export default async function BlogPostPage({
           dangerouslySetInnerHTML={{ __html: JSON.stringify(blogJsonLd) }}
         />
       )}
+      <div className="bg-white border-b border-slate-100 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto">
+          <Breadcrumbs
+            items={[
+              { label: 'وبلاگ و مقالات', href: '/blog' },
+              ...(article?.category?.name ? [{ label: article.category.name, href: `/blog?category=${article.category._id || article.category.slug}` }] : []),
+              { label: article?.title || resolvedParams.slug },
+            ]}
+          />
+        </div>
+      </div>
       <BlogPostContainer slug={resolvedParams.slug} />
     </>
   );

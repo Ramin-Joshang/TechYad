@@ -149,18 +149,45 @@ export class ClassService {
 
     const payload = { ...data };
     if (payload.startDate) payload.startDate = parseDateSafely(payload.startDate) || payload.startDate;
+    
+    // Auto calculate sessions if syllabus provided
+    if (Array.isArray(payload.syllabus) && payload.syllabus.length > 0 && !payload.sessions) {
+      payload.sessions = payload.syllabus.length;
+    }
+    const sessionCount = Number(payload.sessions) || 10;
+    const sessionDurationMin = Number(payload.sessionDuration) || 90;
+
+    // 1. Auto-calculate totalHours from sessions and sessionDuration if missing or zero
+    if (!payload.totalHours || Number(payload.totalHours) <= 0) {
+      payload.totalHours = Math.round(((sessionCount * sessionDurationMin) / 60) * 10) / 10;
+    }
+
+    // 2. Intelligent Auto-calculation of endDate based on schedule days and session count
     if (payload.endDate) {
       payload.endDate = parseDateSafely(payload.endDate) || payload.endDate;
     } else if (payload.startDate) {
       const sDate = payload.startDate instanceof Date ? payload.startDate : new Date(payload.startDate);
-      payload.endDate = new Date(sDate.getTime() + 30 * 24 * 60 * 60 * 1000);
-    }
-    if (!payload.capacity) payload.capacity = data.maxStudents || 50;
-    if (payload.mode === 'in-person') payload.mode = 'in_person';
+      const daysOfWeekMap: Record<string, number> = {
+        'یکشنبه': 0, 'دوشنبه': 1, 'سه‌شنبه': 2, 'چهارشنبه': 3, 'پنج‌شنبه': 4, 'جمعه': 5, 'شنبه': 6
+      };
+      const selectedDays = Array.isArray(payload.scheduleDays) && payload.scheduleDays.length > 0
+        ? payload.scheduleDays.map((d: string) => daysOfWeekMap[d]).filter((d: any) => d !== undefined)
+        : [6, 2]; // default: Saturday & Tuesday
 
-    // Auto calculate sessions if syllabus provided
-    if (Array.isArray(payload.syllabus) && payload.syllabus.length > 0 && !payload.sessions) {
-      payload.sessions = payload.syllabus.length;
+      if (selectedDays.length > 0 && sessionCount > 0) {
+        let count = 0;
+        const curr = new Date(sDate.getTime());
+        for (let dayStep = 0; dayStep < 365; dayStep++) {
+          if (selectedDays.includes(curr.getDay())) {
+            count++;
+            if (count >= sessionCount) break;
+          }
+          curr.setDate(curr.getDate() + 1);
+        }
+        payload.endDate = curr;
+      } else {
+        payload.endDate = new Date(sDate.getTime() + (sessionCount * 4 * 24 * 60 * 60 * 1000));
+      }
     }
 
     // Default pre-registration settings if deposit provided
@@ -326,11 +353,17 @@ export class ClassService {
   }
 
   static async updateClass(id: string, userId: string, data: any, overrideAuth: boolean = false) {
-    const query = overrideAuth ? { _id: id } : { _id: id, instructors: userId };
+    const query = overrideAuth 
+      ? { _id: id } 
+      : { _id: id, $or: [{ instructors: userId }, { createdBy: userId }] };
     const payload = { ...data };
     if (payload.startDate !== undefined) payload.startDate = parseDateSafely(payload.startDate) || payload.startDate;
     if (payload.endDate !== undefined) payload.endDate = parseDateSafely(payload.endDate) || payload.endDate;
     if (payload.mode === 'in-person') payload.mode = 'in_person';
+
+    if (payload.sessions && payload.sessionDuration && (!payload.totalHours || Number(payload.totalHours) <= 0)) {
+      payload.totalHours = Math.round(((Number(payload.sessions) * Number(payload.sessionDuration)) / 60) * 10) / 10;
+    }
 
     const cls = await Class.findOneAndUpdate(query, payload, { new: true });
     if (!cls) throw new AppError('Class not found or unauthorized', 404);

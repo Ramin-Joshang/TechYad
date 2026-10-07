@@ -58,6 +58,14 @@ server.on('upgrade', (req, socket, head) => {
   proxyReq.end();
 });
 
+server.on('error', (err) => {
+  if (err.code === 'EADDRINUSE') {
+    console.log(`[Bridge] Port ${listenPort} is already bound. Bridge bypassed.`);
+  } else {
+    console.error('[Bridge] Error:', err.message);
+  }
+});
+
 server.listen(listenPort, '0.0.0.0', () => {
   console.log(`Port ${listenPort} forwarding to port ${targetPort}`);
 });

@@ -8,7 +8,7 @@ import { useState } from 'react';
 import { format } from 'date-fns-jalali';
 import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 
-export function ClassesList() {
+export function ClassesList({ initialData }: { initialData?: any } = {}) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -59,7 +59,7 @@ export function ClassesList() {
   };
 
   // Fetch classes from backend with pagination & filters
-  const { data: responseData, isLoading } = useQuery({
+  const { data: responseData, isLoading: queryLoading } = useQuery({
     queryKey: ['classes', { searchTerm, modeFilter, typeFilter, sortParam, page }],
     queryFn: async () => {
       const params = new URLSearchParams();
@@ -72,13 +72,16 @@ export function ClassesList() {
 
       const res: any = await api.get(`/classes?${params.toString()}`);
       return res.data;
-    }
+    },
+    initialData: initialData,
   });
 
-  const rawClasses = responseData?.classes || (Array.isArray(responseData) ? responseData : []);
-  const total = responseData?.total ?? rawClasses.length;
-  const totalPages = responseData?.pages || 1;
-  const currentPage = responseData?.page || page;
+  const resolvedData = responseData || initialData;
+  const isLoading = !resolvedData ? queryLoading : false;
+  const rawClasses = resolvedData?.classes || (Array.isArray(resolvedData) ? resolvedData : []);
+  const total = resolvedData?.total ?? rawClasses.length;
+  const totalPages = resolvedData?.pages || 1;
+  const currentPage = resolvedData?.page || page;
 
   // Filter status client-side (open, full, started, completed, cancelled)
   const filteredClasses = rawClasses.filter((cls: any) => {

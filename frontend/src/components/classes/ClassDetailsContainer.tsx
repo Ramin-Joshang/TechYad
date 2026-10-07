@@ -17,7 +17,7 @@ import Link from 'next/link';
 import { useState } from 'react';
 import { CommentsSection } from '@/features/comments/components/CommentsSection';
 
-export function ClassDetailsContainer({ slug }: { slug: string }) {
+export function ClassDetailsContainer({ slug, initialData }: { slug: string; initialData?: any }) {
   const router = useRouter();
   const queryClient = useQueryClient();
   const { isAuthenticated, isInitializing, user } = useAuthStore();
@@ -26,13 +26,17 @@ export function ClassDetailsContainer({ slug }: { slug: string }) {
   const [copiedAddress, setCopiedAddress] = useState(false);
   const [expandedSession, setExpandedSession] = useState<number | null>(1);
 
-  const { data: cls, isLoading } = useQuery({
+  const { data: clsData, isLoading: queryLoading } = useQuery({
     queryKey: ['class', slug],
     queryFn: async () => {
       const res: any = await classesApi.getClassBySlug(slug);
       return res?.data !== undefined ? res.data : res;
-    }
+    },
+    initialData: initialData,
   });
+
+  const cls = clsData || initialData;
+  const isLoading = !cls && queryLoading;
 
   // Check enrollment in class
   const { data: enrollmentData, isLoading: isEnrollmentLoading } = useQuery({

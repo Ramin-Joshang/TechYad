@@ -11,16 +11,20 @@ import { useAuthStore } from '@/features/auth/stores/auth.store';
 import toast from 'react-hot-toast';
 import { CommentsSection } from '@/features/comments/components/CommentsSection';
 
-export function CourseDetailsContainer({ slug }: { slug: string }) {
+export function CourseDetailsContainer({ slug, initialData }: { slug: string; initialData?: any }) {
   const router = useRouter();
   const { isAuthenticated, isInitializing, user } = useAuthStore();
   const queryClient = useQueryClient();
 
-  // Fetch Course
-  const { data: course, isLoading: courseLoading } = useQuery({
+  // Fetch Course with initialData for SSR
+  const { data: courseData, isLoading: queryLoading } = useQuery({
     queryKey: ['course', slug],
-    queryFn: () => api.get(`/courses/${slug}`).then((res: any) => res.data)
+    queryFn: () => api.get(`/courses/${slug}`).then((res: any) => res.data),
+    initialData: initialData,
   });
+
+  const course = courseData || initialData;
+  const courseLoading = !course && queryLoading;
 
   // Fetch Cart to check if item is in cart
   const { data: cartData } = useQuery({

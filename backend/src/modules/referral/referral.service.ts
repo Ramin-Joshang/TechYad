@@ -4,6 +4,7 @@ import { Referral, IReferral } from "./referral.model.js";
 import { ReferralPayout, IReferralPayout } from "./referral-payout.model.js";
 import { ReferralSetting, IReferralSetting } from "./referral-setting.model.js";
 import { Course } from "../courses/course.model.js";
+import { Class } from "../classes/class.model.js";
 import { Order } from "../commerce/order.model.js";
 import { Notification } from "../notifications/notification.model.js";
 import { AppError } from "../../common/errors/AppError.js";
@@ -465,7 +466,10 @@ export class ReferralService {
 
     // Fetch instructor's courses
     const courses = await Course.find({
-      instructors: instructorId,
+      $or: [
+        { instructors: instructorId },
+        { createdBy: instructorId }
+      ],
       status: "published",
     }).select("title slug price discountPrice thumbnail studentCount");
 
@@ -481,12 +485,44 @@ export class ReferralService {
         telegramShareUrl: `https://t.me/share/url?url=${encodeURIComponent(url)}&text=${encodeURIComponent(
           `دوره ویژه «${course.title}» در آکادمی تک‌یاد با تخفیف اختصاصی:\n${url}`
         )}`,
+        whatsappShareUrl: `https://api.whatsapp.com/send?text=${encodeURIComponent(
+          `سلام! دوره آموزشی «${course.title}» در تک‌یاد با تخفیف ویژه:\n${url}`
+        )}`,
+      };
+    });
+
+    // Fetch instructor's classes & workshops
+    const classes = await Class.find({
+      $or: [
+        { instructors: instructorId },
+        { createdBy: instructorId }
+      ]
+    }).select("title slug price discountPrice thumbnail enrolledCount type mode startDate status");
+
+    const classAffiliateLinks = classes.map((c: any) => {
+      const classSlugOrId = c.slug || c._id;
+      const url = `${baseUrl}/classes/${classSlugOrId}?ref=${code}`;
+      return {
+        classId: c._id,
+        title: c.title,
+        price: c.discountPrice || c.price,
+        thumbnail: c.thumbnail,
+        type: c.type,
+        mode: c.mode,
+        affiliateUrl: url,
+        telegramShareUrl: `https://t.me/share/url?url=${encodeURIComponent(url)}&text=${encodeURIComponent(
+          `کلاس تخصصی و کارگاه «${c.title}» در آکادمی تک‌یاد با تخفیف اختصاصی:\n${url}`
+        )}`,
+        whatsappShareUrl: `https://api.whatsapp.com/send?text=${encodeURIComponent(
+          `سلام! در کارگاه و کلاس «${c.title}» در تک‌یاد ثبت‌نام کنید:\n${url}`
+        )}`,
       };
     });
 
     return {
       ...baseDashboard,
       instructorCourses: courseAffiliateLinks,
+      instructorClasses: classAffiliateLinks,
     };
   }
 

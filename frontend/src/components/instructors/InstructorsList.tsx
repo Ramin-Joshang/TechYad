@@ -6,14 +6,18 @@ import Link from 'next/link';
 import { Star, BookOpen, Users, Award, Search, Filter, CheckCircle } from 'lucide-react';
 import { useState } from 'react';
 
-export function InstructorsList() {
+export function InstructorsList({ initialData }: { initialData?: any } = {}) {
   const [searchTerm, setSearchTerm] = useState('');
   const [specialtyFilter, setSpecialtyFilter] = useState('all');
   
-  const { data: instructors, isLoading } = useQuery({
+  const { data: instructorsData, isLoading: queryLoading } = useQuery({
     queryKey: ['instructors'],
-    queryFn: () => api.get('/instructors').then((res: any) => res.data)
+    queryFn: () => api.get('/instructors').then((res: any) => res.data),
+    initialData: initialData,
   });
+
+  const instructors = instructorsData || initialData;
+  const isLoading = !instructors ? queryLoading : false;
 
   if (isLoading) {
     return (

@@ -1,4 +1,5 @@
 import { CourseListContainer } from "@/components/courses/CourseListContainer";
+import { fetchCourses, fetchCategories, fetchInstructors, fetchLevels } from "@/lib/server-api";
 import { Suspense } from "react";
 import type { Metadata } from "next";
 
@@ -42,7 +43,21 @@ export const metadata: Metadata = {
   },
 };
 
-export default function CoursesPage() {
+export default async function CoursesPage({
+  searchParams,
+}: {
+  searchParams?: Promise<{ [key: string]: string | undefined }>;
+}) {
+  const resolvedParams = searchParams ? await searchParams : {};
+  
+  // Parallel SSR fetching
+  const [coursesData, categoriesData, instructorsData, levelsData] = await Promise.all([
+    fetchCourses({ ...resolvedParams, limit: '9' }),
+    fetchCategories(),
+    fetchInstructors(),
+    fetchLevels(),
+  ]);
+
   const catalogJsonLd = {
     "@context": "https://schema.org",
     "@type": "CollectionPage",
@@ -63,7 +78,12 @@ export default function CoursesPage() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(catalogJsonLd) }}
       />
       <Suspense fallback={<div className="min-h-screen flex items-center justify-center font-bold text-slate-600">درحال بارگذاری دوره‌ها...</div>}>
-        <CourseListContainer />
+        <CourseListContainer 
+          initialData={coursesData}
+          initialCategories={categoriesData || []}
+          initialInstructors={instructorsData || []}
+          initialLevels={levelsData || []}
+        />
       </Suspense>
     </>
   );

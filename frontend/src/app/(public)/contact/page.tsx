@@ -2,7 +2,8 @@
 
 import { useState } from 'react';
 import { generalApi } from '@/features/general/api/general.api';
-import { MapPin, Phone, Mail, Clock, Send, MessageSquare, ArrowLeft, CheckCircle, AlertCircle } from 'lucide-react';
+import { MapPin, Phone, Mail, Clock, Send, ArrowLeft, CheckCircle, AlertCircle } from 'lucide-react';
+import { TelegramIcon, InstagramIcon, WhatsAppIcon } from '@/components/common/BrandSocialIcons';
 import Link from 'next/link';
 import { toast } from 'react-hot-toast';
 
@@ -127,10 +128,15 @@ export default function ContactPage() {
                     <Phone className="w-6 h-6" />
                   </div>
                   <div>
-                    <div className="font-bold text-[var(--neo-text-main)] mb-1">شماره تماس و واتس‌اپ</div>
-                    <div className="text-[var(--neo-text-secondary)] text-sm dir-ltr text-right">
-                      <a href="tel:09372731037" className="hover:text-[var(--neo-primary)] transition-colors font-mono">
-                        09372731037
+                    <div className="font-bold text-[var(--neo-text-main)] mb-1">شماره تماس و پشتیبانی</div>
+                    <div className="text-[var(--neo-text-secondary)] text-sm text-right">
+                      <a 
+                        href="tel:+989372731037" 
+                        dir="ltr"
+                        style={{ direction: 'ltr', unicodeBidi: 'bidi-override' }}
+                        className="hover:text-[var(--neo-primary)] transition-colors font-mono tracking-wider font-bold"
+                      >
+                        +98 937 273 1037
                       </a>
                     </div>
                   </div>
@@ -143,7 +149,12 @@ export default function ContactPage() {
                   <div>
                     <div className="font-bold text-[var(--neo-text-main)] mb-1">پست الکترونیک</div>
                     <div className="text-[var(--neo-text-secondary)] text-sm">
-                      <a href="mailto:support@tecyad.ir" className="hover:text-[var(--neo-primary)] transition-colors font-mono">
+                      <a 
+                        href="mailto:support@tecyad.ir" 
+                        dir="ltr"
+                        style={{ direction: 'ltr' }}
+                        className="hover:text-[var(--neo-primary)] transition-colors font-mono"
+                      >
                         support@tecyad.ir
                       </a>
                     </div>
@@ -177,13 +188,15 @@ export default function ContactPage() {
                     className="flex items-center justify-between bg-white/10 hover:bg-white/20 px-4 py-3 rounded-xl transition border border-white/5 group"
                   >
                     <div className="flex items-center gap-3">
-                      <MessageSquare className="w-5 h-5 text-blue-400 group-hover:scale-110 transition-transform" />
+                      <div className="w-8 h-8 rounded-lg bg-[#229ED9] text-white flex items-center justify-center shrink-0">
+                        <TelegramIcon className="w-4 h-4" />
+                      </div>
                       <div className="text-right">
                         <span className="font-bold text-sm block">کانال و پشتیبانی تلگرام</span>
-                        <span className="text-xs text-slate-300 font-mono dir-ltr block">@tecyad_ir</span>
+                        <span dir="ltr" style={{ direction: 'ltr' }} className="text-xs text-slate-300 font-mono block">@tecyad_ir</span>
                       </div>
                     </div>
-                    <ArrowLeft className="w-4 h-4 text-slate-400 group-hover:translate-x-1 transition-transform" />
+                    <ArrowLeft className="w-4 h-4 text-slate-400 group-hover:-translate-x-1 transition-transform" />
                   </a>
 
                   <a 
@@ -193,13 +206,15 @@ export default function ContactPage() {
                     className="flex items-center justify-between bg-white/10 hover:bg-white/20 px-4 py-3 rounded-xl transition border border-white/5 group"
                   >
                     <div className="flex items-center gap-3">
-                      <Phone className="w-5 h-5 text-emerald-400 group-hover:scale-110 transition-transform" />
+                      <div className="w-8 h-8 rounded-lg bg-[#25D366] text-white flex items-center justify-center shrink-0">
+                        <WhatsAppIcon className="w-4 h-4" />
+                      </div>
                       <div className="text-right">
                         <span className="font-bold text-sm block">ارتباط در واتس‌اپ</span>
-                        <span className="text-xs text-slate-300 font-mono dir-ltr block">09372731037</span>
+                        <span dir="ltr" style={{ direction: 'ltr' }} className="text-xs text-slate-300 font-mono block">0937 273 1037</span>
                       </div>
                     </div>
-                    <ArrowLeft className="w-4 h-4 text-slate-400 group-hover:translate-x-1 transition-transform" />
+                    <ArrowLeft className="w-4 h-4 text-slate-400 group-hover:-translate-x-1 transition-transform" />
                   </a>
 
                   <a 
@@ -209,13 +224,15 @@ export default function ContactPage() {
                     className="flex items-center justify-between bg-white/10 hover:bg-white/20 px-4 py-3 rounded-xl transition border border-white/5 group"
                   >
                     <div className="flex items-center gap-3">
-                      <MessageSquare className="w-5 h-5 text-rose-400 group-hover:scale-110 transition-transform" />
+                      <div className="w-8 h-8 rounded-lg bg-gradient-to-tr from-amber-500 via-rose-500 to-purple-600 text-white flex items-center justify-center shrink-0">
+                        <InstagramIcon className="w-4 h-4" />
+                      </div>
                       <div className="text-right">
                         <span className="font-bold text-sm block">صفحه رسمی اینستاگرام</span>
-                        <span className="text-xs text-slate-300 font-mono dir-ltr block">@tecyad.ir</span>
+                        <span dir="ltr" style={{ direction: 'ltr' }} className="text-xs text-slate-300 font-mono block">@tecyad.ir</span>
                       </div>
                     </div>
-                    <ArrowLeft className="w-4 h-4 text-slate-400 group-hover:translate-x-1 transition-transform" />
+                    <ArrowLeft className="w-4 h-4 text-slate-400 group-hover:-translate-x-1 transition-transform" />
                   </a>
                 </div>
               </div>

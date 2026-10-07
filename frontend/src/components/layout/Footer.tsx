@@ -8,12 +8,10 @@ import {
   Mail,
   Phone,
   MapPin,
-  Camera,
-  MessageCircle,
-  Briefcase,
   ShieldCheck,
   Award,
 } from "lucide-react";
+import { TelegramIcon, InstagramIcon, WhatsAppIcon, LinkedInIcon } from "@/components/common/BrandSocialIcons";
 
 export function Footer() {
   const pathname = usePathname();
@@ -93,42 +91,42 @@ export function Footer() {
               {publicSettings?.seoDescription ||
                 "پلتفرمی برای یادگیری عمیق، مهارت‌افزایی و آینده‌سازی. دوره‌های حضوری و آنلاین با رویکردی متفاوت و حرفه‌ای."}
             </p>
-            <div className="flex gap-3">
+            <div className="flex gap-2.5">
               <a
                 href={instagramUrl}
                 target="_blank"
                 rel="noopener noreferrer"
                 title="اینستاگرام tecyad.ir"
-                className="w-9 h-9 rounded-full border border-[var(--neo-border)] bg-[var(--neo-bg)] flex items-center justify-center hover:bg-gradient-to-tr hover:from-amber-500 hover:via-rose-500 hover:to-purple-600 hover:text-white hover:border-transparent transition-all"
+                className="w-9 h-9 rounded-full border border-[var(--neo-border)] bg-[var(--neo-bg)] flex items-center justify-center text-slate-700 hover:bg-gradient-to-tr hover:from-amber-500 hover:via-rose-500 hover:to-purple-600 hover:text-white hover:border-transparent transition-all shadow-2xs"
               >
-                <Camera className="w-4 h-4" />
+                <InstagramIcon className="w-4 h-4" />
               </a>
               <a
                 href={telegramUrl}
                 target="_blank"
                 rel="noopener noreferrer"
                 title="کانال تلگرام tecyad_ir"
-                className="w-9 h-9 rounded-full border border-[var(--neo-border)] bg-[var(--neo-bg)] flex items-center justify-center hover:bg-[#229ED9] hover:text-white hover:border-transparent transition-all"
+                className="w-9 h-9 rounded-full border border-[var(--neo-border)] bg-[var(--neo-bg)] flex items-center justify-center text-slate-700 hover:bg-[#229ED9] hover:text-white hover:border-transparent transition-all shadow-2xs"
               >
-                <MessageCircle className="w-4 h-4" />
+                <TelegramIcon className="w-4 h-4" />
               </a>
               <a
                 href={whatsappUrl}
                 target="_blank"
                 rel="noopener noreferrer"
                 title="واتس‌اپ 09372731037"
-                className="w-9 h-9 rounded-full border border-[var(--neo-border)] bg-[var(--neo-bg)] flex items-center justify-center hover:bg-emerald-600 hover:text-white hover:border-transparent transition-all"
+                className="w-9 h-9 rounded-full border border-[var(--neo-border)] bg-[var(--neo-bg)] flex items-center justify-center text-slate-700 hover:bg-[#25D366] hover:text-white hover:border-transparent transition-all shadow-2xs"
               >
-                <Phone className="w-4 h-4" />
+                <WhatsAppIcon className="w-4 h-4" />
               </a>
               <a
                 href={publicSettings?.linkedinUrl || "#"}
                 target={publicSettings?.linkedinUrl ? "_blank" : undefined}
-                rel="noreferrer"
-                title="لینکدین"
-                className="w-9 h-9 rounded-full border border-[var(--neo-border)] bg-[var(--neo-bg)] flex items-center justify-center hover:bg-[var(--neo-primary)] hover:text-white hover:border-[var(--neo-primary)] transition-colors"
+                rel="noopener noreferrer"
+                title="لینکدین تک‌یاد"
+                className="w-9 h-9 rounded-full border border-[var(--neo-border)] bg-[var(--neo-bg)] flex items-center justify-center text-slate-700 hover:bg-[#0A66C2] hover:text-white hover:border-transparent transition-colors shadow-2xs"
               >
-                <Briefcase className="w-4 h-4" />
+                <LinkedInIcon className="w-4 h-4" />
               </a>
             </div>
           </div>
@@ -224,13 +222,23 @@ export function Footer() {
             <ul className="space-y-3 font-medium text-xs">
               <li className="flex items-center gap-2 text-gray-700">
                 <Phone className="w-4 h-4 text-[var(--neo-secondary)] shrink-0" />
-                <a href={`tel:${supportPhone}`} className="font-mono dir-ltr hover:text-[var(--neo-primary)] transition-colors">
+                <a 
+                  href={`tel:${supportPhone}`} 
+                  dir="ltr"
+                  style={{ direction: 'ltr', unicodeBidi: 'bidi-override' }}
+                  className="font-mono hover:text-[var(--neo-primary)] transition-colors tracking-wider"
+                >
                   {supportPhone}
                 </a>
               </li>
               <li className="flex items-center gap-2 text-gray-700">
                 <Mail className="w-4 h-4 text-[var(--neo-accent)] shrink-0" />
-                <a href={`mailto:${supportEmail}`} className="font-mono dir-ltr hover:text-[var(--neo-primary)] transition-colors">
+                <a 
+                  href={`mailto:${supportEmail}`} 
+                  dir="ltr"
+                  style={{ direction: 'ltr' }}
+                  className="font-mono hover:text-[var(--neo-primary)] transition-colors"
+                >
                   {supportEmail}
                 </a>
               </li>
