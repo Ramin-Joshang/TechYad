@@ -12,6 +12,7 @@ import {
   Award,
 } from "lucide-react";
 import { TelegramIcon, InstagramIcon, WhatsAppIcon, LinkedInIcon } from "@/components/common/BrandSocialIcons";
+import { EnamadLogo } from "@/components/common/EnamadLogo";
 
 export function Footer() {
   const pathname = usePathname();
@@ -247,20 +248,18 @@ export function Footer() {
             {/* Electronic Trust & Security Symbols */}
             <div className="pt-2 flex flex-wrap items-center gap-3">
               {/* Enamad Container */}
-              {publicSettings?.enamadActive !== false &&
-                (publicSettings?.enamadCode ? (
+              {publicSettings?.enamadActive !== false && (
+                publicSettings?.enamadCode ? (
                   <div
-                    className="p-2 bg-gray-50 border border-gray-200 rounded-xl max-w-[90px] overflow-hidden"
+                    className="p-2 bg-white border border-[var(--neo-border)] rounded-2xl max-w-[100px] overflow-hidden shadow-xs hover:shadow-md transition-shadow"
                     dangerouslySetInnerHTML={{
                       __html: publicSettings.enamadCode,
                     }}
                   />
                 ) : (
-                  <div className="w-16 h-16 bg-blue-50/70 border border-blue-200 rounded-2xl flex flex-col items-center justify-center p-2 text-center text-blue-700">
-                    <ShieldCheck className="w-6 h-6 text-blue-600 mb-1" />
-                    <span className="text-[9px] font-bold">اینماد</span>
-                  </div>
-                ))}
+                  <EnamadLogo />
+                )
+              )}
 
               {/* Samandehi Container */}
               {publicSettings?.samandehiActive !== false &&
