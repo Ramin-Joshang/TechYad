@@ -15,7 +15,7 @@ export function saveBase64ToDisk(base64Str: string, folder: UploadFolder, idPref
   }
 
   try {
-    const matches = base64Str.match(/^data:([A-Za-z-+\/]+);base64,(.+)$/);
+    const matches = base64Str.match(/^data:([A-Za-z-+\/]+);base64,(.+)$/s);
     if (!matches || matches.length !== 3) {
       return null;
     }
@@ -53,76 +53,71 @@ export async function cleanupAllBase64FromDatabase() {
         { avatar: { $regex: '^data:' } },
         { personnelPhoto: { $regex: '^data:' } }
       ]
-    });
+    }).lean();
 
     for (const u of users) {
-      let changed = false;
-      if (u.avatar && u.avatar.startsWith('data:')) {
+      const updateDoc: Record<string, string> = {};
+      if (u.avatar && typeof u.avatar === 'string' && u.avatar.startsWith('data:')) {
         const fileUrl = saveBase64ToDisk(u.avatar, 'avatars', u._id.toString());
-        u.avatar = fileUrl || '';
-        changed = true;
+        updateDoc.avatar = fileUrl || '';
         migratedCount++;
       }
-      if (u.personnelPhoto && u.personnelPhoto.startsWith('data:')) {
+      if (u.personnelPhoto && typeof u.personnelPhoto === 'string' && u.personnelPhoto.startsWith('data:')) {
         const fileUrl = saveBase64ToDisk(u.personnelPhoto, 'personnel', u._id.toString());
-        u.personnelPhoto = fileUrl || '';
-        changed = true;
+        updateDoc.personnelPhoto = fileUrl || '';
         migratedCount++;
       }
-      if (changed) await u.save();
+      if (Object.keys(updateDoc).length > 0) {
+        await User.updateOne({ _id: u._id }, { $set: updateDoc });
+      }
     }
 
     // 2. Clean Classes
-    const classes = await Class.find({ thumbnail: { $regex: '^data:' } });
+    const classes = await Class.find({ thumbnail: { $regex: '^data:' } }).lean();
     for (const c of classes) {
-      if (c.thumbnail && c.thumbnail.startsWith('data:')) {
+      if (c.thumbnail && typeof c.thumbnail === 'string' && c.thumbnail.startsWith('data:')) {
         const fileUrl = saveBase64ToDisk(c.thumbnail, 'classes', c._id.toString());
-        c.thumbnail = fileUrl || '';
-        await c.save();
+        await Class.updateOne({ _id: c._id }, { $set: { thumbnail: fileUrl || '' } });
         migratedCount++;
       }
     }
 
     // 3. Clean Courses
-    const courses = await Course.find({ thumbnail: { $regex: '^data:' } });
+    const courses = await Course.find({ thumbnail: { $regex: '^data:' } }).lean();
     for (const crs of courses) {
-      if (crs.thumbnail && crs.thumbnail.startsWith('data:')) {
+      if (crs.thumbnail && typeof crs.thumbnail === 'string' && crs.thumbnail.startsWith('data:')) {
         const fileUrl = saveBase64ToDisk(crs.thumbnail, 'courses', crs._id.toString());
-        crs.thumbnail = fileUrl || '';
-        await crs.save();
+        await Course.updateOne({ _id: crs._id }, { $set: { thumbnail: fileUrl || '' } });
         migratedCount++;
       }
     }
 
     // 4. Clean Articles
-    const articles = await Article.find({ thumbnail: { $regex: '^data:' } });
+    const articles = await Article.find({ thumbnail: { $regex: '^data:' } }).lean();
     for (const art of articles) {
-      if (art.thumbnail && art.thumbnail.startsWith('data:')) {
+      if (art.thumbnail && typeof art.thumbnail === 'string' && art.thumbnail.startsWith('data:')) {
         const fileUrl = saveBase64ToDisk(art.thumbnail, 'blog', art._id.toString());
-        art.thumbnail = fileUrl || '';
-        await art.save();
+        await Article.updateOne({ _id: art._id }, { $set: { thumbnail: fileUrl || '' } });
         migratedCount++;
       }
     }
 
     // 5. Clean Instructor Profiles
-    const instructors = await InstructorProfile.find({ avatar: { $regex: '^data:' } });
+    const instructors = await InstructorProfile.find({ avatar: { $regex: '^data:' } }).lean();
     for (const inst of instructors) {
-      if (inst.avatar && inst.avatar.startsWith('data:')) {
+      if (inst.avatar && typeof inst.avatar === 'string' && inst.avatar.startsWith('data:')) {
         const fileUrl = saveBase64ToDisk(inst.avatar, 'avatars', inst._id.toString());
-        inst.avatar = fileUrl || '';
-        await inst.save();
+        await InstructorProfile.updateOne({ _id: inst._id }, { $set: { avatar: fileUrl || '' } });
         migratedCount++;
       }
     }
 
     // 6. Clean File Collection
-    const files = await File.find({ url: { $regex: '^data:' } });
+    const files = await File.find({ url: { $regex: '^data:' } }).lean();
     for (const f of files) {
-      if (f.url && f.url.startsWith('data:')) {
+      if (f.url && typeof f.url === 'string' && f.url.startsWith('data:')) {
         const fileUrl = saveBase64ToDisk(f.url, 'general', f._id.toString());
-        f.url = fileUrl || `/uploads/general/file-${f._id}`;
-        await f.save();
+        await File.updateOne({ _id: f._id }, { $set: { url: fileUrl || `/uploads/general/file-${f._id}` } });
         migratedCount++;
       }
     }
