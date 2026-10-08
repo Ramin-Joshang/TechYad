@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import { useQuery } from "@tanstack/react-query";
 import { commerceApi } from "@/features/commerce/api/commerce.api";
@@ -92,6 +92,33 @@ export function Navbar() {
   const [isCategoryMenuOpen, setIsCategoryMenuOpen] = useState(false);
   const [hoveredCategory, setHoveredCategory] = useState<any>(null);
   const [mobileCategoriesOpen, setMobileCategoriesOpen] = useState(false);
+  const categoryMenuTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  const openCategoryMenu = () => {
+    if (categoryMenuTimeoutRef.current) {
+      clearTimeout(categoryMenuTimeoutRef.current);
+      categoryMenuTimeoutRef.current = null;
+    }
+    setIsCategoryMenuOpen(true);
+  };
+
+  const closeCategoryMenu = () => {
+    if (categoryMenuTimeoutRef.current) {
+      clearTimeout(categoryMenuTimeoutRef.current);
+    }
+    categoryMenuTimeoutRef.current = setTimeout(() => {
+      setIsCategoryMenuOpen(false);
+      setHoveredCategory(null);
+    }, 250);
+  };
+
+  useEffect(() => {
+    return () => {
+      if (categoryMenuTimeoutRef.current) {
+        clearTimeout(categoryMenuTimeoutRef.current);
+      }
+    };
+  }, []);
 
   const cartItems = cartData?.items || localCartItems || [];
   const cartItemCount = cartItems.length;
@@ -187,16 +214,14 @@ export function Navbar() {
               {/* دسته‌بندی‌ها (Mega Menu Dropdown) */}
               <div 
                 className="relative shrink-0"
-                onMouseEnter={() => setIsCategoryMenuOpen(true)}
-                onMouseLeave={() => {
-                  setIsCategoryMenuOpen(false);
-                  setHoveredCategory(null);
-                }}
+                onMouseEnter={openCategoryMenu}
+                onMouseLeave={closeCategoryMenu}
               >
                 <button
                   type="button"
                   onClick={() => setIsCategoryMenuOpen(!isCategoryMenuOpen)}
-                  className={`inline-flex items-center gap-1 xl:gap-1.5 px-1.5 xl:px-2 py-1 rounded-xl transition-colors ${
+                  onFocus={openCategoryMenu}
+                  className={`inline-flex items-center gap-1 xl:gap-1.5 px-1.5 xl:px-2 py-1 rounded-xl transition-colors cursor-pointer ${
                     pathname?.startsWith("/categories") || isCategoryMenuOpen
                       ? "text-[var(--neo-primary)] font-bold bg-[var(--neo-primary)]/5"
                       : "hover:text-[var(--neo-primary)] hover:bg-slate-50"
@@ -209,96 +234,105 @@ export function Navbar() {
 
                 {/* Dropdown Card */}
                 {isCategoryMenuOpen && categoryTreeData && categoryTreeData.length > 0 && (
-                  <div className="absolute top-full right-0 mt-2 w-[620px] bg-white rounded-2xl shadow-2xl border border-[var(--neo-border)] p-4 z-50 animate-in fade-in slide-in-from-top-2 duration-150">
-                    <div className="grid grid-cols-12 gap-3 min-h-[260px]">
-                      {/* Main Root Categories */}
-                      <div className="col-span-5 border-l border-[var(--neo-border)] pl-3 space-y-1">
-                        <div className="text-[11px] font-bold text-[var(--neo-text-muted)] px-2.5 py-1 uppercase tracking-wider">
-                          شاخه‌های آموزشی
-                        </div>
-                        {categoryTreeData.map((cat: any) => {
-                          const isCurrentActive = (hoveredCategory?._id || categoryTreeData[0]._id) === cat._id;
-                          return (
-                            <Link
-                              key={cat._id}
-                              href={`/categories/${cat.slug}`}
-                              onMouseEnter={() => setHoveredCategory(cat)}
-                              onClick={() => setIsCategoryMenuOpen(false)}
-                              className={`flex items-center justify-between px-3 py-2 rounded-xl text-xs font-bold transition ${
-                                isCurrentActive
-                                  ? "bg-[var(--neo-primary)]/10 text-[var(--neo-primary)]"
-                                  : "text-[var(--neo-text-main)] hover:bg-[var(--neo-surface-2)]"
-                              }`}
-                            >
-                              <span className="truncate">{cat.name}</span>
-                              <ChevronLeft className="w-3.5 h-3.5 shrink-0 opacity-60" />
-                            </Link>
-                          );
-                        })}
-                      </div>
+                  <div 
+                    className="absolute top-full right-0 pt-2 z-50 animate-in fade-in slide-in-from-top-1 duration-150"
+                    onMouseEnter={openCategoryMenu}
+                    onMouseLeave={closeCategoryMenu}
+                  >
+                    {/* Hover Bridge: covers gap between button and dropdown card */}
+                    <div className="absolute -top-3 right-0 left-0 h-4 bg-transparent pointer-events-auto" />
 
-                      {/* Subcategories View */}
-                      <div className="col-span-7 pr-1 flex flex-col justify-between">
-                        <div>
-                          {(() => {
-                            const activeCat = hoveredCategory || categoryTreeData[0];
-                            if (!activeCat) return null;
-                            const children = activeCat.children || [];
+                    <div className="w-[620px] bg-white rounded-2xl shadow-2xl border border-[var(--neo-border)] p-4 relative pointer-events-auto">
+                      <div className="grid grid-cols-12 gap-3 min-h-[260px]">
+                        {/* Main Root Categories */}
+                        <div className="col-span-5 border-l border-[var(--neo-border)] pl-3 space-y-1">
+                          <div className="text-[11px] font-bold text-[var(--neo-text-muted)] px-2.5 py-1 uppercase tracking-wider">
+                            شاخه‌های آموزشی
+                          </div>
+                          {categoryTreeData.map((cat: any) => {
+                            const isCurrentActive = (hoveredCategory?._id || categoryTreeData[0]._id) === cat._id;
                             return (
-                              <div className="space-y-2.5">
-                                <div className="flex items-center justify-between pb-2 border-b border-[var(--neo-border)]">
-                                  <span className="font-bold text-xs text-[var(--neo-text-main)]">
-                                    زیردسته‌های {activeCat.name}
-                                  </span>
-                                  <Link
-                                    href={`/categories/${activeCat.slug}`}
-                                    onClick={() => setIsCategoryMenuOpen(false)}
-                                    className="font-bold text-xs text-[var(--neo-primary)] hover:underline flex items-center gap-1"
-                                  >
-                                    <span>مشاهده کامل</span>
-                                    <span>←</span>
-                                  </Link>
-                                </div>
-                                {children.length > 0 ? (
-                                  <div className="grid grid-cols-2 gap-2 pt-1 max-h-[220px] overflow-y-auto pr-1">
-                                    {children.map((sub: any) => (
-                                      <Link
-                                        key={sub._id}
-                                        href={`/categories/${sub.slug}`}
-                                        onClick={() => setIsCategoryMenuOpen(false)}
-                                        className="group p-2 rounded-xl hover:bg-[var(--neo-surface-2)] border border-transparent hover:border-[var(--neo-border)] transition"
-                                      >
-                                        <div className="text-xs font-bold text-[var(--neo-text-main)] group-hover:text-[var(--neo-primary)] truncate">
-                                          {sub.name}
-                                        </div>
-                                        <div className="text-[10px] text-[var(--neo-text-muted)] mt-0.5">
-                                          {(sub.courseCount || 0) + (sub.classCount || 0) > 0
-                                            ? `${(sub.courseCount || 0) + (sub.classCount || 0)} دوره و کلاس`
-                                            : "مشاهده دوره‌ها"}
-                                        </div>
-                                      </Link>
-                                    ))}
-                                  </div>
-                                ) : (
-                                  <div className="py-10 text-center text-xs text-[var(--neo-text-muted)]">
-                                    دوره‌ها و کلاس‌های تخصصی این دسته‌بندی
-                                  </div>
-                                )}
-                              </div>
+                              <Link
+                                key={cat._id}
+                                href={`/categories/${cat.slug}`}
+                                onMouseEnter={() => setHoveredCategory(cat)}
+                                onClick={() => setIsCategoryMenuOpen(false)}
+                                className={`flex items-center justify-between px-3 py-2 rounded-xl text-xs font-bold transition ${
+                                  isCurrentActive
+                                    ? "bg-[var(--neo-primary)]/10 text-[var(--neo-primary)]"
+                                    : "text-[var(--neo-text-main)] hover:bg-[var(--neo-surface-2)]"
+                                }`}
+                              >
+                                <span className="truncate">{cat.name}</span>
+                                <ChevronLeft className="w-3.5 h-3.5 shrink-0 opacity-60" />
+                              </Link>
                             );
-                          })()}
+                          })}
                         </div>
 
-                        {/* All Categories Link */}
-                        <div className="pt-2.5 mt-2 border-t border-[var(--neo-border)] flex items-center justify-between text-xs">
-                          <Link
-                            href="/categories"
-                            onClick={() => setIsCategoryMenuOpen(false)}
-                            className="text-[var(--neo-text-secondary)] hover:text-[var(--neo-primary)] font-bold flex items-center gap-1"
-                          >
-                            <span>مشاهده همه دسته‌بندی‌ها</span>
-                            <span>←</span>
-                          </Link>
+                        {/* Subcategories View */}
+                        <div className="col-span-7 pr-1 flex flex-col justify-between">
+                          <div>
+                            {(() => {
+                              const activeCat = hoveredCategory || categoryTreeData[0];
+                              if (!activeCat) return null;
+                              const children = activeCat.children || [];
+                              return (
+                                <div className="space-y-2.5">
+                                  <div className="flex items-center justify-between pb-2 border-b border-[var(--neo-border)]">
+                                    <span className="font-bold text-xs text-[var(--neo-text-main)]">
+                                      زیردسته‌های {activeCat.name}
+                                    </span>
+                                    <Link
+                                      href={`/categories/${activeCat.slug}`}
+                                      onClick={() => setIsCategoryMenuOpen(false)}
+                                      className="font-bold text-xs text-[var(--neo-primary)] hover:underline flex items-center gap-1"
+                                    >
+                                      <span>مشاهده کامل</span>
+                                      <span>←</span>
+                                    </Link>
+                                  </div>
+                                  {children.length > 0 ? (
+                                    <div className="grid grid-cols-2 gap-2 pt-1 max-h-[220px] overflow-y-auto pr-1">
+                                      {children.map((sub: any) => (
+                                        <Link
+                                          key={sub._id}
+                                          href={`/categories/${sub.slug}`}
+                                          onClick={() => setIsCategoryMenuOpen(false)}
+                                          className="group p-2 rounded-xl hover:bg-[var(--neo-surface-2)] border border-transparent hover:border-[var(--neo-border)] transition"
+                                        >
+                                          <div className="text-xs font-bold text-[var(--neo-text-main)] group-hover:text-[var(--neo-primary)] truncate">
+                                            {sub.name}
+                                          </div>
+                                          <div className="text-[10px] text-[var(--neo-text-muted)] mt-0.5">
+                                            {(sub.courseCount || 0) + (sub.classCount || 0) > 0
+                                              ? `${(sub.courseCount || 0) + (sub.classCount || 0)} دوره و کلاس`
+                                              : "مشاهده دوره‌ها"}
+                                          </div>
+                                        </Link>
+                                      ))}
+                                    </div>
+                                  ) : (
+                                    <div className="py-10 text-center text-xs text-[var(--neo-text-muted)]">
+                                      دوره‌ها و کلاس‌های تخصصی این دسته‌بندی
+                                    </div>
+                                  )}
+                                </div>
+                              );
+                            })()}
+                          </div>
+
+                          {/* All Categories Link */}
+                          <div className="pt-2.5 mt-2 border-t border-[var(--neo-border)] flex items-center justify-between text-xs">
+                            <Link
+                              href="/categories"
+                              onClick={() => setIsCategoryMenuOpen(false)}
+                              className="text-[var(--neo-text-secondary)] hover:text-[var(--neo-primary)] font-bold flex items-center gap-1"
+                            >
+                              <span>مشاهده همه دسته‌بندی‌ها</span>
+                              <span>←</span>
+                            </Link>
+                          </div>
                         </div>
                       </div>
                     </div>
