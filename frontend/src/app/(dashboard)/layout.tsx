@@ -52,6 +52,8 @@ import {
   Mail,
   HelpCircle,
   Quote,
+  Home,
+  ArrowRight,
 } from "lucide-react";
 
 export default function DashboardLayout({
@@ -468,13 +470,23 @@ export default function DashboardLayout({
             })}
           </nav>
 
-          <div className="p-4 border-t border-[var(--neo-border)] bg-[var(--neo-bg)]">
+          <div className="p-3 border-t border-[var(--neo-border)] bg-[var(--neo-bg)] space-y-1.5">
+            <Link
+              href="/"
+              onClick={closeMenu}
+              className={`flex items-center ${isSidebarCollapsed ? "justify-center px-0" : "gap-3 px-3.5"} py-2.5 w-full rounded-xl font-bold text-xs text-slate-700 hover:bg-white hover:text-blue-600 border border-transparent hover:border-slate-200 transition-all`}
+              title="مشاهده صفحه اصلی وب‌سایت تک‌یاد"
+            >
+              <Home className="w-4 h-4 text-blue-600 shrink-0" />
+              {!isSidebarCollapsed && <span>مشاهده وب‌سایت</span>}
+            </Link>
+
             <button
               onClick={handleLogout}
               title={isSidebarCollapsed ? "خروج" : undefined}
-              className={`flex items-center ${isSidebarCollapsed ? "justify-center px-0" : "gap-3 px-4"} py-3 w-full rounded-xl font-bold text-red-600 hover:bg-red-500/10 hover:text-red-700 transition-colors`}
+              className={`flex items-center ${isSidebarCollapsed ? "justify-center px-0" : "gap-3 px-3.5"} py-2.5 w-full rounded-xl font-bold text-xs text-red-600 hover:bg-red-50 hover:text-red-700 transition-colors`}
             >
-              <LogOut className="w-5 h-5" />
+              <LogOut className="w-4 h-4 shrink-0" />
               {!isSidebarCollapsed && "خروج از حساب"}
             </button>
           </div>
@@ -483,40 +495,50 @@ export default function DashboardLayout({
         {/* Main Content */}
         <main className="flex-1 flex flex-col h-full overflow-hidden w-full relative">
           {/* Header with Complete User Information & Controls */}
-          <header className="bg-[var(--neo-surface)] border-b border-[var(--neo-border)] min-h-16 py-2.5 px-4 sm:px-6 flex items-center justify-between sticky top-0 z-30 shadow-xs backdrop-blur-md bg-white/95">
-            <div className="flex items-center gap-3">
+          <header className="bg-[var(--neo-surface)] border-b border-[var(--neo-border)] min-h-16 py-2.5 px-3 sm:px-6 flex items-center justify-between sticky top-0 z-30 shadow-xs backdrop-blur-md bg-white/95">
+            <div className="flex items-center gap-2 sm:gap-3">
               <button
                 onClick={() => setMobileMenuOpen(true)}
                 className="p-2 text-[var(--neo-text-muted)] hover:bg-[var(--neo-surface-2)] rounded-xl lg:hidden transition"
                 title="منوی ناوبری"
               >
-                <Menu className="w-6 h-6" />
+                <Menu className="w-5 h-5 sm:w-6 sm:h-6" />
               </button>
 
-              <div className="flex items-center gap-3">
-                <Link
-                  href="/"
-                  target="_blank"
-                  className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-200 hover:border-slate-300 hover:bg-slate-50 text-xs font-bold text-slate-700 transition"
-                  title="مشاهده صفحه اصلی وب‌سایت در برگه جدید"
-                >
-                  <BookOpen className="w-3.5 h-3.5 text-blue-600" />
-                  <span>صفحه اصلی سایت</span>
-                </Link>
+              {/* Back to Previous Page Button */}
+              <button
+                type="button"
+                onClick={() => router.back()}
+                className="inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 hover:text-slate-900 text-xs font-bold transition-all shadow-2xs hover:border-slate-300 active:scale-95 cursor-pointer"
+                title="بازگشت به صفحه قبلی"
+              >
+                <ArrowRight className="w-3.5 h-3.5 text-slate-500 shrink-0" />
+                <span>بازگشت</span>
+              </button>
 
-                <div className="h-4 w-px bg-slate-200 hidden sm:block"></div>
+              {/* Go to Website Home Button */}
+              <Link
+                href="/"
+                className="inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-xl bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200/80 text-xs font-bold transition shadow-2xs hover:border-blue-300 shrink-0"
+                title="بازگشت به صفحه اصلی وب‌سایت تک‌یاد"
+              >
+                <Home className="w-3.5 h-3.5 text-blue-600 shrink-0" />
+                <span className="hidden xs:inline">صفحه اصلی سایت</span>
+                <span className="xs:hidden">خانه</span>
+              </Link>
 
-                <div className="hidden md:flex items-center gap-2">
-                  <span className="text-xs font-black text-slate-900">
-                    {user?.role === "super-admin"
-                      ? "پنل مدیریت کلان"
-                      : user?.role === "admin"
-                        ? "پنل مدیریت آموزشی"
-                        : user?.role === "instructor"
-                          ? "پنل اساتید و مدرسین"
-                          : "پنل یادگیری دانشجو"}
-                  </span>
-                </div>
+              <div className="h-4 w-px bg-slate-200 hidden md:block"></div>
+
+              <div className="hidden md:flex items-center gap-2">
+                <span className="text-xs font-black text-slate-800 bg-slate-100 px-2.5 py-1 rounded-lg border border-slate-200/60">
+                  {user?.role === "super-admin"
+                    ? "پنل مدیریت کلان"
+                    : user?.role === "admin"
+                      ? "پنل مدیریت آموزشی"
+                      : user?.role === "instructor"
+                        ? "پنل اساتید و مدرسین"
+                        : "پنل یادگیری دانشجو"}
+                </span>
               </div>
             </div>
 

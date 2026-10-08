@@ -107,6 +107,8 @@ export function Navbar() {
   ];
 
   if (
+    pathname === "/dashboard" ||
+    pathname?.startsWith("/dashboard") ||
     pathname?.startsWith("/admin") ||
     pathname?.startsWith("/super-admin") ||
     pathname?.startsWith("/student") ||
@@ -117,6 +119,12 @@ export function Navbar() {
   ) {
     return null;
   }
+
+  // Clean English characters (e.g. Tecyad / TechYad) from site title in header
+  const rawSiteName = publicSettings?.siteName
+    ? publicSettings.siteName.split("|")[0].trim()
+    : "تک‌یاد";
+  const displaySiteName = rawSiteName.replace(/[a-zA-Z]/g, '').trim() || "تک‌یاد";
 
   const userDashboardHref =
     user?.role === "super-admin"
@@ -130,13 +138,13 @@ export function Navbar() {
   return (
     <>
       <header className="bg-white/80 backdrop-blur-md border-b border-[var(--neo-border)] sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             {/* Right side: Mobile Menu Button & Logo */}
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 sm:gap-3 shrink-0">
               <button
                 type="button"
-                className="md:hidden p-2 -mr-2 text-[var(--neo-text-muted)] hover:text-[var(--neo-primary)] transition"
+                className="lg:hidden p-2 -mr-1.5 text-[var(--neo-text-muted)] hover:text-[var(--neo-primary)] transition rounded-xl hover:bg-slate-100"
                 onClick={() => setIsMobileMenuOpen(true)}
                 aria-label="منوی دسترسی سریع"
               >
@@ -146,45 +154,39 @@ export function Navbar() {
               <Link href="/" className="flex items-center gap-2.5">
                 <img
                   src={publicSettings?.siteLogo || "/logo.png"}
-                  alt={publicSettings?.siteName || "لوگو تک‌یاد"}
-                  className="h-10 w-auto max-w-[140px] object-contain rounded-lg"
+                  alt={displaySiteName}
+                  className="h-10 w-auto max-w-[130px] object-contain rounded-lg"
                   onError={(e: any) => {
                     e.target.src = "/logo.png";
                   }}
                 />
-                <span className="font-bold text-xl text-[var(--neo-text-main)] hidden sm:inline-flex items-center gap-1.5 tracking-tight">
-                  <span>
-                    {publicSettings?.siteName
-                      ? publicSettings.siteName.split("|")[0].trim()
-                      : "تک‌یاد"}
-                  </span>
-                  <span className="text-[10px] tracking-wider font-semibold text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded uppercase">
-                    Tecyad
-                  </span>
+                <span className="font-bold text-xl text-[var(--neo-text-main)] hidden sm:inline-flex items-center tracking-tight">
+                  {displaySiteName}
                 </span>
               </Link>
             </div>
 
-            {/* Center: Desktop Navigation Links */}
-            <nav className="hidden md:flex items-center justify-center gap-6 lg:gap-7 text-sm font-medium text-[var(--neo-text-secondary)]">
+            {/* Center: Desktop Navigation Links (Responsive spacing with zero overflow) */}
+            <nav className="hidden lg:flex items-center justify-center gap-1 xl:gap-2.5 2xl:gap-3 text-xs xl:text-[13px] 2xl:text-sm font-medium text-[var(--neo-text-secondary)] whitespace-nowrap">
               {/* 1. خانه */}
               <Link
                 href="/"
-                className={`transition-colors py-1 relative ${
+                className={`inline-flex items-center gap-1 xl:gap-1.5 px-1.5 xl:px-2 py-1 rounded-xl transition-colors relative shrink-0 ${
                   pathname === "/"
-                    ? "text-[var(--neo-primary)] font-bold"
-                    : "hover:text-[var(--neo-primary)]"
+                    ? "text-[var(--neo-primary)] font-bold bg-[var(--neo-primary)]/5"
+                    : "hover:text-[var(--neo-primary)] hover:bg-slate-50"
                 }`}
               >
-                خانه
+                <Home className={`w-3.5 h-3.5 xl:w-4 xl:h-4 shrink-0 ${pathname === "/" ? "text-[var(--neo-primary)]" : "text-[var(--neo-text-muted)]"}`} />
+                <span>خانه</span>
                 {pathname === "/" && (
-                  <span className="absolute -bottom-1 right-0 left-0 h-0.5 bg-[var(--neo-primary)] rounded-full"></span>
+                  <span className="absolute -bottom-1 right-2 left-2 h-0.5 bg-[var(--neo-primary)] rounded-full"></span>
                 )}
               </Link>
 
               {/* دسته‌بندی‌ها (Mega Menu Dropdown) */}
               <div 
-                className="relative"
+                className="relative shrink-0"
                 onMouseEnter={() => setIsCategoryMenuOpen(true)}
                 onMouseLeave={() => {
                   setIsCategoryMenuOpen(false);
@@ -194,15 +196,15 @@ export function Navbar() {
                 <button
                   type="button"
                   onClick={() => setIsCategoryMenuOpen(!isCategoryMenuOpen)}
-                  className={`flex items-center gap-1.5 transition-colors py-1 ${
+                  className={`inline-flex items-center gap-1 xl:gap-1.5 px-1.5 xl:px-2 py-1 rounded-xl transition-colors ${
                     pathname?.startsWith("/categories") || isCategoryMenuOpen
-                      ? "text-[var(--neo-primary)] font-bold"
-                      : "hover:text-[var(--neo-primary)]"
+                      ? "text-[var(--neo-primary)] font-bold bg-[var(--neo-primary)]/5"
+                      : "hover:text-[var(--neo-primary)] hover:bg-slate-50"
                   }`}
                 >
-                  <LayoutGrid className="w-4 h-4 text-[var(--neo-primary)]" />
+                  <LayoutGrid className="w-3.5 h-3.5 xl:w-4 xl:h-4 text-[var(--neo-primary)] shrink-0" />
                   <span>دسته‌بندی‌ها</span>
-                  <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${isCategoryMenuOpen ? "rotate-180" : ""}`} />
+                  <ChevronDown className={`w-3 h-3 xl:w-3.5 xl:h-3.5 transition-transform duration-200 ${isCategoryMenuOpen ? "rotate-180" : ""}`} />
                 </button>
 
                 {/* Dropdown Card */}
@@ -307,96 +309,102 @@ export function Navbar() {
               {/* 2. کلاس‌ها */}
               <Link
                 href="/classes"
-                className={`transition-colors py-1 relative ${
+                className={`inline-flex items-center gap-1 xl:gap-1.5 px-1.5 xl:px-2 py-1 rounded-xl transition-colors relative shrink-0 ${
                   pathname === "/classes"
-                    ? "text-[var(--neo-primary)] font-bold"
-                    : "hover:text-[var(--neo-primary)]"
+                    ? "text-[var(--neo-primary)] font-bold bg-[var(--neo-primary)]/5"
+                    : "hover:text-[var(--neo-primary)] hover:bg-slate-50"
                 }`}
               >
-                کلاس‌ها
+                <GraduationCap className={`w-3.5 h-3.5 xl:w-4 xl:h-4 shrink-0 ${pathname === "/classes" ? "text-[var(--neo-primary)]" : "text-[var(--neo-text-muted)]"}`} />
+                <span>کلاس‌ها</span>
                 {pathname === "/classes" && (
-                  <span className="absolute -bottom-1 right-0 left-0 h-0.5 bg-[var(--neo-primary)] rounded-full"></span>
+                  <span className="absolute -bottom-1 right-2 left-2 h-0.5 bg-[var(--neo-primary)] rounded-full"></span>
                 )}
               </Link>
 
               {/* 3. دوره‌ها */}
               <Link
                 href="/courses"
-                className={`transition-colors py-1 relative ${
+                className={`inline-flex items-center gap-1 xl:gap-1.5 px-1.5 xl:px-2 py-1 rounded-xl transition-colors relative shrink-0 ${
                   pathname === "/courses"
-                    ? "text-[var(--neo-primary)] font-bold"
-                    : "hover:text-[var(--neo-primary)]"
+                    ? "text-[var(--neo-primary)] font-bold bg-[var(--neo-primary)]/5"
+                    : "hover:text-[var(--neo-primary)] hover:bg-slate-50"
                 }`}
               >
-                دوره‌ها
+                <BookOpen className={`w-3.5 h-3.5 xl:w-4 xl:h-4 shrink-0 ${pathname === "/courses" ? "text-[var(--neo-primary)]" : "text-[var(--neo-text-muted)]"}`} />
+                <span>دوره‌ها</span>
                 {pathname === "/courses" && (
-                  <span className="absolute -bottom-1 right-0 left-0 h-0.5 bg-[var(--neo-primary)] rounded-full"></span>
+                  <span className="absolute -bottom-1 right-2 left-2 h-0.5 bg-[var(--neo-primary)] rounded-full"></span>
                 )}
               </Link>
 
               {/* 4. اساتید */}
               <Link
                 href="/instructors"
-                className={`transition-colors py-1 relative ${
+                className={`inline-flex items-center gap-1 xl:gap-1.5 px-1.5 xl:px-2 py-1 rounded-xl transition-colors relative shrink-0 ${
                   pathname === "/instructors"
-                    ? "text-[var(--neo-primary)] font-bold"
-                    : "hover:text-[var(--neo-primary)]"
+                    ? "text-[var(--neo-primary)] font-bold bg-[var(--neo-primary)]/5"
+                    : "hover:text-[var(--neo-primary)] hover:bg-slate-50"
                 }`}
               >
-                اساتید
+                <Users className={`w-3.5 h-3.5 xl:w-4 xl:h-4 shrink-0 ${pathname === "/instructors" ? "text-[var(--neo-primary)]" : "text-[var(--neo-text-muted)]"}`} />
+                <span>اساتید</span>
                 {pathname === "/instructors" && (
-                  <span className="absolute -bottom-1 right-0 left-0 h-0.5 bg-[var(--neo-primary)] rounded-full"></span>
+                  <span className="absolute -bottom-1 right-2 left-2 h-0.5 bg-[var(--neo-primary)] rounded-full"></span>
                 )}
               </Link>
 
               {/* 5. وبلاگ */}
               <Link
                 href="/blog"
-                className={`transition-colors py-1 relative ${
+                className={`inline-flex items-center gap-1 xl:gap-1.5 px-1.5 xl:px-2 py-1 rounded-xl transition-colors relative shrink-0 ${
                   pathname === "/blog"
-                    ? "text-[var(--neo-primary)] font-bold"
-                    : "hover:text-[var(--neo-primary)]"
+                    ? "text-[var(--neo-primary)] font-bold bg-[var(--neo-primary)]/5"
+                    : "hover:text-[var(--neo-primary)] hover:bg-slate-50"
                 }`}
               >
-                وبلاگ
+                <FileText className={`w-3.5 h-3.5 xl:w-4 xl:h-4 shrink-0 ${pathname === "/blog" ? "text-[var(--neo-primary)]" : "text-[var(--neo-text-muted)]"}`} />
+                <span>وبلاگ</span>
                 {pathname === "/blog" && (
-                  <span className="absolute -bottom-1 right-0 left-0 h-0.5 bg-[var(--neo-primary)] rounded-full"></span>
+                  <span className="absolute -bottom-1 right-2 left-2 h-0.5 bg-[var(--neo-primary)] rounded-full"></span>
                 )}
               </Link>
 
               {/* 6. درباره ما */}
               <Link
                 href="/about"
-                className={`transition-colors py-1 relative ${
+                className={`inline-flex items-center gap-1 xl:gap-1.5 px-1.5 xl:px-2 py-1 rounded-xl transition-colors relative shrink-0 ${
                   pathname === "/about"
-                    ? "text-[var(--neo-primary)] font-bold"
-                    : "hover:text-[var(--neo-primary)]"
+                    ? "text-[var(--neo-primary)] font-bold bg-[var(--neo-primary)]/5"
+                    : "hover:text-[var(--neo-primary)] hover:bg-slate-50"
                 }`}
               >
-                درباره ما
+                <Info className={`w-3.5 h-3.5 xl:w-4 xl:h-4 shrink-0 ${pathname === "/about" ? "text-[var(--neo-primary)]" : "text-[var(--neo-text-muted)]"}`} />
+                <span>درباره ما</span>
                 {pathname === "/about" && (
-                  <span className="absolute -bottom-1 right-0 left-0 h-0.5 bg-[var(--neo-primary)] rounded-full"></span>
+                  <span className="absolute -bottom-1 right-2 left-2 h-0.5 bg-[var(--neo-primary)] rounded-full"></span>
                 )}
               </Link>
 
               {/* 7. تماس با ما */}
               <Link
                 href="/contact"
-                className={`transition-colors py-1 relative ${
+                className={`inline-flex items-center gap-1 xl:gap-1.5 px-1.5 xl:px-2 py-1 rounded-xl transition-colors relative shrink-0 ${
                   pathname === "/contact"
-                    ? "text-[var(--neo-primary)] font-bold"
-                    : "hover:text-[var(--neo-primary)]"
+                    ? "text-[var(--neo-primary)] font-bold bg-[var(--neo-primary)]/5"
+                    : "hover:text-[var(--neo-primary)] hover:bg-slate-50"
                 }`}
               >
-                تماس با ما
+                <Phone className={`w-3.5 h-3.5 xl:w-4 xl:h-4 shrink-0 ${pathname === "/contact" ? "text-[var(--neo-primary)]" : "text-[var(--neo-text-muted)]"}`} />
+                <span>تماس با ما</span>
                 {pathname === "/contact" && (
-                  <span className="absolute -bottom-1 right-0 left-0 h-0.5 bg-[var(--neo-primary)] rounded-full"></span>
+                  <span className="absolute -bottom-1 right-2 left-2 h-0.5 bg-[var(--neo-primary)] rounded-full"></span>
                 )}
               </Link>
             </nav>
 
             {/* Left side: Search, Cart, User Profile / Login */}
-            <div className="flex items-center gap-3 sm:gap-4">
+            <div className="flex items-center gap-2 sm:gap-3 shrink-0">
               <Link
                 href="/search"
                 className="text-[var(--neo-text-muted)] hover:text-[var(--neo-primary)] transition ml-1 sm:ml-2"

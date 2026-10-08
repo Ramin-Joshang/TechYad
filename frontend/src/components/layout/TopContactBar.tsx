@@ -1,9 +1,26 @@
 'use client';
 
+import { usePathname } from 'next/navigation';
 import { Phone, Mail } from 'lucide-react';
 import { TelegramIcon, InstagramIcon, WhatsAppIcon } from '@/components/common/BrandSocialIcons';
 
 export function TopContactBar() {
+  const pathname = usePathname();
+
+  // Hide on all dashboard panels and learning player
+  if (
+    pathname === '/dashboard' ||
+    pathname?.startsWith('/dashboard') ||
+    pathname?.startsWith('/admin') ||
+    pathname?.startsWith('/super-admin') ||
+    pathname?.startsWith('/student') ||
+    (pathname?.startsWith('/instructor') && !pathname?.startsWith('/instructors')) ||
+    pathname?.startsWith('/profile') ||
+    pathname?.startsWith('/learn')
+  ) {
+    return null;
+  }
+
   return (
     <div className="bg-white/95 backdrop-blur-md text-[var(--neo-text-secondary)] text-xs border-b border-[var(--neo-border)]/80 py-1.5 px-4 sm:px-6 lg:px-8 print:hidden select-none transition-colors">
       <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2.5">
@@ -26,7 +43,7 @@ export function TopContactBar() {
               style={{ direction: 'ltr', unicodeBidi: 'plaintext' }} 
               className="text-xs font-bold text-[var(--neo-text-main)] group-hover:text-[var(--neo-primary)] transition-colors tracking-wide"
             >
-              +98 937 273 1037
+              ۰۹۳۷ ۲۷۳ ۱۰۳۷
             </span>
           </a>
 
@@ -38,7 +55,7 @@ export function TopContactBar() {
             title="ایمیل واحد پشتیبانی تک‌یاد"
           >
             <Mail className="w-3.5 h-3.5 text-[var(--neo-secondary)]" />
-            <span dir="ltr" style={{ direction: 'ltr', unicodeBidi: 'plaintext' }}>support@tecyad.ir</span>
+            <span>ایمیل پشتیبانی</span>
           </a>
         </div>
 
@@ -52,10 +69,10 @@ export function TopContactBar() {
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#229ED9]/8 hover:bg-[#229ED9]/15 text-[#229ED9] border border-[#229ED9]/20 hover:border-[#229ED9]/40 transition-all text-[11px] font-medium"
-            title="کانال و پشتیبانی تلگرام"
+            title="کانال و پشتیبانی تلگرام تک‌یاد"
           >
             <TelegramIcon className="w-3.5 h-3.5" />
-            <span dir="ltr" style={{ direction: 'ltr', unicodeBidi: 'plaintext' }} className="font-semibold text-[11px]">@tecyad_ir</span>
+            <span className="font-semibold text-[11px]">کانال تلگرام</span>
           </a>
 
           {/* Instagram */}
@@ -67,7 +84,7 @@ export function TopContactBar() {
             title="پیج رسمی اینستاگرام تک‌یاد"
           >
             <InstagramIcon className="w-3.5 h-3.5" />
-            <span dir="ltr" style={{ direction: 'ltr', unicodeBidi: 'plaintext' }} className="font-semibold text-[11px]">@tecyad.ir</span>
+            <span className="font-semibold text-[11px]">اینستاگرام</span>
           </a>
 
           {/* WhatsApp */}
