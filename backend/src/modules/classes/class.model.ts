@@ -20,6 +20,7 @@ export interface IClass extends Document {
   type: "public" | "private";
   mode: "online" | "in_person";
   instructors: Types.ObjectId[];
+  categoryId?: Types.ObjectId;
   subject?: Types.ObjectId;
   price: number;
   discountPrice?: number;
@@ -115,6 +116,7 @@ const classSchema = new Schema<IClass>(
     type: { type: String, enum: ["public", "private"], default: "public" },
     mode: { type: String, enum: ["online", "in_person"], required: true },
     instructors: [{ type: Schema.Types.ObjectId, ref: "User" }],
+    categoryId: { type: Schema.Types.ObjectId, ref: "Category", index: true },
     subject: { type: Schema.Types.ObjectId, ref: "Subject" },
     price: { type: Number, required: true },
     discountPrice: Number,

@@ -13,6 +13,7 @@ import Link from 'next/link';
 import toast from 'react-hot-toast';
 import { MediaUploader } from '@/components/common/MediaUploader';
 import { toEnDigits } from '@/lib/utils';
+import { CategoryCascadeSelect } from '@/components/categories/CategoryCascadeSelect';
 
 export default function AdminCoursesPage() {
   const queryClient = useQueryClient();
@@ -582,6 +583,14 @@ export default function AdminCoursesPage() {
                 />
               </div>
 
+              <div className="p-3.5 rounded-2xl bg-[var(--neo-surface-2)]/60 border border-[var(--neo-border)]">
+                <CategoryCascadeSelect
+                  value={editingCourse.categoryId?._id || (typeof editingCourse.categoryId === 'string' ? editingCourse.categoryId : '')}
+                  onChange={(catId) => setEditingCourse({ ...editingCourse, categoryId: catId })}
+                  label="دسته‌بندی تخصصی دوره"
+                />
+              </div>
+
               <div>
                 <MediaUploader
                   label="تصویر پوستر دوره (آپلود یا لینک)"
@@ -666,19 +675,13 @@ export default function AdminCoursesPage() {
                     className="w-full px-3.5 py-2 bg-[var(--neo-surface-2)] border border-[var(--neo-border)] rounded-xl text-xs outline-none focus:ring-2 focus:ring-[var(--neo-primary)] dir-ltr text-left"
                   />
                 </div>
-                <div>
-                  <label className="block text-xs font-bold text-[var(--neo-text-main)] mb-1">دسته‌بندی *</label>
-                  <select
-                    required
+                <div className="sm:col-span-2 p-3.5 rounded-2xl bg-[var(--neo-surface-2)]/60 border border-[var(--neo-border)]">
+                  <CategoryCascadeSelect
                     value={newCourseData.categoryId}
-                    onChange={(e) => setNewCourseData({ ...newCourseData, categoryId: e.target.value })}
-                    className="w-full px-3.5 py-2 bg-[var(--neo-surface-2)] border border-[var(--neo-border)] rounded-xl text-xs outline-none cursor-pointer"
-                  >
-                    <option value="">انتخاب دسته‌بندی</option>
-                    {categories?.map((c: any) => (
-                      <option key={c._id} value={c._id}>{c.name || c.title}</option>
-                    ))}
-                  </select>
+                    onChange={(catId) => setNewCourseData({ ...newCourseData, categoryId: catId })}
+                    required
+                    label="دسته‌بندی تخصصی دوره"
+                  />
                 </div>
                 <div>
                   <label className="block text-xs font-bold text-[var(--neo-text-main)] mb-1">قیمت (تومان)</label>

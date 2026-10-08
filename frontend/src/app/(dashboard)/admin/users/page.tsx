@@ -18,17 +18,62 @@ import {
   Mail,
   Calendar,
   Clock,
-  Shield
+  Shield,
+  Plus,
+  X,
+  Lock,
+  RefreshCw,
 } from 'lucide-react';
 import Link from 'next/link';
 import toast from 'react-hot-toast';
+import { useAuthStore } from '@/features/auth/stores/auth.store';
 
 export default function AdminUsersPage() {
   const queryClient = useQueryClient();
+  const { user: currentUser } = useAuthStore();
+  const isSuperAdmin = currentUser?.role === 'super-admin';
+
   const [search, setSearch] = useState('');
   const [roleFilter, setRoleFilter] = useState('all');
   const [statusFilter, setStatusFilter] = useState('all');
   const [updatingUserId, setUpdatingUserId] = useState<string | null>(null);
+
+  // Add User State
+  const [isAddUserModalOpen, setIsAddUserModalOpen] = useState(false);
+  const [newUserForm, setNewUserForm] = useState({
+    firstName: '',
+    lastName: '',
+    mobile: '',
+    email: '',
+    password: '',
+    roleSlug: 'student',
+    status: 'active',
+    specialty: '',
+    bio: '',
+  });
+
+  const createUserMutation = useMutation({
+    mutationFn: (data: any) => adminApi.createUser(data),
+    onSuccess: () => {
+      toast.success('کاربر جدید با موفقیت ایجاد شد');
+      queryClient.invalidateQueries({ queryKey: ['adminUsers'] });
+      setIsAddUserModalOpen(false);
+      setNewUserForm({
+        firstName: '',
+        lastName: '',
+        mobile: '',
+        email: '',
+        password: '',
+        roleSlug: 'student',
+        status: 'active',
+        specialty: '',
+        bio: '',
+      });
+    },
+    onError: (err: any) => {
+      toast.error(err.response?.data?.message || 'خطا در ایجاد کاربر');
+    }
+  });
   
   const { data: usersData, isLoading } = useQuery({
     queryKey: ['adminUsers'],
@@ -113,6 +158,15 @@ export default function AdminUsersPage() {
             <p className="text-[var(--neo-text-secondary)] text-sm mt-1">مشاهده مشخصات کامل، سوابق آموزشی، مالی و کنترل دسترسی‌ها</p>
           </div>
         </div>
+
+        <button
+          type="button"
+          onClick={() => setIsAddUserModalOpen(true)}
+          className="px-5 py-2.5 rounded-xl bg-[var(--neo-primary)] text-white text-xs sm:text-sm font-bold flex items-center gap-2 hover:opacity-95 shadow-sm transition cursor-pointer shrink-0"
+        >
+          <Plus className="w-4 h-4" />
+          <span>افزودن کاربر جدید</span>
+        </button>
       </div>
 
       {/* KPI Stats Cards */}
@@ -388,6 +442,204 @@ export default function AdminUsersPage() {
           </div>
         )}
       </div>
+
+      {/* Modal: Add User (افزودن کاربر جدید) */}
+      {isAddUserModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs animate-in fade-in duration-200">
+          <div className="bg-white rounded-3xl border border-[var(--neo-border)] shadow-2xl max-w-lg w-full p-6 sm:p-8 space-y-6 max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between pb-4 border-b border-[var(--neo-border)]">
+              <div className="flex items-center gap-2.5">
+                <div className="p-2.5 rounded-xl bg-[var(--neo-primary)]/10 text-[var(--neo-primary)]">
+                  <Users className="w-5 h-5" />
+                </div>
+                <div>
+                  <h2 className="text-lg font-black text-[var(--neo-text-main)]">افزودن کاربر جدید</h2>
+                  <p className="text-xs text-[var(--neo-text-secondary)]">ثبت مستقیم کاربر با نقش سازمانی و اعتبارسنجی خودکار</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsAddUserModalOpen(false)}
+                className="p-1.5 rounded-xl text-[var(--neo-text-muted)] hover:bg-[var(--neo-surface-2)] transition cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                createUserMutation.mutate(newUserForm);
+              }}
+              className="space-y-4 text-right"
+            >
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-bold text-[var(--neo-text-main)] mb-1">
+                    نام <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    required
+                    type="text"
+                    value={newUserForm.firstName}
+                    onChange={(e) => setNewUserForm({ ...newUserForm, firstName: e.target.value })}
+                    placeholder="مثال: علی"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-[var(--neo-border)] bg-[var(--neo-surface-2)] text-xs font-bold text-[var(--neo-text-main)] focus:outline-none focus:ring-2 focus:ring-[var(--neo-primary)]"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-[var(--neo-text-main)] mb-1">
+                    نام خانوادگی <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    required
+                    type="text"
+                    value={newUserForm.lastName}
+                    onChange={(e) => setNewUserForm({ ...newUserForm, lastName: e.target.value })}
+                    placeholder="مثال: محمدی"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-[var(--neo-border)] bg-[var(--neo-surface-2)] text-xs font-bold text-[var(--neo-text-main)] focus:outline-none focus:ring-2 focus:ring-[var(--neo-primary)]"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-bold text-[var(--neo-text-main)] mb-1">
+                    شماره موبایل <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    required
+                    type="text"
+                    value={newUserForm.mobile}
+                    onChange={(e) => setNewUserForm({ ...newUserForm, mobile: e.target.value })}
+                    placeholder="09121234567"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-[var(--neo-border)] bg-[var(--neo-surface-2)] text-xs font-mono dir-ltr text-left text-[var(--neo-text-main)] focus:outline-none focus:ring-2 focus:ring-[var(--neo-primary)]"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-[var(--neo-text-main)] mb-1">
+                    ایمیل
+                  </label>
+                  <input
+                    type="email"
+                    value={newUserForm.email}
+                    onChange={(e) => setNewUserForm({ ...newUserForm, email: e.target.value })}
+                    placeholder="user@tecyad.ir"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-[var(--neo-border)] bg-[var(--neo-surface-2)] text-xs font-mono dir-ltr text-left text-[var(--neo-text-main)] focus:outline-none focus:ring-2 focus:ring-[var(--neo-primary)]"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-[var(--neo-text-main)] mb-1">
+                  رمز عبور موقت / رمز اولیه <span className="text-red-500">*</span>
+                </label>
+                <div className="relative">
+                  <input
+                    required
+                    type="password"
+                    minLength={6}
+                    value={newUserForm.password}
+                    onChange={(e) => setNewUserForm({ ...newUserForm, password: e.target.value })}
+                    placeholder="حداقل ۶ کاراکتر"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-[var(--neo-border)] bg-[var(--neo-surface-2)] text-xs font-mono dir-ltr text-left text-[var(--neo-text-main)] focus:outline-none focus:ring-2 focus:ring-[var(--neo-primary)]"
+                  />
+                  <Lock className="w-4 h-4 text-[var(--neo-text-muted)] absolute left-3 top-3" />
+                </div>
+                <p className="text-[11px] text-[var(--neo-text-muted)] mt-1">
+                  رمز عبور با الگوریتم Argon2 به صورت کاملاً امن هش و ذخیره خواهد شد.
+                </p>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-bold text-[var(--neo-text-main)] mb-1">
+                    نقش کاربری (Role) <span className="text-red-500">*</span>
+                  </label>
+                  <select
+                    value={newUserForm.roleSlug}
+                    onChange={(e) => setNewUserForm({ ...newUserForm, roleSlug: e.target.value })}
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-[var(--neo-border)] bg-[var(--neo-surface-2)] text-xs text-[var(--neo-text-main)] focus:outline-none focus:ring-2 focus:ring-[var(--neo-primary)] font-bold cursor-pointer"
+                  >
+                    <option value="student">🎓 دانشجو (Student)</option>
+                    <option value="instructor">👨‍🏫 مدرس / استاد (Instructor)</option>
+                    <option value="admin">🛡️ مدیر (Admin)</option>
+                    <option value="support">🎧 پشتیبان (Support)</option>
+                    {isSuperAdmin && (
+                      <option value="super-admin">👑 مدیر کل (Super Admin)</option>
+                    )}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-[var(--neo-text-main)] mb-1">
+                    وضعیت حساب
+                  </label>
+                  <select
+                    value={newUserForm.status}
+                    onChange={(e) => setNewUserForm({ ...newUserForm, status: e.target.value })}
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-[var(--neo-border)] bg-[var(--neo-surface-2)] text-xs text-[var(--neo-text-main)] focus:outline-none focus:ring-2 focus:ring-[var(--neo-primary)] font-bold cursor-pointer"
+                  >
+                    <option value="active">فعال (آماده ورود و استفاده)</option>
+                    <option value="pending">در انتظار تایید</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* Instructor specific fields */}
+              {newUserForm.roleSlug === 'instructor' && (
+                <div className="p-4 rounded-2xl bg-indigo-50/60 border border-indigo-100 space-y-3 animate-in fade-in">
+                  <span className="text-xs font-bold text-indigo-900 block">مشخصات پروفایل استاد</span>
+                  <div>
+                    <label className="block text-[11px] font-medium text-indigo-950 mb-1">
+                      حوزه تخصصی و عنوان تدریس
+                    </label>
+                    <input
+                      type="text"
+                      value={newUserForm.specialty}
+                      onChange={(e) => setNewUserForm({ ...newUserForm, specialty: e.target.value })}
+                      placeholder="مثال: متخصص React و معماری فرانت‌اند"
+                      className="w-full px-3 py-2 rounded-xl border border-indigo-200 bg-white text-xs text-[var(--neo-text-main)]"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[11px] font-medium text-indigo-950 mb-1">
+                      معرفی کوتاه (بیوگرافی)
+                    </label>
+                    <textarea
+                      rows={2}
+                      value={newUserForm.bio}
+                      onChange={(e) => setNewUserForm({ ...newUserForm, bio: e.target.value })}
+                      placeholder="سوابق کاری و تجربیات آموزشی استاد..."
+                      className="w-full px-3 py-2 rounded-xl border border-indigo-200 bg-white text-xs text-[var(--neo-text-main)] resize-none"
+                    />
+                  </div>
+                </div>
+              )}
+
+              <div className="flex items-center gap-3 pt-4 border-t border-[var(--neo-border)]">
+                <button
+                  type="submit"
+                  disabled={createUserMutation.isPending}
+                  className="flex-1 py-2.5 rounded-xl bg-[var(--neo-primary)] text-white text-xs sm:text-sm font-bold hover:opacity-95 transition flex items-center justify-center gap-2 cursor-pointer shadow-sm"
+                >
+                  {createUserMutation.isPending && <RefreshCw className="w-4 h-4 animate-spin" />}
+                  <span>ایجاد حساب کاربر</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setIsAddUserModalOpen(false)}
+                  className="px-5 py-2.5 rounded-xl bg-[var(--neo-surface-2)] text-[var(--neo-text-secondary)] text-xs sm:text-sm font-bold hover:bg-[var(--neo-border)] transition cursor-pointer"
+                >
+                  انصراف
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
     </div>
   );

@@ -31,6 +31,12 @@ export class ClassService {
     if (query.type && query.type !== 'all') {
       filter.type = query.type;
     }
+    if (query.category) {
+      filter.categoryId = query.category;
+    }
+    if (query.categoryId) {
+      filter.categoryId = query.categoryId;
+    }
     if (query.search) {
       filter.$or = [
         { title: { $regex: query.search, $options: 'i' } },
@@ -51,6 +57,7 @@ export class ClassService {
 
     const classes = await Class.find(filter)
       .populate('instructors', 'firstName lastName avatar personnelPhoto bio specialty')
+      .populate('categoryId', 'name slug parentId')
       .sort(sortOption)
       .skip(skip)
       .limit(limit);
@@ -97,6 +104,7 @@ export class ClassService {
 
     const classes = await Class.find(filter)
       .populate('instructors', 'firstName lastName avatar personnelPhoto bio specialty')
+      .populate('categoryId', 'name slug parentId')
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limit);
@@ -126,10 +134,14 @@ export class ClassService {
         { slug },
         { slug: decodeURIComponent(slug) },
       ],
-    }).populate('instructors', 'firstName lastName bio avatar personnelPhoto specialty');
+    })
+      .populate('instructors', 'firstName lastName bio avatar personnelPhoto specialty')
+      .populate('categoryId', 'name slug parentId');
 
     if (!classData && /^[0-9a-fA-F]{24}$/.test(slug)) {
-      classData = await Class.findById(slug).populate('instructors', 'firstName lastName bio avatar personnelPhoto specialty');
+      classData = await Class.findById(slug)
+        .populate('instructors', 'firstName lastName bio avatar personnelPhoto specialty')
+        .populate('categoryId', 'name slug parentId');
     }
 
     if (!classData) throw new AppError('Class not found', 404, 'NOT_FOUND');
@@ -148,6 +160,9 @@ export class ClassService {
         : undefined;
 
     const payload = { ...data };
+    if (payload.categoryId === '' || payload.categoryId === 'none' || payload.categoryId === 'null') {
+      delete payload.categoryId;
+    }
     if (payload.startDate) payload.startDate = parseDateSafely(payload.startDate) || payload.startDate;
     
     // Auto calculate sessions if syllabus provided
@@ -357,6 +372,9 @@ export class ClassService {
       ? { _id: id } 
       : { _id: id, $or: [{ instructors: userId }, { createdBy: userId }] };
     const payload = { ...data };
+    if (payload.categoryId === '' || payload.categoryId === 'none' || payload.categoryId === 'null') {
+      payload.categoryId = null;
+    }
     if (payload.startDate !== undefined) payload.startDate = parseDateSafely(payload.startDate) || payload.startDate;
     if (payload.endDate !== undefined) payload.endDate = parseDateSafely(payload.endDate) || payload.endDate;
     if (payload.mode === 'in-person') payload.mode = 'in_person';

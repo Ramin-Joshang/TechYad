@@ -27,6 +27,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.95,
     },
     {
+      url: `${baseUrl}/categories`,
+      lastModified: currentDate,
+      changeFrequency: 'daily',
+      priority: 0.9,
+    },
+    {
       url: `${baseUrl}/instructors`,
       lastModified: currentDate,
       changeFrequency: 'weekly',
@@ -198,8 +204,39 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     // Fail silently
   }
 
+  // Dynamic Categories Fetching (Active categories only)
+  let categoryRoutes: MetadataRoute.Sitemap = [];
+  try {
+    const res = await fetch('http://localhost:5000/api/v1/categories', {
+      next: { revalidate: 3600 },
+    });
+    if (res.ok) {
+      const data = await res.json();
+      const categories = data?.data || [];
+      if (Array.isArray(categories)) {
+        for (const cat of categories) {
+          const slug = cat.slug;
+          if (!slug || cat.isActive === false) continue;
+          const url = `${baseUrl}/categories/${encodeURIComponent(slug)}`;
+          if (!seenUrls.has(url)) {
+            seenUrls.add(url);
+            categoryRoutes.push({
+              url,
+              lastModified: cat.updatedAt || cat.createdAt || currentDate,
+              changeFrequency: 'weekly',
+              priority: 0.85,
+            });
+          }
+        }
+      }
+    }
+  } catch (err) {
+    // Fail silently
+  }
+
   return [
     ...staticRoutes,
+    ...categoryRoutes,
     ...courseRoutes,
     ...classRoutes,
     ...instructorRoutes,

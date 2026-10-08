@@ -9,6 +9,7 @@ import { usePathname } from "next/navigation";
 import { useAuthStore } from "@/features/auth/stores/auth.store";
 import { useCartStore } from "@/features/commerce/stores/cart.store";
 import { superAdminApi } from "@/features/admin/api/super-admin.api";
+import { catalogApi } from "@/features/catalog/api/catalog.api";
 import { NotificationDropdown } from "@/app/(dashboard)/components/NotificationDropdown";
 import {
   LogOut,
@@ -18,12 +19,16 @@ import {
   Menu,
   X,
   LayoutDashboard,
+  Home,
   BookOpen,
   Users,
   GraduationCap,
   FileText,
   Info,
   Phone,
+  LayoutGrid,
+  ChevronDown,
+  ChevronLeft,
 } from "lucide-react";
 
 export function Navbar() {
@@ -75,12 +80,26 @@ export function Navbar() {
     staleTime: 1000 * 60 * 10,
   });
 
+  const { data: categoryTreeData } = useQuery({
+    queryKey: ["navbarCategoryTree"],
+    queryFn: async () => {
+      const res = await catalogApi.getCategoryTree();
+      return res?.data || res || [];
+    },
+    staleTime: 1000 * 60 * 10,
+  });
+
+  const [isCategoryMenuOpen, setIsCategoryMenuOpen] = useState(false);
+  const [hoveredCategory, setHoveredCategory] = useState<any>(null);
+  const [mobileCategoriesOpen, setMobileCategoriesOpen] = useState(false);
+
   const cartItems = cartData?.items || localCartItems || [];
   const cartItemCount = cartItems.length;
 
   const NAV_LINKS = [
-    { name: "دوره‌ها", href: "/courses", icon: BookOpen },
+    { name: "خانه", href: "/", icon: Home },
     { name: "کلاس‌ها", href: "/classes", icon: GraduationCap },
+    { name: "دوره‌ها", href: "/courses", icon: BookOpen },
     { name: "اساتید", href: "/instructors", icon: Users },
     { name: "وبلاگ", href: "/blog", icon: FileText },
     { name: "درباره ما", href: "/about", icon: Info },
@@ -147,23 +166,233 @@ export function Navbar() {
             </div>
 
             {/* Center: Desktop Navigation Links */}
-            <nav className="hidden md:flex items-center justify-center gap-8 text-sm font-medium text-[var(--neo-text-secondary)]">
-              {NAV_LINKS.map((link) => (
-                <Link
-                  key={link.href}
-                  href={link.href}
-                  className={`transition-colors py-1 relative ${
-                    pathname === link.href
+            <nav className="hidden md:flex items-center justify-center gap-6 lg:gap-7 text-sm font-medium text-[var(--neo-text-secondary)]">
+              {/* 1. خانه */}
+              <Link
+                href="/"
+                className={`transition-colors py-1 relative ${
+                  pathname === "/"
+                    ? "text-[var(--neo-primary)] font-bold"
+                    : "hover:text-[var(--neo-primary)]"
+                }`}
+              >
+                خانه
+                {pathname === "/" && (
+                  <span className="absolute -bottom-1 right-0 left-0 h-0.5 bg-[var(--neo-primary)] rounded-full"></span>
+                )}
+              </Link>
+
+              {/* دسته‌بندی‌ها (Mega Menu Dropdown) */}
+              <div 
+                className="relative"
+                onMouseEnter={() => setIsCategoryMenuOpen(true)}
+                onMouseLeave={() => {
+                  setIsCategoryMenuOpen(false);
+                  setHoveredCategory(null);
+                }}
+              >
+                <button
+                  type="button"
+                  onClick={() => setIsCategoryMenuOpen(!isCategoryMenuOpen)}
+                  className={`flex items-center gap-1.5 transition-colors py-1 ${
+                    pathname?.startsWith("/categories") || isCategoryMenuOpen
                       ? "text-[var(--neo-primary)] font-bold"
                       : "hover:text-[var(--neo-primary)]"
                   }`}
                 >
-                  {link.name}
-                  {pathname === link.href && (
-                    <span className="absolute -bottom-1 right-0 left-0 h-0.5 bg-[var(--neo-primary)] rounded-full"></span>
-                  )}
-                </Link>
-              ))}
+                  <LayoutGrid className="w-4 h-4 text-[var(--neo-primary)]" />
+                  <span>دسته‌بندی‌ها</span>
+                  <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${isCategoryMenuOpen ? "rotate-180" : ""}`} />
+                </button>
+
+                {/* Dropdown Card */}
+                {isCategoryMenuOpen && categoryTreeData && categoryTreeData.length > 0 && (
+                  <div className="absolute top-full right-0 mt-2 w-[620px] bg-white rounded-2xl shadow-2xl border border-[var(--neo-border)] p-4 z-50 animate-in fade-in slide-in-from-top-2 duration-150">
+                    <div className="grid grid-cols-12 gap-3 min-h-[260px]">
+                      {/* Main Root Categories */}
+                      <div className="col-span-5 border-l border-[var(--neo-border)] pl-3 space-y-1">
+                        <div className="text-[11px] font-bold text-[var(--neo-text-muted)] px-2.5 py-1 uppercase tracking-wider">
+                          شاخه‌های آموزشی
+                        </div>
+                        {categoryTreeData.map((cat: any) => {
+                          const isCurrentActive = (hoveredCategory?._id || categoryTreeData[0]._id) === cat._id;
+                          return (
+                            <Link
+                              key={cat._id}
+                              href={`/categories/${cat.slug}`}
+                              onMouseEnter={() => setHoveredCategory(cat)}
+                              onClick={() => setIsCategoryMenuOpen(false)}
+                              className={`flex items-center justify-between px-3 py-2 rounded-xl text-xs font-bold transition ${
+                                isCurrentActive
+                                  ? "bg-[var(--neo-primary)]/10 text-[var(--neo-primary)]"
+                                  : "text-[var(--neo-text-main)] hover:bg-[var(--neo-surface-2)]"
+                              }`}
+                            >
+                              <span className="truncate">{cat.name}</span>
+                              <ChevronLeft className="w-3.5 h-3.5 shrink-0 opacity-60" />
+                            </Link>
+                          );
+                        })}
+                      </div>
+
+                      {/* Subcategories View */}
+                      <div className="col-span-7 pr-1 flex flex-col justify-between">
+                        <div>
+                          {(() => {
+                            const activeCat = hoveredCategory || categoryTreeData[0];
+                            if (!activeCat) return null;
+                            const children = activeCat.children || [];
+                            return (
+                              <div className="space-y-2.5">
+                                <div className="flex items-center justify-between pb-2 border-b border-[var(--neo-border)]">
+                                  <span className="font-bold text-xs text-[var(--neo-text-main)]">
+                                    زیردسته‌های {activeCat.name}
+                                  </span>
+                                  <Link
+                                    href={`/categories/${activeCat.slug}`}
+                                    onClick={() => setIsCategoryMenuOpen(false)}
+                                    className="font-bold text-xs text-[var(--neo-primary)] hover:underline flex items-center gap-1"
+                                  >
+                                    <span>مشاهده کامل</span>
+                                    <span>←</span>
+                                  </Link>
+                                </div>
+                                {children.length > 0 ? (
+                                  <div className="grid grid-cols-2 gap-2 pt-1 max-h-[220px] overflow-y-auto pr-1">
+                                    {children.map((sub: any) => (
+                                      <Link
+                                        key={sub._id}
+                                        href={`/categories/${sub.slug}`}
+                                        onClick={() => setIsCategoryMenuOpen(false)}
+                                        className="group p-2 rounded-xl hover:bg-[var(--neo-surface-2)] border border-transparent hover:border-[var(--neo-border)] transition"
+                                      >
+                                        <div className="text-xs font-bold text-[var(--neo-text-main)] group-hover:text-[var(--neo-primary)] truncate">
+                                          {sub.name}
+                                        </div>
+                                        <div className="text-[10px] text-[var(--neo-text-muted)] mt-0.5">
+                                          {(sub.courseCount || 0) + (sub.classCount || 0) > 0
+                                            ? `${(sub.courseCount || 0) + (sub.classCount || 0)} دوره و کلاس`
+                                            : "مشاهده دوره‌ها"}
+                                        </div>
+                                      </Link>
+                                    ))}
+                                  </div>
+                                ) : (
+                                  <div className="py-10 text-center text-xs text-[var(--neo-text-muted)]">
+                                    دوره‌ها و کلاس‌های تخصصی این دسته‌بندی
+                                  </div>
+                                )}
+                              </div>
+                            );
+                          })()}
+                        </div>
+
+                        {/* All Categories Link */}
+                        <div className="pt-2.5 mt-2 border-t border-[var(--neo-border)] flex items-center justify-between text-xs">
+                          <Link
+                            href="/categories"
+                            onClick={() => setIsCategoryMenuOpen(false)}
+                            className="text-[var(--neo-text-secondary)] hover:text-[var(--neo-primary)] font-bold flex items-center gap-1"
+                          >
+                            <span>مشاهده همه دسته‌بندی‌ها</span>
+                            <span>←</span>
+                          </Link>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* 2. کلاس‌ها */}
+              <Link
+                href="/classes"
+                className={`transition-colors py-1 relative ${
+                  pathname === "/classes"
+                    ? "text-[var(--neo-primary)] font-bold"
+                    : "hover:text-[var(--neo-primary)]"
+                }`}
+              >
+                کلاس‌ها
+                {pathname === "/classes" && (
+                  <span className="absolute -bottom-1 right-0 left-0 h-0.5 bg-[var(--neo-primary)] rounded-full"></span>
+                )}
+              </Link>
+
+              {/* 3. دوره‌ها */}
+              <Link
+                href="/courses"
+                className={`transition-colors py-1 relative ${
+                  pathname === "/courses"
+                    ? "text-[var(--neo-primary)] font-bold"
+                    : "hover:text-[var(--neo-primary)]"
+                }`}
+              >
+                دوره‌ها
+                {pathname === "/courses" && (
+                  <span className="absolute -bottom-1 right-0 left-0 h-0.5 bg-[var(--neo-primary)] rounded-full"></span>
+                )}
+              </Link>
+
+              {/* 4. اساتید */}
+              <Link
+                href="/instructors"
+                className={`transition-colors py-1 relative ${
+                  pathname === "/instructors"
+                    ? "text-[var(--neo-primary)] font-bold"
+                    : "hover:text-[var(--neo-primary)]"
+                }`}
+              >
+                اساتید
+                {pathname === "/instructors" && (
+                  <span className="absolute -bottom-1 right-0 left-0 h-0.5 bg-[var(--neo-primary)] rounded-full"></span>
+                )}
+              </Link>
+
+              {/* 5. وبلاگ */}
+              <Link
+                href="/blog"
+                className={`transition-colors py-1 relative ${
+                  pathname === "/blog"
+                    ? "text-[var(--neo-primary)] font-bold"
+                    : "hover:text-[var(--neo-primary)]"
+                }`}
+              >
+                وبلاگ
+                {pathname === "/blog" && (
+                  <span className="absolute -bottom-1 right-0 left-0 h-0.5 bg-[var(--neo-primary)] rounded-full"></span>
+                )}
+              </Link>
+
+              {/* 6. درباره ما */}
+              <Link
+                href="/about"
+                className={`transition-colors py-1 relative ${
+                  pathname === "/about"
+                    ? "text-[var(--neo-primary)] font-bold"
+                    : "hover:text-[var(--neo-primary)]"
+                }`}
+              >
+                درباره ما
+                {pathname === "/about" && (
+                  <span className="absolute -bottom-1 right-0 left-0 h-0.5 bg-[var(--neo-primary)] rounded-full"></span>
+                )}
+              </Link>
+
+              {/* 7. تماس با ما */}
+              <Link
+                href="/contact"
+                className={`transition-colors py-1 relative ${
+                  pathname === "/contact"
+                    ? "text-[var(--neo-primary)] font-bold"
+                    : "hover:text-[var(--neo-primary)]"
+                }`}
+              >
+                تماس با ما
+                {pathname === "/contact" && (
+                  <span className="absolute -bottom-1 right-0 left-0 h-0.5 bg-[var(--neo-primary)] rounded-full"></span>
+                )}
+              </Link>
             </nav>
 
             {/* Left side: Search, Cart, User Profile / Login */}
@@ -277,7 +506,78 @@ export function Navbar() {
               {/* Navigation Links (placed above profile section) */}
               <div className="flex-1 overflow-y-auto py-4">
                 <nav className="flex flex-col px-3 space-y-1">
-                  {NAV_LINKS.map((link) => {
+                  {/* 1. خانه */}
+                  <Link
+                    href="/"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition ${
+                      pathname === "/"
+                        ? "bg-[var(--neo-primary)]/10 text-[var(--neo-primary)]"
+                        : "text-[var(--neo-text-secondary)] hover:bg-[var(--neo-surface-2)] hover:text-[var(--neo-primary)]"
+                    }`}
+                  >
+                    <Home className="w-5 h-5 shrink-0" />
+                    <span>خانه</span>
+                  </Link>
+
+                  {/* دسته‌بندی‌ها (Collapsible Accordion) */}
+                  <div className="rounded-xl overflow-hidden">
+                    <button
+                      type="button"
+                      onClick={() => setMobileCategoriesOpen(!mobileCategoriesOpen)}
+                      className={`w-full flex items-center justify-between px-4 py-3 rounded-xl text-sm font-bold transition ${
+                        pathname?.startsWith("/categories") || mobileCategoriesOpen
+                          ? "bg-[var(--neo-primary)]/10 text-[var(--neo-primary)]"
+                          : "text-[var(--neo-text-secondary)] hover:bg-[var(--neo-surface-2)] hover:text-[var(--neo-primary)]"
+                      }`}
+                    >
+                      <div className="flex items-center gap-3">
+                        <LayoutGrid className="w-5 h-5 shrink-0 text-[var(--neo-primary)]" />
+                        <span>دسته‌بندی‌ها</span>
+                      </div>
+                      <ChevronDown className={`w-4 h-4 transition-transform duration-200 ${mobileCategoriesOpen ? "rotate-180" : ""}`} />
+                    </button>
+
+                    {mobileCategoriesOpen && (
+                      <div className="py-2 pr-4 pl-2 space-y-1.5 bg-[var(--neo-surface-2)]/60 rounded-xl my-1 border border-[var(--neo-border)]/60 text-right">
+                        <Link
+                          href="/categories"
+                          onClick={() => setIsMobileMenuOpen(false)}
+                          className="block px-2 py-1 text-xs font-black text-[var(--neo-primary)] hover:underline"
+                        >
+                          مشاهده همه دسته‌بندی‌ها ←
+                        </Link>
+                        {categoryTreeData?.map((cat: any) => (
+                          <div key={cat._id} className="space-y-0.5 pt-1">
+                            <Link
+                              href={`/categories/${cat.slug}`}
+                              onClick={() => setIsMobileMenuOpen(false)}
+                              className="block px-2 py-1 text-xs font-bold text-[var(--neo-text-main)] hover:text-[var(--neo-primary)]"
+                            >
+                              • {cat.name}
+                            </Link>
+                            {cat.children && cat.children.length > 0 && (
+                              <div className="pr-3 space-y-0.5">
+                                {cat.children.map((sub: any) => (
+                                  <Link
+                                    key={sub._id}
+                                    href={`/categories/${sub.slug}`}
+                                    onClick={() => setIsMobileMenuOpen(false)}
+                                    className="block px-2 py-0.5 text-[11px] text-[var(--neo-text-muted)] hover:text-[var(--neo-primary)]"
+                                  >
+                                    - {sub.name}
+                                  </Link>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Rest of Navigation Links: کلاس‌ها، دوره‌ها، اساتید، وبلاگ، درباره ما، تماس با ما */}
+                  {NAV_LINKS.filter((l) => l.href !== "/").map((link) => {
                     const Icon = link.icon;
                     const isActive = pathname === link.href;
                     return (

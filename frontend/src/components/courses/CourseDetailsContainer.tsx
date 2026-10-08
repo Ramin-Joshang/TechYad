@@ -136,6 +136,28 @@ export function CourseDetailsContainer({ slug, initialData }: { slug: string; in
 
   return (
     <div className="bg-white min-h-screen pb-20">
+      {/* Breadcrumb Bar */}
+      <div className="bg-slate-900 border-b border-slate-800 text-xs py-3 px-4 sm:px-6 lg:px-8 text-slate-300">
+        <div className="max-w-7xl mx-auto flex items-center gap-2 overflow-x-auto whitespace-nowrap">
+          <Link href="/" className="hover:text-white transition">خانه</Link>
+          <span>/</span>
+          <Link href="/courses" className="hover:text-white transition">دوره‌ها</Link>
+          {course.categoryId?.name && (
+            <>
+              <span>/</span>
+              <Link 
+                href={`/categories/${course.categoryId.slug || course.categoryId._id}`} 
+                className="text-blue-400 hover:text-blue-300 transition font-bold"
+              >
+                {course.categoryId.name}
+              </Link>
+            </>
+          )}
+          <span>/</span>
+          <span className="text-slate-400 truncate max-w-xs">{course.title}</span>
+        </div>
+      </div>
+
       {/* Hero Section */}
       <div className="bg-[var(--neo-text-main)] text-white py-16 relative overflow-hidden">
         <div className="absolute inset-0 opacity-20 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-blue-700 via-gray-900 to-gray-900"></div>
@@ -143,9 +165,12 @@ export function CourseDetailsContainer({ slug, initialData }: { slug: string; in
           <div>
             <div className="flex items-center gap-3 mb-6">
               {course.categoryId?.name && (
-                <span className="bg-[var(--neo-primary)]/20 text-blue-300 border border-[var(--neo-secondary)]/30 px-3 py-1 rounded-full text-sm font-medium backdrop-blur-sm">
+                <Link
+                  href={`/categories/${course.categoryId.slug || course.categoryId._id}`}
+                  className="bg-[var(--neo-primary)]/20 hover:bg-[var(--neo-primary)]/30 text-blue-300 hover:text-white border border-[var(--neo-secondary)]/30 px-3 py-1 rounded-full text-sm font-medium backdrop-blur-sm transition"
+                >
                   {course.categoryId.name}
-                </span>
+                </Link>
               )}
               <span className="flex items-center gap-1 text-amber-400 text-sm font-bold bg-amber-400/10 px-3 py-1 rounded-full backdrop-blur-sm">
                 <Star className="w-4 h-4 fill-current" />

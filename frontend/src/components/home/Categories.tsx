@@ -15,7 +15,7 @@ export function Categories({ data = [], isLoading = false }: { data?: any[], isL
             </div>
             <h2 className="text-xl sm:text-3xl md:text-4xl font-black text-[var(--neo-text-main)] text-right truncate">گسترش مرزهای دانش</h2>
           </div>
-          <Link href="/courses" className="text-[var(--neo-text-secondary)] hover:text-[var(--neo-primary)] transition font-medium inline-flex items-center gap-1.5 text-xs sm:text-sm shrink-0 pb-1 border-b border-transparent hover:border-[var(--neo-primary)] whitespace-nowrap">
+          <Link href="/categories" className="text-[var(--neo-text-secondary)] hover:text-[var(--neo-primary)] transition font-medium inline-flex items-center gap-1.5 text-xs sm:text-sm shrink-0 pb-1 border-b border-transparent hover:border-[var(--neo-primary)] whitespace-nowrap">
             <span>همه دسته‌ها</span>
             <span className="text-base leading-none">←</span>
           </Link>
@@ -39,7 +39,7 @@ export function Categories({ data = [], isLoading = false }: { data?: any[], isL
                 </div>
               ))
             : data.map((cat: any, index: number) => (
-                <Link key={cat._id} href={`/courses?category=${cat.slug}`} dir="rtl" className="group relative overflow-hidden bg-white p-8 rounded-[20px] border border-[var(--neo-border)] hover:border-[var(--neo-primary)]/30 transition-all duration-300 flex flex-col hover:-translate-y-1 shadow-sm hover:shadow-lg hover:shadow-[var(--neo-primary)]/5 text-right">
+                <Link key={cat._id} href={`/categories/${cat.slug}`} dir="rtl" className="group relative overflow-hidden bg-white p-8 rounded-[20px] border border-[var(--neo-border)] hover:border-[var(--neo-primary)]/30 transition-all duration-300 flex flex-col hover:-translate-y-1 shadow-sm hover:shadow-lg hover:shadow-[var(--neo-primary)]/5 text-right">
                   <div className="flex justify-between items-start mb-6">
                     <div className="w-14 h-14 rounded-2xl border border-[var(--neo-border)] bg-[var(--neo-bg)] text-[var(--neo-primary)] flex items-center justify-center group-hover:bg-[var(--neo-primary)] group-hover:text-white transition-colors duration-300">
                       <Hexagon className="w-7 h-7" />

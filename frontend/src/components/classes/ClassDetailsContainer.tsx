@@ -254,6 +254,27 @@ export function ClassDetailsContainer({ slug, initialData }: { slug: string; ini
 
   return (
     <div className="bg-[var(--neo-bg)] min-h-screen pb-32">
+      {/* Breadcrumb Bar */}
+      <div className="bg-slate-950 border-b border-slate-800 text-xs py-3 px-4 sm:px-6 lg:px-8 text-slate-300">
+        <div className="max-w-7xl mx-auto flex items-center gap-2 overflow-x-auto whitespace-nowrap">
+          <Link href="/" className="hover:text-white transition">خانه</Link>
+          <span>/</span>
+          <Link href="/classes" className="hover:text-white transition">کلاس‌ها</Link>
+          {cls.categoryId?.name && (
+            <>
+              <span>/</span>
+              <Link 
+                href={`/categories/${cls.categoryId.slug || cls.categoryId._id}`} 
+                className="text-blue-400 hover:text-blue-300 transition font-bold"
+              >
+                {cls.categoryId.name}
+              </Link>
+            </>
+          )}
+          <span>/</span>
+          <span className="text-slate-400 truncate max-w-xs">{cls.title}</span>
+        </div>
+      </div>
       
       {/* Hero Section */}
       <div className="bg-slate-900 text-white pt-12 pb-28 relative overflow-hidden">
@@ -265,6 +286,16 @@ export function ClassDetailsContainer({ slug, initialData }: { slug: string; ini
             
             {/* Badges */}
             <div className="flex flex-wrap items-center gap-2.5">
+              {cls.categoryId?.name && (
+                <Link
+                  href={`/categories/${cls.categoryId.slug || cls.categoryId._id}`}
+                  className="px-3 py-1 rounded-full text-xs sm:text-sm font-bold bg-blue-500/20 text-blue-300 hover:text-white border border-blue-400/40 flex items-center gap-1.5 transition"
+                >
+                  <Sparkles className="w-3.5 h-3.5" />
+                  <span>{cls.categoryId.name}</span>
+                </Link>
+              )}
+
               <span className={`px-3 py-1 rounded-full text-xs sm:text-sm font-bold flex items-center gap-1.5 shadow-sm ${
                 isOnline ? 'bg-blue-600/80 text-white' : 'bg-emerald-600/80 text-white'
               }`}>

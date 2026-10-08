@@ -12,6 +12,11 @@ export const getUsers = async (req: Request, res: Response) => {
   sendSuccess(res, result, 'Users retrieved');
 };
 
+export const createUser = async (req: Request, res: Response) => {
+  const result = await AdminService.createUser((req as any).user, req.body);
+  sendSuccess(res, result, 'کاربر با موفقیت ایجاد شد', 201);
+};
+
 export const getUserById = async (req: Request, res: Response) => {
   const result = await AdminService.getUserDetails(req.params.id as string);
   sendSuccess(res, result, 'User details retrieved');

@@ -24,63 +24,63 @@ export function HomeDataView({ initialData }: { initialData?: any }) {
 
   return (
     <div dir="rtl" className="min-h-screen flex flex-col bg-[var(--neo-bg)] w-full overflow-x-hidden text-right">
+      {/* 1. Hero */}
       <Hero />
-      <Intro />
-      
-      {/* Categories Section */}
-      <Categories data={d.categories} isLoading={isLoading} />
 
-      {/* Popular Courses */}
+      {/* 2. Platform Advantages & Intro */}
+      <Intro />
+      <Advantages />
+      
+      {/* 3. Classes (Online & In-person) */}
       <CourseList 
-        title="دوره‌های پرطرفدار" 
-        sectionName="محبوب‌ترین‌ها" 
+        title="کلاس‌های آنلاین و زنده (Live)" 
+        sectionName="تعامل مستقیم با اساتید" 
+        data={d.onlineClasses} 
+        isLoading={isLoading} 
+      />
+
+      <CourseList 
+        title="کارگاه‌ها و کلاس‌های حضوری" 
+        sectionName="یادگیری عملی در محیط فیزیکی" 
+        data={d.inPersonClasses} 
+        isLoading={isLoading} 
+      />
+
+      {/* 4. Courses (Popular, New, Free) */}
+      <CourseList 
+        title="دوره‌های پرطرفدار و تخصصی" 
+        sectionName="محبوب‌ترین دوره‌های پلتفرم" 
         data={d.popularCourses} 
         isLoading={isLoading} 
       />
 
-      {/* New Courses */}
       <CourseList 
-        title="جدیدترین دوره‌ها" 
+        title="جدیدترین دوره‌های آموزشی" 
         sectionName="تازه منتشر شده" 
         data={d.newCourses} 
         isLoading={isLoading} 
       />
 
-      {/* Free Courses */}
       <CourseList 
         title="دوره‌های رایگان" 
-        sectionName="شروع بدون هزینه" 
+        sectionName="شروع یادگیری بدون هزینه" 
         data={d.freeCourses} 
         isLoading={isLoading} 
       />
 
-      {/* Top Instructors */}
+      {/* 5. Hierarchical Categories Section */}
+      <Categories data={d.categories} isLoading={isLoading} />
+
+      {/* 6. Top Instructors */}
       <InstructorGrid data={d.topInstructors} isLoading={isLoading} />
 
-      {/* Online Classes */}
-      <CourseList 
-        title="کلاس‌های زنده (Live)" 
-        sectionName="ارتباط مستقیم" 
-        data={d.onlineClasses} 
-        isLoading={isLoading} 
-      />
-
-      {/* In-person Classes */}
-      <CourseList 
-        title="کلاس‌های حضوری" 
-        sectionName="یادگیری فیزیکی" 
-        data={d.inPersonClasses} 
-        isLoading={isLoading} 
-      />
-
-      <Advantages />
-      
-      {/* Testimonials */}
+      {/* 7. Student Testimonials */}
       <Testimonials data={d.testimonials} isLoading={isLoading} />
 
-      {/* Latest Articles */}
+      {/* 8. Latest Articles / Blog */}
       <LatestArticles data={d.blogPosts || d.latestArticles} isLoading={isLoading} />
       
+      {/* 9. Final Call to Action */}
       <CTA />
     </div>
   );

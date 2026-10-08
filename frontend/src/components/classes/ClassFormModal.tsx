@@ -13,6 +13,7 @@ import { MediaUploader } from '@/components/common/MediaUploader';
 import { PersianDatePicker } from '@/components/ui/PersianDatePicker';
 import { NumericInput } from '@/components/ui/NumericInput';
 import { toEnDigits, parseNumericInput } from '@/lib/utils';
+import { CategoryCascadeSelect } from '@/components/categories/CategoryCascadeSelect';
 
 export const DAYS_OF_WEEK = [
   'شنبه', 'یکشنبه', 'دوشنبه', 'سه‌شنبه', 'چهارشنبه', 'پنج‌شنبه', 'جمعه'
@@ -117,6 +118,7 @@ export function ClassFormModal({
     description: initialData?.description || '',
     type: initialData?.type || 'public',
     mode: initialData?.mode || 'online',
+    categoryId: initialData?.categoryId?._id || (typeof initialData?.categoryId === 'string' ? initialData.categoryId : '') || '',
     instructorId: initialData?.instructors?.[0]?._id || (typeof initialData?.instructors?.[0] === 'string' ? initialData.instructors[0] : '') || '',
     startDate: initialData?.startDate ? initialData.startDate.substring(0, 16) : '',
     endDate: initialData?.endDate ? initialData.endDate.substring(0, 16) : '',
@@ -511,6 +513,14 @@ export function ClassFormModal({
                     rows={2}
                     placeholder="خلاصه هدف اصلی این کارگاه یا کلاس..."
                     className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-emerald-500 outline-none resize-none"
+                  />
+                </div>
+
+                <div className="sm:col-span-2 p-3.5 rounded-2xl bg-slate-50 border border-slate-200">
+                  <CategoryCascadeSelect
+                    value={formData.categoryId}
+                    onChange={(catId) => setFormData({ ...formData, categoryId: catId })}
+                    label="دسته‌بندی تخصصی کلاس"
                   />
                 </div>
 

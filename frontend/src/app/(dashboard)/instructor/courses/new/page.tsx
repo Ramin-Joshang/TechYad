@@ -10,6 +10,7 @@ import Link from 'next/link';
 import { MediaUploader } from '@/components/common/MediaUploader';
 import toast from 'react-hot-toast';
 import { toEnDigits } from '@/lib/utils';
+import { CategoryCascadeSelect } from '@/components/categories/CategoryCascadeSelect';
 
 export default function NewCoursePage() {
   const router = useRouter();
@@ -120,20 +121,13 @@ export default function NewCoursePage() {
               />
             </div>
 
-            <div>
-              <label className="block text-xs font-bold text-[var(--neo-text-main)] mb-1.5">دسته‌بندی *</label>
-              <select 
-                name="categoryId"
-                required
+            <div className="md:col-span-2 p-4 rounded-2xl bg-[var(--neo-surface-2)]/60 border border-[var(--neo-border)]">
+              <CategoryCascadeSelect
                 value={formData.categoryId}
-                onChange={handleChange}
-                className="w-full px-4 py-2.5 bg-[var(--neo-surface-2)] border border-[var(--neo-border)] rounded-xl focus:ring-2 focus:ring-[var(--neo-primary)] outline-none text-sm font-medium"
-              >
-                <option value="">انتخاب دسته‌بندی</option>
-                {categories?.map((cat: any) => (
-                  <option key={cat._id} value={cat._id}>{cat.name || cat.title}</option>
-                ))}
-              </select>
+                onChange={(catId) => setFormData(prev => ({ ...prev, categoryId: catId }))}
+                required
+                label="دسته‌بندی تخصصی دوره"
+              />
             </div>
 
             <div>

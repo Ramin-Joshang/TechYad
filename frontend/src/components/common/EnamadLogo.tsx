@@ -20,12 +20,12 @@ export function EnamadLogo({ className = '' }: EnamadLogoProps) {
         referrerPolicy="origin"
         target="_blank"
         rel="noopener noreferrer"
-        href="https://trustseal.enamad.ir/?id=8094174&Code=PlK3MWEGHXQgZpPIDcCa6AbEfa9vAQ1g"
+        href="https://trustseal.enamad.ir/?id=8094174&code=PlK3MWEGHXQgZpPIDcCa6AbEfa9vAQ1g"
         className="flex items-center justify-center w-full h-full"
       >
         <img
           referrerPolicy="origin"
-          src="https://trustseal.enamad.ir/logo.aspx?id=8094174&Code=PlK3MWEGHXQgZpPIDcCa6AbEfa9vAQ1g"
+          src="https://trustseal.enamad.ir/logo.aspx?id=8094174&code=PlK3MWEGHXQgZpPIDcCa6AbEfa9vAQ1g"
           alt="نماد اعتماد الکترونیکی تک‌یاد"
           style={{ cursor: 'pointer' }}
           // @ts-expect-error custom attribute required by enamad seal verification

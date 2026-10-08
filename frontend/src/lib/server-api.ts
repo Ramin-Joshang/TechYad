@@ -127,8 +127,28 @@ export async function fetchBlogCategories() {
 }
 
 // 6. Categories & Taxonomies
-export async function fetchCategories() {
-  return serverFetch<any[]>('/categories', { revalidate: 300 });
+export async function fetchCategories(params?: { tree?: boolean }) {
+  const query = params?.tree ? '?tree=true' : '';
+  return serverFetch<any[]>(`/categories${query}`, { revalidate: 60 });
+}
+
+export async function fetchCategoryBySlug(slug: string) {
+  if (!slug) return null;
+  return serverFetch<any>(`/categories/slug/${encodeURIComponent(slug)}`, { revalidate: 60 });
+}
+
+export async function fetchCategoryContent(slug: string, params?: Record<string, string | number | boolean | undefined>) {
+  if (!slug) return null;
+  const query = new URLSearchParams();
+  if (params) {
+    Object.entries(params).forEach(([key, val]) => {
+      if (val !== undefined && val !== '') {
+        query.set(key, String(val));
+      }
+    });
+  }
+  const endpoint = `/categories/slug/${encodeURIComponent(slug)}/content${query.toString() ? `?${query.toString()}` : ''}`;
+  return serverFetch<any>(endpoint, { revalidate: 30 });
 }
 
 export async function fetchLevels() {

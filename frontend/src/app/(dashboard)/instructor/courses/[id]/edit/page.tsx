@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import { CurriculumBuilder } from './CurriculumBuilder';
 import { MediaUploader } from '@/components/common/MediaUploader';
+import { CategoryCascadeSelect } from '@/components/categories/CategoryCascadeSelect';
 import toast from 'react-hot-toast';
 import { toEnDigits } from '@/lib/utils';
 
@@ -272,17 +273,11 @@ export default function EditCoursePage() {
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-[var(--neo-text-main)] mb-1.5">دسته‌بندی</label>
-                <select
+                <CategoryCascadeSelect
                   value={formData.categoryId}
-                  onChange={(e) => setFormData({...formData, categoryId: e.target.value})}
-                  className="w-full px-4 py-2.5 bg-[var(--neo-surface-2)] border border-[var(--neo-border)] rounded-xl focus:ring-2 focus:ring-[var(--neo-primary)] outline-none text-sm font-medium"
-                >
-                  <option value="">انتخاب دسته‌بندی</option>
-                  {categories?.map((c: any) => (
-                    <option key={c._id} value={c._id}>{c.name || c.title}</option>
-                  ))}
-                </select>
+                  onChange={(val) => setFormData({ ...formData, categoryId: val })}
+                  label="دسته‌بندی تخصصی دوره"
+                />
               </div>
 
               <div>

@@ -10,6 +10,9 @@ export const adminApi = {
   getUsers: async (params?: any) => {
     return api.get<any, any>('/admin/users', { params });
   },
+  createUser: async (data: any) => {
+    return api.post<any, any>('/admin/users', data);
+  },
   getUserById: async (id: string) => {
     return api.get<any, any>(`/admin/users/${id}`);
   },

@@ -21,6 +21,7 @@ import { Comment } from '../comments/comment.model.js';
 import { Notification } from '../notifications/notification.model.js';
 import { parseDateSafely } from '../../common/utils/date.js';
 import { AuditService } from '../../common/services/audit.service.js';
+import { ReferralService } from '../referral/referral.service.js';
 
 
 export class AdminService {
@@ -206,6 +207,119 @@ export class AdminService {
       thisMonthRevenue,
       monthlyRevenue: thisMonthRevenue,
       monthlyRevenueChart: monthlyRevenue
+    };
+  }
+
+  static async createUser(creatorUser: any, data: any) {
+    const { firstName, lastName, mobile, email, password, roleId, roleSlug, status, bio, specialty } = data;
+
+    if (!firstName || !lastName) {
+      throw new AppError('نام و نام خانوادگی الزامی است', 400, 'VALIDATION_ERROR');
+    }
+    if (!password || String(password).length < 6) {
+      throw new AppError('رمز عبور باید حداقل ۶ کاراکتر باشد', 400, 'VALIDATION_ERROR');
+    }
+
+    let cleanMobile = mobile ? String(mobile).trim() : undefined;
+    if (cleanMobile) {
+      cleanMobile = cleanMobile.replace(/[۰-۹]/g, (d: string) => "۰۱۲۳۴۵۶۷۸۹".indexOf(d).toString());
+      cleanMobile = cleanMobile.replace(/[\s\-_]/g, '');
+      if (cleanMobile.startsWith('+98')) cleanMobile = '0' + cleanMobile.slice(3);
+      else if (cleanMobile.startsWith('0098')) cleanMobile = '0' + cleanMobile.slice(4);
+    }
+
+    let cleanEmail = email ? String(email).toLowerCase().trim() : undefined;
+
+    if (!cleanMobile && !cleanEmail) {
+      throw new AppError('وارد کردن شماره موبایل یا ایمیل الزامی است', 400, 'VALIDATION_ERROR');
+    }
+
+    if (cleanMobile) {
+      const existingMobile = await User.findOne({ mobile: cleanMobile });
+      if (existingMobile) {
+        throw new AppError('کاربری با این شماره موبایل از قبل وجود دارد', 400, 'MOBILE_ALREADY_EXISTS');
+      }
+    }
+
+    if (cleanEmail) {
+      const existingEmail = await User.findOne({ email: cleanEmail });
+      if (existingEmail) {
+        throw new AppError('کاربری با این آدرس ایمیل از قبل وجود دارد', 400, 'EMAIL_ALREADY_EXISTS');
+      }
+    }
+
+    let targetRole: any = null;
+    if (roleId) {
+      targetRole = await Role.findById(roleId);
+    } else if (roleSlug) {
+      targetRole = await Role.findOne({ slug: roleSlug });
+    } else {
+      targetRole = await Role.findOne({ slug: 'student' });
+    }
+
+    if (!targetRole) {
+      throw new AppError('نقش کاربری مشخص شده نامعتبر است', 400, 'INVALID_ROLE');
+    }
+
+    // RBAC check: only super-admin can create super-admin
+    const creatorRoleSlug = creatorUser.role?.slug || creatorUser.role;
+    if (creatorRoleSlug !== 'super-admin' && targetRole.slug === 'super-admin') {
+      throw new AppError('تنها مدیر کل (Super Admin) مجاز به تعریف کاربر با نقش مدیر کل است', 403, 'FORBIDDEN_ROLE_ASSIGNMENT');
+    }
+
+    const passwordHash = await argon2.hash(password);
+
+    const newUser = await User.create({
+      firstName: firstName.trim(),
+      lastName: lastName.trim(),
+      mobile: cleanMobile,
+      email: cleanEmail,
+      passwordHash,
+      role: targetRole._id,
+      status: status === 'pending' || status === 'blocked' ? status : 'active',
+      mobileVerified: !!cleanMobile,
+      emailVerified: !!cleanEmail,
+    });
+
+    try {
+      await ReferralService.ensureUserReferralCode(newUser);
+    } catch (e) {
+      // Non-fatal referral initialization
+    }
+
+    if (targetRole.slug === 'instructor') {
+      const existingProfile = await InstructorProfile.findOne({ userId: newUser._id });
+      if (!existingProfile) {
+        await InstructorProfile.create({
+          userId: newUser._id,
+          title: specialty || 'مدرس تک‌یاد',
+          bio: bio || `استاد ${newUser.firstName} ${newUser.lastName}`,
+          isApproved: true,
+          specialties: specialty ? [specialty] : [],
+        });
+      }
+    }
+
+    AuditService.log({
+      userId: creatorUser._id.toString(),
+      userRole: creatorRoleSlug,
+      action: 'create_user',
+      category: 'user',
+      title: `کاربر جدید «${newUser.firstName} ${newUser.lastName}» با نقش ${targetRole.name} ایجاد شد`,
+      targetId: newUser._id.toString(),
+      targetType: 'user',
+      targetTitle: `${newUser.firstName} ${newUser.lastName}`,
+    });
+
+    const userObj = newUser.toObject();
+    delete (userObj as any).passwordHash;
+    return {
+      ...userObj,
+      role: {
+        _id: targetRole._id,
+        name: targetRole.name,
+        slug: targetRole.slug,
+      },
     };
   }
 

@@ -13,12 +13,20 @@ import {
 const router = Router();
 
 // Helper for admin routes
-const adminAuth = [asyncHandler(authenticate), authorize('catalog.manage')];
+const adminAuth = [asyncHandler(authenticate), authorize('catalog.manage', 'categories.manage')];
 
 // --- Categories ---
 router.get('/categories', asyncHandler(Controller.getCategories));
+router.get('/categories/tree', asyncHandler(Controller.getCategoryTree));
+router.get('/categories/slug/:slug', asyncHandler(Controller.getCategoryBySlug));
+router.get('/categories/slug/:slug/content', asyncHandler(Controller.getCategoryContent));
+router.get('/categories/:id', asyncHandler(Controller.getCategoryById));
 router.post('/categories', adminAuth, validate(createCategorySchema), asyncHandler(Controller.createCategory));
+router.post('/categories/reorder', adminAuth, asyncHandler(Controller.reorderCategories));
+router.patch('/categories/reorder', adminAuth, asyncHandler(Controller.reorderCategories));
+router.patch('/categories/:id/status', adminAuth, asyncHandler(Controller.toggleCategoryStatus));
 router.patch('/categories/:id', adminAuth, validate(updateCategorySchema), asyncHandler(Controller.updateCategory));
+router.put('/categories/:id', adminAuth, validate(updateCategorySchema), asyncHandler(Controller.updateCategory));
 router.delete('/categories/:id', adminAuth, asyncHandler(Controller.deleteCategory));
 
 // --- Subjects ---

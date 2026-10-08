@@ -2,11 +2,16 @@ import { z } from 'zod';
 
 export const createCategorySchema = z.object({
   body: z.object({
-    name: z.string().min(2, 'Name is required'),
-    slug: z.string().min(2, 'Slug is required'),
-    parentId: z.string().optional(),
+    name: z.string().min(2, 'نام دسته‌بندی باید حداقل ۲ کاراکتر باشد'),
+    slug: z.string().min(2, 'شناسه انگلیسی (slug) الزامی است'),
+    parentId: z.string().optional().nullable(),
     description: z.string().optional(),
     isActive: z.boolean().optional(),
+    sortOrder: z.number().optional(),
+    icon: z.string().optional(),
+    image: z.string().optional(),
+    seoTitle: z.string().optional(),
+    seoDescription: z.string().optional(),
   })
 });
 
@@ -25,6 +30,11 @@ export const updateCategorySchema = z.object({
     parentId: z.string().optional().nullable(),
     description: z.string().optional(),
     isActive: z.boolean().optional(),
+    sortOrder: z.number().optional(),
+    icon: z.string().optional(),
+    image: z.string().optional(),
+    seoTitle: z.string().optional(),
+    seoDescription: z.string().optional(),
   })
 });
 
