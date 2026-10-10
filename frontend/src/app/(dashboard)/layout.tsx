@@ -54,6 +54,7 @@ import {
   Quote,
   Home,
   ArrowRight,
+  Percent,
 } from "lucide-react";
 
 export default function DashboardLayout({
@@ -219,6 +220,11 @@ export default function DashboardLayout({
           name: "تسویه‌حساب اساتید",
           href: "/super-admin/settlements",
           icon: Wallet,
+        },
+        {
+          name: "تنظیمات مالی و سهم مدرس‌ها",
+          href: "/super-admin/commissions",
+          icon: Percent,
         },
         { name: "دوره‌ها", href: "/super-admin/courses", icon: BookOpen },
         {

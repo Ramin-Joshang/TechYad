@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { AdminService } from './admin.service.js';
 import { sendSuccess } from '../../common/utils/response.js';
+import { FinancialRevenueService } from '../commerce/financial-revenue.service.js';
 
 export const getDashboardStats = async (req: Request, res: Response) => {
   const result = await AdminService.getDashboardStats();
@@ -254,4 +255,34 @@ export const updateSecurityConfig = async (req: Request, res: Response) => {
   const result = await AdminService.updateSecurityConfig(req.body);
   sendSuccess(res, result, 'Security config updated');
 };
+
+// --- Financial Commission & Instructor Share Settings ---
+export const getFinancialCommissionSettings = async (req: Request, res: Response) => {
+  const result = await FinancialRevenueService.getFinancialSettings();
+  sendSuccess(res, result, 'تنظیمات مالی و سهم مدرسین با موفقیت دریافت شد');
+};
+
+export const updateFinancialCommissionSettings = async (req: Request, res: Response) => {
+  const adminId = (req as any).user?.id || (req as any).user?._id;
+  const result = await FinancialRevenueService.updateFinancialSettings(adminId, req.body);
+  sendSuccess(res, result, 'تنظیمات درصدهای سهم با موفقیت ذخیره شد');
+};
+
+export const listCommissionItems = async (req: Request, res: Response) => {
+  const result = await FinancialRevenueService.listCommissionItems(req.query as any);
+  sendSuccess(res, result, 'فهرست دوره‌ها و کلاس‌ها با سهم‌های اختصاصی دریافت شد');
+};
+
+export const setItemCommissionOverride = async (req: Request, res: Response) => {
+  const adminId = (req as any).user?.id || (req as any).user?._id;
+  const { itemType, itemId, instructorSharePercent } = req.body;
+  const result = await FinancialRevenueService.setItemCommissionOverride(
+    adminId,
+    itemType,
+    itemId,
+    instructorSharePercent
+  );
+  sendSuccess(res, result, 'درصد اختصاصی با موفقیت ثبت شد');
+};
+
 

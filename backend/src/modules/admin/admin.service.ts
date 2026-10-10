@@ -15,6 +15,7 @@ import { ClassEnrollment } from '../classes/class-enrollment.model.js';
 import { InstructorProfile } from '../instructors/instructor-profile.model.js';
 import { AuditLog } from './audit-log.model.js';
 import { Settlement } from '../commerce/settlement.model.js';
+import { WalletTransaction } from '../wallet/wallet-transaction.model.js';
 import { CourseReview } from '../community/course-review.model.js';
 import { LessonComment } from '../courses/lesson-comment.model.js';
 import { Comment } from '../comments/comment.model.js';
@@ -1546,6 +1547,7 @@ export class AdminService {
     const settlement = await Settlement.findById(settlementId).populate('instructorId', 'firstName lastName email');
     if (!settlement) throw new AppError('سند تسویه‌حساب یافت نشد', 404);
 
+    const previousStatus = settlement.status;
     settlement.status = status;
     if (trackingCode) settlement.trackingCode = trackingCode;
     if (rejectionReason) settlement.rejectionReason = rejectionReason;
@@ -1555,6 +1557,58 @@ export class AdminService {
     }
 
     await settlement.save();
+
+    // Synchronize with WalletTransaction and wallet balance
+    try {
+      const instructorId = settlement.instructorId._id || settlement.instructorId;
+      const queryFilter: any = settlement.transactionId
+        ? { _id: settlement.transactionId }
+        : settlement.referenceId
+        ? { referenceId: settlement.referenceId }
+        : { userId: instructorId, type: 'withdraw', status: 'pending' };
+
+      const matchingTx = await WalletTransaction.findOne(queryFilter);
+
+      if (status === 'completed') {
+        if (matchingTx && matchingTx.status !== 'completed') {
+          matchingTx.status = 'completed';
+          if (trackingCode) matchingTx.trackingCode = trackingCode;
+          matchingTx.processedBy = new mongoose.Types.ObjectId(adminId);
+          await matchingTx.save();
+        }
+      } else if (status === 'rejected' && previousStatus !== 'rejected') {
+        // Refund amount to instructor wallet balance
+        const updatedUser = await User.findByIdAndUpdate(
+          instructorId,
+          { $inc: { walletBalance: settlement.amount } },
+          { new: true }
+        );
+
+        if (matchingTx && matchingTx.status !== 'rejected') {
+          matchingTx.status = 'rejected';
+          matchingTx.adminNote = rejectionReason || 'رد شده توسط مدیریت';
+          matchingTx.processedBy = new mongoose.Types.ObjectId(adminId);
+          await matchingTx.save();
+        }
+
+        // Record clear refund transaction
+        await WalletTransaction.create({
+          userId: instructorId,
+          type: 'refund',
+          direction: 'credit',
+          amount: settlement.amount,
+          balanceAfter: updatedUser?.walletBalance || 0,
+          status: 'completed',
+          title: 'بازگشت وجه تسویه حساب رد شده',
+          description: `علت رد تسویه حساب: ${rejectionReason || 'عدم تأیید مدیریت'}`,
+          referenceId: settlement._id.toString(),
+          adminNote: rejectionReason,
+          processedBy: new mongoose.Types.ObjectId(adminId),
+        });
+      }
+    } catch (syncErr) {
+      console.error('Error synchronizing settlement status with wallet:', syncErr);
+    }
 
     // Send notification
     const msg = status === 'completed'

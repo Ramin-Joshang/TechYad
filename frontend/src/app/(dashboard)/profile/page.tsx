@@ -112,7 +112,11 @@ export default function ProfilePage() {
       }
     } catch (err: any) {
       setPassStatus('error');
-      setPassMessage(err.response?.data?.message || 'خطا در تغییر رمز عبور. لطفاً رمز فعلی را بررسی فرمایید.');
+      setPassMessage(
+        err.response?.data?.error?.message ||
+        err.response?.data?.message ||
+        'خطا در تغییر رمز عبور. لطفاً رمز فعلی را بررسی فرمایید.'
+      );
     }
   };
 

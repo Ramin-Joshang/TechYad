@@ -42,6 +42,9 @@ export interface ICourse extends Document {
   publishedAt?: Date;
   isRegistrationOpen?: boolean;
 
+  // Revenue & Instructor Share Override (percentage e.g. 70 for 70%)
+  instructorSharePercent?: number;
+
   createdBy: Types.ObjectId;
 }
 
@@ -159,6 +162,12 @@ const courseSchema = new Schema<ICourse>(
     isRegistrationOpen: {
       type: Boolean,
       default: true,
+    },
+    instructorSharePercent: {
+      type: Number,
+      min: 0,
+      max: 100,
+      default: null,
     },
     createdBy: {
       type: Schema.Types.ObjectId,

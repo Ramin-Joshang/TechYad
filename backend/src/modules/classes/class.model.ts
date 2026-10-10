@@ -63,6 +63,10 @@ export interface IClass extends Document {
   allowEnrollmentAfterStart?: boolean;
   registrationOpen?: boolean;
   status: "draft" | "pending_approval" | "published" | "completed" | "cancelled";
+
+  // Revenue & Instructor Share Override (percentage e.g. 70 for 70%)
+  instructorSharePercent?: number;
+
   createdBy: Types.ObjectId;
 }
 
@@ -158,6 +162,7 @@ const classSchema = new Schema<IClass>(
 
     allowEnrollmentAfterStart: { type: Boolean, default: true },
     registrationOpen: { type: Boolean, default: null },
+    instructorSharePercent: { type: Number, min: 0, max: 100, default: null },
     status: { type: String, enum: ["draft", "pending_approval", "published", "completed", "cancelled"], default: "pending_approval" },
     createdBy: { type: Schema.Types.ObjectId, ref: "User", required: true },
   },

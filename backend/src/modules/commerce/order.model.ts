@@ -9,6 +9,12 @@ export interface IOrderItem {
   price: number;
   discount: number;
   finalPrice: number;
+  // Revenue & Share Snapshot
+  instructorId?: Types.ObjectId;
+  instructorPercentSnapshot?: number;
+  platformPercentSnapshot?: number;
+  instructorEarningsSnapshot?: number;
+  platformEarningsSnapshot?: number;
 }
 
 export interface IOrder extends Document {
@@ -62,6 +68,22 @@ const orderSchema = new Schema<IOrder>(
         finalPrice: {
           type: Number,
           required: true,
+        },
+        instructorId: {
+          type: Schema.Types.ObjectId,
+          ref: "User",
+        },
+        instructorPercentSnapshot: {
+          type: Number,
+        },
+        platformPercentSnapshot: {
+          type: Number,
+        },
+        instructorEarningsSnapshot: {
+          type: Number,
+        },
+        platformEarningsSnapshot: {
+          type: Number,
         },
       },
     ],

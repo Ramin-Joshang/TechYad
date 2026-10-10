@@ -13,6 +13,8 @@ import { AuditLog } from "../admin/audit-log.model.js";
 import { AuditService } from "../../common/services/audit.service.js";
 import { AppError } from "../../common/errors/AppError.js";
 import { ReferralService } from "../referral/referral.service.js";
+import { FinancialRevenueService } from "../commerce/financial-revenue.service.js";
+import { Settlement } from "../commerce/settlement.model.js";
 import {
   WalletTransaction,
   IWalletTransaction,
@@ -117,11 +119,21 @@ export class WalletService {
               $cond: [{ $eq: ["$type", "deposit"] }, "$amount", 0],
             },
           },
+          totalInstructorEarnings: {
+            $sum: {
+              $cond: [{ $eq: ["$type", "instructor_share"] }, "$amount", 0],
+            },
+          },
+          totalSettledWithdrawals: {
+            $sum: {
+              $cond: [{ $eq: ["$type", "withdraw"] }, "$amount", 0],
+            },
+          },
         },
       },
     ]);
 
-    // Pending withdrawals
+    // Pending withdrawals (reserved/locked in review)
     const [pendingWithdrawals] = await WalletTransaction.aggregate([
       { $match: { userId: userObjectId, type: "withdraw", status: "pending" } },
       {
@@ -133,13 +145,60 @@ export class WalletService {
       },
     ]);
 
+    // Instructor specific metrics from enrollments
+    const [courseRevenueStats] = await Enrollment.aggregate([
+      { $match: { instructorId: userObjectId, status: { $in: ["active", "completed"] } } },
+      {
+        $group: {
+          _id: null,
+          totalRevenue: { $sum: { $ifNull: ["$instructorEarnings", 0] } },
+          pendingServiceRevenue: {
+            $sum: {
+              $cond: [{ $eq: ["$revenueSettlementStatus", "pending_completion"] }, { $ifNull: ["$instructorEarnings", 0] }, 0],
+            },
+          },
+          eligibleRevenue: {
+            $sum: {
+              $cond: [{ $eq: ["$revenueSettlementStatus", "eligible"] }, { $ifNull: ["$instructorEarnings", 0] }, 0],
+            },
+          },
+          totalStudentsCount: { $sum: 1 },
+        },
+      },
+    ]);
+
+    const [classRevenueStats] = await ClassEnrollment.aggregate([
+      { $match: { instructorId: userObjectId, status: { $in: ["active", "completed"] } } },
+      {
+        $group: {
+          _id: null,
+          totalRevenue: { $sum: { $ifNull: ["$instructorEarnings", 0] } },
+          pendingServiceRevenue: {
+            $sum: {
+              $cond: [{ $eq: ["$revenueSettlementStatus", "pending_completion"] }, { $ifNull: ["$instructorEarnings", 0] }, 0],
+            },
+          },
+          eligibleRevenue: {
+            $sum: {
+              $cond: [{ $eq: ["$revenueSettlementStatus", "eligible"] }, { $ifNull: ["$instructorEarnings", 0] }, 0],
+            },
+          },
+          totalStudentsCount: { $sum: 1 },
+        },
+      },
+    ]);
+
     // Recent transactions (last 8)
     const recentTransactions = await WalletTransaction.find({ userId: userObjectId })
       .sort({ createdAt: -1 })
       .limit(8);
 
+    const instructorTotalEarned = (stats?.totalInstructorEarnings || 0) +
+      ((courseRevenueStats?.totalRevenue || 0) > (stats?.totalInstructorEarnings || 0) ? (courseRevenueStats?.totalRevenue || 0) : 0);
+
     return {
       balance: user.walletBalance || 0,
+      withdrawableBalance: user.walletBalance || 0, // Available right now for withdrawal
       user: {
         id: user._id,
         name: `${user.firstName} ${user.lastName}`,
@@ -154,6 +213,14 @@ export class WalletService {
         totalReferralEarnings: stats?.totalReferralEarnings || user.referralEarnings || 0,
         pendingWithdrawalAmount: pendingWithdrawals?.pendingAmount || 0,
         pendingWithdrawalCount: pendingWithdrawals?.pendingCount || 0,
+        // Instructor specific breakdown
+        totalInstructorEarnings: stats?.totalInstructorEarnings || 0,
+        totalSettledWithdrawals: stats?.totalSettledWithdrawals || 0,
+        pendingServiceRevenue: (courseRevenueStats?.pendingServiceRevenue || 0) + (classRevenueStats?.pendingServiceRevenue || 0),
+        pendingReleaseRevenue: 0,
+        withdrawableBalance: user.walletBalance || 0,
+        reservedWithdrawalAmount: pendingWithdrawals?.pendingAmount || 0,
+        totalStudentsCount: (courseRevenueStats?.totalStudentsCount || 0) + (classRevenueStats?.totalStudentsCount || 0),
       },
       quickDepositPresets: [50000, 100000, 200000, 500000, 1000000, 2000000],
       recentTransactions,
@@ -421,6 +488,25 @@ export class WalletService {
       // 5. Enroll in courses & classes
       for (const item of order.items) {
         if (item.itemType === "course") {
+          // Resolve instructor revenue details
+          let instructorId = item.instructorId;
+          let instPercent = item.instructorPercentSnapshot;
+          let platPercent = item.platformPercentSnapshot;
+          let instEarnings = item.instructorEarningsSnapshot;
+          let platEarnings = item.platformEarningsSnapshot;
+
+          if (instPercent === undefined || instEarnings === undefined || !instructorId) {
+            const comm = await FinancialRevenueService.resolveItemCommission('course', item.itemId.toString());
+            const shares = FinancialRevenueService.calculateShares(item.finalPrice, comm.instructorSharePercent);
+            instPercent = shares.instructorSharePercent;
+            platPercent = shares.platformSharePercent;
+            instEarnings = shares.instructorEarnings;
+            platEarnings = shares.platformEarnings;
+            if (comm.primaryInstructorId) {
+              instructorId = new mongoose.Types.ObjectId(comm.primaryInstructorId);
+            }
+          }
+
           await Enrollment.create(
             [
               {
@@ -430,6 +516,13 @@ export class WalletService {
                 source: "purchase",
                 status: "active",
                 amount: item.finalPrice,
+                instructorId,
+                instructorSharePercent: instPercent,
+                platformSharePercent: platPercent,
+                instructorEarnings: instEarnings,
+                platformEarnings: platEarnings,
+                revenueSettlementStatus: "eligible",
+                revenueEligibleAt: new Date(),
               },
             ],
             { session }
@@ -440,7 +533,67 @@ export class WalletService {
             { $inc: { studentCount: 1 } },
             { session }
           );
+
+          // Credit instructor wallet
+          if (instructorId && instEarnings && instEarnings > 0) {
+            const instructorUser = await User.findById(instructorId).session(session);
+            if (instructorUser) {
+              instructorUser.walletBalance = (instructorUser.walletBalance || 0) + instEarnings;
+              await instructorUser.save({ session });
+
+              await WalletTransaction.create(
+                [
+                  {
+                    userId: instructorId,
+                    type: "instructor_share",
+                    direction: "credit",
+                    amount: instEarnings,
+                    balanceAfter: instructorUser.walletBalance,
+                    status: "completed",
+                    title: `سهم فروش دوره «${item.titleSnapshot}»`,
+                    description: `سهم ${instPercent}٪ مدرس از فروش دوره به مبلغ ${item.finalPrice.toLocaleString("fa-IR")} تومان (سفارش #${order._id.toString().slice(-6)})`,
+                    referenceId: order._id.toString(),
+                    orderId: order._id,
+                    gateway: "wallet",
+                    trackingCode: `INS-CRS-${Date.now().toString().slice(-6)}`,
+                  },
+                ],
+                { session }
+              );
+
+              await Notification.create(
+                [
+                  {
+                    userId: instructorId,
+                    type: "sale",
+                    title: "🎉 فروش جدید و واریز سهم مدرس",
+                    message: `دوره «${item.titleSnapshot}» توسط دانشجو خریداری شد. مبلغ ${instEarnings.toLocaleString("fa-IR")} تومان (${instPercent}٪) به کیف پول شما اضافه گردید.`,
+                    data: { orderId: order._id, courseId: item.itemId },
+                  },
+                ],
+                { session }
+              );
+            }
+          }
         } else if (item.itemType === "class") {
+          let instructorId = item.instructorId;
+          let instPercent = item.instructorPercentSnapshot;
+          let platPercent = item.platformPercentSnapshot;
+          let instEarnings = item.instructorEarningsSnapshot;
+          let platEarnings = item.platformEarningsSnapshot;
+
+          if (instPercent === undefined || instEarnings === undefined || !instructorId) {
+            const comm = await FinancialRevenueService.resolveItemCommission('class', item.itemId.toString());
+            const shares = FinancialRevenueService.calculateShares(item.finalPrice, comm.instructorSharePercent);
+            instPercent = shares.instructorSharePercent;
+            platPercent = shares.platformSharePercent;
+            instEarnings = shares.instructorEarnings;
+            platEarnings = shares.platformEarnings;
+            if (comm.primaryInstructorId) {
+              instructorId = new mongoose.Types.ObjectId(comm.primaryInstructorId);
+            }
+          }
+
           await ClassEnrollment.create(
             [
               {
@@ -449,6 +602,13 @@ export class WalletService {
                 orderId: order._id,
                 status: "active",
                 amount: item.finalPrice,
+                instructorId,
+                instructorSharePercent: instPercent,
+                platformSharePercent: platPercent,
+                instructorEarnings: instEarnings,
+                platformEarnings: platEarnings,
+                revenueSettlementStatus: "eligible",
+                revenueEligibleAt: new Date(),
               },
             ],
             { session }
@@ -459,6 +619,48 @@ export class WalletService {
             { $inc: { enrolledCount: 1 } },
             { session }
           );
+
+          // Credit instructor wallet
+          if (instructorId && instEarnings && instEarnings > 0) {
+            const instructorUser = await User.findById(instructorId).session(session);
+            if (instructorUser) {
+              instructorUser.walletBalance = (instructorUser.walletBalance || 0) + instEarnings;
+              await instructorUser.save({ session });
+
+              await WalletTransaction.create(
+                [
+                  {
+                    userId: instructorId,
+                    type: "instructor_share",
+                    direction: "credit",
+                    amount: instEarnings,
+                    balanceAfter: instructorUser.walletBalance,
+                    status: "completed",
+                    title: `سهم ثبت‌نام کلاس «${item.titleSnapshot}»`,
+                    description: `سهم ${instPercent}٪ مدرس از ثبت‌نام کلاس به مبلغ ${item.finalPrice.toLocaleString("fa-IR")} تومان (سفارش #${order._id.toString().slice(-6)})`,
+                    referenceId: order._id.toString(),
+                    orderId: order._id,
+                    gateway: "wallet",
+                    trackingCode: `INS-CLS-${Date.now().toString().slice(-6)}`,
+                  },
+                ],
+                { session }
+              );
+
+              await Notification.create(
+                [
+                  {
+                    userId: instructorId,
+                    type: "sale",
+                    title: "🎉 ثبت‌نام جدید در کلاس و واریز سهم مدرس",
+                    message: `دانشجو در کلاس «${item.titleSnapshot}» ثبت‌نام کرد. مبلغ ${instEarnings.toLocaleString("fa-IR")} تومان (${instPercent}٪) به کیف پول شما اضافه شد.`,
+                    data: { orderId: order._id, classId: item.itemId },
+                  },
+                ],
+                { session }
+              );
+            }
+          }
         }
       }
 
@@ -576,6 +778,23 @@ export class WalletService {
         cardNumber: data.cardNumber?.trim(),
       },
     });
+
+    // Create corresponding Settlement record for Super Admin settlements queue
+    try {
+      await Settlement.create({
+        instructorId: user._id,
+        amount: data.amount,
+        status: "pending",
+        shabaNumber: cleanShaba,
+        accountHolderName: data.accountHolder.trim(),
+        bankName: data.bankName?.trim() || "بانک عضو شتاب",
+        transactionId: transaction._id,
+        referenceId,
+        requestedAt: new Date(),
+      });
+    } catch (settleErr) {
+      console.error("Failed to create Settlement mirror record:", settleErr);
+    }
 
     // Notify user
     await Notification.create({
@@ -872,6 +1091,22 @@ export class WalletService {
     transaction.processedBy = new mongoose.Types.ObjectId(adminId);
     await transaction.save();
 
+    // Synchronize corresponding Settlement record
+    try {
+      await Settlement.findOneAndUpdate(
+        { $or: [{ transactionId: transaction._id }, { referenceId: transaction.referenceId }] },
+        {
+          status: "completed",
+          trackingCode: transaction.trackingCode,
+          notes: data.adminNote,
+          processedBy: new mongoose.Types.ObjectId(adminId),
+          processedAt: new Date(),
+        }
+      );
+    } catch (settleSyncErr) {
+      console.error("Failed to sync Settlement on approval:", settleSyncErr);
+    }
+
     // Send notification
     await Notification.create({
       userId: transaction.userId._id,
@@ -918,6 +1153,21 @@ export class WalletService {
     transaction.adminNote = rejectionReason.trim();
     transaction.processedBy = new mongoose.Types.ObjectId(adminId);
     await transaction.save();
+
+    // Synchronize corresponding Settlement record
+    try {
+      await Settlement.findOneAndUpdate(
+        { $or: [{ transactionId: transaction._id }, { referenceId: transaction.referenceId }] },
+        {
+          status: "rejected",
+          rejectionReason: rejectionReason.trim(),
+          processedBy: new mongoose.Types.ObjectId(adminId),
+          processedAt: new Date(),
+        }
+      );
+    } catch (settleSyncErr) {
+      console.error("Failed to sync Settlement on rejection:", settleSyncErr);
+    }
 
     // Create a refund record for crystal clear audit trail
     await WalletTransaction.create({

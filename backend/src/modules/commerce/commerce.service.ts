@@ -13,6 +13,7 @@ import { ReferralService } from '../referral/referral.service.js';
 import { WalletTransaction } from '../wallet/wallet-transaction.model.js';
 import { Notification } from '../notifications/notification.model.js';
 import { AuditService } from '../../common/services/audit.service.js';
+import { FinancialRevenueService } from './financial-revenue.service.js';
 
 export class CommerceService {
   static async getInstructorSales(instructorId: string, month?: number, year?: number) {
@@ -71,17 +72,23 @@ export class CommerceService {
         courseStats[itemIdStr].count += 1;
         courseStats[itemIdStr].revenue += price;
 
+        const itemInstShare = item.instructorEarningsSnapshot !== undefined && item.instructorEarningsSnapshot !== null
+          ? item.instructorEarningsSnapshot
+          : Math.round(price * 0.7);
+
         return {
           itemId: item.itemId,
           itemType: item.itemType,
           title,
           price: item.price,
-          finalPrice: price
+          finalPrice: price,
+          instructorShare: itemInstShare,
+          instructorPercent: item.instructorPercentSnapshot || 70,
         };
       });
 
       const orderTotal = relevantItems.reduce((acc: number, curr: any) => acc + (curr.finalPrice || 0), 0);
-      const instructorShare = Math.round(orderTotal * 0.7); // 70% instructor share
+      const instructorShare = relevantItems.reduce((acc: number, curr: any) => acc + (curr.instructorShare || 0), 0);
       totalSales += orderTotal;
       
       return {
@@ -106,7 +113,9 @@ export class CommerceService {
       const classIdStr = ce.classId?.toString();
       const title = classMap.get(classIdStr) || 'کلاس آموزشی';
       const price = ce.amount || 0;
-      const instructorShare = Math.round(price * 0.7);
+      const instructorShare = (ce as any).instructorEarnings !== undefined && (ce as any).instructorEarnings !== null
+        ? (ce as any).instructorEarnings
+        : Math.round(price * 0.7);
 
       classesRevenue += price;
       totalSales += price;
@@ -126,6 +135,8 @@ export class CommerceService {
           title,
           price,
           finalPrice: price,
+          instructorShare,
+          instructorPercent: (ce as any).instructorSharePercent || 70,
           paymentType: ce.paymentType
         }],
         total: price,
@@ -137,7 +148,7 @@ export class CommerceService {
     // Sort all sales descending by date
     sales.sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 
-    const netInstructorEarnings = Math.round(totalSales * 0.7);
+    const netInstructorEarnings = sales.reduce((sum: number, s: any) => sum + (s.instructorShare || 0), 0);
 
     // Calculate last 6 months trend from sales array
     const monthlyTrend: { month: string, year: number, revenue: number, salesCount: number }[] = [];
@@ -210,6 +221,9 @@ export class CommerceService {
           ? `${(course.instructors[0] as any).firstName} ${(course.instructors[0] as any).lastName}`
           : 'استاد تک‌یاد';
 
+        const commission = await FinancialRevenueService.resolveItemCommission('course', course._id.toString());
+        const shares = FinancialRevenueService.calculateShares(finalPrice, commission.instructorSharePercent);
+
         enrichedItems.push({
           itemType: 'course',
           itemId: course._id.toString(),
@@ -220,6 +234,11 @@ export class CommerceService {
           price: originalPrice,
           discount,
           finalPrice,
+          instructorId: commission.primaryInstructorId ? new mongoose.Types.ObjectId(commission.primaryInstructorId) : undefined,
+          instructorPercentSnapshot: shares.instructorSharePercent,
+          platformPercentSnapshot: shares.platformSharePercent,
+          instructorEarningsSnapshot: shares.instructorEarnings,
+          platformEarningsSnapshot: shares.platformEarnings,
         });
       } else if (item.itemType === 'class') {
         const classItem = await Class.findById(item.itemId).populate('instructors', 'firstName lastName');
@@ -236,6 +255,9 @@ export class CommerceService {
           ? `${(classItem.instructors[0] as any).firstName} ${(classItem.instructors[0] as any).lastName}`
           : 'استاد تک‌یاد';
 
+        const commission = await FinancialRevenueService.resolveItemCommission('class', classItem._id.toString());
+        const shares = FinancialRevenueService.calculateShares(finalPrice, commission.instructorSharePercent);
+
         enrichedItems.push({
           itemType: 'class',
           itemId: classItem._id.toString(),
@@ -246,6 +268,11 @@ export class CommerceService {
           price: originalPrice,
           discount: 0,
           finalPrice,
+          instructorId: commission.primaryInstructorId ? new mongoose.Types.ObjectId(commission.primaryInstructorId) : undefined,
+          instructorPercentSnapshot: shares.instructorSharePercent,
+          platformPercentSnapshot: shares.platformSharePercent,
+          instructorEarningsSnapshot: shares.instructorEarnings,
+          platformEarningsSnapshot: shares.platformEarnings,
         });
       }
     }
@@ -578,29 +605,146 @@ export class CommerceService {
       order.status = 'paid';
       await order.save({ session });
 
-      // 4. Create Enrollments and update counts
+      // 4. Create Enrollments and update counts + Record Instructor Revenue
       for (const item of order.items) {
         if (item.itemType === 'course') {
+          // Resolve instructor revenue details if not snapshotted
+          let instructorId = item.instructorId;
+          let instPercent = item.instructorPercentSnapshot;
+          let platPercent = item.platformPercentSnapshot;
+          let instEarnings = item.instructorEarningsSnapshot;
+          let platEarnings = item.platformEarningsSnapshot;
+
+          if (instPercent === undefined || instEarnings === undefined || !instructorId) {
+            const comm = await FinancialRevenueService.resolveItemCommission('course', item.itemId.toString());
+            const shares = FinancialRevenueService.calculateShares(item.finalPrice, comm.instructorSharePercent);
+            instPercent = shares.instructorSharePercent;
+            platPercent = shares.platformSharePercent;
+            instEarnings = shares.instructorEarnings;
+            platEarnings = shares.platformEarnings;
+            if (comm.primaryInstructorId) {
+              instructorId = new mongoose.Types.ObjectId(comm.primaryInstructorId);
+            }
+          }
+
           await Enrollment.create([{
             userId,
             courseId: item.itemId,
             orderId: order._id,
             source: 'purchase',
             status: 'active',
-            amount: item.finalPrice
+            amount: item.finalPrice,
+            instructorId,
+            instructorSharePercent: instPercent,
+            platformSharePercent: platPercent,
+            instructorEarnings: instEarnings,
+            platformEarnings: platEarnings,
+            revenueSettlementStatus: 'eligible', // Self-paced course: instantly eligible for withdrawal
+            revenueEligibleAt: new Date(),
           }], { session });
 
           await Course.findByIdAndUpdate(item.itemId, { $inc: { studentCount: 1 } }, { session });
+
+          // Credit Instructor Wallet atomically if earnings > 0
+          if (instructorId && instEarnings && instEarnings > 0) {
+            const instructorUser = await User.findById(instructorId).session(session);
+            if (instructorUser) {
+              instructorUser.walletBalance = (instructorUser.walletBalance || 0) + instEarnings;
+              await instructorUser.save({ session });
+
+              await WalletTransaction.create([{
+                userId: instructorId,
+                type: 'instructor_share',
+                direction: 'credit',
+                amount: instEarnings,
+                balanceAfter: instructorUser.walletBalance,
+                status: 'completed',
+                title: `سهم فروش دوره «${item.titleSnapshot}»`,
+                description: `سهم ${instPercent}٪ مدرس از فروش دوره به مبلغ ${item.finalPrice.toLocaleString('fa-IR')} تومان (سفارش #${order._id.toString().slice(-6)})`,
+                referenceId: order._id.toString(),
+                orderId: order._id,
+                gateway: 'wallet',
+                trackingCode: `INS-CRS-${Date.now().toString().slice(-6)}`,
+              }], { session });
+
+              // Send in-app notification to instructor
+              await Notification.create([{
+                userId: instructorId,
+                type: 'sale',
+                title: '🎉 فروش جدید و واریز سهم مدرس',
+                message: `دوره «${item.titleSnapshot}» توسط دانشجو خریداری شد. مبلغ ${instEarnings.toLocaleString('fa-IR')} تومان (${instPercent}٪) به کیف پول شما اضافه گردید.`,
+                data: { orderId: order._id, courseId: item.itemId }
+              }], { session });
+            }
+          }
         } else if (item.itemType === 'class') {
+          let instructorId = item.instructorId;
+          let instPercent = item.instructorPercentSnapshot;
+          let platPercent = item.platformPercentSnapshot;
+          let instEarnings = item.instructorEarningsSnapshot;
+          let platEarnings = item.platformEarningsSnapshot;
+
+          if (instPercent === undefined || instEarnings === undefined || !instructorId) {
+            const comm = await FinancialRevenueService.resolveItemCommission('class', item.itemId.toString());
+            const shares = FinancialRevenueService.calculateShares(item.finalPrice, comm.instructorSharePercent);
+            instPercent = shares.instructorSharePercent;
+            platPercent = shares.platformSharePercent;
+            instEarnings = shares.instructorEarnings;
+            platEarnings = shares.platformEarnings;
+            if (comm.primaryInstructorId) {
+              instructorId = new mongoose.Types.ObjectId(comm.primaryInstructorId);
+            }
+          }
+
+          // Classes are held over multiple sessions: pending_completion until held, or eligible immediately for single sessions
           await ClassEnrollment.create([{
             userId,
             classId: item.itemId,
             orderId: order._id,
             status: 'active',
-            amount: item.finalPrice
+            amount: item.finalPrice,
+            instructorId,
+            instructorSharePercent: instPercent,
+            platformSharePercent: platPercent,
+            instructorEarnings: instEarnings,
+            platformEarnings: platEarnings,
+            revenueSettlementStatus: 'eligible',
+            revenueEligibleAt: new Date(),
           }], { session });
 
           await Class.findByIdAndUpdate(item.itemId, { $inc: { enrolledCount: 1 } }, { session });
+
+          // Credit instructor wallet for class purchase
+          if (instructorId && instEarnings && instEarnings > 0) {
+            const instructorUser = await User.findById(instructorId).session(session);
+            if (instructorUser) {
+              instructorUser.walletBalance = (instructorUser.walletBalance || 0) + instEarnings;
+              await instructorUser.save({ session });
+
+              await WalletTransaction.create([{
+                userId: instructorId,
+                type: 'instructor_share',
+                direction: 'credit',
+                amount: instEarnings,
+                balanceAfter: instructorUser.walletBalance,
+                status: 'completed',
+                title: `سهم ثبت‌نام کلاس «${item.titleSnapshot}»`,
+                description: `سهم ${instPercent}٪ مدرس از ثبت‌نام کلاس به مبلغ ${item.finalPrice.toLocaleString('fa-IR')} تومان (سفارش #${order._id.toString().slice(-6)})`,
+                referenceId: order._id.toString(),
+                orderId: order._id,
+                gateway: 'wallet',
+                trackingCode: `INS-CLS-${Date.now().toString().slice(-6)}`,
+              }], { session });
+
+              await Notification.create([{
+                userId: instructorId,
+                type: 'sale',
+                title: '🎉 ثبت‌نام جدید در کلاس و واریز سهم مدرس',
+                message: `دانشجو در کلاس «${item.titleSnapshot}» ثبت‌نام کرد. مبلغ ${instEarnings.toLocaleString('fa-IR')} تومان (${instPercent}٪) به کیف پول شما اضافه شد.`,
+                data: { orderId: order._id, classId: item.itemId }
+              }], { session });
+            }
+          }
         }
       }
 

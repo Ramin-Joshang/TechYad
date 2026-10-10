@@ -22,6 +22,15 @@ export interface IClassEnrollment extends Document {
   // Gradebook & Evaluation
   finalGrade?: number;
   evaluationNote?: string;
+
+  // Instructor share & settlement tracking
+  instructorId?: Types.ObjectId;
+  instructorSharePercent?: number;
+  platformSharePercent?: number;
+  instructorEarnings?: number;
+  platformEarnings?: number;
+  revenueSettlementStatus?: "pending_completion" | "eligible" | "withdrawn" | "refunded";
+  revenueEligibleAt?: Date;
 }
 
 const classEnrollmentSchema = new Schema<IClassEnrollment>(
@@ -47,6 +56,19 @@ const classEnrollmentSchema = new Schema<IClassEnrollment>(
     // Gradebook & Evaluation
     finalGrade: { type: Number, min: 0, max: 100 },
     evaluationNote: { type: String, default: "" },
+
+    // Instructor revenue fields
+    instructorId: { type: Schema.Types.ObjectId, ref: "User" },
+    instructorSharePercent: { type: Number },
+    platformSharePercent: { type: Number },
+    instructorEarnings: { type: Number },
+    platformEarnings: { type: Number },
+    revenueSettlementStatus: {
+      type: String,
+      enum: ["pending_completion", "eligible", "withdrawn", "refunded"],
+      default: "pending_completion",
+    },
+    revenueEligibleAt: Date,
   },
   { timestamps: true }
 );

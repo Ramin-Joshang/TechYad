@@ -45,6 +45,29 @@ export const superAdminApi = {
     return api.patch<any, any>('/super-admin/settings', data);
   },
 
+  // Financial Commission & Instructor Revenue Settings
+  getFinancialCommissionSettings: async () => {
+    return api.get<any, any>('/super-admin/financial-settings');
+  },
+  updateFinancialCommissionSettings: async (data: {
+    defaultCourseInstructorShare: number;
+    defaultClassInstructorShare: number;
+    minWithdrawalAmount?: number;
+    settlementReviewDays?: number;
+  }) => {
+    return api.patch<any, any>('/super-admin/financial-settings', data);
+  },
+  listCommissionItems: async (params?: { search?: string; type?: string; status?: string }) => {
+    return api.get<any, any>('/super-admin/commission-items', { params });
+  },
+  setItemCommissionOverride: async (data: {
+    itemType: 'course' | 'class';
+    itemId: string;
+    instructorSharePercent: number | null;
+  }) => {
+    return api.post<any, any>('/super-admin/commission-override', data);
+  },
+
   // Settlements / Instructor Payouts
   getSettlements: async (params?: any) => {
     return api.get<any, any>('/admin/settlements', { params });

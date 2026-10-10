@@ -363,12 +363,25 @@ export class AuthService {
   }
 
   static async changePassword(userId: string, currentPassword: string, newPassword: string) {
-    const user = await User.findById(userId);
+    // Explicitly select passwordHash because userSchema has select: false on passwordHash
+    const user = await User.findById(userId).select('+passwordHash');
     if (!user) throw new AppError('کاربر یافت نشد', 404, 'NOT_FOUND');
 
-    const isValidPassword = await argon2.verify(user.passwordHash, currentPassword);
-    if (!isValidPassword) {
-      throw new AppError('رمز عبور فعلی نادرست است', 400, 'INVALID_CURRENT_PASSWORD');
+    if (!user.passwordHash || typeof user.passwordHash !== 'string' || !user.passwordHash.trim()) {
+      throw new AppError('برای این حساب کاربری رمز عبور معتبری ثبت نشده است. لطفاً از طریق بازیابی رمز اقدام نمایید.', 400, 'PASSWORD_NOT_SET');
+    }
+
+    try {
+      const isValidPassword = await argon2.verify(user.passwordHash, currentPassword);
+      if (!isValidPassword) {
+        throw new AppError('رمز عبور فعلی نادرست است', 400, 'INVALID_CURRENT_PASSWORD');
+      }
+    } catch (verifyError: any) {
+      if (verifyError instanceof AppError) {
+        throw verifyError;
+      }
+      console.error('Password verification error for user:', userId, verifyError);
+      throw new AppError('رمز عبور فعلی نادرست است یا ساختار هش رمز نامعتبر می‌باشد', 400, 'INVALID_CURRENT_PASSWORD');
     }
 
     user.passwordHash = await argon2.hash(newPassword);

@@ -14,9 +14,12 @@ import { AuditService } from '../../common/services/audit.service.js';
 export class CourseService {
   // --- Courses ---
   static async createCourse(instructorId: string, data: any) {
+    const payload = { ...data };
+    delete payload.instructorSharePercent; // Never allow instructor to alter commission share
+
     const course = await Course.create({
-      ...data,
-      instructors: data.instructors?.length > 0 ? data.instructors : [instructorId],
+      ...payload,
+      instructors: payload.instructors?.length > 0 ? payload.instructors : [instructorId],
       createdBy: instructorId,
       status: 'draft'
     });
@@ -211,9 +214,13 @@ static async getInstructorCourses(instructorId: string, query: any) {
 
   static async updateCourse(id: string, instructorId: string, data: any, overrideAuth: boolean = false) {
     const query = overrideAuth ? { _id: id } : { _id: id, instructors: instructorId };
+    const payload = { ...data };
+    if (!overrideAuth) {
+      delete payload.instructorSharePercent; // Never allow non-admin to override commission
+    }
     const course = await Course.findOneAndUpdate(
       query,
-      data,
+      payload,
       { new: true, runValidators: true }
     );
     if (!course) throw new AppError('Course not found or unauthorized', 404, 'NOT_FOUND');

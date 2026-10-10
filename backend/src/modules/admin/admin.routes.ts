@@ -64,6 +64,12 @@ router.patch('/super-admin/settings', isSuperAdmin, asyncHandler(Controller.upda
 router.get('/admin/settings', isAdmin, asyncHandler(Controller.getSettings));
 router.patch('/admin/settings', isAdmin, asyncHandler(Controller.updateSettings));
 
+// Financial Commission & Instructor Share Settings (Super Admin)
+router.get('/super-admin/financial-settings', isSuperAdmin, asyncHandler(Controller.getFinancialCommissionSettings));
+router.patch('/super-admin/financial-settings', isSuperAdmin, asyncHandler(Controller.updateFinancialCommissionSettings));
+router.get('/super-admin/commission-items', isSuperAdmin, asyncHandler(Controller.listCommissionItems));
+router.post('/super-admin/commission-override', isSuperAdmin, asyncHandler(Controller.setItemCommissionOverride));
+
 // Settlements & Instructor Payouts
 router.get('/admin/settlements', isAdmin, asyncHandler(Controller.getSettlements));
 router.post('/admin/settlements', isSuperAdmin, asyncHandler(Controller.createSettlement));

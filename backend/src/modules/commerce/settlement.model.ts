@@ -8,6 +8,8 @@ export interface ISettlement extends Document {
   accountHolderName: string;
   bankName?: string;
   trackingCode?: string;
+  transactionId?: Types.ObjectId;
+  referenceId?: string;
   requestedAt: Date;
   processedAt?: Date;
   processedBy?: Types.ObjectId;
@@ -31,6 +33,8 @@ const settlementSchema = new Schema<ISettlement>(
     accountHolderName: { type: String, required: true },
     bankName: { type: String },
     trackingCode: { type: String },
+    transactionId: { type: Schema.Types.ObjectId, ref: "WalletTransaction", index: true },
+    referenceId: { type: String, index: true },
     requestedAt: { type: Date, default: Date.now },
     processedAt: { type: Date },
     processedBy: { type: Schema.Types.ObjectId, ref: "User" },

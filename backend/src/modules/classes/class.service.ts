@@ -8,6 +8,7 @@ import { AppError } from '../../common/errors/AppError.js';
 import { Types } from 'mongoose';
 import { parseDateSafely } from '../../common/utils/date.js';
 import { AuditService } from '../../common/services/audit.service.js';
+import { FinancialRevenueService } from '../commerce/financial-revenue.service.js';
 
 export class ClassService {
   static async getInstructorClasses(instructorId: string) {
@@ -214,6 +215,9 @@ export class ClassService {
     const initialStatus = isPrivilegedAdmin ? (payload.status || 'published') : 'pending_approval';
     if (!payload.status) payload.status = initialStatus;
     if (payload.registrationOpen === undefined) payload.registrationOpen = true;
+    if (!isPrivilegedAdmin) {
+      delete payload.instructorSharePercent; // Never allow non-admin to override class commission
+    }
 
     const createdClass = await Class.create({
       ...payload,
@@ -383,6 +387,10 @@ export class ClassService {
       payload.totalHours = Math.round(((Number(payload.sessions) * Number(payload.sessionDuration)) / 60) * 10) / 10;
     }
 
+    if (!overrideAuth) {
+      delete payload.instructorSharePercent; // Never allow non-admin to override commission
+    }
+
     const cls = await Class.findOneAndUpdate(query, payload, { new: true });
     if (!cls) throw new AppError('Class not found or unauthorized', 404);
 
@@ -550,6 +558,11 @@ export class ClassService {
     }
 
     // Create Enrollment Record
+    // Resolve dynamic commission share
+    const commission = await FinancialRevenueService.resolveItemCommission('class', classId);
+    const shares = FinancialRevenueService.calculateShares(requiredAmount, commission.instructorSharePercent);
+    const primaryInstructorId = commission.primaryInstructorId || classData.instructors?.[0] || classData.createdBy;
+
     const enrollment = await ClassEnrollment.create({
       userId,
       classId,
@@ -560,15 +573,21 @@ export class ClassService {
       depositAmount: isDeposit ? requiredAmount : 0,
       remainingBalance,
       remainingPaid: !isDeposit || remainingBalance === 0,
+      instructorId: primaryInstructorId ? new Types.ObjectId(primaryInstructorId) : undefined,
+      instructorSharePercent: shares.instructorSharePercent,
+      platformSharePercent: shares.platformSharePercent,
+      instructorEarnings: shares.instructorEarnings,
+      platformEarnings: shares.platformEarnings,
+      revenueSettlementStatus: 'eligible',
+      revenueEligibleAt: new Date(),
     });
 
     await Class.findByIdAndUpdate(classId, { $inc: { enrolledCount: 1 } });
 
-    // Credit Instructor Wallet with 70% share
-    const primaryInstructorId = classData.instructors?.[0] || classData.createdBy;
-    if (requiredAmount > 0 && primaryInstructorId) {
+    // Credit Instructor Wallet with resolved share
+    if (requiredAmount > 0 && primaryInstructorId && shares.instructorEarnings > 0) {
       try {
-        const instructorShare = Math.round(requiredAmount * 0.7);
+        const instructorShare = shares.instructorEarnings;
         const instructorUser = await User.findById(primaryInstructorId);
         if (instructorUser) {
           instructorUser.walletBalance = (instructorUser.walletBalance || 0) + instructorShare;
@@ -582,7 +601,7 @@ export class ClassService {
             balanceAfter: instructorUser.walletBalance,
             status: 'completed',
             title: `درآمد حاصل از کلاس «${classData.title}»`,
-            description: `سهم ۷۰٪ استاد از ثبت‌نام ${user.firstName || ''} ${user.lastName || ''} در کلاس ${classData.title} (${isDeposit ? 'بیعانه' : 'تسویه کامل'})`,
+            description: `سهم ${shares.instructorSharePercent}٪ استاد از ثبت‌نام ${user.firstName || ''} ${user.lastName || ''} در کلاس ${classData.title} (${isDeposit ? 'بیعانه' : 'تسویه کامل'})`,
             gateway: 'wallet',
             trackingCode: `INS-CLS-${Date.now().toString().slice(-6)}`,
             referenceId: `CLS-${classId}`
@@ -675,17 +694,23 @@ export class ClassService {
       trackingCode: `CLS-REM-${Date.now().toString().slice(-6)}`,
     });
 
+    // Resolve dynamic commission share for remaining installment
+    const commission = await FinancialRevenueService.resolveItemCommission('class', classId);
+    const shares = FinancialRevenueService.calculateShares(remainingAmount, commission.instructorSharePercent);
+    const primaryInstructorId = commission.primaryInstructorId || classData.instructors?.[0] || classData.createdBy;
+
     enrollment.amount += remainingAmount;
     enrollment.remainingBalance = 0;
     enrollment.remainingPaid = true;
     enrollment.remainingPaidAt = new Date();
+    enrollment.instructorEarnings = (enrollment.instructorEarnings || 0) + shares.instructorEarnings;
+    enrollment.platformEarnings = (enrollment.platformEarnings || 0) + shares.platformEarnings;
     await enrollment.save();
 
-    // Credit Instructor Wallet with 70% share of remaining payment
-    const primaryInstructorId = classData.instructors?.[0] || classData.createdBy;
-    if (remainingAmount > 0 && primaryInstructorId) {
+    // Credit Instructor Wallet with resolved share of remaining payment
+    if (remainingAmount > 0 && primaryInstructorId && shares.instructorEarnings > 0) {
       try {
-        const instructorShare = Math.round(remainingAmount * 0.7);
+        const instructorShare = shares.instructorEarnings;
         const instructorUser = await User.findById(primaryInstructorId);
         if (instructorUser) {
           instructorUser.walletBalance = (instructorUser.walletBalance || 0) + instructorShare;
@@ -699,7 +724,7 @@ export class ClassService {
             balanceAfter: instructorUser.walletBalance,
             status: 'completed',
             title: `درآمد حاصل از تسویه مابقی کلاس «${classData.title}»`,
-            description: `سهم ۷۰٪ استاد از تسویه مابقی شهریه ${user.firstName || ''} ${user.lastName || ''} در کلاس ${classData.title}`,
+            description: `سهم ${shares.instructorSharePercent}٪ استاد از تسویه مابقی شهریه ${user.firstName || ''} ${user.lastName || ''} در کلاس ${classData.title}`,
             gateway: 'wallet',
             trackingCode: `INS-REM-${Date.now().toString().slice(-6)}`,
             referenceId: `CLS-REM-${classId}`

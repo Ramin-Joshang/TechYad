@@ -12,6 +12,15 @@ export interface IEnrollment extends Document {
   amount: number;
   enrolledAt: Date;
   completedAt?: Date;
+
+  // Instructor share & settlement tracking
+  instructorId?: Types.ObjectId;
+  instructorSharePercent?: number;
+  platformSharePercent?: number;
+  instructorEarnings?: number;
+  platformEarnings?: number;
+  revenueSettlementStatus?: "pending_completion" | "eligible" | "withdrawn" | "refunded";
+  revenueEligibleAt?: Date;
   
   // Progress tracking
   progress: number;
@@ -52,6 +61,20 @@ const enrollmentSchema = new Schema<IEnrollment>(
       type: Number,
       default: 0,
     },
+    instructorId: {
+      type: Schema.Types.ObjectId,
+      ref: "User",
+    },
+    instructorSharePercent: Number,
+    platformSharePercent: Number,
+    instructorEarnings: Number,
+    platformEarnings: Number,
+    revenueSettlementStatus: {
+      type: String,
+      enum: ["pending_completion", "eligible", "withdrawn", "refunded"],
+      default: "eligible",
+    },
+    revenueEligibleAt: Date,
     enrolledAt: {
       type: Date,
       default: Date.now,

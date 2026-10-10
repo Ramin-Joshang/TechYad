@@ -61,6 +61,7 @@ export interface WalletTransactionItem {
 
 export interface WalletOverview {
   balance: number;
+  withdrawableBalance?: number;
   user: {
     id: string;
     name: string;
@@ -75,6 +76,13 @@ export interface WalletOverview {
     totalReferralEarnings: number;
     pendingWithdrawalAmount: number;
     pendingWithdrawalCount: number;
+    totalInstructorEarnings?: number;
+    totalSettledWithdrawals?: number;
+    pendingServiceRevenue?: number;
+    pendingReleaseRevenue?: number;
+    withdrawableBalance?: number;
+    reservedWithdrawalAmount?: number;
+    totalStudentsCount?: number;
   };
   quickDepositPresets: number[];
   recentTransactions: WalletTransactionItem[];
