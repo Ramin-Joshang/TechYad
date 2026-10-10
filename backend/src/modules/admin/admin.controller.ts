@@ -32,6 +32,16 @@ export const updateUserStatus = async (req: Request, res: Response) => {
   sendSuccess(res, result, 'User status updated');
 };
 
+export const toggleTeachingCapability = async (req: any, res: Response) => {
+  const result = await AdminService.toggleTeachingCapability(
+    req.user?._id || req.user?.id,
+    req.params.id as string,
+    Boolean(req.body.enabled),
+    { ip: req.ip, userAgent: req.headers?.['user-agent'], req }
+  );
+  sendSuccess(res, result.user, result.message);
+};
+
 export const createCoupon = async (req: Request, res: Response) => {
   const result = await AdminService.createCoupon(req.body);
   sendSuccess(res, result, 'Coupon created successfully', 201);

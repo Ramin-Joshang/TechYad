@@ -13,6 +13,9 @@ export const superAdminApi = {
   updateAdminStatus: async (id: string, status: string) => {
     return api.patch<any, any>(`/super-admin/admins/${id}/status`, { status });
   },
+  toggleTeachingCapability: async (id: string, enabled: boolean) => {
+    return api.post<any, any>(`/super-admin/admins/${id}/teaching-capability`, { enabled });
+  },
   
   // Roles & Permissions
   getRoles: async () => {

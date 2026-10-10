@@ -22,6 +22,9 @@ export const adminApi = {
   updateUserStatus: async (id: string, status: string) => {
     return api.patch<any, any>(`/admin/users/${id}/status`, { status });
   },
+  toggleTeachingCapability: async (id: string, enabled: boolean) => {
+    return api.post<any, any>(`/admin/users/${id}/teaching-capability`, { enabled });
+  },
   getOrders: async (params?: any) => {
     return api.get<any, any>('/admin/orders', { params });
   },

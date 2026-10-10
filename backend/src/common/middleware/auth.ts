@@ -46,13 +46,41 @@ export const authorize = (...permissions: (string | string[])[]) => {
     const userPermissions: string[] = req.user.role.permissions || [];
     const roleSlug = req.user.role.slug;
     
-    // Super admin bypass
-    if (roleSlug === 'super-admin' || roleSlug === 'admin') {
+    // Super admin has full administrative authorization
+    if (roleSlug === 'super-admin') {
       return next();
     }
 
-    // If checking instructor permission and user is instructor, allow
-    if (roleSlug === 'instructor' && flattened.some(p => p.includes('course') || p.includes('class') || p.includes('manage') || p.includes('instructor'))) {
+    const isTeachingPermissionCheck = flattened.some(p => 
+      p === 'create_course' || 
+      p === 'create_class' || 
+      p.includes('create_course') || 
+      p.includes('create_class') || 
+      p.startsWith('instructor')
+    );
+
+    // Teaching capability checks
+    if (isTeachingPermissionCheck) {
+      if (roleSlug === 'instructor') {
+        return next();
+      }
+      if (roleSlug === 'admin' && req.user.canTeach) {
+        return next();
+      }
+      return next(new AppError('دسترسی مجاز نمی‌باشد. این حساب کاربری فاقد مجوز تدریس است.', 403, 'AUTH_TEACHING_FORBIDDEN'));
+    }
+
+    // Admin role authorization for administrative features
+    if (roleSlug === 'admin') {
+      // Super admin specific routes check
+      if (flattened.includes('super_admin.access')) {
+        return next(new AppError('این عملیات تنها در صلاحیت مدیر ارشد (Super Admin) می‌باشد', 403, 'AUTH_SUPER_ADMIN_REQUIRED'));
+      }
+      return next();
+    }
+
+    // If checking instructor permission and user is instructor
+    if (roleSlug === 'instructor' && flattened.some(p => p.includes('course') || p.includes('class') || p.includes('instructor'))) {
       return next();
     }
 

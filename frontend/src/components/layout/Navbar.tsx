@@ -93,6 +93,7 @@ export function Navbar() {
   const [hoveredCategory, setHoveredCategory] = useState<any>(null);
   const [mobileCategoriesOpen, setMobileCategoriesOpen] = useState(false);
   const categoryMenuTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const categoryContainerRef = useRef<HTMLDivElement | null>(null);
 
   const openCategoryMenu = () => {
     if (categoryMenuTimeoutRef.current) {
@@ -109,11 +110,22 @@ export function Navbar() {
     categoryMenuTimeoutRef.current = setTimeout(() => {
       setIsCategoryMenuOpen(false);
       setHoveredCategory(null);
-    }, 250);
+    }, 500);
   };
 
   useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        categoryContainerRef.current &&
+        !categoryContainerRef.current.contains(event.target as Node)
+      ) {
+        setIsCategoryMenuOpen(false);
+        setHoveredCategory(null);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
     return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
       if (categoryMenuTimeoutRef.current) {
         clearTimeout(categoryMenuTimeoutRef.current);
       }
@@ -213,13 +225,17 @@ export function Navbar() {
 
               {/* دسته‌بندی‌ها (Mega Menu Dropdown) */}
               <div 
+                ref={categoryContainerRef}
                 className="relative shrink-0"
                 onMouseEnter={openCategoryMenu}
                 onMouseLeave={closeCategoryMenu}
               >
                 <button
                   type="button"
-                  onClick={() => setIsCategoryMenuOpen(!isCategoryMenuOpen)}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setIsCategoryMenuOpen((prev) => !prev);
+                  }}
                   onFocus={openCategoryMenu}
                   className={`inline-flex items-center gap-1 xl:gap-1.5 px-1.5 xl:px-2 py-1 rounded-xl transition-colors cursor-pointer ${
                     pathname?.startsWith("/categories") || isCategoryMenuOpen
@@ -235,14 +251,14 @@ export function Navbar() {
                 {/* Dropdown Card */}
                 {isCategoryMenuOpen && categoryTreeData && categoryTreeData.length > 0 && (
                   <div 
-                    className="absolute top-full right-0 pt-2 z-50 animate-in fade-in slide-in-from-top-1 duration-150"
+                    className="absolute top-full right-0 w-[620px] pt-2 z-50 animate-in fade-in slide-in-from-top-1 duration-150"
                     onMouseEnter={openCategoryMenu}
                     onMouseLeave={closeCategoryMenu}
                   >
-                    {/* Hover Bridge: covers gap between button and dropdown card */}
-                    <div className="absolute -top-3 right-0 left-0 h-4 bg-transparent pointer-events-auto" />
+                    {/* Hover Bridge: covers gap between button and dropdown card across full width */}
+                    <div className="absolute -top-4 right-0 left-0 h-6 bg-transparent pointer-events-auto" />
 
-                    <div className="w-[620px] bg-white rounded-2xl shadow-2xl border border-[var(--neo-border)] p-4 relative pointer-events-auto">
+                    <div className="w-full bg-white rounded-2xl shadow-2xl border border-[var(--neo-border)] p-4 relative pointer-events-auto">
                       <div className="grid grid-cols-12 gap-3 min-h-[260px]">
                         {/* Main Root Categories */}
                         <div className="col-span-5 border-l border-[var(--neo-border)] pl-3 space-y-1">

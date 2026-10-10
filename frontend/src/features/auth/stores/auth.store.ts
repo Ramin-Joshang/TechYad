@@ -12,6 +12,9 @@ export interface User {
   bio?: string;
   specialty?: string;
   permissions?: string[]; // E.g., 'courses.manage', 'courses.publish', etc.
+  canTeach?: boolean;
+  hasExplicitTeachingGrant?: boolean;
+  instructorCapabilityGrantedAt?: string;
   referralCode?: string;
   walletBalance?: number;
 }

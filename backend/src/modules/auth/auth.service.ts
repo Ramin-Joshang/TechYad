@@ -288,6 +288,9 @@ export class AuthService {
         specialty: user.specialty,
         role: role?.slug,
         permissions: role?.permissions || [],
+        canTeach: role?.slug === 'instructor' || role?.slug === 'super-admin' || !!user.canTeach,
+        hasExplicitTeachingGrant: !!user.canTeach,
+        instructorCapabilityGrantedAt: user.instructorCapabilityGrantedAt,
         referralCode: user.referralCode,
         walletBalance: user.walletBalance || 0
       },

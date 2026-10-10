@@ -140,14 +140,21 @@ export default function AdminsManagementPage() {
                       <div className="text-xs text-[var(--neo-text-secondary)]">{admin.email}</div>
                     </td>
                     <td className="p-4">
-                      <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-bold ${
-                        admin.role?.slug === 'super-admin' 
-                          ? 'bg-purple-100 text-purple-700' 
-                          : 'bg-blue-100 text-blue-700'
-                      }`}>
-                        {admin.role?.slug === 'super-admin' && <Shield className="w-3.5 h-3.5" />}
-                        {admin.role?.name || admin.role?.slug}
-                      </span>
+                      <div className="flex flex-col gap-1 items-start">
+                        <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-bold ${
+                          admin.role?.slug === 'super-admin' 
+                            ? 'bg-purple-100 text-purple-700' 
+                            : 'bg-blue-100 text-blue-700'
+                        }`}>
+                          {admin.role?.slug === 'super-admin' && <Shield className="w-3.5 h-3.5" />}
+                          {admin.role?.name || admin.role?.slug}
+                        </span>
+                        {admin.role?.slug === 'admin' && admin.canTeach && (
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] font-bold">
+                            <span>مجوز تدریس فعال</span>
+                          </span>
+                        )}
+                      </div>
                     </td>
                     <td className="p-4">
                       <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${

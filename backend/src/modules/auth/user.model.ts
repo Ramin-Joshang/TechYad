@@ -31,6 +31,12 @@ export interface IUser extends Document {
   walletBalance?: number;
   referralEarnings?: number;
   referralCount?: number;
+
+  // Multi-Role & Teaching Capability
+  canTeach?: boolean;
+  instructorCapabilityGrantedBy?: Types.ObjectId;
+  instructorCapabilityGrantedAt?: Date;
+  instructorCapabilityRevokedAt?: Date;
 }
 
 const userSchema = new Schema<IUser>(
@@ -144,6 +150,26 @@ const userSchema = new Schema<IUser>(
     referralCount: {
       type: Number,
       default: 0,
+    },
+
+    // Multi-Role & Teaching Capability
+    canTeach: {
+      type: Boolean,
+      default: false,
+      index: true,
+    },
+
+    instructorCapabilityGrantedBy: {
+      type: Schema.Types.ObjectId,
+      ref: "User",
+    },
+
+    instructorCapabilityGrantedAt: {
+      type: Date,
+    },
+
+    instructorCapabilityRevokedAt: {
+      type: Date,
     },
   },
   {

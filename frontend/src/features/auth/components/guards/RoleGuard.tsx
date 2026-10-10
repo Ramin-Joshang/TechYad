@@ -22,6 +22,16 @@ export function RoleGuard({ children, allowedRoles, fallback = null }: RoleGuard
     return <AuthGuard>{children}</AuthGuard>;
   }
 
+  // Admin with explicit instructor capability can access instructor workspace
+  if (allowedRoles.includes('instructor') && user?.role === 'admin' && user?.canTeach) {
+    return <AuthGuard>{children}</AuthGuard>;
+  }
+
+  // Learner capability: all authenticated users have access to the student learning area
+  if (allowedRoles.includes('student') && user) {
+    return <AuthGuard>{children}</AuthGuard>;
+  }
+
   if (user && allowedRoles.includes(user.role)) {
     return <AuthGuard>{children}</AuthGuard>;
   }

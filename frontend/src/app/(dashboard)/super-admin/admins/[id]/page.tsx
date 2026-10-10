@@ -15,7 +15,12 @@ import {
   Lock, 
   CheckCircle2, 
   AlertCircle,
-  Shield
+  Shield,
+  GraduationCap,
+  Sparkles,
+  Check,
+  X,
+  HelpCircle
 } from 'lucide-react';
 import Link from 'next/link';
 import toast from 'react-hot-toast';
@@ -152,6 +157,22 @@ export default function AdminEditPage() {
     }
   });
 
+  const [showTeachingConfirm, setShowTeachingConfirm] = useState(false);
+
+  const toggleTeachingMutation = useMutation({
+    mutationFn: (enabled: boolean) => superAdminApi.toggleTeachingCapability(id, enabled),
+    onSuccess: (res: any) => {
+      const msg = res?.data?.message || 'قابلیت تدریس با موفقیت بروزرسانی شد';
+      toast.success(msg);
+      setShowTeachingConfirm(false);
+      queryClient.invalidateQueries({ queryKey: ['superAdminAdmins'] });
+      queryClient.invalidateQueries({ queryKey: ['adminUserDetail', id] });
+    },
+    onError: (err: any) => {
+      toast.error(err.response?.data?.message || 'خطا در تغییر قابلیت تدریس');
+    }
+  });
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!validateAll()) {
@@ -204,6 +225,97 @@ export default function AdminEditPage() {
           </span>
         )}
       </div>
+
+      {/* Teaching Capability Control for Admin (Super Admin Privilege) */}
+      {!isSuperAdminRole && (
+        <div className="bg-white rounded-3xl p-6 shadow-sm border border-[var(--neo-border)] space-y-4">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+            <div className="flex items-center gap-3">
+              <div className={`p-3 rounded-2xl ${currentAdmin?.canTeach ? 'bg-emerald-100 text-emerald-600' : 'bg-slate-100 text-slate-600'}`}>
+                <GraduationCap className="w-6 h-6" />
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <h3 className="text-base font-black text-[var(--neo-text-main)]">
+                    قابلیت تدریس برای ادمین (آموزش و ایجاد دوره/کلاس)
+                  </h3>
+                  <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold ${
+                    currentAdmin?.canTeach
+                      ? 'bg-emerald-100 text-emerald-800 border border-emerald-200'
+                      : 'bg-slate-100 text-slate-600 border border-slate-200'
+                  }`}>
+                    {currentAdmin?.canTeach ? (
+                      <>
+                        <Check className="w-3 h-3 text-emerald-600" />
+                        <span>فعال (مجاز به تدریس)</span>
+                      </>
+                    ) : (
+                      <>
+                        <X className="w-3 h-3 text-slate-400" />
+                        <span>غیرفعال (فقط مدیریت)</span>
+                      </>
+                    )}
+                  </span>
+                </div>
+                <p className="text-xs text-[var(--neo-text-secondary)] mt-1">
+                  {currentAdmin?.canTeach
+                    ? 'این مدیر دارای مجوز اختصاصی تدریس است و می‌تواند دوره‌ها و کلاس‌های خود را ایجاد و مدیریت کند.'
+                    : 'این کاربر به عنوان ادمین، فقط دسترسی‌های مدیریتی دارد و بدون مجوز نمی‌تواند به عنوان مدرس دوره ایجاد کند.'}
+                </p>
+                {currentAdmin?.canTeach && currentAdmin?.instructorCapabilityGrantedAt && (
+                  <div className="text-[11px] text-emerald-700 mt-1 font-medium">
+                    تاریخ اعطای قابلیت تدریس: {new Date(currentAdmin.instructorCapabilityGrantedAt).toLocaleDateString('fa-IR')}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Action Trigger Button */}
+            <div>
+              {!showTeachingConfirm ? (
+                <button
+                  type="button"
+                  onClick={() => setShowTeachingConfirm(true)}
+                  className={`px-4 py-2.5 rounded-xl font-bold text-xs transition-all shadow-xs flex items-center gap-1.5 cursor-pointer ${
+                    currentAdmin?.canTeach
+                      ? 'bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200'
+                      : 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-emerald-500/20'
+                  }`}
+                >
+                  <GraduationCap className="w-4 h-4" />
+                  <span>
+                    {currentAdmin?.canTeach
+                      ? 'لغو قابلیت تدریس برای این ادمین'
+                      : 'فعال‌سازی قابلیت تدریس برای ادمین'}
+                  </span>
+                </button>
+              ) : (
+                <div className="flex items-center gap-2 p-2 bg-amber-50 rounded-2xl border border-amber-200 animate-in fade-in zoom-in-95">
+                  <span className="text-xs font-bold text-amber-900 pr-1">
+                    {currentAdmin?.canTeach ? 'تأیید لغو مجوز تدریس؟' : 'تأیید اعطای مجوز تدریس؟'}
+                  </span>
+                  <button
+                    type="button"
+                    disabled={toggleTeachingMutation.isPending}
+                    onClick={() => toggleTeachingMutation.mutate(!currentAdmin?.canTeach)}
+                    className="px-3 py-1.5 bg-amber-600 hover:bg-amber-700 text-white rounded-xl text-xs font-bold transition flex items-center gap-1 cursor-pointer"
+                  >
+                    {toggleTeachingMutation.isPending && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
+                    <span>تأیید نهایی</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setShowTeachingConfirm(false)}
+                    className="px-2.5 py-1.5 bg-white text-slate-700 hover:bg-slate-100 rounded-xl text-xs font-medium border border-slate-200 transition cursor-pointer"
+                  >
+                    انصراف
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Form */}
       <form onSubmit={handleSubmit} noValidate className="bg-[var(--neo-surface)] rounded-3xl p-6 md:p-8 shadow-sm border border-[var(--neo-border)] space-y-6">

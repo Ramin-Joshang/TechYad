@@ -106,6 +106,10 @@ export default function DashboardLayout({
 
   const closeMenu = () => setMobileMenuOpen(false);
 
+  const userCanTeach = user?.role === "instructor" || user?.role === "super-admin" || (user?.role === "admin" && !!user?.canTeach);
+  const userCanAdmin = user?.role === "admin" || user?.role === "super-admin";
+  const userCanSuperAdmin = user?.role === "super-admin";
+
   const getNavLinks = () => {
     const profileLink = {
       name: "تنظیمات پروفایل",
@@ -113,7 +117,89 @@ export default function DashboardLayout({
       icon: Settings,
     };
 
-    if (user?.role === "super-admin") {
+    const isStudentPath = pathname?.startsWith("/student");
+    const isInstructorPath = pathname?.startsWith("/instructor");
+    const isSuperAdminPath = pathname?.startsWith("/super-admin");
+    const isAdminPath = pathname?.startsWith("/admin") && !isSuperAdminPath;
+
+    // 1. Student Learning Area
+    if (isStudentPath || (!isInstructorPath && !isAdminPath && !isSuperAdminPath && user?.role === "student")) {
+      return [
+        { name: "داشبورد یادگیری", href: "/student", icon: LayoutDashboard },
+        { name: "دوره‌های من", href: "/student/courses", icon: BookOpen },
+        { name: "کلاس‌های من", href: "/student/classes", icon: Video },
+        { name: "کارنامه و نمرات", href: "/student/grades", icon: Award },
+        { name: "پیشرفت تحصیلی", href: "/student/progress", icon: TrendingUp },
+        { name: "کیف پول من", href: "/student/wallet", icon: Wallet },
+        {
+          name: "معرفی دوستان (کسب درآمد)",
+          href: "/student/referrals",
+          icon: Gift,
+        },
+        { name: "تکالیف", href: "/student/assignments", icon: FileText },
+        { name: "آزمون‌ها", href: "/student/quizzes", icon: CheckSquare },
+        { name: "پرداخت‌های من", href: "/student/orders", icon: CreditCard },
+        { name: "علاقه‌مندی‌ها", href: "/student/favorites", icon: Heart },
+        { name: "تیکت‌های پشتیبانی", href: "/student/support", icon: Ticket },
+        { name: "اعلان‌ها", href: "/student/notifications", icon: Bell },
+        profileLink,
+      ];
+    }
+
+    // 2. Instructor Teaching Area
+    if (isInstructorPath || (!isAdminPath && !isSuperAdminPath && user?.role === "instructor")) {
+      return [
+        { name: "داشبورد تدریس", href: "/instructor", icon: LayoutDashboard },
+        { name: "مدیریت دوره‌های من", href: "/instructor/courses", icon: BookOpen },
+        {
+          name: "آزمون‌ها و کوییزها",
+          href: "/instructor/quizzes",
+          icon: CheckSquare,
+        },
+        {
+          name: "تکالیف و پروژه‌ها",
+          href: "/instructor/assignments",
+          icon: FileText,
+        },
+        { name: "کلاس‌های زنده", href: "/instructor/classes", icon: Video },
+        { name: "دانشجویان من", href: "/instructor/students", icon: Users },
+        {
+          name: "اعلان‌ها و پیام‌ها",
+          href: "/instructor/notifications",
+          icon: Bell,
+        },
+        {
+          name: "نظرات دانشجویان",
+          href: "/instructor/comments",
+          icon: MessageSquare,
+        },
+        {
+          name: "کیف پول و تسویه‌حساب",
+          href: "/instructor/wallet",
+          icon: Wallet,
+        },
+        {
+          name: "همکاری در فروش (رفرال)",
+          href: "/instructor/referrals",
+          icon: Share2,
+        },
+        { name: "مقالات وبلاگ", href: "/instructor/blog", icon: FileText },
+        {
+          name: "رزومه و سوابق مدرس",
+          href: "/instructor/resume",
+          icon: Award,
+        },
+        {
+          name: "گزارش مالی و فروش",
+          href: "/instructor/sales",
+          icon: DollarSign,
+        },
+        profileLink,
+      ];
+    }
+
+    // 3. Super Admin Workspace
+    if (isSuperAdminPath || (user?.role === "super-admin" && !isAdminPath)) {
       return [
         { name: "داشبورد کلان", href: "/super-admin", icon: LayoutDashboard },
         {
@@ -217,10 +303,12 @@ export default function DashboardLayout({
           href: "/super-admin/settings",
           icon: Settings,
         },
-
         profileLink,
       ];
-    } else if (user?.role === "admin") {
+    }
+
+    // 4. Admin Workspace
+    if (isAdminPath || user?.role === "admin") {
       return [
         { name: "داشبورد", href: "/admin", icon: LayoutDashboard },
         { name: "مدیریت کاربران", href: "/admin/users", icon: Users },
@@ -301,77 +389,15 @@ export default function DashboardLayout({
         { name: "تنظیمات و برندینگ", href: "/admin/settings", icon: Settings },
         profileLink,
       ];
-    } else if (user?.role === "instructor") {
-      return [
-        { name: "داشبورد", href: "/instructor", icon: LayoutDashboard },
-        { name: "مدیریت دوره‌ها", href: "/instructor/courses", icon: BookOpen },
-        {
-          name: "آزمون‌ها و کوییزها",
-          href: "/instructor/quizzes",
-          icon: CheckSquare,
-        },
-        {
-          name: "تکالیف و پروژه‌ها",
-          href: "/instructor/assignments",
-          icon: FileText,
-        },
-        { name: "کلاس‌های زنده", href: "/instructor/classes", icon: Video },
-        { name: "دانشجویان من", href: "/instructor/students", icon: Users },
-        {
-          name: "اعلان‌ها و پیام‌ها",
-          href: "/instructor/notifications",
-          icon: Bell,
-        },
-        {
-          name: "نظرات دانشجویان",
-          href: "/instructor/comments",
-          icon: MessageSquare,
-        },
-        {
-          name: "کیف پول و تسویه‌حساب",
-          href: "/instructor/wallet",
-          icon: Wallet,
-        },
-        {
-          name: "همکاری در فروش (رفرال)",
-          href: "/instructor/referrals",
-          icon: Share2,
-        },
-        { name: "مقالات وبلاگ", href: "/instructor/blog", icon: FileText },
-        {
-          name: "رزومه و سوابق مدرس",
-          href: "/instructor/resume",
-          icon: Award,
-        },
-        {
-          name: "گزارش مالی و فروش",
-          href: "/instructor/sales",
-          icon: DollarSign,
-        },
-        profileLink,
-      ];
-    } else {
-      return [
-        { name: "داشبورد", href: "/student", icon: LayoutDashboard },
-        { name: "دوره‌های من", href: "/student/courses", icon: BookOpen },
-        { name: "کلاس‌های من", href: "/student/classes", icon: Video },
-        { name: "کارنامه و نمرات", href: "/student/grades", icon: Award },
-        { name: "پیشرفت تحصیلی", href: "/student/progress", icon: TrendingUp },
-        { name: "کیف پول من", href: "/student/wallet", icon: Wallet },
-        {
-          name: "معرفی دوستان (کسب درآمد)",
-          href: "/student/referrals",
-          icon: Gift,
-        },
-        { name: "تکالیف", href: "/student/assignments", icon: FileText },
-        { name: "آزمون‌ها", href: "/student/quizzes", icon: CheckSquare },
-        { name: "پرداخت‌های من", href: "/student/orders", icon: CreditCard },
-        { name: "علاقه‌مندی‌ها", href: "/student/favorites", icon: Heart },
-        { name: "تیکت‌های پشتیبانی", href: "/student/support", icon: Ticket },
-        { name: "اعلان‌ها", href: "/student/notifications", icon: Bell },
-        profileLink,
-      ];
     }
+
+    // Default Fallback
+    return [
+      { name: "داشبورد", href: "/student", icon: LayoutDashboard },
+      { name: "دوره‌های من", href: "/student/courses", icon: BookOpen },
+      { name: "کلاس‌های من", href: "/student/classes", icon: Video },
+      profileLink,
+    ];
   };
 
   const navLinks = getNavLinks();
@@ -436,6 +462,99 @@ export default function DashboardLayout({
               </button>
             </div>
           </div>
+
+          {/* Multi-Role Workspace Switcher in Sidebar */}
+          {(userCanTeach || userCanAdmin) && !isSidebarCollapsed && (
+            <div className="mx-3 my-2 p-2.5 bg-slate-50 border border-slate-200/80 rounded-2xl space-y-1.5">
+              <div className="text-[10px] font-black text-slate-500 px-1 uppercase tracking-wider flex items-center justify-between">
+                <span>تغییر فضای کاری</span>
+                <span className="text-[9px] bg-slate-200/80 text-slate-700 px-1.5 py-0.5 rounded-full font-bold">چندنقشی</span>
+              </div>
+              <div className="grid grid-cols-1 gap-1">
+                {/* Student Learning Workspace */}
+                <Link
+                  href="/student"
+                  onClick={closeMenu}
+                  className={`flex items-center justify-between px-2.5 py-1.5 rounded-xl text-xs font-bold transition ${
+                    pathname?.startsWith("/student")
+                      ? "bg-blue-600 text-white shadow-xs"
+                      : "text-slate-700 hover:bg-slate-200/60"
+                  }`}
+                  title="ورود به فضای یادگیری و دوره‌های خریداری‌شده"
+                >
+                  <div className="flex items-center gap-1.5">
+                    <GraduationCap className="w-3.5 h-3.5 shrink-0" />
+                    <span>فضای یادگیری من</span>
+                  </div>
+                  {pathname?.startsWith("/student") && <span className="w-1.5 h-1.5 rounded-full bg-white" />}
+                </Link>
+
+                {/* Teaching Workspace */}
+                {userCanTeach && (
+                  <Link
+                    href="/instructor"
+                    onClick={closeMenu}
+                    className={`flex items-center justify-between px-2.5 py-1.5 rounded-xl text-xs font-bold transition ${
+                      pathname?.startsWith("/instructor")
+                        ? "bg-purple-600 text-white shadow-xs"
+                        : "text-slate-700 hover:bg-slate-200/60"
+                    }`}
+                    title="ورود به فضای تدریس و مدیریت دوره‌ها و کلاس‌ها"
+                  >
+                    <div className="flex items-center gap-1.5">
+                      <Briefcase className="w-3.5 h-3.5 shrink-0" />
+                      <span>فضای تدریس (مدرس)</span>
+                    </div>
+                    {pathname?.startsWith("/instructor") && <span className="w-1.5 h-1.5 rounded-full bg-white" />}
+                  </Link>
+                )}
+
+                {/* Admin Workspace */}
+                {userCanAdmin && (
+                  <Link
+                    href="/admin"
+                    onClick={closeMenu}
+                    className={`flex items-center justify-between px-2.5 py-1.5 rounded-xl text-xs font-bold transition ${
+                      pathname?.startsWith("/admin") && !pathname?.startsWith("/super-admin")
+                        ? "bg-indigo-600 text-white shadow-xs"
+                        : "text-slate-700 hover:bg-slate-200/60"
+                    }`}
+                    title="ورود به پنل مدیریت آموزشی"
+                  >
+                    <div className="flex items-center gap-1.5">
+                      <Shield className="w-3.5 h-3.5 shrink-0" />
+                      <span>پنل مدیریت</span>
+                    </div>
+                    {pathname?.startsWith("/admin") && !pathname?.startsWith("/super-admin") && (
+                      <span className="w-1.5 h-1.5 rounded-full bg-white" />
+                    )}
+                  </Link>
+                )}
+
+                {/* Super Admin Workspace */}
+                {userCanSuperAdmin && (
+                  <Link
+                    href="/super-admin"
+                    onClick={closeMenu}
+                    className={`flex items-center justify-between px-2.5 py-1.5 rounded-xl text-xs font-bold transition ${
+                      pathname?.startsWith("/super-admin")
+                        ? "bg-rose-600 text-white shadow-xs"
+                        : "text-slate-700 hover:bg-slate-200/60"
+                    }`}
+                    title="ورود به پنل مدیریت کلان"
+                  >
+                    <div className="flex items-center gap-1.5">
+                      <ShieldAlert className="w-3.5 h-3.5 shrink-0" />
+                      <span>مدیریت ارشد</span>
+                    </div>
+                    {pathname?.startsWith("/super-admin") && (
+                      <span className="w-1.5 h-1.5 rounded-full bg-white" />
+                    )}
+                  </Link>
+                )}
+              </div>
+            </div>
+          )}
 
           <nav className="flex-1 overflow-y-auto p-4 space-y-1 hide-scrollbar">
             {navLinks.map((link) => {
@@ -531,14 +650,71 @@ export default function DashboardLayout({
 
               <div className="hidden md:flex items-center gap-2">
                 <span className="text-xs font-black text-slate-800 bg-slate-100 px-2.5 py-1 rounded-lg border border-slate-200/60">
-                  {user?.role === "super-admin"
+                  {pathname?.startsWith("/super-admin")
                     ? "پنل مدیریت کلان"
-                    : user?.role === "admin"
+                    : pathname?.startsWith("/admin")
                       ? "پنل مدیریت آموزشی"
-                      : user?.role === "instructor"
-                        ? "پنل اساتید و مدرسین"
-                        : "پنل یادگیری دانشجو"}
+                      : pathname?.startsWith("/instructor")
+                        ? "فضای تدریس و اساتید"
+                        : "فضای یادگیری دانشجو"}
                 </span>
+
+                {/* Quick Workspace Switchers for Multi-Role Users */}
+                {userCanTeach && pathname?.startsWith("/student") && (
+                  <Link
+                    href="/instructor"
+                    className="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-purple-50 hover:bg-purple-100 text-purple-700 text-xs font-bold border border-purple-200 transition"
+                    title="ورود به فضای تدریس (اساتید)"
+                  >
+                    <Briefcase className="w-3.5 h-3.5" />
+                    <span>پنل تدریس</span>
+                  </Link>
+                )}
+
+                {userCanTeach && pathname?.startsWith("/instructor") && (
+                  <Link
+                    href="/student"
+                    className="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-700 text-xs font-bold border border-blue-200 transition"
+                    title="ورود به فضای یادگیری من (دوره‌های خریداری‌شده)"
+                  >
+                    <GraduationCap className="w-3.5 h-3.5" />
+                    <span>یادگیری من</span>
+                  </Link>
+                )}
+
+                {userCanAdmin && (pathname?.startsWith("/student") || pathname?.startsWith("/instructor")) && (
+                  <Link
+                    href={userCanSuperAdmin ? "/super-admin" : "/admin"}
+                    className="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-xs font-bold border border-indigo-200 transition"
+                    title="بازگشت به پنل مدیریت"
+                  >
+                    <Shield className="w-3.5 h-3.5" />
+                    <span>پنل مدیریت</span>
+                  </Link>
+                )}
+
+                {userCanAdmin && (pathname?.startsWith("/admin") || pathname?.startsWith("/super-admin")) && (
+                  <div className="flex items-center gap-1">
+                    <Link
+                      href="/student"
+                      className="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold border border-slate-200 transition"
+                      title="فضای یادگیری من (دوره‌های خریداری‌شده)"
+                    >
+                      <GraduationCap className="w-3.5 h-3.5 text-blue-600" />
+                      <span>یادگیری من</span>
+                    </Link>
+                    {userCanTeach && (
+                      <Link
+                        href="/instructor"
+                        className="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-purple-50 hover:bg-purple-100 text-purple-700 text-xs font-bold border border-purple-200 transition"
+                        title="فضای تدریس و ساخت دوره‌ها"
+                      >
+                        <Briefcase className="w-3.5 h-3.5 text-purple-600" />
+                        <span>پنل تدریس</span>
+                      </Link>
+                    )}
+                  </div>
+                )}
               </div>
             </div>
 

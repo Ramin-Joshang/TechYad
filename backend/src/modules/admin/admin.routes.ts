@@ -47,6 +47,9 @@ router.get('/super-admin/admins', isSuperAdmin, asyncHandler(Controller.getAdmin
 router.post('/super-admin/admins', isSuperAdmin, asyncHandler(Controller.createAdmin));
 router.patch('/super-admin/admins/:id', isSuperAdmin, asyncHandler(Controller.updateAdmin));
 router.patch('/super-admin/admins/:id/status', isSuperAdmin, asyncHandler(Controller.updateAdminStatus));
+router.post('/super-admin/admins/:id/teaching-capability', isSuperAdmin, asyncHandler(Controller.toggleTeachingCapability));
+router.post('/super-admin/users/:id/teaching-capability', isSuperAdmin, asyncHandler(Controller.toggleTeachingCapability));
+router.post('/admin/users/:id/teaching-capability', isSuperAdmin, asyncHandler(Controller.toggleTeachingCapability));
 router.get('/super-admin/roles', isSuperAdmin, asyncHandler(Controller.getRoles));
 router.get('/admin/roles', isAdmin, asyncHandler(Controller.getRoles));
 router.get('/super-admin/roles/:id', isSuperAdmin, asyncHandler(Controller.getRoleById));

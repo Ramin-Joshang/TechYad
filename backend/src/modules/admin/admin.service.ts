@@ -526,6 +526,131 @@ export class AdminService {
     return user;
   }
 
+  static async toggleTeachingCapability(
+    actingUserId: string,
+    targetUserId: string,
+    enabled: boolean,
+    clientInfo: { ip?: string; userAgent?: string; req?: any } = {}
+  ) {
+    // 1. Verify acting user is Super Admin
+    const actingUser = await User.findById(actingUserId).populate<{ role: any }>('role');
+    if (!actingUser || actingUser.role?.slug !== 'super-admin') {
+      throw new AppError('تنها مدیر ارشد سیستم (Super Admin) مجاز به تغییر قابلیت تدریس برای ادمین است', 403, 'AUTH_FORBIDDEN');
+    }
+
+    // 2. Prevent self-modification
+    if (actingUserId.toString() === targetUserId.toString()) {
+      throw new AppError('شما نمی‌توانید قابلیت تدریس را برای حساب کاربری خود تغییر دهید', 400, 'SELF_MODIFICATION_FORBIDDEN');
+    }
+
+    // 3. Find target user
+    const targetUser = await User.findById(targetUserId).populate<{ role: any }>('role');
+    if (!targetUser) {
+      throw new AppError('کاربر مورد نظر یافت نشد', 404, 'NOT_FOUND');
+    }
+
+    const targetRoleSlug = targetUser.role?.slug;
+
+    // Self-protection and role rules
+    if (targetRoleSlug === 'super-admin') {
+      throw new AppError('مدیر کل سیستم به طور پیش‌فرض دارای کلیه اختیارات است و نیازی به تغییر ندارد', 400, 'SUPER_ADMIN_IMMUTABLE');
+    }
+
+    if (targetRoleSlug === 'instructor') {
+      throw new AppError('این کاربر دارای نقش مدرس است و به طور پیش‌فرض قابلیت تدریس دارد', 400, 'ALREADY_INSTRUCTOR');
+    }
+
+    if (targetRoleSlug !== 'admin') {
+      throw new AppError('اعطای مستقیم قابلیت تدریس فقط برای مدیران (ادمین‌ها) قابل اعمال است', 400, 'INVALID_TARGET_ROLE');
+    }
+
+    // 4. Update teaching capability without touching admin role or permissions
+    targetUser.canTeach = enabled;
+    if (enabled) {
+      targetUser.instructorCapabilityGrantedBy = actingUser._id as any;
+      targetUser.instructorCapabilityGrantedAt = new Date();
+      // Ensure instructor profile exists so admin can teach courses and classes
+      await InstructorProfile.findOneAndUpdate(
+        { userId: targetUser._id },
+        {
+          $setOnInsert: {
+            title: targetUser.specialty || 'مدرس و مدیر آموزشی تک‌یاد',
+            bio: targetUser.bio || '',
+            isApproved: true,
+            rating: 5,
+            totalStudents: 0
+          }
+        },
+        { upsert: true, new: true }
+      );
+    } else {
+      targetUser.instructorCapabilityRevokedAt = new Date();
+    }
+
+    await targetUser.save();
+
+    // 5. Record in audit log system
+    try {
+      await AuditService.log({
+        req: clientInfo.req,
+        userId: actingUser._id,
+        userEmail: actingUser.email,
+        userName: `${actingUser.firstName} ${actingUser.lastName}`.trim(),
+        userRole: 'super-admin',
+        action: enabled ? 'grant_admin_teaching_capability' : 'revoke_admin_teaching_capability',
+        category: 'security',
+        title: enabled
+          ? `فعال‌سازی قابلیت تدریس برای مدیر «${targetUser.firstName} ${targetUser.lastName}»`
+          : `لغو قابلیت تدریس مدیر «${targetUser.firstName} ${targetUser.lastName}»`,
+        targetId: targetUser._id.toString(),
+        targetType: 'user',
+        targetTitle: `${targetUser.firstName} ${targetUser.lastName}`,
+        severity: 'warning',
+        status: 'success',
+        details: {
+          actingAdmin: `${actingUser.firstName} ${actingUser.lastName} (${actingUser.email})`,
+          targetUser: `${targetUser.firstName} ${targetUser.lastName} (${targetUser.email})`,
+          targetRole: targetRoleSlug,
+          canTeach: enabled,
+          timestamp: new Date().toISOString()
+        }
+      });
+    } catch (auditErr) {
+      console.error('Audit logging error in toggleTeachingCapability:', auditErr);
+    }
+
+    // 6. Send in-app notification to the target admin
+    try {
+      await Notification.create({
+        userId: targetUser._id,
+        type: 'system',
+        title: enabled ? 'اعطای قابلیت تدریس' : 'لغو قابلیت تدریس',
+        message: enabled
+          ? `مدیر ارشد (${actingUser.firstName} ${actingUser.lastName}) قابلیت تدریس و ایجاد دوره‌ها و کلاس‌ها را برای شما فعال نمود.`
+          : `قابلیت تدریس شما توسط مدیر ارشد (${actingUser.firstName} ${actingUser.lastName}) غیرفعال شد. دسترسی اداری شما همچنان محفوظ است.`,
+      });
+    } catch (notifErr) {
+      console.error('Notification creation error:', notifErr);
+    }
+
+    return {
+      success: true,
+      user: {
+        id: targetUser._id,
+        firstName: targetUser.firstName,
+        lastName: targetUser.lastName,
+        email: targetUser.email,
+        role: targetRoleSlug,
+        canTeach: targetUser.canTeach,
+        instructorCapabilityGrantedAt: targetUser.instructorCapabilityGrantedAt,
+        instructorCapabilityRevokedAt: targetUser.instructorCapabilityRevokedAt,
+      },
+      message: enabled
+        ? 'قابلیت تدریس برای ادمین با موفقیت فعال شد'
+        : 'قابلیت تدریس ادمین با موفقیت لغو شد'
+    };
+  }
+
   
   static async getOrders(query: any) {
     const page = Math.max(1, parseInt(query.page) || 1);
