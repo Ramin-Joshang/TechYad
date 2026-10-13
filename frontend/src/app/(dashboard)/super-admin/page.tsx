@@ -2,6 +2,7 @@
 
 import { useAuthStore } from '@/features/auth/stores/auth.store';
 import { adminApi } from '@/features/admin/api/admin.api';
+import { superAdminApi } from '@/features/admin/api/super-admin.api';
 import { useQuery } from '@tanstack/react-query';
 import { api } from '@/lib/api';
 import { 
@@ -10,7 +11,8 @@ import {
   Loader2, Server, Key, TrendingUp, ShoppingBag, 
   Tag, Clock, AlertTriangle, ArrowUpRight, CheckCircle2, 
   ExternalLink, Layers, PlusCircle, Compass,
-  Wallet, MessageCircle, Send, History, Lock, CreditCard
+  Wallet, MessageCircle, Send, History, Lock, CreditCard,
+  RefreshCw, MessageSquare, Smartphone
 } from 'lucide-react';
 import Link from 'next/link';
 import { 
@@ -33,6 +35,15 @@ export default function SuperAdminDashboard() {
     queryKey: ['systemHealth'],
     queryFn: () => api.get('/health').then((res: any) => res?.data || res),
     refetchInterval: 30000 // refresh every 30s
+  });
+
+  const { data: smsCreditData, isLoading: isLoadingSmsCredit, refetch: refetchSmsCredit } = useQuery({
+    queryKey: ['superAdminSmsCredit'],
+    queryFn: async () => {
+      const res = await superAdminApi.getSmsCredit();
+      return res?.data || res;
+    },
+    refetchInterval: 60000
   });
 
   if (isLoadingStats || !statsData) {
@@ -138,7 +149,7 @@ export default function SuperAdminDashboard() {
           </span>
         </div>
         
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
           <div className="p-4 rounded-2xl bg-[var(--neo-surface-2)] border border-[var(--neo-border)]">
             <div className="text-xs text-gray-500 mb-1">وب‌سرویس و هسته API</div>
             <div className="flex items-center gap-2">
@@ -165,6 +176,34 @@ export default function SuperAdminDashboard() {
             <div className="flex items-center gap-2">
               <div className={`w-2.5 h-2.5 rounded-full ${tickets > 0 ? 'bg-amber-500' : 'bg-emerald-500'}`} />
               <span className="font-bold text-sm text-gray-800">{tickets} تیکت نیازمند پاسخ</span>
+            </div>
+          </div>
+          <div className="p-4 rounded-2xl bg-cyan-50/80 border border-cyan-200">
+            <div className="flex items-center justify-between text-xs text-cyan-800 font-bold mb-1">
+              <Link href="/super-admin/sms-logs" className="hover:underline flex items-center gap-1">
+                <MessageSquare className="w-3.5 h-3.5 text-cyan-600" />
+                شارژ پیامک (کاوه‌نگار)
+              </Link>
+              <button
+                onClick={() => refetchSmsCredit()}
+                className="text-cyan-600 hover:text-cyan-900 transition cursor-pointer"
+                title="استعلام آنلاین شارژ"
+              >
+                <RefreshCw className={`w-3 h-3 ${isLoadingSmsCredit ? 'animate-spin' : ''}`} />
+              </button>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
+              <span className="font-black text-sm text-cyan-950 font-mono">
+                {smsCreditData?.remainCreditToman !== undefined
+                  ? `${smsCreditData.remainCreditToman.toLocaleString('fa-IR')} تومان`
+                  : 'در حال استعلام...'}
+              </span>
+            </div>
+            <div className="text-[10px] text-cyan-700 mt-0.5">
+              {smsCreditData?.remainCredit !== undefined
+                ? `${smsCreditData.remainCredit.toLocaleString('fa-IR')} ریال اعتبار وب‌سرویس`
+                : 'اتصال مستقیم فعال'}
             </div>
           </div>
         </div>

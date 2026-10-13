@@ -31,11 +31,9 @@ export class AuthService {
     let mobile = data.mobile ? String(data.mobile).trim() : undefined;
 
     // Check if flexible identifier was passed instead
-    if (!email && !mobile && data.identifier) {
+    if (!mobile && data.identifier) {
       const cleanIdent = String(data.identifier).trim();
-      if (cleanIdent.includes('@')) {
-        email = cleanIdent.toLowerCase();
-      } else {
+      if (!cleanIdent.includes('@')) {
         mobile = cleanIdent;
       }
     }
@@ -43,26 +41,31 @@ export class AuthService {
     if (mobile) {
       // Normalize Persian / Arabic numbers to English digits
       mobile = mobile.replace(/[۰-۹]/g, (d: string) => "۰۱۲۳۴۵۶۷۸۹".indexOf(d).toString());
+      mobile = mobile.replace(/[٠-٩]/g, (d: string) => "٠١٢٣٤٥٦٧٨٩".indexOf(d).toString());
       mobile = mobile.replace(/[\s\-_]/g, '');
       if (mobile.startsWith('+98')) mobile = '0' + mobile.slice(3);
       else if (mobile.startsWith('0098')) mobile = '0' + mobile.slice(4);
+      else if (mobile.startsWith('98') && mobile.length === 12) mobile = '0' + mobile.slice(2);
+      else if (!mobile.startsWith('0') && mobile.length === 10) mobile = '0' + mobile;
     }
 
-    if (!email && !mobile) {
-      throw new AppError('وارد کردن ایمیل یا شماره موبایل الزامی است', 400, 'AUTH_IDENTIFIER_REQUIRED');
+    if (!mobile) {
+      throw new AppError('ثبت‌نام در سامانه فقط با شماره موبایل امکان‌پذیر است. لطفاً شماره همراه خود را وارد نمایید.', 400, 'AUTH_MOBILE_REQUIRED');
+    }
+
+    if (!/^09\d{9}$/.test(mobile)) {
+      throw new AppError('شماره موبایل نامعتبر است. فرمت صحیح: ۱۱ رقم با پیش‌شماره ۰۹ (مانند 09123456789)', 400, 'AUTH_INVALID_MOBILE');
+    }
+
+    const existingMobile = await User.findOne({ mobile });
+    if (existingMobile) {
+      throw new AppError('این شماره موبایل قبلاً در سیستم ثبت شده است', 400, 'AUTH_MOBILE_EXISTS');
     }
 
     if (email) {
       const existingUser = await User.findOne({ email });
       if (existingUser) {
         throw new AppError('این ایمیل قبلاً در سیستم ثبت شده است', 400, 'AUTH_EMAIL_EXISTS');
-      }
-    }
-
-    if (mobile) {
-      const existingMobile = await User.findOne({ mobile });
-      if (existingMobile) {
-        throw new AppError('این شماره موبایل قبلاً در سیستم ثبت شده است', 400, 'AUTH_MOBILE_EXISTS');
       }
     }
 

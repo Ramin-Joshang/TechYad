@@ -305,4 +305,9 @@ export const testSms = async (req: Request, res: Response) => {
   sendSuccess(res, result, result.message || 'پیامک تست ارسال شد');
 };
 
+export const getSmsCredit = async (req: Request, res: Response) => {
+  const result = await SmsService.getCredit();
+  sendSuccess(res, result, 'اطلاعات شارژ سامانه پیامکی دریافت شد');
+};
+
 

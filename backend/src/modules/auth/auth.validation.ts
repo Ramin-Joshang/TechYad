@@ -4,27 +4,18 @@ export const registerSchema = z.object({
   body: z.object({
     firstName: z.string().min(2, 'نام باید حداقل ۲ کاراکتر باشد'),
     lastName: z.string().min(2, 'نام خانوادگی باید حداقل ۲ کاراکتر باشد'),
+    mobile: z.string().min(1, 'وارد کردن شماره موبایل الزامی است'),
     email: z.string().email('آدرس ایمیل نامعتبر است').optional().or(z.literal('')),
-    mobile: z.string().optional().or(z.literal('')),
     identifier: z.string().optional(),
     password: z.string().min(6, 'رمز عبور باید حداقل ۶ کاراکتر باشد'),
     referralCode: z.string().optional(),
   }).refine((data) => {
-    const hasEmail = Boolean(data.email && data.email.trim());
-    const hasMobile = Boolean(data.mobile && data.mobile.trim());
-    const hasIdent = Boolean(data.identifier && data.identifier.trim());
-    return hasEmail || hasMobile || hasIdent;
+    const rawMobile = (data.mobile || data.identifier || '').trim();
+    if (!rawMobile) return false;
+    const clean = rawMobile.replace(/[۰-۹]/g, (d: string) => "۰۱۲۳۴۵۶۷۸۹".indexOf(d).toString()).replace(/[\s\-_]/g, '');
+    return /^(\+98|0098|98|0)?9\d{9}$/.test(clean);
   }, {
-    message: 'وارد کردن ایمیل یا شماره موبایل الزامی است',
-    path: ['mobile']
-  }).refine((data) => {
-    if (data.mobile && data.mobile.trim()) {
-      const clean = data.mobile.replace(/[\s\-_]/g, '');
-      return /^(\+98|0)?9\d{9}$/.test(clean);
-    }
-    return true;
-  }, {
-    message: 'شماره موبایل نامعتبر است. فرمت صحیح: 09123456789',
+    message: 'ثبت‌نام فقط با شماره موبایل امکان‌پذیر است. فرمت صحیح: ۰۹۱۲۳۴۵۶۷۸۹',
     path: ['mobile']
   })
 });

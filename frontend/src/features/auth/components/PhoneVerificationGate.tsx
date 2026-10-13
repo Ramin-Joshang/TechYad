@@ -49,7 +49,7 @@ export function PhoneVerificationGate() {
   const handleVerify = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!code.trim()) {
-      setError('لطفاً کد تایید ۵ رقمی را وارد نمایید');
+      setError('لطفاً کد تایید پیامک‌شده را وارد نمایید');
       return;
     }
 
@@ -88,13 +88,6 @@ export function PhoneVerificationGate() {
           <div className="mb-5 p-3 bg-[var(--neo-surface-2)] rounded-2xl border border-[var(--neo-border)] flex items-center justify-between">
             <span className="text-xs text-[var(--neo-text-muted)] font-medium">شماره موبایل حساب:</span>
             <span className="text-sm font-bold font-mono text-[var(--neo-text-main)] dir-ltr">{mobileNumber}</span>
-          </div>
-        )}
-
-        {devCode && (
-          <div className="mb-4 p-3 bg-blue-50 border border-blue-200 text-blue-800 rounded-xl text-xs flex items-center justify-between">
-            <span>کد تستی سامانه:</span>
-            <span className="font-mono font-bold tracking-widest text-sm">{devCode}</span>
           </div>
         )}
 

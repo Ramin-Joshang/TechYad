@@ -379,11 +379,6 @@ export default function DashboardLayout({
           icon: Bell,
         },
         {
-          name: "لاگ‌ها و رویدادها",
-          href: "/admin/logs",
-          icon: History,
-        },
-        {
           name: "لاگ پیامک‌ها",
           href: "/admin/sms-logs",
           icon: MessageSquare,

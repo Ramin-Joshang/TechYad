@@ -342,4 +342,92 @@ export class SmsService {
       testCode: code
     };
   }
+
+  /**
+   * Retrieves active SMS account balance and credit status from Kavenegar/provider
+   */
+  static async getCredit(): Promise<{
+    provider: string;
+    remainCredit: number;
+    remainCreditToman: number;
+    remainCreditFormatted: string;
+    expireDate?: string;
+    type?: string;
+    status: 'connected' | 'error' | 'mock';
+    message?: string;
+  }> {
+    const config = await this.getConfig();
+    const apiKey = config.smsApiKey?.trim();
+    const provider = config.smsProvider || 'kavenegar';
+
+    if (provider === 'mock' || !apiKey) {
+      return {
+        provider: 'mock',
+        remainCredit: 1000000,
+        remainCreditToman: 100000,
+        remainCreditFormatted: '۱۰۰,۰۰۰ تومان (شبیه‌ساز)',
+        status: 'mock',
+        message: 'سامانه در حالت شبیه‌ساز پیامک قرار دارد'
+      };
+    }
+
+    try {
+      if (provider === 'kavenegar') {
+        const url = `https://api.kavenegar.com/v1/${encodeURIComponent(apiKey)}/account/info.json`;
+        const res = await fetch(url);
+        const data: any = await res.json();
+
+        if (data?.return?.status === 200 && data.entries) {
+          const remainCredit = Number(data.entries.remaincredit || 0);
+          const remainCreditToman = Math.floor(remainCredit / 10);
+          let expireDate: string | undefined;
+          if (data.entries.expiredate) {
+            const expSec = Number(data.entries.expiredate);
+            if (!isNaN(expSec) && expSec > 0) {
+              expireDate = new Date(expSec * 1000).toLocaleDateString('fa-IR');
+            }
+          }
+
+          return {
+            provider: 'kavenegar',
+            remainCredit,
+            remainCreditToman,
+            remainCreditFormatted: `${remainCreditToman.toLocaleString('fa-IR')} تومان (${remainCredit.toLocaleString('fa-IR')} ریال)`,
+            expireDate,
+            type: data.entries.type || 'Master',
+            status: 'connected',
+            message: 'اتصال به وب‌سرویس کاوه‌نگار برقرار است'
+          };
+        } else {
+          return {
+            provider: 'kavenegar',
+            remainCredit: 0,
+            remainCreditToman: 0,
+            remainCreditFormatted: '۰ ریال',
+            status: 'error',
+            message: data?.return?.message || 'خطا در دریافت وضعیت حساب کاوه‌نگار'
+          };
+        }
+      }
+
+      return {
+        provider,
+        remainCredit: 0,
+        remainCreditToman: 0,
+        remainCreditFormatted: 'نامشخص',
+        status: 'connected',
+        message: `استعلام شارژ برای ارائه‌دهنده ${provider} پشتیبانی نمی‌شود`
+      };
+    } catch (err: any) {
+      console.error('Error fetching SMS credit from provider:', err.message);
+      return {
+        provider,
+        remainCredit: 0,
+        remainCreditToman: 0,
+        remainCreditFormatted: 'خطای ارتباط با سامانه پیامکی',
+        status: 'error',
+        message: err.message
+      };
+    }
+  }
 }

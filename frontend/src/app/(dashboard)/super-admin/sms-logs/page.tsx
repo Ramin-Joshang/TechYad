@@ -26,6 +26,11 @@ export default function SmsLogsPage() {
     }).then((res: any) => res.data)
   });
 
+  const { data: creditData, isLoading: loadingCredit, refetch: refetchCredit } = useQuery({
+    queryKey: ['smsCredit'],
+    queryFn: () => superAdminApi.getSmsCredit().then((res: any) => res.data)
+  });
+
   const logs = resData?.logs || [];
   const total = resData?.total || 0;
   const totalPages = resData?.totalPages || 1;
@@ -94,12 +99,28 @@ export default function SmsLogsPage() {
           <span className="text-[11px] text-rose-700 mt-2 block">لیست سیاه یا خطای خط</span>
         </div>
 
-        <div className="bg-white p-5 rounded-2xl border border-[var(--neo-border)] shadow-xs">
-          <span className="text-xs font-bold text-slate-400 block mb-1">درگاه فعال پیامک</span>
-          <div className="text-base font-black text-blue-700 mt-1">
-            کاوه نگار / فراز اس‌ام‌اس
+        <div className="bg-white p-5 rounded-2xl border border-[var(--neo-border)] shadow-xs relative overflow-hidden">
+          <div className="flex items-center justify-between mb-1">
+            <span className="text-xs font-bold text-slate-400">شارژ پیامک (کاوه‌نگار)</span>
+            <button
+              onClick={() => refetchCredit()}
+              disabled={loadingCredit}
+              className="text-slate-400 hover:text-blue-600 transition cursor-pointer"
+              title="استعلام مجدد شارژ"
+            >
+              <RefreshCw className={`w-3.5 h-3.5 ${loadingCredit ? 'animate-spin' : ''}`} />
+            </button>
           </div>
-          <span className="text-[11px] text-slate-500 mt-2 block">اتصال مستقیم به وب‌سرویس</span>
+          <div className="text-xl sm:text-2xl font-black text-blue-600 font-mono mt-1">
+            {creditData?.remainCreditToman !== undefined
+              ? `${creditData.remainCreditToman.toLocaleString('fa-IR')} تومان`
+              : 'در حال استعلام...'}
+          </div>
+          <span className="text-[11px] text-slate-500 mt-2 block">
+            {creditData?.remainCredit !== undefined
+              ? `${creditData.remainCredit.toLocaleString('fa-IR')} ریال اعتبار`
+              : 'وب‌سرویس فعال'}
+          </span>
         </div>
       </div>
 

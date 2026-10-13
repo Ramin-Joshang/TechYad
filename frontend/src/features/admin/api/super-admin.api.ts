@@ -118,6 +118,11 @@ export const superAdminApi = {
   },
   updateSecurityConfig: async (data: any) => {
     return api.patch<any, any>('/super-admin/security', data);
+  },
+
+  // SMS Gateway Credit & Info
+  getSmsCredit: async () => {
+    return api.get<any, any>('/super-admin/sms/credit');
   }
 };
 

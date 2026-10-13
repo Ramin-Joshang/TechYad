@@ -111,7 +111,7 @@ export default function AdminNotificationsView({ role }: AdminNotificationsViewP
     if (notif.data?.userId) return `${prefix}/users`;
     if (notif.data?.orderId || notif.type === 'order' || notif.type === 'payment') return `${prefix}/orders`;
     if (notif.data?.ticketId) return `${prefix}/tickets`;
-    if (notif.type === 'security') return role === 'super-admin' ? '/super-admin/audit-logs' : '/admin/logs';
+    if (notif.type === 'security') return role === 'super-admin' ? '/super-admin/audit-logs' : '/admin/sms-logs';
     if (notif.type === 'comment') return `${prefix}/comments`;
     if (notif.type === 'settlement') return `${prefix}/settlements`;
     return null;

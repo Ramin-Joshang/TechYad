@@ -126,7 +126,7 @@ export default function LoginPage() {
     e.preventDefault();
     setError('');
     if (!otpCode.trim()) {
-      setError('لطفاً کد تایید ۵ رقمی را وارد نمایید');
+      setError('لطفاً کد تایید پیامک‌شده را وارد نمایید');
       return;
     }
 
@@ -279,7 +279,7 @@ export default function LoginPage() {
                     <Smartphone className="w-4 h-4 text-[var(--neo-text-muted)] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                   </div>
                   <p className="text-[11px] text-[var(--neo-text-muted)] mt-1.5">
-                    کد تایید ۵ رقمی با الگوی <b className="text-[var(--neo-primary)] font-mono">TecyadOTP</b> برای این شماره ارسال خواهد شد.
+                    کد تایید پیامکی برای این شماره همراه ارسال خواهد شد.
                   </p>
                 </div>
 
@@ -305,7 +305,7 @@ export default function LoginPage() {
               <form onSubmit={handleVerifyOtp} className="space-y-4">
                 <div className="p-3 bg-blue-50/70 border border-blue-100 rounded-xl flex items-center justify-between text-xs">
                   <div>
-                    <span className="text-gray-500">کد به شماره: </span>
+                    <span className="text-gray-500">ارسال به شماره: </span>
                     <span className="font-bold text-gray-900 font-mono dir-ltr inline-block">{mobile}</span>
                   </div>
                   <button
@@ -316,19 +316,6 @@ export default function LoginPage() {
                     ویرایش شماره
                   </button>
                 </div>
-
-                {devCode && (
-                  <div className="p-2.5 bg-amber-50 border border-amber-200 text-amber-900 rounded-xl text-xs flex items-center justify-between">
-                    <span>کد تستی (شبیه‌ساز): <b className="font-mono text-sm">{devCode}</b></span>
-                    <button
-                      type="button"
-                      onClick={() => setOtpCode(devCode)}
-                      className="text-amber-800 underline text-[11px]"
-                    >
-                      درج خودکار
-                    </button>
-                  </div>
-                )}
 
                 <div>
                   <label className="block text-xs sm:text-sm font-bold text-[var(--neo-text-main)] mb-1.5">

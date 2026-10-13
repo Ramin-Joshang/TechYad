@@ -31,6 +31,11 @@ export default function SettingsPage() {
     })
   });
 
+  const { data: smsCredit, refetch: refetchCredit, isLoading: loadingCredit } = useQuery({
+    queryKey: ['smsCredit'],
+    queryFn: () => superAdminApi.getSmsCredit().then((res: any) => res.data)
+  });
+
   const saveMutation = useMutation({
     mutationFn: (data: any) => superAdminApi.updateSettings(data),
     onSuccess: () => {
@@ -573,7 +578,25 @@ export default function SettingsPage() {
                   <h2 className="text-lg font-black text-gray-900">پیکربندی سامانه پیامکی و الگوی احراز هویت (OTP)</h2>
                   <p className="text-xs text-gray-400 mt-1">تنظیمات ارسال پیامک‌های وب‌سرویس، الگوی اعتبارسنجی TecyadOTP و کدهای یکبارمصرف</p>
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex flex-wrap items-center gap-2">
+                  <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-cyan-50 text-cyan-800 text-xs font-bold border border-cyan-200">
+                    <MessageSquare className="w-3.5 h-3.5 text-cyan-600" />
+                    <span>شارژ کاوه‌نگار: </span>
+                    <span className="font-mono font-black text-cyan-900">
+                      {smsCredit?.remainCreditToman !== undefined
+                        ? `${smsCredit.remainCreditToman.toLocaleString('fa-IR')} تومان`
+                        : 'در حال استعلام...'}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => refetchCredit()}
+                      disabled={loadingCredit}
+                      className="text-cyan-600 hover:text-cyan-900 mr-1 cursor-pointer"
+                      title="استعلام مجدد شارژ"
+                    >
+                      <RefreshCw className={`w-3 h-3 ${loadingCredit ? 'animate-spin' : ''}`} />
+                    </button>
+                  </div>
                   <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-50 text-[var(--neo-primary)] text-xs font-black border border-blue-100 font-mono">
                     <Smartphone className="w-3.5 h-3.5" />
                     الگو: {formData.smsOtpPattern || 'TecyadOTP'}
