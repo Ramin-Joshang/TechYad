@@ -108,7 +108,7 @@ const userSchema = new Schema<IUser>(
     bio: {
       type: String,
       trim: true,
-      maxlength: 1000,
+      maxlength: 10000,
     },
 
     specialty: {
