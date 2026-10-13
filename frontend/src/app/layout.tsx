@@ -1,6 +1,9 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import "./globals.css";
+import "swiper/css";
+import "swiper/css/navigation";
+import "swiper/css/pagination";
 import { iranYekan } from "@/app/fonts";
 import { QueryProvider } from "@/lib/QueryProvider";
 import { AuthProvider } from "@/features/auth/components/AuthProvider";
