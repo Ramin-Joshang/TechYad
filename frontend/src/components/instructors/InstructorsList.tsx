@@ -5,6 +5,7 @@ import { api } from '@/lib/api';
 import Link from 'next/link';
 import { Star, BookOpen, Users, Award, Search, Filter, CheckCircle } from 'lucide-react';
 import { useState } from 'react';
+import { getImageUrl, handleImageError } from '@/lib/utils';
 
 export function InstructorsList({ initialData }: { initialData?: any } = {}) {
   const [searchTerm, setSearchTerm] = useState('');
@@ -170,7 +171,7 @@ export function InstructorsList({ initialData }: { initialData?: any } = {}) {
 function InstructorCard({ instructor, featured = false }: { instructor: any, featured?: boolean }) {
   const { userId, title, avatar, specialties } = instructor;
   const fullName = `${userId?.firstName} ${userId?.lastName}`;
-  const displayAvatar = userId?.personnelPhoto || instructor.personnelPhoto || avatar || userId?.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(fullName)}&background=random`;
+  const displayAvatar = getImageUrl(userId?.personnelPhoto || instructor.personnelPhoto || avatar || userId?.avatar, 'avatar', fullName);
   
   // Consistent mock data
   // Real accurate data from backend profile
@@ -191,7 +192,12 @@ function InstructorCard({ instructor, featured = false }: { instructor: any, fea
         
         <div className="relative z-10 flex gap-5 items-center mb-5">
           <div className="relative">
-             <img src={displayAvatar} alt={fullName} className={`w-20 h-20 rounded-2xl object-cover shadow-md ${featured ? 'border-2 border-amber-200' : ''}`} />
+             <img
+               src={displayAvatar}
+               onError={(e) => handleImageError(e, 'avatar', fullName)}
+               alt={fullName}
+               className={`w-20 h-20 rounded-2xl object-cover shadow-md ${featured ? 'border-2 border-amber-200' : ''}`}
+             />
              {featured && (
                <div className="absolute -top-2 -right-2 bg-amber-400 text-white rounded-full p-1 shadow-sm">
                  <Award className="w-4 h-4" />

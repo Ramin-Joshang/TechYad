@@ -64,8 +64,8 @@ export function HeroSection() {
           <div className="relative hidden md:block">
             <div className="aspect-square rounded-3xl overflow-hidden shadow-2xl relative z-10">
               <img 
-                src="https://images.unsplash.com/photo-1522202176988-66273c2fd55f?q=80&w=1200&auto=format&fit=crop" 
-                alt="Students learning" 
+                src="/hero-image.png" 
+                alt="دانشجویان و اساتید تک‌یاد" 
                 className="w-full h-full object-cover"
               />
             </div>

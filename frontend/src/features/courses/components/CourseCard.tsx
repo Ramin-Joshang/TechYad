@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { Course } from '../api/courses.api';
 import { User, Clock, Star, PlayCircle } from 'lucide-react';
+import { getImageUrl, handleImageError } from '@/lib/utils';
 
 interface CourseCardProps {
   course: Course;
@@ -11,15 +12,14 @@ export function CourseCard({ course }: CourseCardProps) {
 
   return (
     <Link href={`/courses/${course.slug}`} className="group flex flex-col bg-white border border-gray-100 rounded-2xl overflow-hidden hover:shadow-lg transition-all duration-300">
-      {/* Thumbnail Placeholder */}
-      <div className="relative aspect-video bg-gray-100 overflow-hidden">
-        {course.thumbnail ? (
-          <img src={course.thumbnail} alt={course.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-        ) : (
-          <div className="w-full h-full flex items-center justify-center text-gray-300">
-            <PlayCircle className="w-12 h-12" />
-          </div>
-        )}
+      {/* Thumbnail */}
+      <div className="relative aspect-video bg-slate-900 overflow-hidden">
+        <img 
+          src={getImageUrl(course.thumbnail, 'course', course.title)} 
+          alt={course.title} 
+          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
+          onError={(e) => handleImageError(e, 'course', course.title)}
+        />
         
         {/* Category & Registration Badges */}
         <div className="absolute top-3 right-3 flex flex-wrap gap-1.5">
@@ -47,11 +47,12 @@ export function CourseCard({ course }: CourseCardProps) {
             <div className="flex -space-x-2 -space-x-reverse">
               {course.instructors?.slice(0, 2).map((instructor, i) => (
                 <div key={instructor._id} className="w-8 h-8 rounded-full bg-blue-100 border-2 border-white flex items-center justify-center text-xs font-bold text-blue-600 z-10 overflow-hidden shadow-2xs">
-                  {instructor.personnelPhoto || instructor.avatar ? (
-                    <img src={instructor.personnelPhoto || instructor.avatar} alt="" className="w-full h-full object-cover" />
-                  ) : (
-                    `${instructor.firstName.charAt(0)}${instructor.lastName.charAt(0)}`
-                  )}
+                  <img 
+                    src={getImageUrl(instructor.personnelPhoto || instructor.avatar, 'avatar', `${instructor.firstName || ''} ${instructor.lastName || ''}`)} 
+                    alt={`${instructor.firstName} ${instructor.lastName}`} 
+                    className="w-full h-full object-cover" 
+                    onError={(e) => handleImageError(e, 'avatar', `${instructor.firstName || ''} ${instructor.lastName || ''}`)}
+                  />
                 </div>
               ))}
             </div>

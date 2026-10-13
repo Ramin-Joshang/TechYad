@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { Course } from '../api/home.api';
 import { Star, Clock, Users, BookOpen } from 'lucide-react';
+import { getImageUrl, handleImageError } from '@/lib/utils';
 
 interface Props {
   title: string;
@@ -34,7 +35,8 @@ export function CourseGrid({ title, description, courses, viewAllLink }: Props) 
             <div key={course.id} className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden hover:shadow-lg transition-shadow group flex flex-col h-full">
               <div className="relative aspect-video overflow-hidden">
                 <img 
-                  src={course.coverImage} 
+                  src={getImageUrl(course.coverImage, 'course', course.title)} 
+                  onError={(e) => handleImageError(e, 'course', course.title)}
                   alt={course.title} 
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                 />
@@ -71,7 +73,12 @@ export function CourseGrid({ title, description, courses, viewAllLink }: Props) 
                 
                 <div className="mt-auto pt-4 border-t border-gray-100 flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <img src={course.instructorAvatar} alt={course.instructor} className="w-8 h-8 rounded-full object-cover" />
+                    <img 
+                      src={getImageUrl(course.instructorAvatar, 'avatar', course.instructor)} 
+                      onError={(e) => handleImageError(e, 'avatar', course.instructor)}
+                      alt={course.instructor} 
+                      className="w-8 h-8 rounded-full object-cover" 
+                    />
                     <span className="text-sm font-medium text-gray-700">{course.instructor}</span>
                   </div>
                   

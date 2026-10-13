@@ -63,7 +63,7 @@ export default function CareersPage() {
     <main className="bg-[var(--neo-bg)] min-h-screen pb-20">
       {/* Hero Section */}
       <div className="bg-slate-900 pt-24 pb-32 text-center text-white px-4 relative overflow-hidden">
-        <div className="absolute inset-0 bg-[url('https://picsum.photos/seed/careers/1920/1080')] opacity-10 mix-blend-overlay object-cover"></div>
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-blue-700/20 via-slate-900/50 to-slate-950 opacity-70"></div>
         <div className="relative z-10">
           <h1 className="text-4xl md:text-6xl font-bold mb-6">به تیم ما بپیوندید</h1>
           <p className="text-lg md:text-xl text-gray-300 max-w-2xl mx-auto leading-relaxed">

@@ -8,6 +8,7 @@ import {
   ExternalLink, Calendar, Clock, Video, Sparkles, MessageSquare 
 } from 'lucide-react';
 import Link from 'next/link';
+import { getImageUrl, handleImageError } from '@/lib/utils';
 
 // Custom SVG Icons for LinkedIn and Instagram
 function LinkedinIcon(props: React.SVGProps<SVGSVGElement>) {
@@ -104,7 +105,7 @@ export function InstructorProfileContainer({ id, initialData }: { id: string; in
   const { userId, title, bio, avatar, specialties = [], education = [], experience = [], socialLinks = {} } = profile;
   const userObj = typeof userId === 'object' && userId !== null ? userId : {};
   const fullName = `${userObj.firstName || ''} ${userObj.lastName || ''}`.trim() || 'استاد تک‌یاد';
-  const displayAvatar = userObj.personnelPhoto || profile.personnelPhoto || avatar || userObj.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(fullName)}&size=200&background=0284c7&color=fff`;
+  const displayAvatar = getImageUrl(userObj.personnelPhoto || profile.personnelPhoto || avatar || userObj.avatar, 'avatar', fullName);
 
   // Real courses and classes from server (with fallback to client filter)
   const targetInstructorId = (userObj._id || profile.userId || id)?.toString();
@@ -369,7 +370,8 @@ export function InstructorProfileContainer({ id, initialData }: { id: string; in
                   >
                     <div className="w-24 h-24 rounded-xl overflow-hidden bg-slate-100 shrink-0 border border-slate-200">
                       <img 
-                        src={cls.thumbnail || `https://picsum.photos/seed/${cls._id}/300/300`} 
+                        src={getImageUrl(cls.thumbnail, 'class', cls.title)} 
+                        onError={(e) => handleImageError(e, 'class', cls.title)}
                         className="w-full h-full object-cover group-hover:scale-105 transition duration-300" 
                         alt={cls.title} 
                       />
@@ -430,7 +432,8 @@ export function InstructorProfileContainer({ id, initialData }: { id: string; in
                   >
                     <div className="w-24 h-24 rounded-xl overflow-hidden bg-slate-100 shrink-0 border border-slate-200">
                       <img 
-                        src={course.thumbnail || `https://picsum.photos/seed/${course._id}/300/300`} 
+                        src={getImageUrl(course.thumbnail, 'course', course.title)} 
+                        onError={(e) => handleImageError(e, 'course', course.title)}
                         className="w-full h-full object-cover group-hover:scale-105 transition duration-300" 
                         alt={course.title} 
                       />

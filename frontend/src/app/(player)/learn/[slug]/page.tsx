@@ -8,6 +8,7 @@ import { learningApi } from '@/features/learning/api/learning.api';
 import { VideoPlayer } from '@/features/learning/components/VideoPlayer';
 import { LessonComments } from '@/features/learning/components/LessonComments';
 import { useAuthStore } from '@/features/auth/stores/auth.store';
+import { getImageUrl, handleImageError } from '@/lib/utils';
 import {
   Menu,
   X,
@@ -571,11 +572,12 @@ export default function LearnCoursePage() {
                         {course.instructors.map((instructor: any) => (
                           <div key={instructor._id} className="flex items-center gap-4 bg-slate-950/60 p-4 rounded-xl border border-slate-800/80">
                             <div className="w-12 h-12 rounded-full overflow-hidden bg-slate-800 shrink-0 border border-slate-700">
-                              {instructor.avatar ? (
-                                <img src={instructor.avatar} alt={instructor.firstName} className="w-full h-full object-cover" />
-                              ) : (
-                                <User className="w-full h-full p-2.5 text-slate-400" />
-                              )}
+                              <img 
+                                src={getImageUrl(instructor.personnelPhoto || instructor.avatar, 'avatar', `${instructor.firstName || ''} ${instructor.lastName || ''}`)} 
+                                alt={instructor.firstName} 
+                                className="w-full h-full object-cover" 
+                                onError={(e) => handleImageError(e, 'avatar', `${instructor.firstName || ''} ${instructor.lastName || ''}`)}
+                              />
                             </div>
                             <div className="flex-1 min-w-0">
                               <h4 className="font-bold text-white text-sm">

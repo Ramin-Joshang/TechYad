@@ -10,6 +10,8 @@ import {
   ExternalLink, X, Send
 } from 'lucide-react';
 import Link from 'next/link';
+import toast from 'react-hot-toast';
+import { getImageUrl, handleImageError } from '@/lib/utils';
 import RichTextEditor from '@/components/common/RichTextEditor';
 
 export default function InstructorBlogPage() {
@@ -129,16 +131,22 @@ export default function InstructorBlogPage() {
     }
 
     if (!file.type.startsWith('image/')) {
-      alert('تنها فایل‌های تصویری مجاز هستند.');
+      toast.error('تنها فایل‌های تصویری مجاز هستند.');
       return;
     }
 
     try {
       setUploadingThumb(true);
       const res = await mediaApi.uploadFile(file, 'blog');
-      setForm(prev => ({ ...prev, thumbnail: res.data.url }));
+      const thumbUrl = res.data?.url || res?.url;
+      if (thumbUrl) {
+        setForm(prev => ({ ...prev, thumbnail: thumbUrl }));
+        toast.success('تصویر شاخص با موفقیت بارگذاری شد');
+      } else {
+        toast.error('خطا در دریافت نشانی تصویر بارگذاری شده');
+      }
     } catch (e: any) {
-      alert(e.response?.data?.message || 'خطا در آپلود تصویر');
+      toast.error(e.response?.data?.message || 'خطا در آپلود تصویر');
     } finally {
       setUploadingThumb(false);
     }
@@ -256,13 +264,12 @@ export default function InstructorBlogPage() {
                   <tr key={art._id} className="hover:bg-gray-50/60 transition-colors">
                     <td className="p-4">
                       <div className="flex items-center gap-3">
-                        {art.thumbnail ? (
-                          <img src={art.thumbnail} alt={art.title} className="w-12 h-12 rounded-xl object-cover shrink-0 border border-gray-100" />
-                        ) : (
-                          <div className="w-12 h-12 rounded-xl bg-gray-100 flex items-center justify-center shrink-0 text-gray-400">
-                            <FileText className="w-5 h-5" />
-                          </div>
-                        )}
+                        <img 
+                          src={getImageUrl(art.thumbnail, 'blog', art.title)} 
+                          alt={art.title} 
+                          className="w-12 h-12 rounded-xl object-cover shrink-0 border border-gray-100" 
+                          onError={(e) => handleImageError(e, 'blog', art.title)}
+                        />
                         <div className="min-w-0 max-w-md">
                           <div className="font-bold text-gray-900 line-clamp-1">{art.title}</div>
                           {art.status === 'published' && (

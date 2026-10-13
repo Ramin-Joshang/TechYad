@@ -12,6 +12,7 @@ import toast from 'react-hot-toast';
 import { MediaUploader } from '@/components/common/MediaUploader';
 import { AttendanceModal } from '@/components/classes/AttendanceModal';
 import { ClassFormModal } from '@/components/classes/ClassFormModal';
+import { getImageUrl, handleImageError } from '@/lib/utils';
 
 export default function AdminClassesPage() {
   const queryClient = useQueryClient();
@@ -279,7 +280,8 @@ export default function AdminClassesPage() {
               <div key={cls._id} className="bg-[var(--neo-surface)] rounded-3xl overflow-hidden border border-[var(--neo-border)] shadow-sm flex flex-col hover:shadow-md transition-all group">
                 <div className="aspect-video bg-[var(--neo-surface-2)] relative overflow-hidden">
                   <img 
-                    src={cls.thumbnail || `https://picsum.photos/seed/${cls._id}/400/250`} 
+                    src={getImageUrl(cls.thumbnail, 'class', cls.title)} 
+                    onError={(e) => handleImageError(e, 'class', cls.title)}
                     alt={cls.title} 
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" 
                   />
@@ -492,7 +494,12 @@ export default function AdminClassesPage() {
             </div>
 
             <div className="aspect-video relative rounded-2xl overflow-hidden">
-              <img src={detailClass.thumbnail || `https://picsum.photos/seed/${detailClass._id}/500/250`} alt={detailClass.title} className="w-full h-full object-cover" />
+              <img
+                src={getImageUrl(detailClass.thumbnail, 'class', detailClass.title)}
+                onError={(e) => handleImageError(e, 'class', detailClass.title)}
+                alt={detailClass.title}
+                className="w-full h-full object-cover"
+              />
             </div>
 
             <div>

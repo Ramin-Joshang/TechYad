@@ -3,6 +3,7 @@
 import { useState, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { adminApi } from '@/features/admin/api/admin.api';
+import { getImageUrl, handleImageError } from '@/lib/utils';
 import { 
   Loader2, 
   Search, 
@@ -266,11 +267,12 @@ export default function AdminStudentsPage() {
                       <td className="p-4">
                         <div className="flex items-center gap-3">
                           <div className="w-11 h-11 rounded-2xl bg-blue-100/70 text-blue-700 flex items-center justify-center font-bold text-base overflow-hidden shrink-0 border border-blue-200">
-                            {user.avatar ? (
-                              <img src={user.avatar} alt="Avatar" className="w-full h-full object-cover" />
-                            ) : (
-                              user.firstName?.charAt(0) || 'D'
-                            )}
+                            <img 
+                              src={getImageUrl(user.avatar, 'avatar', `${user.firstName || ''} ${user.lastName || ''}`)} 
+                              alt="Avatar" 
+                              className="w-full h-full object-cover" 
+                              onError={(e) => handleImageError(e, 'avatar', `${user.firstName || ''} ${user.lastName || ''}`)}
+                            />
                           </div>
                           <div>
                             <div className="font-bold text-sm text-gray-900">

@@ -1,6 +1,7 @@
 import { Article } from './article.model.js';
 import { BlogCategory } from './blog-category.model.js';
 import { AppError } from '../../common/errors/AppError.js';
+import { MediaService } from '../media/media.service.js';
 
 export class BlogService {
   // --- Public / General Methods ---
@@ -198,6 +199,12 @@ export class BlogService {
       data.publishedAt = new Date();
     }
 
+    if (data.thumbnail && article.thumbnail && data.thumbnail !== article.thumbnail && article.thumbnail.startsWith('/uploads/')) {
+      MediaService.deleteFile(article.authorId?.toString() || '', article.thumbnail, true).catch(err => {
+        console.error('Failed to cleanup old article thumbnail:', err);
+      });
+    }
+
     const updated = await Article.findByIdAndUpdate(
       id,
       { $set: data },
@@ -235,6 +242,12 @@ export class BlogService {
 
     if (!isSuperAdmin && !isAdmin && !isAuthor) {
       throw new AppError('شما دسترسی لازم برای حذف این مقاله را ندارید', 403);
+    }
+
+    if (article.thumbnail && typeof article.thumbnail === 'string' && article.thumbnail.startsWith('/uploads/')) {
+      MediaService.deleteFile('', article.thumbnail, true).catch(err => {
+        console.error('Failed to cleanup article thumbnail on deletion:', err);
+      });
     }
 
     await Article.findByIdAndDelete(id);
@@ -299,6 +312,12 @@ export class BlogService {
       newStatus = 'pending_review';
     } else if (data.status === 'draft') {
       newStatus = 'draft';
+    }
+
+    if (data.thumbnail && article.thumbnail && data.thumbnail !== article.thumbnail && article.thumbnail.startsWith('/uploads/')) {
+      MediaService.deleteFile(instructorId, article.thumbnail, true).catch(err => {
+        console.error('Failed to cleanup old article thumbnail on update:', err);
+      });
     }
 
     const updated = await Article.findByIdAndUpdate(

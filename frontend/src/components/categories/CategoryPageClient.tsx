@@ -8,6 +8,7 @@ import {
 } from 'lucide-react';
 import { CategoryBreadcrumb, BreadcrumbItem } from './CategoryBreadcrumb';
 import { CategoryCard } from './CategoryCard';
+import { getImageUrl, handleImageError } from '@/lib/utils';
 
 interface CategoryPageClientProps {
   category: any;
@@ -251,7 +252,8 @@ export function CategoryPageClient({
                       >
                         <div className="relative aspect-[16/10] bg-[var(--neo-surface-2)] overflow-hidden">
                           <img
-                            src={item.thumbnail || `https://picsum.photos/seed/${item.slug || item._id}/600/380`}
+                            src={getImageUrl(item.thumbnail, 'class', item.title)}
+                            onError={(e) => handleImageError(e, 'class', item.title)}
                             alt={item.title}
                             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                           />
@@ -343,7 +345,8 @@ export function CategoryPageClient({
                       >
                         <div className="relative aspect-[16/10] bg-[var(--neo-surface-2)] overflow-hidden">
                           <img
-                            src={item.thumbnail || item.coverImage || `https://picsum.photos/seed/${item.slug || item._id}/600/380`}
+                            src={getImageUrl(item.thumbnail || item.coverImage, 'course', item.title)}
+                            onError={(e) => handleImageError(e, 'course', item.title)}
                             alt={item.title}
                             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                           />

@@ -22,7 +22,7 @@ export const metadata: Metadata = {
     description: 'راه‌های ارتباطی مستقیم، پشتیبانی تلفنی، تلگرام و واتس‌اپ با کارشناسان تک‌یاد.',
     images: [
       {
-        url: 'https://picsum.photos/seed/contact/1200/630',
+        url: 'https://tecyad.ir/hero-image.png',
         width: 1200,
         height: 630,
         alt: 'تماس با تک‌یاد',
@@ -33,7 +33,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'تماس با ما | تک‌یاد',
     description: 'راه‌های ارتباطی مستقیم و پشتیبانی آنلاین در تک‌یاد.',
-    images: ['https://picsum.photos/seed/contact/1200/630'],
+    images: ['https://tecyad.ir/hero-image.png'],
   },
 };
 

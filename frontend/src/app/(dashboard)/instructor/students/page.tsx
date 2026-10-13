@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
 import { coursesApi } from '@/features/courses/api/courses.api';
+import { getImageUrl, handleImageError } from '@/lib/utils';
 import { 
   Loader2, Mail, BookOpen, GraduationCap, Users, 
   Layers, Search, CheckCircle, Clock, Video, MapPin, 
@@ -244,11 +245,12 @@ export default function InstructorStudentsPage() {
                       <td className="p-4 whitespace-nowrap">
                         <div className="flex items-center gap-3">
                           <div className="w-10 h-10 rounded-2xl bg-indigo-100 text-indigo-700 flex items-center justify-center font-bold overflow-hidden shrink-0 shadow-2xs border border-indigo-200">
-                            {student?.avatar ? (
-                              <img src={student.avatar} alt="Avatar" className="w-full h-full object-cover" />
-                            ) : (
-                              student?.firstName?.charAt(0) || 'د'
-                            )}
+                            <img 
+                              src={getImageUrl(student?.avatar, 'avatar', `${student?.firstName || ''} ${student?.lastName || ''}`)} 
+                              alt="Avatar" 
+                              className="w-full h-full object-cover" 
+                              onError={(e) => handleImageError(e, 'avatar', `${student?.firstName || ''} ${student?.lastName || ''}`)}
+                            />
                           </div>
                           <div>
                             <div className="font-bold text-slate-900 text-sm">
@@ -382,11 +384,12 @@ export default function InstructorStudentsPage() {
                   <div className="flex items-center justify-between gap-3">
                     <div className="flex items-center gap-3 min-w-0">
                       <div className="w-10 h-10 rounded-2xl bg-indigo-100 text-indigo-700 flex items-center justify-center font-bold overflow-hidden shrink-0 border border-indigo-200">
-                        {student?.avatar ? (
-                          <img src={student.avatar} alt="Avatar" className="w-full h-full object-cover" />
-                        ) : (
-                          student?.firstName?.charAt(0) || 'د'
-                        )}
+                        <img 
+                          src={getImageUrl(student?.avatar, 'avatar', `${student?.firstName || ''} ${student?.lastName || ''}`)} 
+                          alt="Avatar" 
+                          className="w-full h-full object-cover" 
+                          onError={(e) => handleImageError(e, 'avatar', `${student?.firstName || ''} ${student?.lastName || ''}`)}
+                        />
                       </div>
                       <div className="min-w-0">
                         <div className="font-bold text-slate-900 text-sm truncate">

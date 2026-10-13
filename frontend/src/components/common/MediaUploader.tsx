@@ -4,6 +4,7 @@ import React, { useState, useRef } from 'react';
 import { mediaApi } from '@/features/media/api/media.api';
 import { UploadCloud, CheckCircle2, Copy, Trash2, Loader2, Play, Image as ImageIcon, Link as LinkIcon } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { getImageUrl, handleImageError, FallbackImageType } from '@/lib/utils';
 
 interface MediaUploaderProps {
   label?: string;
@@ -54,7 +55,7 @@ export const MediaUploader: React.FC<MediaUploaderProps> = ({
     setIsUploading(true);
     try {
       const response = await mediaApi.uploadFile(file, folder);
-      const url = response.data?.url;
+      const url = response.data?.url || response?.url;
       if (url) {
         onChange(url);
         toast.success('فایل با موفقیت آپلود و ذخیره شد');
@@ -144,11 +145,11 @@ export const MediaUploader: React.FC<MediaUploaderProps> = ({
           ) : (
             <div className="aspect-video max-h-56 relative overflow-hidden flex items-center justify-center bg-black/5">
               <img
-                src={value}
+                src={getImageUrl(value, (folder === 'avatars' || folder === 'personnel' ? 'avatar' : folder === 'courses' ? 'course' : folder === 'classes' ? 'class' : 'general') as FallbackImageType)}
                 alt="پیش‌نمایش"
                 className="w-full h-full object-cover"
                 onError={(e) => {
-                  (e.target as HTMLImageElement).src = 'https://picsum.photos/400/225';
+                  handleImageError(e, (folder === 'avatars' || folder === 'personnel' ? 'avatar' : folder === 'courses' ? 'course' : folder === 'classes' ? 'class' : 'general') as FallbackImageType);
                 }}
               />
             </div>

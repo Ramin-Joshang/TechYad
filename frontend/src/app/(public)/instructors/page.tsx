@@ -26,7 +26,7 @@ export const metadata: Metadata = {
     description: "آشنایی با اساتید متخصص و حرفه‌ای تک‌یاد (Tecyad) در حوزه‌های برنامه‌نویسی، طراحی محصول و هوش مصنوعی.",
     images: [
       {
-        url: "https://picsum.photos/seed/tecyad-instructors/1200/630",
+        url: "https://tecyad.ir/hero-image.png",
         width: 1200,
         height: 630,
         alt: "اساتید تک‌یاد Tecyad",
@@ -37,7 +37,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "اساتید و مدرسان برجسته | تک‌یاد (Tecyad)",
     description: "آشنایی با اساتید متخصص و حرفه‌ای تک‌یاد (Tecyad) در حوزه‌های تخصصی نرم‌افزار.",
-    images: ["https://picsum.photos/seed/tecyad-instructors/1200/630"],
+    images: ["https://tecyad.ir/hero-image.png"],
   },
 };
 

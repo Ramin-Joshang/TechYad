@@ -10,6 +10,7 @@ import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/features/auth/stores/auth.store';
 import toast from 'react-hot-toast';
 import { CommentsSection } from '@/features/comments/components/CommentsSection';
+import { getImageUrl, handleImageError } from '@/lib/utils';
 
 export function CourseDetailsContainer({ slug, initialData }: { slug: string; initialData?: any }) {
   const router = useRouter();
@@ -189,9 +190,10 @@ export function CourseDetailsContainer({ slug, initialData }: { slug: string; in
                   title="مشاهده رزومه و مشخصات استاد"
                 >
                   <img 
-                    src={instructor.personnelPhoto || instructor.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(instructor.firstName + ' ' + instructor.lastName)}&background=0284c7&color=fff`} 
-                    alt="مدرس" 
+                    src={getImageUrl(instructor.personnelPhoto || instructor.avatar, 'avatar', `${instructor.firstName || ''} ${instructor.lastName || ''}`)} 
+                    alt={`${instructor.firstName || ''} ${instructor.lastName || ''}`} 
                     className="w-10 h-10 rounded-full object-cover border border-white/30" 
+                    onError={(e) => handleImageError(e, 'avatar', `${instructor.firstName || ''} ${instructor.lastName || ''}`)}
                   />
                   <div className="flex flex-col text-right">
                     <span className="font-bold text-sm text-white group-hover:text-blue-300 transition">
@@ -208,8 +210,13 @@ export function CourseDetailsContainer({ slug, initialData }: { slug: string; in
           
           <div className="lg:justify-self-end w-full max-w-md">
             <div className="bg-white rounded-3xl p-6 shadow-2xl relative">
-              <div className="relative aspect-video rounded-2xl overflow-hidden mb-6 group cursor-pointer shadow-inner">
-                <img src={course.thumbnail || `https://picsum.photos/seed/${course.slug}/800/450`} alt={course.title} className="w-full h-full object-cover group-hover:scale-105 transition duration-700" />
+              <div className="relative aspect-video rounded-2xl overflow-hidden mb-6 group cursor-pointer shadow-inner bg-slate-900">
+                <img 
+                  src={getImageUrl(course.thumbnail, 'course', course.title)} 
+                  alt={course.title} 
+                  className="w-full h-full object-cover group-hover:scale-105 transition duration-700" 
+                  onError={(e) => handleImageError(e, 'course', course.title)}
+                />
                 <div className="absolute inset-0 bg-black/40 flex items-center justify-center group-hover:bg-black/20 transition duration-500">
                   <div className="w-16 h-16 bg-white/30 backdrop-blur-md rounded-full flex items-center justify-center shadow-2xl group-hover:scale-110 transition duration-300">
                     <PlayCircle className="w-10 h-10 text-white fill-current" />
@@ -341,13 +348,14 @@ export function CourseDetailsContainer({ slug, initialData }: { slug: string; in
                </div>
 
                <div className="flex flex-col sm:flex-row gap-5 items-start">
-                 <Link href={`/instructors/${instructor._id}`} className="shrink-0 group">
-                   <img 
-                     src={instructor.personnelPhoto || instructor.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(instructor.firstName + " " + instructor.lastName)}&background=0284c7&color=fff`} 
-                     alt={`${instructor.firstName} ${instructor.lastName}`}
-                     className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl object-cover border-2 border-blue-100 shadow-sm group-hover:scale-105 transition duration-300"
-                   />
-                 </Link>
+                  <Link href={`/instructors/${instructor._id}`} className="shrink-0 group">
+                    <img
+                      src={getImageUrl(instructor.personnelPhoto || instructor.avatar, "avatar", `${instructor.firstName || ""} ${instructor.lastName || ""}`)}
+                      alt={`${instructor.firstName} ${instructor.lastName}`}
+                      className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl object-cover border-2 border-blue-100 shadow-sm group-hover:scale-105 transition duration-300"
+                      onError={(e) => handleImageError(e, "avatar", `${instructor.firstName || ""} ${instructor.lastName || ""}`)}
+                    />
+                  </Link>
 
                  <div className="flex-1 space-y-2">
                    <div className="flex flex-wrap items-center justify-between gap-2">
@@ -428,9 +436,10 @@ export function CourseDetailsContainer({ slug, initialData }: { slug: string; in
               <h4 className="text-sm font-bold text-[var(--neo-text-muted)]">مدرس دوره</h4>
               <div className="flex items-center gap-3">
                 <img 
-                  src={instructor.personnelPhoto || instructor.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(instructor.firstName + " " + instructor.lastName)}&background=0284c7&color=fff`} 
+                  src={getImageUrl(instructor.personnelPhoto || instructor.avatar, 'avatar', `${instructor.firstName || ''} ${instructor.lastName || ''}`)} 
                   alt="" 
                   className="w-12 h-12 rounded-xl object-cover border border-gray-200"
+                  onError={(e) => handleImageError(e, 'avatar', `${instructor.firstName || ''} ${instructor.lastName || ''}`)}
                 />
                 <div className="min-w-0 flex-1">
                   <h5 className="font-bold text-sm text-[var(--neo-text-main)] line-clamp-1">{instructor.firstName} {instructor.lastName}</h5>
@@ -565,7 +574,12 @@ function CourseCard({ course }: { course: any }) {
   return (
     <Link href={`/courses/${course.slug}`} className="group flex flex-col bg-white rounded-2xl border border-[var(--neo-border)] overflow-hidden hover:shadow-lg transition">
       <div className="aspect-[16/10] relative overflow-hidden bg-gray-100">
-        <img src={course.thumbnail || `https://picsum.photos/seed/${course.slug}/400/250`} alt={course.title} className="w-full h-full object-cover group-hover:scale-105 transition duration-500" />
+        <img
+          src={getImageUrl(course.thumbnail, 'course', course.title)}
+          onError={(e) => handleImageError(e, 'course', course.title)}
+          alt={course.title}
+          className="w-full h-full object-cover group-hover:scale-105 transition duration-500"
+        />
       </div>
       <div className="p-4 flex flex-col flex-grow">
         <h4 className="font-bold text-[var(--neo-text-main)] mb-2 line-clamp-1">{course.title}</h4>

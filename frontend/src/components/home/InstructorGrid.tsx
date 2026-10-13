@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { User, GraduationCap } from "lucide-react";
+import { getImageUrl, handleImageError } from "@/lib/utils";
 
 export function InstructorGrid({ data = [], isLoading = false }: { data?: any[], isLoading?: boolean }) {
   if (!isLoading && !data?.length) return null;
@@ -39,7 +40,7 @@ export function InstructorGrid({ data = [], isLoading = false }: { data?: any[],
                 const fullName = inst.userId
                   ? `${inst.userId.firstName || ''} ${inst.userId.lastName || ''}`.trim()
                   : 'استاد تک‌یاد';
-                const avatarUrl = inst.userId?.personnelPhoto || inst.personnelPhoto || inst.userId?.avatar || inst.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(fullName)}&background=0284c7&color=fff`;
+                const avatarUrl = getImageUrl(inst.userId?.personnelPhoto || inst.personnelPhoto || inst.userId?.avatar || inst.avatar, 'avatar', fullName);
                 const specialties = inst.specialties || inst.expertise || [];
 
                 return (
@@ -51,6 +52,7 @@ export function InstructorGrid({ data = [], isLoading = false }: { data?: any[],
                     <div className="aspect-square relative overflow-hidden bg-[var(--neo-surface-2)] m-4 rounded-[16px]">
                       <img 
                         src={avatarUrl} 
+                        onError={(e) => handleImageError(e, 'avatar', fullName)}
                         alt={fullName} 
                         className="w-full h-full object-cover group-hover:scale-105 transition duration-500" 
                       />

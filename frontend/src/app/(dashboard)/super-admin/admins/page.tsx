@@ -5,6 +5,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { superAdminApi } from '@/features/admin/api/super-admin.api';
 import { Shield, Plus, Search, Filter, MoreVertical, Edit, ShieldAlert, CheckCircle, XCircle, Loader2 } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { getImageUrl, handleImageError } from '@/lib/utils';
 import Link from 'next/link';
 
 export default function AdminsManagementPage() {
@@ -122,12 +123,13 @@ export default function AdminsManagementPage() {
                   <tr key={admin._id} className="hover:bg-[var(--neo-surface-2)]/50 transition-colors">
                     <td className="p-4">
                       <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-xl bg-blue-100 text-[var(--neo-primary)] flex items-center justify-center font-bold shrink-0">
-                          {admin.avatar ? (
-                            <img src={admin.avatar} alt={admin.firstName} className="w-full h-full object-cover rounded-xl" />
-                          ) : (
-                            admin.firstName?.charAt(0) || 'A'
-                          )}
+                        <div className="w-10 h-10 rounded-xl bg-blue-100 text-[var(--neo-primary)] flex items-center justify-center font-bold shrink-0 overflow-hidden">
+                          <img 
+                            src={getImageUrl(admin.avatar, 'avatar', `${admin.firstName || ''} ${admin.lastName || ''}`)} 
+                            alt={admin.firstName} 
+                            className="w-full h-full object-cover rounded-xl" 
+                            onError={(e) => handleImageError(e, 'avatar', `${admin.firstName || ''} ${admin.lastName || ''}`)}
+                          />
                         </div>
                         <div>
                           <div className="font-bold text-[var(--neo-text-main)]">{admin.firstName} {admin.lastName}</div>

@@ -16,6 +16,7 @@ import { format } from 'date-fns-jalali';
 import Link from 'next/link';
 import { useState } from 'react';
 import { CommentsSection } from '@/features/comments/components/CommentsSection';
+import { getImageUrl, handleImageError } from '@/lib/utils';
 
 export function ClassDetailsContainer({ slug, initialData }: { slug: string; initialData?: any }) {
   const router = useRouter();
@@ -190,7 +191,14 @@ export function ClassDetailsContainer({ slug, initialData }: { slug: string; ini
   }
 
   const isOnline = cls.mode === 'online';
-  const instructor = cls.instructors?.[0];
+  const uniqueInstructors = Array.from(
+    new Map(
+      (cls.instructors || [])
+        .filter((inst: any) => inst && (inst._id || typeof inst === 'string'))
+        .map((inst: any) => [inst._id?.toString() || inst.toString(), inst])
+    ).values()
+  );
+  const instructor = uniqueInstructors[0] || (cls.instructor && typeof cls.instructor === 'object' ? cls.instructor : null);
   const startDate = cls.startDate ? new Date(cls.startDate) : new Date();
   const endDate = cls.endDate ? new Date(cls.endDate) : new Date();
   
@@ -384,11 +392,12 @@ export function ClassDetailsContainer({ slug, initialData }: { slug: string; ini
           
           {/* Hero Thumbnail */}
           <div className="w-full lg:w-[420px] shrink-0">
-            <div className="relative rounded-3xl overflow-hidden shadow-2xl border-4 border-white/10 aspect-video lg:aspect-[4/3]">
+            <div className="relative rounded-3xl overflow-hidden shadow-2xl border-4 border-white/10 aspect-video lg:aspect-[4/3] bg-slate-950">
               <img 
-                src={cls.thumbnail || `https://picsum.photos/seed/${cls._id}/800/600`} 
+                src={getImageUrl(cls.thumbnail, 'class', cls.title)} 
                 alt={cls.title} 
                 className="w-full h-full object-cover" 
+                onError={(e) => handleImageError(e, 'class', cls.title)}
               />
               <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent flex items-end p-5">
                 {instructor && (
@@ -398,9 +407,10 @@ export function ClassDetailsContainer({ slug, initialData }: { slug: string; ini
                     title="مشاهده رزومه استاد"
                   >
                     <img 
-                      src={(instructor.personnelPhoto || instructor.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(instructor.firstName + " " + instructor.lastName)}`)} 
+                      src={getImageUrl(instructor.personnelPhoto || instructor.avatar, 'avatar', `${instructor.firstName || ''} ${instructor.lastName || ''}`)} 
                       className="w-10 h-10 rounded-full border-2 border-white object-cover" 
-                      alt="" 
+                      alt={`${instructor.firstName || ''} ${instructor.lastName || ''}`}
+                      onError={(e) => handleImageError(e, 'avatar', `${instructor.firstName || ''} ${instructor.lastName || ''}`)} 
                     />
                     <div>
                       <span className="text-[10px] text-slate-300 block">مدرس کلاس:</span>
@@ -695,13 +705,13 @@ export function ClassDetailsContainer({ slug, initialData }: { slug: string; ini
               </div>
             </div>
 
-            {/* Instructor Card */}
-            {cls.instructors && cls.instructors.length > 0 ? (
+            {/* Instructor Card (Single authoritative resume and credentials section) */}
+            {uniqueInstructors && uniqueInstructors.length > 0 ? (
               <section className="bg-white rounded-3xl shadow-sm border border-slate-200 p-6 sm:p-8 space-y-6">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-slate-100 gap-2">
                   <h2 className="text-xl font-bold text-slate-900 flex items-center gap-2">
                     <GraduationCap className="w-6 h-6 text-blue-600" />
-                    درباره استاد کلاس
+                    درباره استاد و رزومه کلاس
                   </h2>
                   {instructor && (
                     <Link 
@@ -715,19 +725,20 @@ export function ClassDetailsContainer({ slug, initialData }: { slug: string; ini
                 </div>
 
                 <div className="space-y-6">
-                  {cls.instructors.map((inst: any) => (
-                    <div key={inst._id} className="flex flex-col sm:flex-row gap-5 items-start">
-                      <Link href={`/instructors/${inst._id}`} className="shrink-0 group">
+                  {uniqueInstructors.map((inst: any) => (
+                    <div key={inst._id || inst} className="flex flex-col sm:flex-row gap-5 items-start">
+                      <Link href={`/instructors/${inst._id || inst}`} className="shrink-0 group">
                         <img 
-                          src={(inst.personnelPhoto || inst.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(inst.firstName + " " + inst.lastName)}&background=0284c7&color=fff`)} 
-                          className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl object-cover border border-slate-200 shadow-xs group-hover:scale-105 transition duration-300" 
-                          alt={`${inst.firstName} ${inst.lastName}`} 
+                          src={getImageUrl(inst.personnelPhoto || inst.avatar, 'avatar', `${inst.firstName || ''} ${inst.lastName || ''}`)} 
+                          className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl object-cover border border-slate-200 shadow-xs group-hover:scale-105 transition duration-300 bg-slate-100" 
+                          alt={`${inst.firstName || ''} ${inst.lastName || ''}`}
+                          onError={(e) => handleImageError(e, 'avatar', `${inst.firstName || ''} ${inst.lastName || ''}`)}
                         />
                       </Link>
                       <div className="space-y-2 flex-1">
                         <div className="flex flex-wrap items-center justify-between gap-2">
                           <div>
-                            <Link href={`/instructors/${inst._id}`}>
+                            <Link href={`/instructors/${inst._id || inst}`}>
                               <h3 className="text-lg font-bold text-slate-900 hover:text-blue-600 transition">
                                 {inst.firstName} {inst.lastName}
                               </h3>
@@ -747,7 +758,7 @@ export function ClassDetailsContainer({ slug, initialData }: { slug: string; ini
 
                         <div className="pt-2">
                           <Link 
-                            href={`/instructors/${inst._id}`}
+                            href={`/instructors/${inst._id || inst}`}
                             className="inline-flex items-center gap-2 text-xs sm:text-sm font-bold text-blue-600 hover:text-blue-800 transition bg-blue-50/80 hover:bg-blue-100 px-4 py-2 rounded-xl"
                           >
                             مشاهده رزومه کاری، سوابق تحصیلی و سایر کلاس‌های استاد
@@ -909,30 +920,6 @@ export function ClassDetailsContainer({ slug, initialData }: { slug: string; ini
 
             </div>
 
-            {/* Instructor Quick Sidebar Card */}
-            {instructor && (
-              <div className="bg-white rounded-3xl shadow-sm border border-slate-200 p-5 space-y-4">
-                <span className="text-xs font-bold text-slate-400 block">مدرس این کلاس</span>
-                <div className="flex items-center gap-3">
-                  <img 
-                    src={(instructor.personnelPhoto || instructor.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(instructor.firstName + " " + instructor.lastName)}&background=0284c7&color=fff`)} 
-                    alt="" 
-                    className="w-12 h-12 rounded-2xl object-cover border border-slate-200 shadow-2xs"
-                  />
-                  <div className="min-w-0 flex-1">
-                    <h4 className="font-bold text-sm text-slate-900 line-clamp-1">{instructor.firstName} {instructor.lastName}</h4>
-                    <p className="text-xs text-blue-600 font-medium line-clamp-1 mt-0.5">{instructor.specialty || 'مدرس و متخصص ارشد'}</p>
-                  </div>
-                </div>
-                <Link 
-                  href={`/instructors/${instructor._id}`}
-                  className="w-full flex items-center justify-center gap-1.5 py-2.5 px-4 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-700 hover:bg-blue-50 hover:text-blue-700 hover:border-blue-200 transition shadow-2xs"
-                >
-                  <span>مشاهده صفحه و رزومه استاد</span>
-                  <ChevronLeft className="w-3.5 h-3.5" />
-                </Link>
-              </div>
-            )}
           </div>
 
         </div>

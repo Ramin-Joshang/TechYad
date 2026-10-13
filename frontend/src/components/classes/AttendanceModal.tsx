@@ -8,6 +8,7 @@ import {
   Save, Loader2, Users, Calendar, Award, Check, FileText
 } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { getImageUrl, handleImageError } from '@/lib/utils';
 
 interface AttendanceModalProps {
   classItem: any;
@@ -300,9 +301,10 @@ export function AttendanceModal({ classItem, onClose, isAdmin = false }: Attenda
                       <div className="md:col-span-5 flex items-center justify-between md:justify-start gap-2.5">
                         <div className="flex items-center gap-2.5 min-w-0">
                           <img
-                            src={student.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(student.firstName + ' ' + student.lastName)}&background=random`}
+                            src={getImageUrl(student.avatar, 'avatar', `${student.firstName} ${student.lastName}`)}
                             alt=""
                             className="w-9 h-9 rounded-full object-cover shrink-0 border border-slate-200"
+                            onError={(e) => handleImageError(e, 'avatar', `${student.firstName} ${student.lastName}`)}
                           />
                           <div className="min-w-0">
                             <div className="font-bold text-xs sm:text-sm text-slate-900 truncate">
@@ -429,9 +431,10 @@ export function AttendanceModal({ classItem, onClose, isAdmin = false }: Attenda
                       <div className="md:col-span-4 flex items-center justify-between md:justify-start gap-2">
                         <div className="flex items-center gap-2">
                           <img
-                            src={student.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(student.firstName + ' ' + student.lastName)}`}
+                            src={getImageUrl(student.avatar, 'avatar', `${student.firstName} ${student.lastName}`)}
                             alt=""
                             className="w-7 h-7 rounded-full object-cover shrink-0"
+                            onError={(e) => handleImageError(e, 'avatar', `${student.firstName} ${student.lastName}`)}
                           />
                           <span className="font-bold text-slate-900 truncate">{student.firstName} {student.lastName}</span>
                         </div>

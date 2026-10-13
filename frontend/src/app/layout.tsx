@@ -65,7 +65,7 @@ export const metadata: Metadata = {
     description: "سامانه جامع یادگیری آنلاین تک‌یاد (Tecyad)؛ مرجع تخصصی دوره‌های برنامه‌نویسی، طراحی وب، هوش مصنوعی و مهارت‌های دانشگاهی با اساتید برتر و گواهی معتبر.",
     images: [
       {
-        url: "https://picsum.photos/seed/tecyad-banner/1200/630",
+        url: "https://tecyad.ir/hero-image.png",
         width: 1200,
         height: 630,
         alt: "تک‌یاد - سامانه یادگیری آنلاین Tecyad",
@@ -76,7 +76,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "تک‌یاد (Tecyad) | پلتفرم جامع آموزش آنلاین، دوره‌ها و کلاس‌های تخصصی",
     description: "سامانه جامع یادگیری آنلاین تک‌یاد (Tecyad)؛ مرجع تخصصی دوره‌های برنامه‌نویسی، طراحی وب، هوش مصنوعی و مهارت‌های دانشگاهی با اساتید برتر و گواهی معتبر.",
-    images: ["https://picsum.photos/seed/tecyad-banner/1200/630"],
+    images: ["https://tecyad.ir/hero-image.png"],
   },
   robots: {
     index: true,
@@ -104,7 +104,7 @@ export default function RootLayout({
         "@id": "https://tecyad.ir/#organization",
         "name": "تک‌یاد | Tecyad",
         "url": "https://tecyad.ir",
-        "logo": "https://picsum.photos/seed/tecyad-logo/512/512",
+        "logo": "https://tecyad.ir/logo.png",
         "description": "پلتفرم جامع آموزش آنلاین، دوره‌ها و کلاس‌های تخصصی دانشگاهی و مهندسی",
         "sameAs": [
           "https://t.me/tecyad_ir",

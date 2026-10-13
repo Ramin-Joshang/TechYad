@@ -26,6 +26,7 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import toast from 'react-hot-toast';
+import { getImageUrl, handleImageError } from '@/lib/utils';
 import { useAuthStore } from '@/features/auth/stores/auth.store';
 
 export default function AdminUsersPage() {
@@ -318,11 +319,12 @@ export default function AdminUsersPage() {
                       <td className="p-4">
                         <div className="flex items-center gap-3">
                           <div className="w-10 h-10 rounded-xl bg-blue-100 text-[var(--neo-primary)] flex items-center justify-center font-bold overflow-hidden shrink-0 border border-blue-200">
-                            {user.avatar ? (
-                              <img src={user.avatar} alt="Avatar" className="w-full h-full object-cover" />
-                            ) : (
-                              user.firstName?.charAt(0) || 'U'
-                            )}
+                            <img 
+                              src={getImageUrl(user.personnelPhoto || user.avatar, 'avatar', `${user.firstName || ''} ${user.lastName || ''}`)} 
+                              alt="Avatar" 
+                              className="w-full h-full object-cover" 
+                              onError={(e) => handleImageError(e, 'avatar', `${user.firstName || ''} ${user.lastName || ''}`)}
+                            />
                           </div>
                           <div>
                             <div className="font-bold text-sm text-[var(--neo-text-main)]">

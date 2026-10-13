@@ -7,6 +7,7 @@ import { Search, MapPin, Monitor, Clock, Users, Calendar, Filter, ChevronDown, S
 import { useState } from 'react';
 import { format } from 'date-fns-jalali';
 import { useRouter, useSearchParams, usePathname } from 'next/navigation';
+import { getImageUrl, handleImageError } from '@/lib/utils';
 
 export function ClassesList({ initialData }: { initialData?: any } = {}) {
   const router = useRouter();
@@ -389,11 +390,12 @@ function ClassCard({ cls }: { cls: any }) {
 
   return (
     <div className="bg-white rounded-2xl border border-[var(--neo-border)] overflow-hidden hover:shadow-xl transition flex flex-col h-full group">
-      <div className="relative h-48 bg-[var(--neo-surface-2)] overflow-hidden">
+      <div className="relative h-48 bg-slate-900 overflow-hidden">
         <img
-          src={cls.thumbnail || `https://picsum.photos/seed/${cls._id}/600/400`}
+          src={getImageUrl(cls.thumbnail, 'class', cls.title)}
           alt={cls.title}
           className="w-full h-full object-cover group-hover:scale-105 transition duration-500"
+          onError={(e) => handleImageError(e, 'class', cls.title)}
         />
         <div className="absolute top-4 right-4 flex items-center gap-1.5">
           <span className={`px-3 py-1 rounded-full text-xs font-bold shadow-sm backdrop-blur flex items-center gap-1 ${isOnline ? 'bg-[var(--neo-primary)]/90 text-white' : 'bg-emerald-600/90 text-white'}`}>
@@ -468,9 +470,10 @@ function ClassCard({ cls }: { cls: any }) {
               title="مشاهده رزومه و دوره‌های استاد"
             >
               <img
-                src={instructor.personnelPhoto || instructor.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(instructor.firstName + ' ' + instructor.lastName)}&background=0284c7&color=fff`}
+                src={getImageUrl(instructor.personnelPhoto || instructor.avatar, 'avatar', `${instructor.firstName || ''} ${instructor.lastName || ''}`)}
                 className="w-6 h-6 rounded-full object-cover border border-slate-200"
                 alt={`${instructor.firstName} ${instructor.lastName}`}
+                onError={(e) => handleImageError(e, 'avatar', `${instructor.firstName || ''} ${instructor.lastName || ''}`)}
               />
               <span className="text-xs font-medium text-[var(--neo-text-secondary)] group-hover/inst:text-blue-600 transition">
                 {instructor.firstName} {instructor.lastName}

@@ -1,6 +1,7 @@
 import { Instructor } from '../api/home.api';
 import { Star, Users, PlayCircle } from 'lucide-react';
 import Link from 'next/link';
+import { getImageUrl, handleImageError } from '@/lib/utils';
 
 interface Props {
   instructors: Instructor[];
@@ -22,7 +23,8 @@ export function InstructorsSection({ instructors }: Props) {
             <div key={instructor.id} className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition text-center group">
               <div className="relative w-24 h-24 mx-auto mb-4">
                 <img 
-                  src={instructor.avatar} 
+                  src={getImageUrl(instructor.avatar, 'avatar', instructor.name)} 
+                  onError={(e) => handleImageError(e, 'avatar', instructor.name)}
                   alt={instructor.name} 
                   className="w-full h-full object-cover rounded-full border-4 border-white shadow-md group-hover:scale-105 transition-transform"
                 />

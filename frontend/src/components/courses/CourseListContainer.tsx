@@ -6,7 +6,7 @@ import { api } from '@/lib/api';
 import Link from 'next/link';
 import { Search, Filter, Clock, Book, User, Star, CheckSquare, Square, ChevronLeft, ChevronRight, X } from 'lucide-react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { toEnDigits } from '@/lib/utils';
+import { toEnDigits, getImageUrl, handleImageError } from '@/lib/utils';
 
 interface CourseListContainerProps {
   initialData?: any;
@@ -366,7 +366,12 @@ function CourseCard({ course }: { course: any }) {
   return (
     <Link href={`/courses/${course.slug}`} className="group flex flex-col bg-white rounded-2xl border border-[var(--neo-border)] overflow-hidden hover:shadow-xl hover:shadow-[var(--neo-primary)]/5 transition duration-300">
       <div className="relative aspect-[16/10] overflow-hidden bg-[var(--neo-surface-2)]">
-        <img src={course.thumbnail || `https://picsum.photos/seed/${course.slug}/400/250`} alt={course.title} className="w-full h-full object-cover group-hover:scale-105 transition duration-500" />
+        <img
+          src={getImageUrl(course.thumbnail, 'course', course.title)}
+          onError={(e) => handleImageError(e, 'course', course.title)}
+          alt={course.title}
+          className="w-full h-full object-cover group-hover:scale-105 transition duration-500"
+        />
         <div className="absolute top-4 right-4 flex flex-wrap gap-2">
           {course.categoryId?.name && (
             <div className="bg-white/90 backdrop-blur text-[var(--neo-text-main)] text-xs font-bold px-3 py-1 rounded-full">
@@ -412,7 +417,8 @@ function CourseCard({ course }: { course: any }) {
           title="مشاهده رزومه و دوره‌های استاد"
         >
           <img 
-            src={instructor?.personnelPhoto || instructor?.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(instructorName)}&background=0284c7&color=fff`} 
+            src={getImageUrl(instructor?.personnelPhoto || instructor?.avatar, 'avatar', instructorName)} 
+            onError={(e) => handleImageError(e, 'avatar', instructorName)}
             className="w-6 h-6 rounded-full object-cover border border-slate-200" 
             alt={instructorName} 
           />

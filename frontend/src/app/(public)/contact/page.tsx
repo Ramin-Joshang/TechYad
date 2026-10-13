@@ -381,8 +381,8 @@ export default function ContactPage() {
         </div>
 
         {/* Map */}
-        <div className="bg-[var(--neo-border)] rounded-3xl h-80 flex items-center justify-center overflow-hidden border border-[var(--neo-border)] relative shadow-inner">
-          <div className="absolute inset-0 bg-[url('https://picsum.photos/seed/map/1200/400')] opacity-50 object-cover grayscale"></div>
+        <div className="bg-slate-100 rounded-3xl h-80 flex items-center justify-center overflow-hidden border border-[var(--neo-border)] relative shadow-inner">
+          <div className="absolute inset-0 bg-[linear-gradient(to_right,#e2e8f0_1px,transparent_1px),linear-gradient(to_bottom,#e2e8f0_1px,transparent_1px)] bg-[size:24px_24px] opacity-70"></div>
           <div className="relative z-10 bg-white/90 backdrop-blur px-6 py-4 rounded-2xl shadow-lg font-bold text-[var(--neo-text-main)] flex items-center gap-3 border border-white">
             <MapPin className="w-6 h-6 text-red-500" />
             دفتر مرکزی تک‌یاد - تهران، میدان آزادی

@@ -14,6 +14,7 @@ import { AttendanceModal } from '@/components/classes/AttendanceModal';
 import { ClassFormModal } from '@/components/classes/ClassFormModal';
 import { ClassSessionsModal } from '@/components/classes/ClassSessionsModal';
 import { ClassGradebookModal } from '@/components/classes/ClassGradebookModal';
+import { getImageUrl, handleImageError } from '@/lib/utils';
 
 export default function InstructorClassesPage() {
   const queryClient = useQueryClient();
@@ -196,7 +197,8 @@ export default function InstructorClassesPage() {
                 {/* Thumbnail banner */}
                 <div className="aspect-video bg-slate-100 relative overflow-hidden">
                   <img 
-                    src={cls.thumbnail || `https://picsum.photos/seed/${cls._id}/600/350`} 
+                    src={getImageUrl(cls.thumbnail, 'class', cls.title)} 
+                    onError={(e) => handleImageError(e, 'class', cls.title)}
                     alt={cls.title} 
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
                   />

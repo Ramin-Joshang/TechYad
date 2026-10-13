@@ -5,6 +5,7 @@ import { useAuthStore } from '@/features/auth/stores/auth.store';
 import { authApi } from '@/features/auth/api/auth.api';
 import { mediaApi } from '@/features/media/api/media.api';
 import { Loader2, Upload, Lock, ShieldCheck, UserCheck, Eye, EyeOff, GraduationCap } from 'lucide-react';
+import { getImageUrl, handleImageError } from '@/lib/utils';
 
 export default function ProfilePage() {
   const { user, updateUser } = useAuthStore();
@@ -137,7 +138,8 @@ export default function ProfilePage() {
     try {
       setUploading(true);
       const res = await mediaApi.uploadFile(file, 'avatars');
-      const newAvatar = res.data.url;
+      const newAvatar = res.data?.url || res?.url;
+      if (!newAvatar) throw new Error('نشانی تصویر دریافت نشد');
       setFormData(prev => ({ ...prev, avatar: newAvatar }));
       try {
         const updateRes = await authApi.updateProfile({ ...formData, avatar: newAvatar });
@@ -173,7 +175,8 @@ export default function ProfilePage() {
     try {
       setUploadingPersonnel(true);
       const res = await mediaApi.uploadFile(file, 'personnel');
-      const newPhoto = res.data.url;
+      const newPhoto = res.data?.url || res?.url;
+      if (!newPhoto) throw new Error('نشانی عکس پرسنلی دریافت نشد');
       setFormData(prev => ({ ...prev, personnelPhoto: newPhoto }));
       try {
         const updateRes = await authApi.updateProfile({ ...formData, personnelPhoto: newPhoto });
@@ -226,7 +229,12 @@ export default function ProfilePage() {
               <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6 pb-6 border-b border-[var(--neo-border)]">
                 <div className="w-20 h-20 rounded-full bg-blue-100 text-[var(--neo-primary)] flex items-center justify-center font-bold text-3xl overflow-hidden shrink-0 shadow-inner">
                   {formData.avatar ? (
-                    <img src={formData.avatar} alt="Avatar" className="w-full h-full object-cover" />
+                    <img 
+                      src={getImageUrl(formData.avatar, 'avatar', `${formData.firstName} ${formData.lastName}`)} 
+                      onError={(e) => handleImageError(e, 'avatar', `${formData.firstName} ${formData.lastName}`)}
+                      alt="Avatar" 
+                      className="w-full h-full object-cover" 
+                    />
                   ) : (
                     formData.firstName.charAt(0) || 'U'
                   )}
@@ -258,7 +266,12 @@ export default function ProfilePage() {
                 <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6 pb-6 border-b border-[var(--neo-border)]">
                   <div className="w-20 h-24 rounded-2xl bg-amber-50 text-amber-600 border-2 border-dashed border-amber-300 flex items-center justify-center font-bold overflow-hidden shrink-0 shadow-xs relative">
                     {formData.personnelPhoto ? (
-                      <img src={formData.personnelPhoto} alt="Personnel Photo" className="w-full h-full object-cover" />
+                      <img 
+                        src={getImageUrl(formData.personnelPhoto, 'avatar', `${formData.firstName} ${formData.lastName}`)} 
+                        onError={(e) => handleImageError(e, 'avatar', `${formData.firstName} ${formData.lastName}`)}
+                        alt="Personnel Photo" 
+                        className="w-full h-full object-cover" 
+                      />
                     ) : (
                       <div className="flex flex-col items-center justify-center p-1 text-center">
                         <GraduationCap className="w-7 h-7 text-amber-500 mb-0.5" />

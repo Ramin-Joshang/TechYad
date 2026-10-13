@@ -20,6 +20,7 @@ import {
 import Link from 'next/link';
 import toast from 'react-hot-toast';
 import { StudentAttendanceModal } from '@/components/classes/StudentAttendanceModal';
+import { getImageUrl, handleImageError } from '@/lib/utils';
 
 export default function StudentDashboard() {
   const { user } = useAuthStore();
@@ -356,7 +357,8 @@ export default function StudentDashboard() {
               <div className="bg-white rounded-3xl border border-slate-200 overflow-hidden shadow-xs hover:shadow-md transition-all flex flex-col sm:flex-row group">
                 <div className="sm:w-72 h-48 sm:h-auto relative bg-slate-900 shrink-0 overflow-hidden">
                   <img 
-                    src={continueCourse.courseId?.thumbnail || `https://picsum.photos/seed/${continueCourse.courseId?._id}/500/300`} 
+                    src={getImageUrl(continueCourse.courseId?.thumbnail, 'course', continueCourse.courseId?.title)} 
+                    onError={(e) => handleImageError(e, 'course', continueCourse.courseId?.title)}
                     alt={continueCourse.courseId?.title} 
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 opacity-90"
                   />
@@ -568,7 +570,8 @@ export default function StudentDashboard() {
                     className="bg-white p-4 rounded-2xl border border-slate-200 hover:shadow-sm transition-all flex gap-3.5 items-center"
                   >
                     <img 
-                      src={item.courseId?.thumbnail || `https://picsum.photos/seed/${item.courseId?._id}/200/150`} 
+                      src={getImageUrl(item.courseId?.thumbnail, 'course', item.courseId?.title)} 
+                      onError={(e) => handleImageError(e, 'course', item.courseId?.title)}
                       alt=""
                       className="w-16 h-16 rounded-xl object-cover shrink-0" 
                     />

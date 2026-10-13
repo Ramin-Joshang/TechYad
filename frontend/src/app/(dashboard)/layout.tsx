@@ -10,6 +10,7 @@ import { superAdminApi } from "@/features/admin/api/super-admin.api";
 import { walletApi } from "@/features/wallet/api/wallet.api";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
+import { getImageUrl, handleImageError } from "@/lib/utils";
 import {
   BookOpen,
   LayoutDashboard,
@@ -756,9 +757,10 @@ export default function DashboardLayout({
                 >
                   <div className="relative">
                     <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-blue-600 text-white flex items-center justify-center font-bold text-xs sm:text-sm overflow-hidden shadow-xs shrink-0">
-                      {user?.avatar ? (
+                      {user?.personnelPhoto || user?.avatar ? (
                         <img
-                          src={user.avatar}
+                          src={getImageUrl(user.personnelPhoto || user.avatar, "avatar", `${user.firstName || ""} ${user.lastName || ""}`)}
+                          onError={(e) => handleImageError(e, "avatar", `${user.firstName || ""} ${user.lastName || ""}`)}
                           alt={user.firstName || "کاربر"}
                           className="w-full h-full object-cover"
                         />

@@ -21,6 +21,7 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import toast from 'react-hot-toast';
+import { getImageUrl, handleImageError } from '@/lib/utils';
 
 export default function AdminInstructorsPage() {
   const [search, setSearch] = useState('');
@@ -238,11 +239,12 @@ export default function AdminInstructorsPage() {
                       <td className="p-4">
                         <div className="flex items-center gap-3">
                           <div className="w-11 h-11 rounded-2xl bg-amber-100 text-amber-800 flex items-center justify-center font-bold text-base overflow-hidden shrink-0 border border-amber-200">
-                            {user.avatar ? (
-                              <img src={user.avatar} alt="Avatar" className="w-full h-full object-cover" />
-                            ) : (
-                              user.firstName?.charAt(0) || 'I'
-                            )}
+                            <img 
+                              src={getImageUrl(user.personnelPhoto || user.avatar, 'avatar', `${user.firstName || ''} ${user.lastName || ''}`)} 
+                              alt="Avatar" 
+                              className="w-full h-full object-cover" 
+                              onError={(e) => handleImageError(e, 'avatar', `${user.firstName || ''} ${user.lastName || ''}`)}
+                            />
                           </div>
                           <div>
                             <div className="font-bold text-sm text-[var(--neo-text-main)]">

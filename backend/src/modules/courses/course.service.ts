@@ -10,6 +10,7 @@ import { ClassEnrollment } from '../classes/class-enrollment.model.js';
 import { Order } from '../commerce/order.model.js';
 import { Enrollment } from '../learning/enrollment.model.js';
 import { AuditService } from '../../common/services/audit.service.js';
+import { MediaService } from '../media/media.service.js';
 
 export class CourseService {
   // --- Courses ---
@@ -218,8 +219,19 @@ static async getInstructorCourses(instructorId: string, query: any) {
     if (!overrideAuth) {
       delete payload.instructorSharePercent; // Never allow non-admin to override commission
     }
-    const course = await Course.findOneAndUpdate(
-      query,
+
+    const existingCourse = await Course.findOne(query);
+    if (!existingCourse) throw new AppError('Course not found or unauthorized', 404, 'NOT_FOUND');
+
+    // Clean up old thumbnail if replaced
+    if (payload.thumbnail && existingCourse.thumbnail && payload.thumbnail !== existingCourse.thumbnail && existingCourse.thumbnail.startsWith('/uploads/')) {
+      MediaService.deleteFile(instructorId || existingCourse.createdBy?.toString() || '', existingCourse.thumbnail, true).catch(err => {
+        console.error('Failed to delete old course thumbnail:', err);
+      });
+    }
+
+    const course = await Course.findByIdAndUpdate(
+      existingCourse._id,
       payload,
       { new: true, runValidators: true }
     );
@@ -412,6 +424,11 @@ static async getInstructorCourses(instructorId: string, query: any) {
   static async deleteCourse(id: string) {
     const course = await Course.findByIdAndDelete(id);
     if (!course) throw new AppError('Course not found', 404);
+    if (course.thumbnail && typeof course.thumbnail === 'string' && course.thumbnail.startsWith('/uploads/')) {
+      MediaService.deleteFile('', course.thumbnail, true).catch(err => {
+        console.error('Failed to cleanup course thumbnail on deletion:', err);
+      });
+    }
     // TODO: cleanup chapters, lessons, etc.
     return course;
   }

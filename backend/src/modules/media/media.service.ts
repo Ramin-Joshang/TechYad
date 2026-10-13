@@ -1,7 +1,8 @@
 import fs from 'fs';
+import path from 'path';
 import { File } from './file.model.js';
 import { AppError } from '../../common/errors/AppError.js';
-import { FOLDER_SIZE_LIMITS, UploadFolder, sanitizeFolder } from './storage.config.js';
+import { FOLDER_SIZE_LIMITS, UploadFolder, sanitizeFolder, UPLOADS_ROOT } from './storage.config.js';
 
 export class MediaService {
   static async uploadFile(
@@ -35,7 +36,25 @@ export class MediaService {
       }
     }
 
-    // 3. Store relative path URL in Database (NEVER BASE64!)
+    // 3. Ensure target directory exists and file is in the right physical location
+    const targetDir = path.join(UPLOADS_ROOT, folder);
+    if (!fs.existsSync(targetDir)) {
+      fs.mkdirSync(targetDir, { recursive: true });
+    }
+
+    const expectedFilePath = path.join(targetDir, file.filename);
+    if (file.path && path.resolve(file.path) !== path.resolve(expectedFilePath)) {
+      if (fs.existsSync(file.path)) {
+        try {
+          fs.renameSync(file.path, expectedFilePath);
+          file.path = expectedFilePath;
+        } catch (renameErr) {
+          console.error('Failed to move uploaded file to target folder:', renameErr);
+        }
+      }
+    }
+
+    // 4. Store relative path URL in Database (NEVER BASE64, NEVER Windows absolute path!)
     const relativeUrl = `/uploads/${folder}/${file.filename}`;
 
     const newFile = await File.create({
@@ -59,5 +78,37 @@ export class MediaService {
       size: file.size,
       folder: folder
     };
+  }
+
+  static async deleteFile(userId: string, relativeUrl: string, isAdmin: boolean = false) {
+    if (!relativeUrl || typeof relativeUrl !== 'string') return false;
+
+    const cleanUrl = relativeUrl.replace(/\\/g, '/');
+    if (!cleanUrl.startsWith('/uploads/')) return false;
+
+    const fileDoc = await File.findOne({ url: cleanUrl });
+    if (fileDoc && !isAdmin && fileDoc.uploadedBy.toString() !== userId.toString()) {
+      throw new AppError('شما دسترسی لازم برای حذف این فایل را ندارید', 403, 'FORBIDDEN');
+    }
+
+    const relativeSubPath = cleanUrl.replace(/^\/uploads\//, '');
+    const absolutePath = path.resolve(UPLOADS_ROOT, relativeSubPath);
+    if (!absolutePath.startsWith(path.resolve(UPLOADS_ROOT))) {
+      throw new AppError('مسیر فایل نامعتبر است', 400, 'INVALID_PATH');
+    }
+
+    if (fs.existsSync(absolutePath)) {
+      try {
+        fs.unlinkSync(absolutePath);
+      } catch (err) {
+        console.error('Failed to unlink file:', absolutePath, err);
+      }
+    }
+
+    if (fileDoc) {
+      await File.deleteOne({ _id: fileDoc._id });
+    }
+
+    return true;
   }
 }

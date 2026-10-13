@@ -6,6 +6,7 @@ import { Class } from '../classes/class.model.js';
 import { Course } from '../courses/course.model.js';
 import { Article } from '../blog/article.model.js';
 import { InstructorProfile } from '../instructors/instructor-profile.model.js';
+import { Testimonial } from '../home/testimonial.model.js';
 import { File } from './file.model.js';
 
 export function saveBase64ToDisk(base64Str: string, folder: UploadFolder, idPrefix: string): string | null {
@@ -112,17 +113,33 @@ export async function cleanupAllBase64FromDatabase() {
       }
     }
 
-    // 6. Clean File Collection
-    const files = await File.find({ url: { $regex: '^data:' } }).lean();
-    for (const f of files) {
-      if (f.url && typeof f.url === 'string' && f.url.startsWith('data:')) {
-        const fileUrl = saveBase64ToDisk(f.url, 'general', f._id.toString());
-        await File.updateOne({ _id: f._id }, { $set: { url: fileUrl || `/uploads/general/file-${f._id}` } });
-        migratedCount++;
-      }
-    }
+    // 7. Strip any legacy picsum.photos mock URLs from database
+    await Class.updateMany(
+      { thumbnail: { $regex: 'picsum\\.photos' } },
+      { $set: { thumbnail: '' } }
+    );
+    await Course.updateMany(
+      { thumbnail: { $regex: 'picsum\\.photos' } },
+      { $set: { thumbnail: '' } }
+    );
+    await Article.updateMany(
+      { thumbnail: { $regex: 'picsum\\.photos' } },
+      { $set: { thumbnail: '' } }
+    );
+    await User.updateMany(
+      { avatar: { $regex: 'picsum\\.photos' } },
+      { $set: { avatar: '' } }
+    );
+    await InstructorProfile.updateMany(
+      { avatar: { $regex: 'picsum\\.photos' } },
+      { $set: { avatar: '' } }
+    );
+    await Testimonial.updateMany(
+      { avatar: { $regex: 'pravatar|picsum' } },
+      { $set: { avatar: '' } }
+    );
 
-    console.log(`✅ Base64 cleanup completed. Total items migrated to disk files: ${migratedCount}`);
+    console.log(`✅ Base64 & Mock URL cleanup completed. Total items migrated to disk files: ${migratedCount}`);
   } catch (err) {
     console.error('Error during base64 cleanup:', err);
   }

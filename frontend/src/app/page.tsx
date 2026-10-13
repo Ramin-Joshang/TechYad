@@ -27,7 +27,7 @@ export const metadata: Metadata = {
     description: "سامانه آموزش آنلاین تک‌یاد؛ مرجع تخصصی دوره‌های پروژه‌محور برنامه‌نویسی، طراحی وب و هوش مصنوعی با برترین اساتید.",
     images: [
       {
-        url: "https://picsum.photos/seed/tecyad-home/1200/630",
+        url: "https://tecyad.ir/hero-image.png",
         width: 1200,
         height: 630,
         alt: "آکادمی آموزشی تک‌یاد Tecyad",
@@ -38,7 +38,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "تک‌یاد | پلتفرم جامع آموزش آنلاین، دوره‌ها و کلاس‌های تخصصی",
     description: "مرجع تخصصی دوره‌های برنامه‌نویسی، کلاس‌های آنلاین و کارگاه‌های مهارتی.",
-    images: ["https://picsum.photos/seed/tecyad-home/1200/630"],
+    images: ["https://tecyad.ir/hero-image.png"],
   },
 };
 

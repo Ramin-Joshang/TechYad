@@ -11,6 +11,7 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import toast from 'react-hot-toast';
+import { getImageUrl, handleImageError } from '@/lib/utils';
 
 interface CommentsSectionProps {
   courseId?: string;
@@ -301,9 +302,10 @@ export function CommentsSection({
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <div className="flex items-center gap-3">
                     <img
-                      src={author?.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(authorName)}&background=4f46e5&color=fff`}
+                      src={getImageUrl(author?.avatar, 'avatar', authorName)}
                       alt={authorName}
                       className="w-10 h-10 rounded-2xl object-cover border border-slate-200 shrink-0"
+                      onError={(e) => handleImageError(e, 'avatar', authorName)}
                     />
                     <div>
                       <div className="flex items-center gap-2">
@@ -431,11 +433,12 @@ export function CommentsSection({
                           <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
                             <div className="flex items-center gap-2.5">
                               <img
-                                src={replyAuthor?.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(replyName)}&background=${isTeacher ? '059669' : '4f46e5'}&color=fff`}
+                                src={getImageUrl(replyAuthor?.avatar, 'avatar', replyName)}
                                 alt={replyName}
                                 className={`w-8 h-8 rounded-xl object-cover shrink-0 ${
                                   isTeacher ? 'border-2 border-emerald-300' : 'border border-slate-200'
                                 }`}
+                                onError={(e) => handleImageError(e, 'avatar', replyName)}
                               />
                               <div>
                                 <div className="flex items-center gap-2">

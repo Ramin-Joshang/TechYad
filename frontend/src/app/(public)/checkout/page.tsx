@@ -12,6 +12,7 @@ import { commerceApi } from '@/features/commerce/api/commerce.api';
 import { walletApi } from '@/features/wallet/api/wallet.api';
 import toast from 'react-hot-toast';
 import Link from 'next/link';
+import { getImageUrl, handleImageError } from '@/lib/utils';
 
 export default function CheckoutPage() {
   const router = useRouter();
@@ -233,7 +234,12 @@ export default function CheckoutPage() {
                 {items.map((item: any) => (
                   <div key={item.itemId} className="flex flex-col sm:flex-row sm:items-center justify-between py-4 border-b border-gray-100 last:border-0 gap-3">
                     <div className="flex items-center gap-3 sm:gap-4">
-                      <img src={item.thumbnail || `https://picsum.photos/seed/${item.itemId}/100/100`} alt={item.titleSnapshot} className="w-14 h-14 sm:w-16 sm:h-16 rounded-xl object-cover border border-slate-100 shrink-0" />
+                      <img 
+                        src={getImageUrl(item.thumbnail, item.itemType === 'course' ? 'course' : 'class', item.titleSnapshot)} 
+                        alt={item.titleSnapshot} 
+                        className="w-14 h-14 sm:w-16 sm:h-16 rounded-xl object-cover border border-slate-100 shrink-0 bg-slate-900" 
+                        onError={(e) => handleImageError(e, item.itemType === 'course' ? 'course' : 'class', item.titleSnapshot)}
+                      />
                       <div>
                         <div className="text-xs text-[var(--neo-primary)] font-bold mb-0.5">{item.itemType === 'course' ? 'دوره آموزشی' : 'کلاس زنده'}</div>
                         <h4 className="font-bold text-[var(--neo-text-main)] text-sm sm:text-base leading-snug">{item.titleSnapshot}</h4>

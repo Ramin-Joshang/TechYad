@@ -11,6 +11,7 @@ import Link from 'next/link';
 import { useState, useMemo } from 'react';
 import { useAuthStore } from '@/features/auth/stores/auth.store';
 import toast from 'react-hot-toast';
+import { getImageUrl, handleImageError } from '@/lib/utils';
 
 export default function MyCoursesPage() {
   const { user } = useAuthStore();
@@ -287,7 +288,8 @@ export default function MyCoursesPage() {
                 {/* Thumbnail with overlay duration & category */}
                 <div className="relative aspect-video bg-slate-100 overflow-hidden">
                   <img 
-                    src={course.thumbnail || `https://picsum.photos/seed/${course._id}/500/300`} 
+                    src={getImageUrl(course.thumbnail, 'course', course.title)} 
+                    onError={(e) => handleImageError(e, 'course', course.title)}
                     alt={course.title} 
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
                   />
@@ -321,7 +323,8 @@ export default function MyCoursesPage() {
                     {/* Instructor unboxed metadata */}
                     <div className="flex items-center gap-2 text-xs text-slate-500 mb-2">
                       <img 
-                        src={instructor?.avatar || `https://ui-avatars.com/api/?name=${instructorName}&size=32`} 
+                        src={getImageUrl(instructor?.personnelPhoto || instructor?.avatar, 'avatar', instructorName)} 
+                        onError={(e) => handleImageError(e, 'avatar', instructorName)}
                         alt={instructorName}
                         className="w-5 h-5 rounded-full object-cover"
                       />

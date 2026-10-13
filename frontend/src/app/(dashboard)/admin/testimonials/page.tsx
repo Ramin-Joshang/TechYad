@@ -9,7 +9,7 @@ import {
   Loader2, User, BookOpen, Sparkles 
 } from 'lucide-react';
 import toast from 'react-hot-toast';
-import { toEnDigits } from '@/lib/utils';
+import { toEnDigits, getImageUrl, handleImageError } from '@/lib/utils';
 
 export default function AdminTestimonialsPage() {
   const queryClient = useQueryClient();
@@ -149,13 +149,12 @@ export default function AdminTestimonialsPage() {
                 <div className="flex items-start justify-between gap-3 mb-4">
                   <div className="flex items-center gap-3">
                     <div className="w-12 h-12 rounded-full overflow-hidden bg-gray-100 border border-gray-200 shrink-0">
-                      {item.avatar ? (
-                        <img src={item.avatar} alt={item.studentName} className="w-full h-full object-cover" />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center font-bold text-gray-500">
-                          {item.studentName?.charAt(0) || 'D'}
-                        </div>
-                      )}
+                      <img 
+                        src={getImageUrl(item.avatar, 'avatar', item.studentName)} 
+                        alt={item.studentName} 
+                        className="w-full h-full object-cover" 
+                        onError={(e) => handleImageError(e, 'avatar', item.studentName)}
+                      />
                     </div>
                     <div>
                       <h3 className="font-bold text-sm text-[var(--neo-text-main)]">{item.studentName}</h3>

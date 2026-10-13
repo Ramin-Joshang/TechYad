@@ -9,6 +9,7 @@ import {
   Layers, BarChart2 
 } from 'lucide-react';
 import Link from 'next/link';
+import { getImageUrl, handleImageError } from '@/lib/utils';
 
 export default function StudentProgressPage() {
   const { data: enrollmentsData, isLoading: isEnrollmentsLoading } = useQuery({
@@ -179,7 +180,8 @@ export default function StudentProgressPage() {
                     <div className="flex gap-4 items-start mb-4">
                       <div className="w-20 h-16 rounded-2xl bg-slate-100 overflow-hidden shrink-0 border border-slate-200">
                         <img 
-                          src={course.thumbnail || `https://picsum.photos/seed/${course._id}/200/150`} 
+                          src={getImageUrl(course.thumbnail, 'course', course.title)} 
+                          onError={(e) => handleImageError(e, 'course', course.title)}
                           alt={course.title}
                           className="w-full h-full object-cover"
                         />

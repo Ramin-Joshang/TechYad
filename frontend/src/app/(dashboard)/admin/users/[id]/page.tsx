@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import toast from 'react-hot-toast';
+import { getImageUrl, handleImageError } from '@/lib/utils';
 import { useAuthStore } from '@/features/auth/stores/auth.store';
 
 interface FormErrors {
@@ -241,11 +242,12 @@ export default function UserDetailPage() {
 
           <div className="relative">
             <div className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-blue-600 to-indigo-500 text-white flex items-center justify-center font-black text-xl shadow-md overflow-hidden border-2 border-white/20">
-              {user.avatar ? (
-                <img src={user.avatar} alt={user.firstName} className="w-full h-full object-cover" />
-              ) : (
-                `${user.firstName?.charAt(0) || ''}${user.lastName?.charAt(0) || ''}` || 'U'
-              )}
+              <img 
+                src={getImageUrl(user.personnelPhoto || user.avatar, 'avatar', `${user.firstName || ''} ${user.lastName || ''}`)} 
+                alt={user.firstName} 
+                className="w-full h-full object-cover" 
+                onError={(e) => handleImageError(e, 'avatar', `${user.firstName || ''} ${user.lastName || ''}`)}
+              />
             </div>
             <span className={`absolute -bottom-1 -right-1 w-4 h-4 rounded-full border-2 border-white ${
               user.status === 'active' ? 'bg-emerald-500' : 'bg-rose-500'

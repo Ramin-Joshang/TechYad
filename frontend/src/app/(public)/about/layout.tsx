@@ -22,7 +22,7 @@ export const metadata: Metadata = {
     description: 'آشنایی با آکادمی آنلاین تک‌یاد؛ تاریخچه، اهداف و تعهد به توانمندسازی مهارتی دانشجویان.',
     images: [
       {
-        url: 'https://picsum.photos/seed/about/1200/630',
+        url: 'https://tecyad.ir/hero-image.png',
         width: 1200,
         height: 630,
         alt: 'درباره تک‌یاد',
@@ -33,7 +33,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'درباره ما | پلتفرم آموزش تخصصی تک‌یاد',
     description: 'آشنایی با آکادمی آنلاین تک‌یاد و چشم‌انداز آموزش مهارتی در ایران.',
-    images: ['https://picsum.photos/seed/about/1200/630'],
+    images: ['https://tecyad.ir/hero-image.png'],
   },
 };
 

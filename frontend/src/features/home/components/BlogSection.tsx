@@ -1,6 +1,7 @@
 import { BlogPost } from '../api/home.api';
 import { Calendar, User, Clock, ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
+import { getImageUrl, handleImageError } from '@/lib/utils';
 
 interface Props {
   posts: BlogPost[];
@@ -31,9 +32,10 @@ export function BlogSection({ posts }: Props) {
             <article key={post.id} className="bg-white rounded-2xl overflow-hidden border border-gray-100 shadow-sm hover:shadow-md transition group">
               <Link href={`/blog/${post.slug}`} className="block relative aspect-[16/10] overflow-hidden">
                 <img 
-                  src={post.image} 
+                  src={getImageUrl(post.image, 'blog', post.title)} 
                   alt={post.title} 
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                  onError={(e) => handleImageError(e, 'blog', post.title)}
                 />
               </Link>
               

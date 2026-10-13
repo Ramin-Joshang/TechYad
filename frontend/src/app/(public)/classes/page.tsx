@@ -26,7 +26,7 @@ export const metadata: Metadata = {
     description: "شرکت در کلاس‌های تعاملی آنلاین، کارگاه‌های پروژه‌محور و جلسات رفع اشکال با ظرفیت محدود در آکادمی تک‌یاد (Tecyad).",
     images: [
       {
-        url: "https://picsum.photos/seed/tecyad-classes/1200/630",
+        url: "https://tecyad.ir/hero-image.png",
         width: 1200,
         height: 630,
         alt: "کلاس‌های آنلاین تک‌یاد Tecyad",
@@ -37,7 +37,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "کلاس‌های آنلاین، کارگاه‌های زنده و وبینارهای تخصصی | تک‌یاد (Tecyad)",
     description: "شرکت در کلاس‌های تعاملی آنلاین و کارگاه‌های پروژه‌محور با ظرفیت محدود در تک‌یاد (Tecyad).",
-    images: ["https://picsum.photos/seed/tecyad-classes/1200/630"],
+    images: ["https://tecyad.ir/hero-image.png"],
   },
 };
 

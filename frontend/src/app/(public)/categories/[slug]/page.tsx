@@ -37,7 +37,7 @@ export async function generateMetadata({ params }: CategoryPageProps): Promise<M
       description,
       images: [
         {
-          url: data.image || `https://picsum.photos/seed/cat-${decodedSlug}/1200/630`,
+          url: data.image || 'https://tecyad.ir/hero-image.png',
           width: 1200,
           height: 630,
           alt: `دسته‌بندی ${data.name} تک‌یاد`,
@@ -48,7 +48,7 @@ export async function generateMetadata({ params }: CategoryPageProps): Promise<M
       card: 'summary_large_image',
       title,
       description,
-      images: [data.image || `https://picsum.photos/seed/cat-${decodedSlug}/1200/630`],
+      images: [data.image || 'https://tecyad.ir/hero-image.png'],
     },
   };
 }

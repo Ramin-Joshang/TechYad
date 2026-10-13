@@ -11,6 +11,7 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import toast from 'react-hot-toast';
+import { getImageUrl, handleImageError } from '@/lib/utils';
 
 interface FormErrors {
   firstName?: string;
@@ -215,8 +216,13 @@ export default function InstructorDetailPage() {
 
           <div className="relative">
             <div className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-amber-500 to-orange-600 text-white flex items-center justify-center font-black text-xl shadow-md overflow-hidden border-2 border-white/20">
-              {user.avatar ? (
-                <img src={user.avatar} alt={user.firstName} className="w-full h-full object-cover" />
+              {user.personnelPhoto || user.avatar ? (
+                <img 
+                  src={getImageUrl(user.personnelPhoto || user.avatar, 'avatar', `${user.firstName || ''} ${user.lastName || ''}`)} 
+                  onError={(e) => handleImageError(e, 'avatar', `${user.firstName || ''} ${user.lastName || ''}`)}
+                  alt={user.firstName} 
+                  className="w-full h-full object-cover" 
+                />
               ) : (
                 `${user.firstName?.charAt(0) || ''}${user.lastName?.charAt(0) || ''}` || 'I'
               )}
@@ -407,7 +413,8 @@ export default function InstructorDetailPage() {
                 <div key={c._id} className="p-4 bg-[var(--neo-surface-2)] rounded-2xl border border-[var(--neo-border)] flex items-center justify-between gap-3">
                   <div className="flex items-center gap-3">
                     <img 
-                      src={c.thumbnail || `https://picsum.photos/seed/${c._id}/100/60`} 
+                      src={getImageUrl(c.thumbnail, 'course', c.title)} 
+                      onError={(e) => handleImageError(e, 'course', c.title)}
                       alt={c.title} 
                       className="w-14 h-10 object-cover rounded-lg border border-[var(--neo-border)] shrink-0" 
                     />

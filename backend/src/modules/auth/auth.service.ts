@@ -7,6 +7,8 @@ import { env } from '../../config/env.js';
 import { AuditLog } from '../admin/audit-log.model.js';
 import { AuditService } from '../../common/services/audit.service.js';
 import { ReferralService } from '../referral/referral.service.js';
+import { MediaService } from '../media/media.service.js';
+import { InstructorProfile } from '../instructors/instructor-profile.model.js';
 
 const signToken = (id: string) => {
   return jwt.sign({ id }, env.JWT_SECRET, {
@@ -316,6 +318,20 @@ export class AuthService {
       }
     }
 
+    // Clean up replaced avatar if different
+    if (data.avatar && existingUser.avatar && data.avatar !== existingUser.avatar && existingUser.avatar.startsWith('/uploads/')) {
+      MediaService.deleteFile(userId, existingUser.avatar, true).catch(err => {
+        console.error('Failed to delete old avatar file:', err);
+      });
+    }
+
+    // Clean up replaced personnelPhoto if different
+    if (data.personnelPhoto && existingUser.personnelPhoto && data.personnelPhoto !== existingUser.personnelPhoto && existingUser.personnelPhoto.startsWith('/uploads/')) {
+      MediaService.deleteFile(userId, existingUser.personnelPhoto, true).catch(err => {
+        console.error('Failed to delete old personnel photo file:', err);
+      });
+    }
+
     const updateOp: any = { $set: updatePayload };
     if (Object.keys(unsetPayload).length > 0) {
       updateOp.$unset = unsetPayload;
@@ -328,6 +344,23 @@ export class AuthService {
     ).populate('role');
     
     if (!user) throw new AppError('User not found', 404, 'NOT_FOUND');
+
+    // Sync avatar / personnelPhoto / specialty / bio to InstructorProfile if user is instructor
+    if (isInstructor) {
+      InstructorProfile.findOneAndUpdate(
+        { userId },
+        {
+          $set: {
+            ...(data.personnelPhoto ? { avatar: data.personnelPhoto } : data.avatar ? { avatar: data.avatar } : {}),
+            ...(data.bio ? { bio: data.bio } : {}),
+            ...(data.specialty ? { title: data.specialty } : {})
+          }
+        }
+      ).catch(err => {
+        console.error('Failed to sync profile updates to InstructorProfile:', err);
+      });
+    }
+
     return user;
   }
 

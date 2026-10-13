@@ -79,9 +79,16 @@ app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 app.use(cookieParser());
 app.use(persianNormalizeMiddleware);
 
-// Serve static uploads folder (both directly at /uploads and at /api/v1/uploads)
-app.use('/uploads', express.static(UPLOADS_ROOT));
-app.use('/api/v1/uploads', express.static(UPLOADS_ROOT));
+// Serve static uploads folder (both directly at /uploads and at /api/v1/uploads) with cross-origin headers
+const staticUploadsMiddleware = (req: express.Request, res: express.Response, next: express.NextFunction) => {
+  res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Cache-Control', 'public, max-age=86400');
+  next();
+};
+
+app.use('/uploads', staticUploadsMiddleware, express.static(UPLOADS_ROOT));
+app.use('/api/v1/uploads', staticUploadsMiddleware, express.static(UPLOADS_ROOT));
 
 // API Routes
 app.use('/api/v1', routes);

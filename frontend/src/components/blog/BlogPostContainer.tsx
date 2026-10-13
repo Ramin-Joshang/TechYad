@@ -11,6 +11,7 @@ import {
 import Link from 'next/link';
 import { useEffect, useState, useRef } from 'react';
 import toast from 'react-hot-toast';
+import { getImageUrl, handleImageError } from '@/lib/utils';
 
 interface CommentItem {
   id: string;
@@ -34,7 +35,7 @@ export function BlogPostContainer({ slug }: { slug: string }) {
     {
       id: 'c1',
       name: 'مهدی رضایی',
-      avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&h=100&fit=crop',
+      avatar: getImageUrl(null, 'avatar', 'مهدی رضایی'),
       date: '۲ روز پیش',
       text: 'بسیار عالی و کاربردی بود. به خصوص بخش پیاده‌سازی گام‌به‌گام که دقیقا نکاتی را پوشش داد که در پروژه‌های واقعی با آن مواجه هستیم.',
       likes: 6
@@ -42,7 +43,7 @@ export function BlogPostContainer({ slug }: { slug: string }) {
     {
       id: 'c2',
       name: 'سارا امینی',
-      avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop',
+      avatar: getImageUrl(null, 'avatar', 'سارا امینی'),
       date: '۵ روز پیش',
       text: 'خیلی ممنون از تیم تک‌یاد. آیا دوره ویدیویی مرتبط با این سرفصل هم در سایت قرار می‌گیرد؟',
       likes: 3
@@ -274,7 +275,7 @@ export function BlogPostContainer({ slug }: { slug: string }) {
     const newComment: CommentItem = {
       id: Date.now().toString(),
       name: 'کاربر تک‌یاد',
-      avatar: 'https://ui-avatars.com/api/?name=User&background=0284c7&color=fff',
+      avatar: '',
       date: 'هم‌اکنون',
       text: commentText.trim(),
       likes: 0
@@ -328,7 +329,8 @@ export function BlogPostContainer({ slug }: { slug: string }) {
           <div className="flex flex-wrap items-center justify-center gap-4 sm:gap-6 text-xs sm:text-sm font-medium text-slate-300">
             <div className="flex items-center gap-2.5">
               <img 
-                src={(article.authorId || article.author)?.personnelPhoto || (article.authorId || article.author)?.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent((article.authorId || article.author)?.firstName || 'تک')}+${encodeURIComponent((article.authorId || article.author)?.lastName || 'یاد')}&background=0284c7&color=fff`} 
+                src={getImageUrl((article.authorId || article.author)?.personnelPhoto || (article.authorId || article.author)?.avatar, 'avatar', `${(article.authorId || article.author)?.firstName || ''} ${(article.authorId || article.author)?.lastName || ''}`)} 
+                onError={(e) => handleImageError(e, 'avatar', `${(article.authorId || article.author)?.firstName || ''} ${(article.authorId || article.author)?.lastName || ''}`)}
                 alt="Author" 
                 className="w-10 h-10 rounded-full border-2 border-white/20 object-cover" 
               />
@@ -511,7 +513,8 @@ export function BlogPostContainer({ slug }: { slug: string }) {
             {/* Author Bio Box */}
             <div className="mt-10 bg-slate-50 p-6 sm:p-8 rounded-3xl border border-slate-200 flex flex-col sm:flex-row gap-5 items-center sm:items-start text-center sm:text-right">
               <img 
-                src={(article.authorId || article.author)?.personnelPhoto || (article.authorId || article.author)?.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent((article.authorId || article.author)?.firstName || 'تک')}+${encodeURIComponent((article.authorId || article.author)?.lastName || 'یاد')}&background=0284c7&color=fff`} 
+                src={getImageUrl((article.authorId || article.author)?.personnelPhoto || (article.authorId || article.author)?.avatar, 'avatar', `${(article.authorId || article.author)?.firstName || ''} ${(article.authorId || article.author)?.lastName || ''}`)} 
+                onError={(e) => handleImageError(e, 'avatar', `${(article.authorId || article.author)?.firstName || ''} ${(article.authorId || article.author)?.lastName || ''}`)}
                 alt="Author" 
                 className="w-20 h-20 rounded-2xl shadow-sm object-cover border border-slate-200"
               />
@@ -600,7 +603,12 @@ export function BlogPostContainer({ slug }: { slug: string }) {
               <div className="space-y-4">
                 {relatedArticles.slice(0, 3).map(rel => (
                   <Link key={rel._id} href={`/blog/${rel.slug}`} className="flex gap-3 group items-center">
-                    <img src={rel.thumbnail || `https://picsum.photos/seed/${rel._id}/100/100`} alt={rel.title} className="w-14 h-14 rounded-xl object-cover shrink-0" />
+                    <img 
+                      src={getImageUrl(rel.thumbnail, 'blog', rel.title)} 
+                      onError={(e) => handleImageError(e, 'blog', rel.title)}
+                      alt={rel.title} 
+                      className="w-14 h-14 rounded-xl object-cover shrink-0" 
+                    />
                     <div>
                       <h4 className="font-bold text-xs text-slate-800 group-hover:text-blue-600 transition line-clamp-2 leading-snug">
                         {rel.title}
@@ -690,9 +698,10 @@ export function BlogPostContainer({ slug }: { slug: string }) {
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
                       <img 
-                        src={c.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(c.name)}&background=0284c7&color=fff`} 
+                        src={getImageUrl(c.avatar, 'avatar', c.name)} 
                         alt={c.name} 
                         className="w-9 h-9 rounded-full object-cover border border-slate-200" 
+                        onError={(e) => handleImageError(e, 'avatar', c.name)}
                       />
                       <div>
                         <div className="font-bold text-xs text-slate-900">{c.name}</div>

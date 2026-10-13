@@ -120,7 +120,7 @@ export default async function BlogPostPage({
       "url": "https://tecyad.ir",
       "logo": {
         "@type": "ImageObject",
-        "url": "https://picsum.photos/seed/tecyad-logo/512/512"
+        "url": "https://tecyad.ir/logo.png"
       }
     }
   } : null;

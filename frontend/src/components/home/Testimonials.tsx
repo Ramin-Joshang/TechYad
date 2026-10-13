@@ -1,4 +1,5 @@
 import { Star, Quote } from "lucide-react";
+import { getImageUrl, handleImageError } from "@/lib/utils";
 
 export function Testimonials({ data = [], isLoading = false }: { data?: any[], isLoading?: boolean }) {
   if (!isLoading && !data?.length) return null;
@@ -49,13 +50,12 @@ export function Testimonials({ data = [], isLoading = false }: { data?: any[], i
 
                   <div className="flex items-center gap-4 mt-auto pt-6 border-t border-[var(--neo-border)]">
                     <div className="w-12 h-12 rounded-full border border-[var(--neo-border)] overflow-hidden bg-[var(--neo-surface-2)] text-[var(--neo-primary)]">
-                      {item.user?.avatar || item.avatar ? (
-                        <img src={item.user?.avatar || item.avatar} alt={item.user?.firstName || item.studentName} className="w-full h-full object-cover" />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center font-bold text-sm">
-                          {item.user?.firstName?.charAt(0) || item.studentName?.charAt(0) || 'D'}
-                        </div>
-                      )}
+                      <img 
+                        src={getImageUrl(item.user?.avatar || item.avatar, 'avatar', item.user?.firstName ? `${item.user.firstName} ${item.user.lastName}` : item.studentName)} 
+                        alt={item.user?.firstName || item.studentName} 
+                        className="w-full h-full object-cover" 
+                        onError={(e) => handleImageError(e, 'avatar', item.user?.firstName ? `${item.user.firstName} ${item.user.lastName}` : item.studentName)}
+                      />
                     </div>
                     <div>
                       <div className="font-bold text-[var(--neo-text-main)]">{item.user?.firstName ? `${item.user.firstName} ${item.user.lastName}` : item.studentName}</div>

@@ -12,7 +12,7 @@ import {
 import Link from 'next/link';
 import toast from 'react-hot-toast';
 import { MediaUploader } from '@/components/common/MediaUploader';
-import { toEnDigits } from '@/lib/utils';
+import { toEnDigits, getImageUrl, handleImageError } from '@/lib/utils';
 import { CategoryCascadeSelect } from '@/components/categories/CategoryCascadeSelect';
 
 export default function AdminCoursesPage() {
@@ -274,10 +274,10 @@ export default function AdminCoursesPage() {
                       <td className="p-4">
                         <div className="flex items-center gap-3">
                           <img
-                            src={course.thumbnail || `https://picsum.photos/seed/${course._id}/120/70`}
+                            src={getImageUrl(course.thumbnail, 'course', course.title)}
                             alt={course.title}
                             className="w-14 h-10 object-cover rounded-lg border border-[var(--neo-border)] shrink-0"
-                            onError={(e) => { (e.target as HTMLImageElement).src = 'https://picsum.photos/120/70'; }}
+                            onError={(e) => handleImageError(e, 'course', course.title)}
                           />
                           <div>
                             <span className="font-bold text-[var(--neo-text-main)] block max-w-xs truncate" title={course.title}>
@@ -427,7 +427,12 @@ export default function AdminCoursesPage() {
             </div>
 
             <div className="aspect-video relative rounded-2xl overflow-hidden bg-black/10 border border-[var(--neo-border)]">
-              <img src={detailCourse.thumbnail || `https://picsum.photos/seed/${detailCourse._id}/600/300`} alt={detailCourse.title} className="w-full h-full object-cover" />
+              <img
+                src={getImageUrl(detailCourse.thumbnail, 'course', detailCourse.title)}
+                onError={(e) => handleImageError(e, 'course', detailCourse.title)}
+                alt={detailCourse.title}
+                className="w-full h-full object-cover"
+              />
               <div className="absolute top-3 right-3 bg-[var(--neo-surface)]/90 backdrop-blur px-3 py-1 rounded-xl text-xs font-black shadow-sm">
                 {detailCourse.status === 'published' ? 'منتشر شده' : detailCourse.status}
               </div>

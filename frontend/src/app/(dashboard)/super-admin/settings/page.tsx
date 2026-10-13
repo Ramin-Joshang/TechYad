@@ -10,6 +10,7 @@ import {
   ExternalLink, Sparkles, Building2, HelpCircle 
 } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { getImageUrl, handleImageError } from '@/lib/utils';
 
 export default function SettingsPage() {
   const queryClient = useQueryClient();
@@ -233,7 +234,12 @@ export default function SettingsPage() {
                   {formData.siteLogo && (
                     <div className="p-3 bg-gray-50 rounded-xl border border-gray-100 flex items-center justify-between">
                       <span className="text-[11px] text-gray-500 font-bold">پیش‌نمایش در هدر:</span>
-                      <img src={formData.siteLogo} alt="Logo Preview" className="h-9 object-contain max-w-[160px]" />
+                      <img 
+                        src={getImageUrl(formData.siteLogo, 'general')} 
+                        onError={(e) => handleImageError(e, 'general')}
+                        alt="Logo Preview" 
+                        className="h-9 object-contain max-w-[160px]" 
+                      />
                     </div>
                   )}
                 </div>
@@ -254,7 +260,12 @@ export default function SettingsPage() {
                   {formData.siteFavicon && (
                     <div className="p-3 bg-gray-50 rounded-xl border border-gray-100 flex items-center justify-between">
                       <span className="text-[11px] text-gray-500 font-bold">پیش‌نمایش آیکون:</span>
-                      <img src={formData.siteFavicon} alt="Favicon Preview" className="w-7 h-7 object-contain rounded" />
+                      <img 
+                        src={getImageUrl(formData.siteFavicon, 'general')} 
+                        onError={(e) => handleImageError(e, 'general')}
+                        alt="Favicon Preview" 
+                        className="w-7 h-7 object-contain rounded" 
+                      />
                     </div>
                   )}
                 </div>

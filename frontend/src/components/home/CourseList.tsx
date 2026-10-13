@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Clock, Users, PlayCircle, Star } from "lucide-react";
+import { getImageUrl, handleImageError } from "@/lib/utils";
 
 export function CourseList({
   title,
@@ -69,7 +70,8 @@ export function CourseList({
                   <Link key={item._id} href={linkHref} dir="rtl" className="neo-card group flex flex-col overflow-hidden relative bg-white border border-[var(--neo-border)] rounded-2xl hover:shadow-lg transition-all duration-300 text-right">
                     <div className="relative aspect-[16/10] overflow-hidden bg-[var(--neo-surface-2)]">
                       <img
-                        src={item.coverImage || item.thumbnail || `https://picsum.photos/seed/${item.slug || item._id}/400/250`}
+                        src={getImageUrl(item.coverImage || item.thumbnail, isClass ? 'class' : 'course', item.title)}
+                        onError={(e) => handleImageError(e, isClass ? 'class' : 'course', item.title)}
                         alt={item.title}
                         className="w-full h-full object-cover group-hover:scale-105 transition duration-700 ease-out"
                       />
@@ -118,7 +120,8 @@ export function CourseList({
                         <div className="w-6 h-6 rounded-full bg-blue-50 flex items-center justify-center text-blue-600 overflow-hidden border border-blue-100 shrink-0">
                           {instructorAvatar ? (
                             <img
-                              src={instructorAvatar}
+                              src={getImageUrl(instructorAvatar, 'avatar', instructorName)}
+                              onError={(e) => handleImageError(e, 'avatar', instructorName)}
                               className="w-full h-full object-cover"
                               alt=""
                             />

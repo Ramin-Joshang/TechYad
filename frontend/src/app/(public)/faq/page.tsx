@@ -131,7 +131,7 @@ export default function FAQPage() {
       {/* Contact Support CTA */}
       <div className="max-w-4xl mx-auto px-4 mt-16 text-center">
         <div className="bg-[var(--neo-primary)] rounded-3xl p-8 sm:p-12 text-white shadow-lg relative overflow-hidden">
-          <div className="absolute inset-0 bg-[url('https://picsum.photos/seed/texture/800/400')] opacity-10 mix-blend-overlay"></div>
+          <div className="absolute inset-0 bg-white/5 [radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-white/10 to-transparent"></div>
           <div className="relative z-10 flex flex-col items-center">
             <div className="w-16 h-16 bg-white/10 rounded-full flex items-center justify-center mb-6">
               <MessageSquare className="w-8 h-8 text-white" />

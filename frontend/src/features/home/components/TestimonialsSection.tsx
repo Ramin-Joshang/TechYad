@@ -1,5 +1,6 @@
 import { Testimonial } from '../api/home.api';
 import { Quote } from 'lucide-react';
+import { getImageUrl, handleImageError } from '@/lib/utils';
 
 interface Props {
   testimonials: Testimonial[];
@@ -31,9 +32,10 @@ export function TestimonialsSection({ testimonials }: Props) {
               
               <div className="flex items-center gap-4">
                 <img 
-                  src={testimonial.avatar} 
+                  src={getImageUrl(testimonial.avatar, 'avatar', testimonial.author)} 
                   alt={testimonial.author} 
                   className="w-12 h-12 rounded-full object-cover border-2 border-blue-100"
+                  onError={(e) => handleImageError(e, 'avatar', testimonial.author)}
                 />
                 <div>
                   <h4 className="font-bold text-gray-900">{testimonial.author}</h4>

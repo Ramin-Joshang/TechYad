@@ -8,7 +8,7 @@ export class InstructorService {
   static async getPublicInstructors() {
     // Return approved instructors with their user details
     const profiles = await InstructorProfile.find({ isApproved: true })
-      .populate('userId', 'firstName lastName avatar email specialty bio')
+      .populate('userId', 'firstName lastName avatar personnelPhoto email specialty bio')
       .sort({ rating: -1, totalStudents: -1 })
       .lean();
 
@@ -41,11 +41,11 @@ export class InstructorService {
         { userId: id },
         { _id: id }
       ]
-    }).populate('userId', 'firstName lastName avatar email mobile specialty bio');
+    }).populate('userId', 'firstName lastName avatar personnelPhoto email mobile specialty bio');
 
     if (!profile) {
       try {
-        profile = await InstructorProfile.findById(id).populate('userId', 'firstName lastName avatar email mobile specialty bio');
+        profile = await InstructorProfile.findById(id).populate('userId', 'firstName lastName avatar personnelPhoto email mobile specialty bio');
       } catch (e) {
         // ignore invalid ObjectId
       }
@@ -113,21 +113,21 @@ export class InstructorService {
   }
 
   static async getMyProfile(userId: string) {
-    let profile = await InstructorProfile.findOne({ userId }).populate('userId', 'firstName lastName avatar email');
+    let profile = await InstructorProfile.findOne({ userId }).populate('userId', 'firstName lastName avatar personnelPhoto email');
     if (!profile) {
       const user = await User.findById(userId);
       profile = await InstructorProfile.create({
         userId,
         title: user?.specialty || 'مدرس و متخصص آموزشی',
         bio: user?.bio || 'مدرس آکادمی تک‌یاد',
-        avatar: user?.avatar || '',
+        avatar: user?.personnelPhoto || user?.avatar || '',
         specialties: [],
         education: [],
         experience: [],
         isApproved: true,
         socialLinks: {}
       });
-      profile = await InstructorProfile.findById(profile._id).populate('userId', 'firstName lastName avatar email');
+      profile = await InstructorProfile.findById(profile._id).populate('userId', 'firstName lastName avatar personnelPhoto email');
     }
     return profile;
   }
@@ -139,7 +139,7 @@ export class InstructorService {
     if (data.bio !== undefined || data.avatar !== undefined || data.title !== undefined) {
       await User.findByIdAndUpdate(userId, {
         ...(data.bio !== undefined ? { bio: data.bio } : {}),
-        ...(data.avatar !== undefined ? { avatar: data.avatar } : {}),
+        ...(data.avatar !== undefined ? { avatar: data.avatar, personnelPhoto: data.avatar } : {}),
         ...(data.title !== undefined ? { specialty: data.title } : {})
       });
     }
@@ -155,7 +155,7 @@ export class InstructorService {
         { userId },
         { $set: data },
         { new: true }
-      ).populate('userId', 'firstName lastName avatar email');
+      ).populate('userId', 'firstName lastName avatar personnelPhoto email');
     }
     
     return profile;

@@ -11,6 +11,7 @@ import {
   ChevronRight, ChevronLeft, Sparkles
 } from 'lucide-react';
 import { useAuthStore } from '@/features/auth/stores/auth.store';
+import { getImageUrl, handleImageError } from '@/lib/utils';
 
 export default function InstructorCoursesPage() {
   const [activeTab, setActiveTab] = useState<'all' | 'published' | 'pending_review' | 'draft' | 'rejected'>('all');
@@ -194,17 +195,12 @@ export default function InstructorCoursesPage() {
             <div key={course._id} className="bg-[var(--neo-surface)] rounded-3xl border border-[var(--neo-border)] overflow-hidden shadow-sm hover:shadow-md transition-shadow flex flex-col group">
               {/* Thumbnail */}
               <div className="relative aspect-video w-full bg-[var(--neo-surface-2)] overflow-hidden">
-                {course.thumbnail ? (
-                  <img 
-                    src={course.thumbnail} 
-                    alt={course.title} 
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
-                  />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center text-[var(--neo-text-secondary)]">
-                    <BookOpen className="w-12 h-12" />
-                  </div>
-                )}
+                <img 
+                  src={getImageUrl(course.thumbnail, 'course', course.title)} 
+                  alt={course.title} 
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
+                  onError={(e) => handleImageError(e, 'course', course.title)}
+                />
                 
                 <div className="absolute top-3 right-3 z-10">
                   {getStatusBadge(course.status)}
@@ -303,13 +299,12 @@ export default function InstructorCoursesPage() {
                     <td className="p-4">
                       <div className="flex items-center gap-3">
                         <div className="w-14 h-11 rounded-xl bg-[var(--neo-surface-2)] overflow-hidden shrink-0 border border-[var(--neo-border)]">
-                          {course.thumbnail ? (
-                            <img src={course.thumbnail} alt={course.title} className="w-full h-full object-cover" />
-                          ) : (
-                            <div className="w-full h-full flex items-center justify-center text-[var(--neo-text-secondary)]">
-                              <BookOpen className="w-4 h-4" />
-                            </div>
-                          )}
+                          <img 
+                            src={getImageUrl(course.thumbnail, 'course', course.title)} 
+                            alt={course.title} 
+                            className="w-full h-full object-cover" 
+                            onError={(e) => handleImageError(e, 'course', course.title)}
+                          />
                         </div>
                         <div>
                           <div className="font-bold text-sm text-[var(--neo-text-main)] line-clamp-1">{course.title}</div>
@@ -370,13 +365,12 @@ export default function InstructorCoursesPage() {
               <div key={course._id} className="p-4 space-y-3">
                 <div className="flex items-start gap-3">
                   <div className="w-16 h-12 rounded-xl bg-[var(--neo-surface-2)] overflow-hidden shrink-0 border border-[var(--neo-border)]">
-                    {course.thumbnail ? (
-                      <img src={course.thumbnail} alt={course.title} className="w-full h-full object-cover" />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center text-[var(--neo-text-secondary)]">
-                        <BookOpen className="w-5 h-5" />
-                      </div>
-                    )}
+                    <img 
+                      src={getImageUrl(course.thumbnail, 'course', course.title)} 
+                      alt={course.title} 
+                      className="w-full h-full object-cover" 
+                      onError={(e) => handleImageError(e, 'course', course.title)}
+                    />
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="font-bold text-sm text-[var(--neo-text-main)] line-clamp-1">{course.title}</div>

@@ -62,5 +62,8 @@ const handleUploadMiddleware = (req: Request, res: Response, next: NextFunction)
 };
 
 router.post('/upload', requireAuth, handleUploadMiddleware, asyncHandler(Controller.uploadFile));
+router.post('/', requireAuth, handleUploadMiddleware, asyncHandler(Controller.uploadFile));
+router.delete('/delete', requireAuth, asyncHandler(Controller.deleteFile));
+router.delete('/', requireAuth, asyncHandler(Controller.deleteFile));
 
 export default router;

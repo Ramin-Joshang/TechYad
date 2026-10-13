@@ -19,6 +19,7 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import { searchApi, SearchResult } from '@/features/search/api/search.api';
+import { getImageUrl, handleImageError } from '@/lib/utils';
 
 function SearchContent() {
   const searchParams = useSearchParams();
@@ -136,9 +137,10 @@ function SearchContent() {
             >
               <div className="relative aspect-video bg-gray-100 overflow-hidden">
                 <img 
-                  src={course.thumbnail || `https://picsum.photos/seed/${course._id}/400/250`} 
+                  src={getImageUrl(course.thumbnail, 'course', course.title)} 
                   alt={course.title} 
                   className="w-full h-full object-cover group-hover:scale-105 transition duration-500" 
+                  onError={(e) => handleImageError(e, 'course', course.title)}
                 />
                 <span className="absolute top-3 right-3 bg-black/60 backdrop-blur-md text-white text-xs px-2.5 py-1 rounded-lg font-medium">
                   دوره آموزشی
@@ -187,9 +189,10 @@ function SearchContent() {
             >
               <div className="relative aspect-video bg-gray-100 overflow-hidden">
                 <img 
-                  src={cls.thumbnail || `https://picsum.photos/seed/${cls._id}/400/250`} 
+                  src={getImageUrl(cls.thumbnail, 'class', cls.title)} 
                   alt={cls.title} 
                   className="w-full h-full object-cover group-hover:scale-105 transition duration-500" 
+                  onError={(e) => handleImageError(e, 'class', cls.title)}
                 />
                 <span className={`absolute top-3 right-3 text-xs px-2.5 py-1 rounded-lg font-bold shadow-sm ${
                   cls.mode === 'online' ? 'bg-purple-600 text-white' : 'bg-emerald-600 text-white'
@@ -235,7 +238,7 @@ function SearchContent() {
           {results.instructors.map(inst => {
             const user = inst.userId || {};
             const fullName = `${user.firstName || ''} ${user.lastName || ''}`.trim() || 'استاد تک‌یاد';
-            const avatar = user.avatar || inst.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(fullName)}&background=random`;
+            const avatar = getImageUrl(user.personnelPhoto || user.avatar || inst.avatar, 'avatar', fullName);
             const profileId = inst._id || user._id;
 
             return (
@@ -249,6 +252,7 @@ function SearchContent() {
                     src={avatar} 
                     alt={fullName} 
                     className="w-16 h-16 rounded-2xl object-cover border border-gray-200 group-hover:ring-2 group-hover:ring-[var(--neo-primary)] transition"
+                    onError={(e) => handleImageError(e, 'avatar', fullName)}
                   />
                   {inst.rating && (
                     <div className="absolute -bottom-1 -right-1 bg-amber-400 text-amber-950 font-bold text-[10px] px-1.5 py-0.5 rounded-md flex items-center gap-0.5 shadow-sm">
@@ -293,9 +297,10 @@ function SearchContent() {
               className="bg-white rounded-2xl border border-[var(--neo-border)] p-4 hover:shadow-lg transition-all flex gap-4 items-start group"
             >
               <img 
-                src={article.thumbnail || 'https://picsum.photos/seed/blog/200/200'} 
+                src={getImageUrl(article.thumbnail, 'blog', article.title)} 
                 alt={article.title} 
                 className="w-24 h-24 object-cover rounded-xl shrink-0 group-hover:scale-105 transition duration-300" 
+                onError={(e) => handleImageError(e, 'blog', article.title)}
               />
               <div className="flex-1 min-w-0">
                 <h3 className="font-bold text-gray-900 line-clamp-2 mb-1 group-hover:text-emerald-600 transition text-sm">
@@ -405,9 +410,10 @@ function SearchContent() {
                                   className="flex items-center gap-3 p-2 rounded-xl hover:bg-blue-50/70 transition group"
                                 >
                                   <img 
-                                    src={user.avatar || inst.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}`} 
+                                    src={getImageUrl(user.personnelPhoto || user.avatar || inst.avatar, 'avatar', name)} 
                                     alt={name}
                                     className="w-9 h-9 rounded-full object-cover border border-gray-200"
+                                    onError={(e) => handleImageError(e, 'avatar', name)}
                                   />
                                   <div className="flex-1 min-w-0">
                                     <div className="font-bold text-xs text-gray-900 group-hover:text-blue-600 truncate">{name}</div>
@@ -437,9 +443,10 @@ function SearchContent() {
                                 className="flex items-center gap-3 p-2 rounded-xl hover:bg-gray-100 transition group"
                               >
                                 <img 
-                                  src={course.thumbnail || `https://picsum.photos/seed/${course._id}/100/100`} 
+                                  src={getImageUrl(course.thumbnail, 'course', course.title)} 
                                   alt={course.title}
                                   className="w-10 h-10 rounded-lg object-cover"
+                                  onError={(e) => handleImageError(e, 'course', course.title)}
                                 />
                                 <div className="flex-1 min-w-0">
                                   <div className="font-bold text-xs text-gray-900 group-hover:text-[var(--neo-primary)] truncate">{course.title}</div>

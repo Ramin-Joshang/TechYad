@@ -7,6 +7,7 @@ import Link from 'next/link';
 import { use, useState, useEffect, useRef } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { useAuthStore } from '@/features/auth/stores/auth.store';
+import { getImageUrl, handleImageError } from '@/lib/utils';
 
 export default function Page() {
   const router = useRouter();
@@ -132,7 +133,12 @@ export default function Page() {
               <div key={msg._id} className={`flex gap-4 ${isMe ? 'flex-row' : 'flex-row-reverse'}`}>
                 <div className="w-10 h-10 rounded-full shrink-0 flex items-center justify-center bg-[var(--neo-border)] overflow-hidden shadow-sm">
                   {isMe ? (
-                    user?.avatar ? <img src={user.avatar} className="w-full h-full object-cover" /> : <User className="w-5 h-5 text-[var(--neo-text-secondary)]" />
+                    <img 
+                      src={getImageUrl(user?.avatar, 'avatar', `${user?.firstName || ''} ${user?.lastName || ''}`)} 
+                      alt="Avatar" 
+                      className="w-full h-full object-cover" 
+                      onError={(e) => handleImageError(e, 'avatar', `${user?.firstName || ''} ${user?.lastName || ''}`)}
+                    />
                   ) : (
                     <ShieldAlert className="w-5 h-5 text-[var(--neo-primary)]" />
                   )}

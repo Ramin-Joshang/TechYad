@@ -4,6 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { communityApi } from '@/features/community/api/community.api';
 import { Heart, Loader2, Star, Trash2 } from 'lucide-react';
 import Link from 'next/link';
+import { getImageUrl, handleImageError } from '@/lib/utils';
 
 export default function WishlistPage() {
   const queryClient = useQueryClient();
@@ -59,7 +60,12 @@ export default function WishlistPage() {
             return (
               <div key={favorite._id} className="bg-[var(--neo-surface)] rounded-3xl overflow-hidden border border-[var(--neo-border)] shadow-sm hover:shadow-md transition-all group flex flex-col">
                 <div className="relative aspect-[4/3] bg-[var(--neo-surface-2)]">
-                  <img src={course.thumbnail || `https://picsum.photos/seed/${course._id}/400/300`} alt={course.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                  <img
+                    src={getImageUrl(course.thumbnail, 'course', course.title)}
+                    onError={(e) => handleImageError(e, 'course', course.title)}
+                    alt={course.title}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                  />
                   <button 
                     onClick={() => toggleFavoriteMutation.mutate(course._id)}
                     className="absolute top-4 left-4 w-10 h-10 bg-[var(--neo-surface)]/90 backdrop-blur rounded-full flex items-center justify-center text-rose-500 hover:text-rose-600 hover:bg-[var(--neo-surface)] shadow-sm transition"

@@ -23,7 +23,7 @@ export const metadata: Metadata = {
     description: 'تازه‌ترین مقالات آموزشی، راهنماهای کاربردی برنامه‌نویسی و هوش مصنوعی در وبلاگ تک‌یاد (Tecyad).',
     images: [
       {
-        url: 'https://picsum.photos/seed/tecyad-blog/1200/630',
+        url: 'https://tecyad.ir/hero-image.png',
         width: 1200,
         height: 630,
         alt: 'وبلاگ تک‌یاد Tecyad',
@@ -34,7 +34,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'وبلاگ تخصصی و مقالات آموزشی | تک‌یاد (Tecyad)',
     description: 'تازه‌ترین مقالات آموزشی، راهنماهای کاربردی برنامه‌نویسی و فناوری در تک‌یاد (Tecyad).',
-    images: ['https://picsum.photos/seed/tecyad-blog/1200/630'],
+    images: ['https://tecyad.ir/hero-image.png'],
   },
 };
 

@@ -253,7 +253,7 @@ async function seedCategories() {
         scheduleTime: '۱۸:۰۰ الی ۲۱:۰۰',
         meetingPlatform: 'اسکای‌روم',
         meetingLink: 'https://www.skyroom.online/ch/tecyad/nodejs-live',
-        thumbnail: 'https://picsum.photos/seed/nodejs-class/800/500',
+        thumbnail: '',
         syllabus: [
           { sessionNumber: 1, title: 'معماری مایکروسرویس و شکستن مونولیت', date: '۱۴۰۵/۰۴/۱۰', time: '۱۸:۰۰', durationMinutes: 180 },
           { sessionNumber: 2, title: 'داکرایز کردن سرویس‌ها و Docker Compose', date: '۱۴۰۵/۰۴/۱۱', time: '۱۸:۰۰', durationMinutes: 180 },
@@ -286,7 +286,7 @@ async function seedCategories() {
         scheduleTime: '۱۹:۰۰ الی ۲۱:۳۰',
         meetingPlatform: 'گوگل میت',
         meetingLink: 'https://meet.google.com/xyz-tecyad-live',
-        thumbnail: 'https://picsum.photos/seed/react-class/800/500',
+        thumbnail: '',
         syllabus: [
           { sessionNumber: 1, title: 'مفاهیم بنیادی React Server Components', date: '۱۴۰۵/۰۴/۱۵', time: '۱۹:۰۰', durationMinutes: 150 },
           { sessionNumber: 2, title: 'اکشن‌های سرور (Server Actions) و هوک‌های فرم', date: '۱۴۰۵/۰۴/۱۷', time: '۱۹:۰۰', durationMinutes: 150 },
@@ -319,7 +319,7 @@ async function seedCategories() {
         createdBy: instructorUser._id,
         scheduleDays: ['پنج‌شنبه', 'جمعه'],
         scheduleTime: '۰۹:۰۰ الی ۱۷:۰۰',
-        thumbnail: 'https://picsum.photos/seed/figma-class/800/500',
+        thumbnail: '',
         syllabus: [
           { sessionNumber: 1, title: 'ساختارهای Design Token و متغیرها در Figma', date: '۱۴۰۵/۰۴/۲۴', time: '۰۹:۰۰', durationMinutes: 480 },
           { sessionNumber: 2, title: 'کامپوننت‌های پیشرفته، Auto Layout 5 و مستندسازی', date: '۱۴۰۵/۰۴/۲۵', time: '۰۹:۰۰', durationMinutes: 480 },

@@ -28,7 +28,7 @@ export const metadata: Metadata = {
     description: "کاتالوگ جامع دوره‌های آنلاین برنامه‌نویسی، طراحی وب، هوش مصنوعی و مهندسی نرم‌افزار با اساتید مطرح و گواهینامه معتبر در پلتفرم تک‌یاد (Tecyad).",
     images: [
       {
-        url: "https://picsum.photos/seed/tecyad-courses/1200/630",
+        url: "https://tecyad.ir/hero-image.png",
         width: 1200,
         height: 630,
         alt: "دوره‌های آموزشی تک‌یاد Tecyad",
@@ -39,7 +39,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "دوره‌های آموزشی برنامه‌نویسی و مهارت‌های تخصصی | تک‌یاد (Tecyad)",
     description: "کاتالوگ جامع دوره‌های آنلاین برنامه‌نویسی، طراحی وب، هوش مصنوعی و مهندسی با اساتید مطرح.",
-    images: ["https://picsum.photos/seed/tecyad-courses/1200/630"],
+    images: ["https://tecyad.ir/hero-image.png"],
   },
 };
 

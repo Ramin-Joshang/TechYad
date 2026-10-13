@@ -12,6 +12,7 @@ import { useState, useMemo } from 'react';
 import toast from 'react-hot-toast';
 import { StudentAttendanceModal } from '@/components/classes/StudentAttendanceModal';
 import { Award, AlertTriangle, CreditCard } from 'lucide-react';
+import { getImageUrl, handleImageError } from '@/lib/utils';
 
 export default function MyClassesPage() {
   const [search, setSearch] = useState('');
@@ -291,7 +292,8 @@ export default function MyClassesPage() {
                 {/* Thumbnail & Mode */}
                 <div className="sm:w-56 bg-slate-100 relative shrink-0 overflow-hidden">
                   <img 
-                    src={cls.thumbnail || `https://picsum.photos/seed/${cls._id}/400/400`} 
+                    src={getImageUrl(cls.thumbnail, 'class', cls.title)} 
+                    onError={(e) => handleImageError(e, 'class', cls.title)}
                     alt={cls.title} 
                     className="w-full h-full object-cover aspect-video sm:aspect-auto group-hover:scale-105 transition-transform duration-500" 
                   />
@@ -317,7 +319,8 @@ export default function MyClassesPage() {
                     {/* Instructor unboxed text */}
                     <div className="flex items-center gap-2 text-xs text-slate-500 mb-2">
                       <img 
-                        src={instructor?.avatar || `https://ui-avatars.com/api/?name=${instructorName}&size=32`} 
+                        src={getImageUrl(instructor?.personnelPhoto || instructor?.avatar, 'avatar', instructorName)} 
+                        onError={(e) => handleImageError(e, 'avatar', instructorName)}
                         alt={instructorName}
                         className="w-5 h-5 rounded-full object-cover"
                       />

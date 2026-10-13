@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { api } from '@/lib/api';
+import { getImageUrl, handleImageError } from '@/lib/utils';
 import { 
   Loader2, DollarSign, TrendingUp, Calendar, CreditCard, 
   ArrowDownRight, BookOpen, GraduationCap, Filter, CheckCircle2
@@ -201,11 +202,12 @@ export default function InstructorSalesPage() {
                             <td className="p-4 whitespace-nowrap">
                               <div className="flex items-center gap-3">
                                 <div className="w-9 h-9 rounded-2xl bg-indigo-50 text-indigo-700 flex items-center justify-center font-bold overflow-hidden shrink-0 border border-indigo-100">
-                                  {user?.avatar ? (
-                                    <img src={user.avatar} alt="Avatar" className="w-full h-full object-cover" />
-                                  ) : (
-                                    user?.firstName?.charAt(0) || 'U'
-                                  )}
+                                  <img 
+                                    src={getImageUrl(user?.avatar, 'avatar', studentName)} 
+                                    alt="Avatar" 
+                                    className="w-full h-full object-cover" 
+                                    onError={(e) => handleImageError(e, 'avatar', studentName)}
+                                  />
                                 </div>
                                 <div>
                                   <div className="font-bold text-slate-900 text-sm">
@@ -288,11 +290,12 @@ export default function InstructorSalesPage() {
                         <div className="flex items-center justify-between gap-3">
                           <div className="flex items-center gap-2.5 min-w-0">
                             <div className="w-9 h-9 rounded-2xl bg-indigo-50 text-indigo-700 flex items-center justify-center font-bold overflow-hidden shrink-0 border border-indigo-100">
-                              {user?.avatar ? (
-                                <img src={user.avatar} alt="Avatar" className="w-full h-full object-cover" />
-                              ) : (
-                                user?.firstName?.charAt(0) || 'U'
-                              )}
+                              <img 
+                                src={getImageUrl(user?.avatar, 'avatar', studentName)} 
+                                alt="Avatar" 
+                                className="w-full h-full object-cover" 
+                                onError={(e) => handleImageError(e, 'avatar', studentName)}
+                              />
                             </div>
                             <div className="min-w-0">
                               <div className="font-bold text-slate-900 text-sm truncate">{studentName}</div>

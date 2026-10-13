@@ -27,7 +27,7 @@ export async function generateMetadata({
   const specialty = instructor.specialty || user.specialty || 'مدرس برنامه‌نویسی و فناوری اطلاعات';
   const bio = instructor.bio || user.bio || `پروفایل و دوره‌های آموزشی استاد ${fullName} در پلتفرم تک‌یاد.`;
   const cleanBio = bio.replace(/<[^>]*>/g, '').slice(0, 160);
-  const avatar = instructor.avatar || user.avatar || `${baseUrl}/images/instructor-default.jpg`;
+  const avatar = instructor.personnelPhoto || user.personnelPhoto || instructor.avatar || user.avatar || `${baseUrl}/logo.png`;
 
   return {
     title: `استاد ${fullName} (${specialty}) | تک‌یاد`,
@@ -91,7 +91,7 @@ export default async function InstructorProfilePage({
     "name": fullName,
     "jobTitle": instructor.specialty || user?.specialty || "مدرس و برنامه‌نویس",
     "description": (instructor.bio || user?.bio || '').replace(/<[^>]*>/g, '').slice(0, 300),
-    "image": instructor.avatar || user?.avatar,
+    "image": instructor.personnelPhoto || user?.personnelPhoto || instructor.avatar || user?.avatar || `${baseUrl}/logo.png`,
     "url": pageUrl,
     "worksFor": {
       "@type": "EducationalOrganization",

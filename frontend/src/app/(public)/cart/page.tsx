@@ -7,6 +7,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuthStore } from '@/features/auth/stores/auth.store';
 import { useCartStore } from '@/features/commerce/stores/cart.store';
 import toast from 'react-hot-toast';
+import { getImageUrl, handleImageError } from '@/lib/utils';
 
 export default function CartPage() {
   const { isAuthenticated, isInitializing } = useAuthStore();
@@ -114,7 +115,7 @@ export default function CartPage() {
                 const hasDiscount = originalPrice > finalPrice;
                 const title = item.titleSnapshot || item.title || 'دوره آموزشی';
                 const instructor = item.instructorName || 'استاد تک‌یاد';
-                const thumb = item.thumbnail || `https://picsum.photos/seed/${item.itemId || 'cart'}/400/250`;
+                const thumb = getImageUrl(item.thumbnail, isCourse ? 'course' : 'class', title);
                 const isCourse = item.itemType === 'course';
 
                 return (
@@ -123,9 +124,7 @@ export default function CartPage() {
                       src={thumb} 
                       alt={title} 
                       className="w-full sm:w-36 h-28 object-cover rounded-xl shrink-0 bg-gray-100" 
-                      onError={(e: any) => {
-                        e.target.src = `https://picsum.photos/seed/tecyad/400/250`;
-                      }}
+                      onError={(e) => handleImageError(e, isCourse ? 'course' : 'class', title)}
                     />
                     
                     <div className="flex-1 text-center sm:text-right min-w-0 w-full">

@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/lib/api';
+import { getImageUrl, handleImageError } from '@/lib/utils';
 import { Loader2, MessageSquare, Reply, User } from 'lucide-react';
 
 export default function InstructorCommentsPage() {
@@ -43,11 +44,12 @@ export default function InstructorCommentsPage() {
               <div key={comment._id} className="p-6 hover:bg-[var(--neo-surface-2)]/50 transition-colors">
                 <div className="flex gap-4">
                   <div className="w-12 h-12 rounded-full bg-blue-100 text-[var(--neo-primary)] flex items-center justify-center font-bold overflow-hidden shrink-0">
-                    {comment.userId?.avatar ? (
-                      <img src={comment.userId.avatar} alt="Avatar" className="w-full h-full object-cover" />
-                    ) : (
-                      comment.userId?.firstName?.charAt(0) || <User className="w-6 h-6"/>
-                    )}
+                    <img 
+                      src={getImageUrl(comment.userId?.avatar, 'avatar', `${comment.userId?.firstName || ''} ${comment.userId?.lastName || ''}`)} 
+                      alt="Avatar" 
+                      className="w-full h-full object-cover" 
+                      onError={(e) => handleImageError(e, 'avatar', `${comment.userId?.firstName || ''} ${comment.userId?.lastName || ''}`)}
+                    />
                   </div>
                   
                   <div className="flex-1">

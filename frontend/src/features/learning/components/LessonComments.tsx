@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { learningApi } from '@/features/learning/api/learning.api';
 import { MessageSquare, Send, Loader2, User } from 'lucide-react';
 import { useAuthStore } from '@/features/auth/stores/auth.store';
+import { getImageUrl, handleImageError } from '@/lib/utils';
 
 export function LessonComments({ lessonId }: { lessonId: string }) {
   const { user } = useAuthStore();
@@ -44,7 +45,12 @@ export function LessonComments({ lessonId }: { lessonId: string }) {
       <div className="bg-gray-800/50 p-4 sm:p-6 rounded-2xl border border-gray-700/50">
         <div className="flex gap-4">
           <div className="w-10 h-10 bg-gray-700 rounded-full shrink-0 overflow-hidden">
-            {user?.avatar ? <img src={user.avatar} className="w-full h-full object-cover" /> : <User className="w-full h-full p-2 text-gray-400" />}
+            <img 
+              src={getImageUrl(user?.avatar, 'avatar', `${user?.firstName || ''} ${user?.lastName || ''}`)} 
+              alt="User" 
+              className="w-full h-full object-cover" 
+              onError={(e) => handleImageError(e, 'avatar', `${user?.firstName || ''} ${user?.lastName || ''}`)}
+            />
           </div>
           <form onSubmit={handleSubmit} className="flex-1">
             <textarea
@@ -78,7 +84,12 @@ export function LessonComments({ lessonId }: { lessonId: string }) {
           comments.map((comment: any) => (
             <div key={comment._id} className="flex gap-4">
               <div className="w-10 h-10 bg-gray-800 rounded-full shrink-0 overflow-hidden border border-gray-700">
-                {comment.userId?.avatar ? <img src={comment.userId.avatar} className="w-full h-full object-cover" /> : <User className="w-full h-full p-2 text-gray-500" />}
+                <img 
+                  src={getImageUrl(comment.userId?.avatar, 'avatar', `${comment.userId?.firstName || ''} ${comment.userId?.lastName || ''}`)} 
+                  alt="Avatar" 
+                  className="w-full h-full object-cover" 
+                  onError={(e) => handleImageError(e, 'avatar', `${comment.userId?.firstName || ''} ${comment.userId?.lastName || ''}`)}
+                />
               </div>
               <div className="flex-1">
                 <div className="bg-gray-800/80 border border-gray-700/50 p-4 rounded-2xl rounded-tr-sm">

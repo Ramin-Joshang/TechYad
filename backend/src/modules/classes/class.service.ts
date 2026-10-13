@@ -9,6 +9,7 @@ import { Types } from 'mongoose';
 import { parseDateSafely } from '../../common/utils/date.js';
 import { AuditService } from '../../common/services/audit.service.js';
 import { FinancialRevenueService } from '../commerce/financial-revenue.service.js';
+import { MediaService } from '../media/media.service.js';
 
 export class ClassService {
   static async getInstructorClasses(instructorId: string) {
@@ -391,7 +392,16 @@ export class ClassService {
       delete payload.instructorSharePercent; // Never allow non-admin to override commission
     }
 
-    const cls = await Class.findOneAndUpdate(query, payload, { new: true });
+    const existingClass = await Class.findOne(query);
+    if (!existingClass) throw new AppError('Class not found or unauthorized', 404);
+
+    if (payload.thumbnail && existingClass.thumbnail && payload.thumbnail !== existingClass.thumbnail && existingClass.thumbnail.startsWith('/uploads/')) {
+      MediaService.deleteFile(userId || existingClass.createdBy?.toString() || '', existingClass.thumbnail, true).catch(err => {
+        console.error('Failed to cleanup old class thumbnail:', err);
+      });
+    }
+
+    const cls = await Class.findByIdAndUpdate(existingClass._id, payload, { new: true });
     if (!cls) throw new AppError('Class not found or unauthorized', 404);
 
     // Audit Log for class update
@@ -418,6 +428,11 @@ export class ClassService {
     const query = overrideAuth ? { _id: id } : { _id: id, instructors: userId };
     const cls = await Class.findOneAndDelete(query);
     if (!cls) throw new AppError('Class not found or unauthorized', 404);
+    if (cls.thumbnail && typeof cls.thumbnail === 'string' && cls.thumbnail.startsWith('/uploads/')) {
+      MediaService.deleteFile('', cls.thumbnail, true).catch(err => {
+        console.error('Failed to cleanup class thumbnail on deletion:', err);
+      });
+    }
     return cls;
   }
 

@@ -12,6 +12,7 @@ import Link from 'next/link';
 import { useQuery } from '@tanstack/react-query';
 import { coursesApi } from '@/features/courses/api/courses.api';
 import { api } from '@/lib/api';
+import { getImageUrl, handleImageError } from '@/lib/utils';
 
 export default function InstructorDashboard() {
   const { user } = useAuthStore();
@@ -375,11 +376,12 @@ export default function InstructorDashboard() {
                 <div key={course._id} className="p-3.5 rounded-2xl bg-[var(--neo-surface-2)]/60 border border-[var(--neo-border)] flex items-center justify-between gap-3 hover:bg-[var(--neo-surface-2)] transition-colors">
                   <div className="flex items-center gap-3 min-w-0">
                     <div className="w-12 h-10 rounded-xl bg-[var(--neo-surface)] overflow-hidden shrink-0 border border-[var(--neo-border)] flex items-center justify-center">
-                      {course.thumbnail ? (
-                        <img src={course.thumbnail} alt={course.title} className="w-full h-full object-cover" />
-                      ) : (
-                        <BookOpen className="w-5 h-5 text-[var(--neo-text-secondary)]" />
-                      )}
+                      <img 
+                        src={getImageUrl(course.thumbnail, 'course', course.title)} 
+                        alt={course.title} 
+                        className="w-full h-full object-cover" 
+                        onError={(e) => handleImageError(e, 'course', course.title)}
+                      />
                     </div>
                     <div className="min-w-0">
                       <h4 className="font-bold text-sm text-[var(--neo-text-main)] truncate">{course.title}</h4>

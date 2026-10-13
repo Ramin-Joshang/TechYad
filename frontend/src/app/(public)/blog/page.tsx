@@ -9,6 +9,7 @@ import {
   Sparkles, Filter, Mail, ArrowUpRight, BookOpen, Send
 } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { getImageUrl, handleImageError } from '@/lib/utils';
 
 export default function BlogPage() {
   const [searchTerm, setSearchTerm] = useState('');
@@ -222,9 +223,10 @@ export default function BlogPage() {
                 <div className="flex flex-col lg:flex-row">
                   <div className="lg:w-7/12 relative aspect-[16/10] lg:aspect-auto overflow-hidden bg-slate-100">
                     <img 
-                      src={featuredArticle.thumbnail || `https://picsum.photos/seed/${featuredArticle._id}/900/600`} 
+                      src={getImageUrl(featuredArticle.thumbnail, 'blog', featuredArticle.title)} 
                       alt={featuredArticle.title}
                       className="w-full h-full object-cover group-hover:scale-105 transition duration-700"
+                      onError={(e) => handleImageError(e, 'blog', featuredArticle.title)}
                     />
                     <div className="absolute top-4 right-4 bg-blue-600 text-white text-xs font-bold px-3 py-1.5 rounded-full shadow-md flex items-center gap-1.5">
                       <Sparkles className="w-3.5 h-3.5" />
@@ -258,7 +260,8 @@ export default function BlogPage() {
                     <div className="pt-6 border-t border-slate-100 flex items-center justify-between mt-6">
                       <div className="flex items-center gap-2.5">
                         <img 
-                          src={(featuredArticle.authorId || featuredArticle.author)?.personnelPhoto || (featuredArticle.authorId || featuredArticle.author)?.avatar || `https://ui-avatars.com/api/?name=Author&background=0284c7&color=fff`} 
+                          src={getImageUrl((featuredArticle.authorId || featuredArticle.author)?.personnelPhoto || (featuredArticle.authorId || featuredArticle.author)?.avatar, 'avatar', `${(featuredArticle.authorId || featuredArticle.author)?.firstName || ''} ${(featuredArticle.authorId || featuredArticle.author)?.lastName || ''}`)} 
+                          onError={(e) => handleImageError(e, 'avatar', `${(featuredArticle.authorId || featuredArticle.author)?.firstName || ''} ${(featuredArticle.authorId || featuredArticle.author)?.lastName || ''}`)}
                           alt="Author" 
                           className="w-8 h-8 rounded-full object-cover border border-slate-200" 
                         />
@@ -294,9 +297,10 @@ export default function BlogPage() {
                 >
                   <Link href={`/blog/${article.slug}`} className="aspect-[16/10] overflow-hidden bg-slate-100 relative block">
                     <img 
-                      src={article.thumbnail || `https://picsum.photos/seed/${article._id}/600/400`} 
+                      src={getImageUrl(article.thumbnail, 'blog', article.title)} 
                       alt={article.title}
                       className="w-full h-full object-cover group-hover:scale-105 transition duration-500" 
+                      onError={(e) => handleImageError(e, 'blog', article.title)}
                     />
                     <div className="absolute bottom-3 right-3 bg-black/60 backdrop-blur-xs text-white text-[10px] font-bold px-2.5 py-1 rounded-xl flex items-center gap-1">
                       <Clock className="w-3 h-3 text-amber-300" />
@@ -324,7 +328,8 @@ export default function BlogPage() {
                     <div className="flex items-center justify-between pt-4 border-t border-slate-100 text-xs text-slate-400">
                       <div className="flex items-center gap-2">
                         <img 
-                          src={(article.authorId || article.author)?.personnelPhoto || (article.authorId || article.author)?.avatar || `https://ui-avatars.com/api/?name=Author&background=0284c7&color=fff`} 
+                          src={getImageUrl((article.authorId || article.author)?.personnelPhoto || (article.authorId || article.author)?.avatar, 'avatar', `${(article.authorId || article.author)?.firstName || ''} ${(article.authorId || article.author)?.lastName || ''}`)} 
+                          onError={(e) => handleImageError(e, 'avatar', `${(article.authorId || article.author)?.firstName || ''} ${(article.authorId || article.author)?.lastName || ''}`)}
                           alt="" 
                           className="w-6 h-6 rounded-full object-cover border border-slate-200" 
                         />

@@ -24,7 +24,7 @@ export default function AboutPage() {
     <main className="bg-[var(--neo-bg)] min-h-screen">
       {/* Hero Section */}
       <section className="relative bg-slate-900 text-white overflow-hidden py-16 sm:py-24 md:py-32">
-        <div className="absolute inset-0 bg-[url('https://picsum.photos/seed/about/1920/1080')] opacity-10 mix-blend-overlay object-cover"></div>
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-blue-700/20 via-slate-900/50 to-slate-950 opacity-70"></div>
         <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h1 className="text-3xl sm:text-4xl md:text-6xl font-bold mb-4 sm:mb-6 leading-tight">
             {title}
