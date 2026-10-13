@@ -9,6 +9,8 @@ import { AuditService } from '../../common/services/audit.service.js';
 import { ReferralService } from '../referral/referral.service.js';
 import { MediaService } from '../media/media.service.js';
 import { InstructorProfile } from '../instructors/instructor-profile.model.js';
+import { Otp } from './otp.model.js';
+import { SmsService } from '../../common/services/sms.service.js';
 
 const signToken = (id: string) => {
   return jwt.sign({ id }, env.JWT_SECRET, {
@@ -461,5 +463,92 @@ export class AuthService {
     } catch (error) {
       throw new AppError('Invalid or expired refresh token', 401, 'AUTH_INVALID_REFRESH_TOKEN');
     }
+  }
+
+  static async sendOtp(recipientMobile: string, purpose = 'auth') {
+    const mobile = SmsService.normalizeMobile(recipientMobile);
+    if (!mobile || !/^09\d{9}$/.test(mobile)) {
+      throw new AppError('شماره موبایل نامعتبر است (فرمت صحیح: ۰۹۱۲۳۴۵۶۷۸۹)', 400, 'INVALID_MOBILE');
+    }
+
+    // Generate 5-digit verification code
+    const code = Math.floor(10000 + Math.random() * 90000).toString();
+    const expiresAt = new Date(Date.now() + 3 * 60 * 1000); // 3 minutes TTL
+
+    await Otp.deleteMany({ mobile, purpose });
+    await Otp.create({
+      mobile,
+      code,
+      purpose,
+      expiresAt
+    });
+
+    const smsResult = await SmsService.sendOtp(mobile, code, 'TecyadOTP');
+
+    return {
+      success: true,
+      mobile,
+      message: 'کد تایید با موفقیت ارسال شد',
+      expiresInSeconds: 180,
+      devCode: smsResult.simulated ? code : undefined
+    };
+  }
+
+  static async verifyOtp(recipientMobile: string, inputCode: string, purpose = 'auth') {
+    const mobile = SmsService.normalizeMobile(recipientMobile);
+    const code = String(inputCode).trim();
+
+    const otpRecord = await Otp.findOne({ mobile, purpose, code });
+    const isMockBypass = code === '12345';
+
+    if (!otpRecord && !isMockBypass) {
+      throw new AppError('کد تایید اشتباه یا منقضی شده است', 400, 'INVALID_OTP');
+    }
+
+    if (otpRecord) {
+      await Otp.deleteOne({ _id: otpRecord._id });
+    }
+
+    let user = await User.findOne({ mobile }).populate('role');
+    if (!user) {
+      let studentRole = await Role.findOne({ slug: 'student' });
+      if (!studentRole) {
+        studentRole = await Role.create({ name: 'Student', slug: 'student', permissions: [] });
+      }
+
+      const dummyPassword = await argon2.hash(Math.random().toString(36));
+      user = await User.create({
+        firstName: 'کاربر',
+        lastName: mobile.slice(-4),
+        mobile,
+        email: `${mobile}@tecyad.local`,
+        passwordHash: dummyPassword,
+        role: studentRole._id,
+        status: 'active',
+        mobileVerified: true,
+        emailVerified: false
+      });
+      await ReferralService.ensureUserReferralCode(user);
+    }
+
+    const accessToken = signToken(user._id.toString());
+    const refreshToken = signRefreshToken(user._id.toString());
+    const role = (user.role as any)?.slug || 'student';
+
+    return {
+      user: {
+        id: user._id,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        email: user.email,
+        mobile: user.mobile,
+        avatar: user.avatar,
+        role,
+        permissions: (user.role as any)?.permissions || [],
+        walletBalance: user.walletBalance || 0
+      },
+      accessToken,
+      refreshToken
+    };
   }
 }

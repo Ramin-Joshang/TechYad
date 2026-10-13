@@ -55,6 +55,24 @@ export const verifyMockPayment = async (req: AuthRequest, res: Response) => {
   sendSuccess(res, result, 'Payment verification processed');
 };
 
+export const handleGatewayCallback = async (req: Request, res: Response) => {
+  // Support both GET query parameters and POST body parameters from Iranian gateways (ZarinPal, Saman/SEP, SnappPay)
+  const params = { ...req.query, ...req.body };
+  const authority = params.Authority || params.authority || params.RefNum || params.Token || params.resNum || '';
+  const status = params.Status || params.status || (params.state === 'OK' ? 'OK' : '') || '';
+  const gateway = req.params.gateway || params.gateway || 'shaparak';
+
+  const frontendBaseUrl = process.env.FRONTEND_URL || 'https://tecyad.ir';
+
+  // If status is OK or positive state
+  if (status === 'OK' || status === '100' || String(params.State).toLowerCase() === 'ok') {
+    return res.redirect(`${frontendBaseUrl}/payment/success?authority=${encodeURIComponent(authority)}&gateway=${encodeURIComponent(gateway)}`);
+  }
+
+  // Otherwise redirect to failed payment page
+  return res.redirect(`${frontendBaseUrl}/payment/failed?authority=${encodeURIComponent(authority)}&gateway=${encodeURIComponent(gateway)}`);
+};
+
 export const getInstructorSales = async (req: AuthRequest, res: Response) => {
   const { month, year } = req.query;
   const result = await CommerceService.getInstructorSales(

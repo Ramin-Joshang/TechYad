@@ -178,10 +178,10 @@ function InstructorCard({ instructor, featured = false }: { instructor: any, fea
   const rating = instructor.rating !== undefined && instructor.rating > 0 ? Number(instructor.rating) : 5.0;
   const coursesCount = instructor.coursesCount !== undefined ? instructor.coursesCount : 0;
   const classesCount = instructor.classesCount !== undefined ? instructor.classesCount : 0;
-  const studentsCount = instructor.totalStudents !== undefined ? instructor.totalStudents : (coursesCount * 45);
+  const instructorSlug = instructor.slug || `${userId?.firstName || ''}-${userId?.lastName || ''}`.trim().replace(/\s+/g, '-') || userId?._id;
 
   return (
-    <Link href={`/instructors/${userId?._id}`} className="block group h-full">
+    <Link href={`/instructors/${encodeURIComponent(instructorSlug)}`} className="block group h-full">
       <div className={`bg-white rounded-3xl p-6 shadow-sm hover:shadow-xl hover:-translate-y-1 transition duration-300 relative overflow-hidden h-full flex flex-col ${featured ? 'border-2 border-amber-100' : 'border border-[var(--neo-border)]'}`}>
         {featured && (
           <div className="absolute top-0 right-0 w-32 h-32 bg-amber-50 rounded-full -translate-y-16 translate-x-16 z-0"></div>

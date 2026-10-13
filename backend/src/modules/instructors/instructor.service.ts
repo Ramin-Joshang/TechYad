@@ -32,32 +32,42 @@ export class InstructorService {
     return enrichedProfiles;
   }
 
-  static async getInstructorBySlug(id: string) {
+  static async getInstructorBySlug(identifier: string) {
     let profile: any = null;
+    const cleanIdentifier = decodeURIComponent(identifier).trim();
 
-    // Try finding by userId or _id in InstructorProfile
+    // 1. Try finding by slug
     profile = await InstructorProfile.findOne({
-      $or: [
-        { userId: id },
-        { _id: id }
-      ]
+      slug: cleanIdentifier
     }).populate('userId', 'firstName lastName avatar personnelPhoto email mobile specialty bio');
+
+    // 2. Try finding by userId or _id in InstructorProfile
+    if (!profile) {
+      profile = await InstructorProfile.findOne({
+        $or: [
+          { userId: cleanIdentifier },
+          { _id: cleanIdentifier }
+        ]
+      }).populate('userId', 'firstName lastName avatar personnelPhoto email mobile specialty bio');
+    }
 
     if (!profile) {
       try {
-        profile = await InstructorProfile.findById(id).populate('userId', 'firstName lastName avatar personnelPhoto email mobile specialty bio');
+        profile = await InstructorProfile.findById(cleanIdentifier).populate('userId', 'firstName lastName avatar personnelPhoto email mobile specialty bio');
       } catch (e) {
         // ignore invalid ObjectId
       }
     }
 
-    // If still not found, check if User with that ID exists (auto-create instructor profile)
+    // 3. If still not found, check if User with that ID exists (auto-create instructor profile)
     if (!profile) {
       try {
-        const user = await User.findById(id);
+        const user = await User.findById(cleanIdentifier);
         if (user) {
+          const generatedSlug = `${user.firstName}-${user.lastName}`.trim().toLowerCase().replace(/\s+/g, '-');
           profile = await InstructorProfile.create({
             userId: user._id,
+            slug: generatedSlug || user._id.toString(),
             title: user.specialty || 'مدرس و متخصص آموزشی',
             bio: user.bio || 'مدرس دوره‌ها و کارگاه‌های تخصصی در آکادمی تک‌یاد',
             avatar: user.avatar || '',

@@ -45,5 +45,13 @@ export const authApi = {
 
   changePassword: async (passwords: { currentPassword: string; newPassword: string }) => {
     return api.post<any, ApiResponse<any>>('/auth/change-password', passwords);
+  },
+
+  sendOtp: async (mobile: string, purpose = 'auth') => {
+    return api.post<any, ApiResponse<any>>('/auth/send-otp', { mobile, purpose });
+  },
+
+  verifyOtp: async (mobile: string, code: string, purpose = 'auth') => {
+    return api.post<any, ApiResponse<AuthResponse>>('/auth/verify-otp', { mobile, code, purpose });
   }
 };

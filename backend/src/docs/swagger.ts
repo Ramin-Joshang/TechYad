@@ -43,7 +43,8 @@ export const swaggerDocument = {
     }
   },
   servers: [
-    { url: '/api/v1', description: 'سرور اصلی نسخه ۱ (/api/v1)' }
+    { url: '/api', description: 'سرور رسمی پروداکشن تک‌یاد (/api)' },
+    { url: '/api/v1', description: 'سرور سازگاری نسخه ۱ (/api/v1 - منسوخ شده)' }
   ],
   tags: [
     { name: 'Auth', description: 'احراز هویت، ورود، ثبت‌نام و نشست‌ها' },

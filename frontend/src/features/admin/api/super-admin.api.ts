@@ -44,6 +44,9 @@ export const superAdminApi = {
   updateSettings: async (data: Record<string, any>) => {
     return api.patch<any, any>('/super-admin/settings', data);
   },
+  testSms: async (data: { mobile: string; pattern?: string; provider?: string; apiKey?: string; sender?: string }) => {
+    return api.post<any, any>('/super-admin/test-sms', data);
+  },
 
   // Financial Commission & Instructor Revenue Settings
   getFinancialCommissionSettings: async () => {

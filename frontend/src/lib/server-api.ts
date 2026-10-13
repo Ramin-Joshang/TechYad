@@ -1,6 +1,6 @@
 // Server-side data fetching utility for Next.js App Router (SSR)
 
-const INTERNAL_API_URL = process.env.INTERNAL_BACKEND_URL || 'http://127.0.0.1:5000/api/v1';
+const INTERNAL_API_URL = process.env.INTERNAL_BACKEND_URL || 'http://127.0.0.1:5000/api';
 
 export interface ServerFetchOptions {
   revalidate?: number | false;

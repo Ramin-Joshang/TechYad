@@ -6,7 +6,7 @@ interface CustomAxiosRequestConfig extends InternalAxiosRequestConfig {
 }
 
 // Backend API Base URL
-const API_URL = process.env.NEXT_PUBLIC_API_URL || '/api/v1';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || '/api';
 
 export const api = axios.create({
   baseURL: API_URL, // Backend server running on http://62.220.123.21:5000

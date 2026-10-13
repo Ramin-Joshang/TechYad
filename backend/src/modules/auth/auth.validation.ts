@@ -71,3 +71,18 @@ export const changePasswordSchema = z.object({
     newPassword: z.string().min(8, 'رمز عبور جدید باید حداقل ۸ کاراکتر باشد'),
   })
 });
+
+export const sendOtpSchema = z.object({
+  body: z.object({
+    mobile: z.string().min(10, 'شماره موبایل الزامی است'),
+    purpose: z.string().optional()
+  })
+});
+
+export const verifyOtpSchema = z.object({
+  body: z.object({
+    mobile: z.string().min(10, 'شماره موبایل الزامی است'),
+    code: z.string().min(4, 'کد اعتبارسنجی الزامی است'),
+    purpose: z.string().optional()
+  })
+});

@@ -237,6 +237,9 @@ export function getImageUrl(
   if (clean.startsWith('/api/v1/uploads/')) {
     clean = clean.replace('/api/v1/uploads/', '/uploads/');
   }
+  if (clean.startsWith('/api/uploads/')) {
+    clean = clean.replace('/api/uploads/', '/uploads/');
+  }
 
   // If it's a Windows drive letter path without /uploads/, return fallback
   if (/^[a-zA-Z]:\//.test(clean)) {

@@ -7,7 +7,8 @@ import { MediaUploader } from '@/components/common/MediaUploader';
 import { 
   Settings, CreditCard, MessageSquare, Shield, Globe, 
   Check, Loader2, Save, Image as ImageIcon, Award, 
-  ExternalLink, Sparkles, Building2, HelpCircle 
+  ExternalLink, Sparkles, Building2, HelpCircle,
+  Send, Smartphone, CheckCircle2, AlertCircle, RefreshCw
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { getImageUrl, handleImageError } from '@/lib/utils';
@@ -16,12 +17,17 @@ export default function SettingsPage() {
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState<'general' | 'branding' | 'landing' | 'trust' | 'payments' | 'sms' | 'legal' | 'about'>('general');
   const [formData, setFormData] = useState<Record<string, any>>({});
+  const [testMobile, setTestMobile] = useState('');
+  const [testingSms, setTestingSms] = useState(false);
+  const [testResult, setTestResult] = useState<any>(null);
 
   const { isLoading } = useQuery({
     queryKey: ['superAdminSettings'],
     queryFn: () => superAdminApi.getSettings().then((res: any) => {
-      setFormData(res.data || {});
-      return res.data;
+      const data = res.data || {};
+      if (!data.smsOtpPattern) data.smsOtpPattern = 'TecyadOTP';
+      setFormData(data);
+      return data;
     })
   });
 
@@ -43,6 +49,32 @@ export default function SettingsPage() {
 
   const handleSave = () => {
     saveMutation.mutate(formData);
+  };
+
+  const handleTestSms = async () => {
+    if (!testMobile.trim()) {
+      toast.error('لطفاً شماره موبایل گیرنده را وارد نمایید');
+      return;
+    }
+    setTestingSms(true);
+    setTestResult(null);
+    try {
+      const res = await superAdminApi.testSms({
+        mobile: testMobile.trim(),
+        pattern: formData.smsOtpPattern || 'TecyadOTP',
+        provider: formData.smsProvider || 'kavenegar',
+        apiKey: formData.smsApiKey,
+        sender: formData.smsSenderNumber,
+      });
+      toast.success(res.data?.message || 'پیامک تست با موفقیت ارسال شد');
+      setTestResult(res.data);
+    } catch (err: any) {
+      const msg = err.response?.data?.message || err.message || 'خطا در ارسال پیامک تست';
+      toast.error(msg);
+      setTestResult({ success: false, error: msg });
+    } finally {
+      setTestingSms(false);
+    }
   };
 
   const tabs = [
@@ -438,34 +470,154 @@ export default function SettingsPage() {
                   />
                 </div>
               </div>
+
+              {/* Saman (SEP) Gateway */}
+              <div className="p-5 border border-gray-200 rounded-2xl space-y-4">
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-blue-700 text-white rounded-xl flex items-center justify-center font-bold">S</div>
+                    <div>
+                      <h3 className="font-bold text-sm text-gray-900">درگاه پرداخت سامان کیش (SEP / Saman)</h3>
+                      <p className="text-xs text-gray-500">اتصال رسمی به درگاه پرداخت شاپرک بانک سامان</p>
+                    </div>
+                  </div>
+                  <label className="relative inline-flex items-center cursor-pointer">
+                    <input 
+                      type="checkbox" 
+                      className="sr-only peer"
+                      checked={formData.samanGatewayEnabled === true}
+                      onChange={e => handleChange('samanGatewayEnabled', e.target.checked)}
+                    />
+                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[var(--neo-primary)]"></div>
+                  </label>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold text-gray-700">ترمینال آیدی سامان (Terminal ID)</label>
+                    <input
+                      type="text"
+                      value={formData.samanTerminalId || ''}
+                      onChange={e => handleChange('samanTerminalId', e.target.value)}
+                      className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl outline-none text-left font-mono text-xs"
+                      dir="ltr"
+                      placeholder="12345678"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold text-gray-700">رمز عبور پذیرنده (Password / CellNumber)</label>
+                    <input
+                      type="password"
+                      value={formData.samanPassword || ''}
+                      onChange={e => handleChange('samanPassword', e.target.value)}
+                      className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl outline-none text-left font-mono text-xs"
+                      dir="ltr"
+                      placeholder="••••••••"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* SnappPay (اسنپ‌پی - خرید اقساطی BNPL) */}
+              <div className="p-5 border border-gray-200 rounded-2xl space-y-4">
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-emerald-600 text-white rounded-xl flex items-center justify-center font-bold">SP</div>
+                    <div>
+                      <h3 className="font-bold text-sm text-gray-900">سرویس اقساطی اسنپ‌پی (SnappPay - BNPL)</h3>
+                      <p className="text-xs text-gray-500">امکان پرداخت اقساطی در ۴ قسط بدون کارمزد برای دانشجویان</p>
+                    </div>
+                  </div>
+                  <label className="relative inline-flex items-center cursor-pointer">
+                    <input 
+                      type="checkbox" 
+                      className="sr-only peer"
+                      checked={formData.snappPayEnabled === true}
+                      onChange={e => handleChange('snappPayEnabled', e.target.checked)}
+                    />
+                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[var(--neo-primary)]"></div>
+                  </label>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold text-gray-700">شناسه کلاینت (Client ID)</label>
+                    <input
+                      type="text"
+                      value={formData.snappPayClientId || ''}
+                      onChange={e => handleChange('snappPayClientId', e.target.value)}
+                      className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl outline-none text-left font-mono text-xs"
+                      dir="ltr"
+                      placeholder="tecyad-snapppay-client"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold text-gray-700">رمز کلاینت (Client Secret)</label>
+                    <input
+                      type="password"
+                      value={formData.snappPayClientSecret || ''}
+                      onChange={e => handleChange('snappPayClientSecret', e.target.value)}
+                      className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl outline-none text-left font-mono text-xs"
+                      dir="ltr"
+                      placeholder="••••••••"
+                    />
+                  </div>
+                </div>
+              </div>
             </div>
           )}
 
           {/* 5. SMS & OTP */}
           {activeTab === 'sms' && (
             <div className="p-8 space-y-6 animate-in fade-in">
-              <div className="border-b border-gray-100 pb-4">
-                <h2 className="text-lg font-black text-gray-900">پیکربندی سامانه پیامکی و احراز هویت</h2>
-                <p className="text-xs text-gray-400 mt-1">تنظیمات ارسال پیامک‌های خوش‌آمدگویی، یادآوری کلاس‌ها و کدهای یکبارمصرف</p>
+              <div className="border-b border-gray-100 pb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <div>
+                  <h2 className="text-lg font-black text-gray-900">پیکربندی سامانه پیامکی و الگوی احراز هویت (OTP)</h2>
+                  <p className="text-xs text-gray-400 mt-1">تنظیمات ارسال پیامک‌های وب‌سرویس، الگوی اعتبارسنجی TecyadOTP و کدهای یکبارمصرف</p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-50 text-[var(--neo-primary)] text-xs font-black border border-blue-100 font-mono">
+                    <Smartphone className="w-3.5 h-3.5" />
+                    الگو: {formData.smsOtpPattern || 'TecyadOTP'}
+                  </span>
+                </div>
               </div>
               
-              <div className="space-y-4">
-                <div className="space-y-2">
-                  <label className="text-xs font-bold text-gray-800">ارائه‌دهنده پیامک</label>
-                  <select
-                    value={formData.smsProvider || 'mock'}
-                    onChange={e => handleChange('smsProvider', e.target.value)}
-                    className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[var(--neo-primary)]/20 outline-none text-xs"
-                  >
-                    <option value="mock">آزمایشی و لاگ سرور (Mock Logger)</option>
-                    <option value="kavenegar">کاوه نگار (Kavenegar)</option>
-                    <option value="ghasedak">قاصدک (Ghasedak)</option>
-                    <option value="farazsms">فراز اس‌ام‌اس (FarazSMS)</option>
-                  </select>
+              <div className="space-y-5">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold text-gray-800">ارائه‌دهنده پیامک</label>
+                    <select
+                      value={formData.smsProvider || 'kavenegar'}
+                      onChange={e => handleChange('smsProvider', e.target.value)}
+                      className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[var(--neo-primary)]/20 outline-none text-xs"
+                    >
+                      <option value="kavenegar">کاوه نگار (Kavenegar - وب‌سرویس پترن Verify/Lookup)</option>
+                      <option value="farazsms">فراز اس‌ام‌اس (FarazSMS / IPPanel - وب‌سرویس الگو)</option>
+                      <option value="ghasedak">قاصدک (Ghasedak - وب‌سرویس اعتبارسنجی)</option>
+                      <option value="mock">آزمایشی و لاگ سرور (Mock Logger)</option>
+                    </select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold text-gray-800 flex items-center justify-between">
+                      <span>نام الگوی پیامک (Pattern / Template Name)</span>
+                      <span className="text-[10px] text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full font-bold">پیش‌فرض: TecyadOTP</span>
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.smsOtpPattern || 'TecyadOTP'}
+                      onChange={e => handleChange('smsOtpPattern', e.target.value)}
+                      className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[var(--neo-primary)]/20 outline-none text-xs text-left font-mono font-bold"
+                      dir="ltr"
+                      placeholder="TecyadOTP"
+                    />
+                    <p className="text-[11px] text-gray-400">
+                      نام الگوی تاییدشده در سامانه پیامکی جهت ارسال بدون تاخیر کد اعتبارسنجی ورود و ثبت‌نام
+                    </p>
+                  </div>
                 </div>
 
-                {formData.smsProvider !== 'mock' && (
-                  <div className="space-y-2 animate-in fade-in zoom-in duration-300">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
                     <label className="text-xs font-bold text-gray-800">API Key سامانه پیامکی</label>
                     <input
                       type="password"
@@ -473,15 +625,33 @@ export default function SettingsPage() {
                       onChange={e => handleChange('smsApiKey', e.target.value)}
                       className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[var(--neo-primary)]/20 outline-none text-xs text-left font-mono"
                       dir="ltr"
-                      placeholder="کلید احراز هویت وب‌سرویس پیامک"
+                      placeholder="کلید وب‌سرویس پیامک (API Key)"
                     />
+                    <p className="text-[11px] text-gray-400">
+                      در صورت خالی بودن کلید، سیستم در حالت شبیه‌سازی تستی (Mock) در کنسول و لاگ‌ها ثبت می‌کند.
+                    </p>
                   </div>
-                )}
+
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold text-gray-800">شماره خط فرستنده یا خط خدماتی (اختیاری)</label>
+                    <input
+                      type="text"
+                      value={formData.smsSenderNumber || ''}
+                      onChange={e => handleChange('smsSenderNumber', e.target.value)}
+                      className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[var(--neo-primary)]/20 outline-none text-xs text-left font-mono"
+                      dir="ltr"
+                      placeholder="مثلاً +983000505 یا ۱۰۰۰..."
+                    />
+                    <p className="text-[11px] text-gray-400">
+                      برای ارسال‌های بر پایه الگوی کاوه‌نگار نیاز نیست؛ برای فراز اس‌ام‌اس خط خدماتی وارد شود.
+                    </p>
+                  </div>
+                </div>
                 
-                <div className="mt-6 p-4 bg-gray-50 border border-gray-200 rounded-xl flex items-center justify-between">
+                <div className="p-4 bg-gray-50 border border-gray-200 rounded-2xl flex items-center justify-between">
                   <div>
                     <div className="font-bold text-gray-900 text-xs">ارسال پیامک تایید ورود و ثبت‌نام (OTP)</div>
-                    <div className="text-[11px] text-gray-400 mt-0.5">در صورت غیرفعال بودن، کد ۱۲۳۴۵ برای تست فعال خواهد بود</div>
+                    <div className="text-[11px] text-gray-400 mt-0.5">ارسال کدهای تایید هویت کاربران با الگوی {formData.smsOtpPattern || 'TecyadOTP'}</div>
                   </div>
                   <label className="relative inline-flex items-center cursor-pointer">
                     <input 
@@ -492,6 +662,85 @@ export default function SettingsPage() {
                     />
                     <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[var(--neo-primary)]"></div>
                   </label>
+                </div>
+
+                {/* Live Pattern Testing Box */}
+                <div className="mt-6 p-5 bg-gradient-to-br from-slate-50 to-blue-50/40 border border-blue-100 rounded-2xl space-y-4">
+                  <div className="flex items-center justify-between flex-wrap gap-2">
+                    <div className="flex items-center gap-2 text-slate-800 font-bold text-xs">
+                      <Send className="w-4 h-4 text-[var(--neo-primary)]" />
+                      <span>تست زنده ارسال پیامک با الگوی {formData.smsOtpPattern || 'TecyadOTP'}</span>
+                    </div>
+                    <a
+                      href="/super-admin/sms-logs"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-[11px] text-[var(--neo-primary)] hover:underline flex items-center gap-1 font-medium"
+                    >
+                      <ExternalLink className="w-3 h-3" />
+                      مشاهده تاریخچه پیامک‌ها (SMS Logs)
+                    </a>
+                  </div>
+
+                  <div className="flex flex-col sm:flex-row gap-3">
+                    <div className="relative flex-1">
+                      <input
+                        type="text"
+                        value={testMobile}
+                        onChange={e => setTestMobile(e.target.value)}
+                        placeholder="شماره موبایل تست (مثلاً ۰۹۱۲۳۴۵۶۷۸۹)"
+                        className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-[var(--neo-primary)]/20 outline-none text-xs text-left font-mono"
+                        dir="ltr"
+                      />
+                    </div>
+                    <button
+                      type="button"
+                      onClick={handleTestSms}
+                      disabled={testingSms}
+                      className="px-5 py-2.5 bg-[var(--neo-primary)] hover:bg-blue-700 text-white font-bold rounded-xl text-xs transition flex items-center justify-center gap-2 shadow-xs disabled:opacity-60"
+                    >
+                      {testingSms ? (
+                        <>
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                          <span>در حال ارسال تست...</span>
+                        </>
+                      ) : (
+                        <>
+                          <Send className="w-3.5 h-3.5" />
+                          <span>ارسال تست با الگوی {formData.smsOtpPattern || 'TecyadOTP'}</span>
+                        </>
+                      )}
+                    </button>
+                  </div>
+
+                  {testResult && (
+                    <div className={`p-4 rounded-xl text-xs border ${
+                      testResult.success 
+                        ? 'bg-emerald-50/80 border-emerald-200 text-emerald-900' 
+                        : 'bg-rose-50 border-rose-200 text-rose-900'
+                    } animate-in fade-in space-y-1`}>
+                      <div className="flex items-center gap-2 font-bold">
+                        {testResult.success ? (
+                          <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                        ) : (
+                          <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
+                        )}
+                        <span>{testResult.message || testResult.error}</span>
+                      </div>
+                      {testResult.testCode && (
+                        <div className="text-[11px] text-gray-600 mt-1 flex items-center gap-4">
+                          <span>کد تولیدشده تست: <b className="font-mono text-gray-900">{testResult.testCode}</b></span>
+                          <span>الگو: <b className="font-mono text-gray-900">{testResult.pattern}</b></span>
+                          <span>ارائه‌دهنده: <b className="font-mono text-gray-900">{testResult.provider}</b></span>
+                          {testResult.simulated && (
+                            <span className="bg-amber-100 text-amber-800 px-2 py-0.5 rounded text-[10px] font-bold">
+                              حالت شبیه‌سازی (Mock)
+                            </span>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
               </div>
             </div>

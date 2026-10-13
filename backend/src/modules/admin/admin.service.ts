@@ -23,6 +23,7 @@ import { Notification } from '../notifications/notification.model.js';
 import { parseDateSafely } from '../../common/utils/date.js';
 import { AuditService } from '../../common/services/audit.service.js';
 import { ReferralService } from '../referral/referral.service.js';
+import { SmsService } from '../../common/services/sms.service.js';
 
 
 export class AdminService {
@@ -1906,10 +1907,16 @@ export class AdminService {
       }
     }
 
-    // If sendSms was checked, simulate sending SMS via SMS provider configured in Settings
+    // If sendSms was checked, send SMS via active SMS provider
     let smsSent = false;
     if (data.sendSms) {
-      // Log broadcast in AuditLog
+      for (const u of users) {
+        if (u.mobile) {
+          SmsService.sendSms(u.mobile, `${data.title}\n${data.message}`).catch((smsErr) => {
+            console.warn('Failed to send broadcast SMS to', u.mobile, smsErr.message);
+          });
+        }
+      }
       smsSent = true;
     }
 

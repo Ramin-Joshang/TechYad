@@ -23,9 +23,14 @@ router.post('/checkout/create', requireAuth, asyncHandler(Controller.createOrder
 router.get('/me/orders', requireAuth, asyncHandler(Controller.getMyOrders));
 router.get('/me/orders/:id', requireAuth, asyncHandler(Controller.getOrderById));
 
-// --- Payments (Mock) ---
+// --- Payments & Bank Gateway Callbacks ---
 router.post('/payments/:orderId/create', requireAuth, asyncHandler(Controller.createMockPayment));
 router.post('/payments/verify', requireAuth, asyncHandler(Controller.verifyMockPayment));
+// Universal bank gateway callbacks (GET / POST)
+router.get('/payments/callback', asyncHandler(Controller.handleGatewayCallback));
+router.post('/payments/callback', asyncHandler(Controller.handleGatewayCallback));
+router.get('/payments/callback/:gateway', asyncHandler(Controller.handleGatewayCallback));
+router.post('/payments/callback/:gateway', asyncHandler(Controller.handleGatewayCallback));
 
 // --- Instructor Sales ---
 router.get('/instructor/sales', isInstructor, asyncHandler(Controller.getInstructorSales));

@@ -63,6 +63,8 @@ router.get('/super-admin/settings', isSuperAdmin, asyncHandler(Controller.getSet
 router.patch('/super-admin/settings', isSuperAdmin, asyncHandler(Controller.updateSettings));
 router.get('/admin/settings', isAdmin, asyncHandler(Controller.getSettings));
 router.patch('/admin/settings', isAdmin, asyncHandler(Controller.updateSettings));
+router.post('/super-admin/test-sms', isSuperAdmin, asyncHandler(Controller.testSms));
+router.post('/admin/test-sms', isAdmin, asyncHandler(Controller.testSms));
 
 // Financial Commission & Instructor Share Settings (Super Admin)
 router.get('/super-admin/financial-settings', isSuperAdmin, asyncHandler(Controller.getFinancialCommissionSettings));

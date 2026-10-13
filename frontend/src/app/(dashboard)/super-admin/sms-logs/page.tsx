@@ -165,9 +165,16 @@ export default function SmsLogsPage() {
                         {details.recipient || details.mobile || log.userName || '—'}
                       </td>
                       <td className="p-4 max-w-md">
-                        <div className="font-bold text-slate-900 mb-0.5">{log.action}</div>
+                        <div className="flex items-center gap-2 mb-0.5">
+                          <span className="font-bold text-slate-900">{log.action || log.title}</span>
+                          {details.pattern && (
+                            <span className="px-1.5 py-0.5 text-[10px] font-mono font-bold bg-blue-50 text-blue-700 border border-blue-200 rounded-md">
+                              الگو: {details.pattern}
+                            </span>
+                          )}
+                        </div>
                         <div className="text-[11px] text-slate-500 line-clamp-2">
-                          {details.message || details.content || details.note || 'ارسال کد احراز هویت / پیام سیستم'}
+                          {log.title || details.message || details.content || details.note || 'ارسال کد احراز هویت / پیام سیستم'}
                         </div>
                       </td>
                       <td className="p-4">

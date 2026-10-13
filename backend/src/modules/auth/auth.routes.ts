@@ -1,7 +1,7 @@
 import { Router } from 'express';
-import { register, login, logout, getMe, updateProfile, forgotPassword, resetPassword, refreshToken, changePassword } from './auth.controller.js';
+import { register, login, logout, getMe, updateProfile, forgotPassword, resetPassword, refreshToken, changePassword, sendOtp, verifyOtp } from './auth.controller.js';
 import { validate } from '../../common/middleware/validate.js';
-import { registerSchema, loginSchema, updateProfileSchema, forgotPasswordSchema, resetPasswordSchema, changePasswordSchema } from './auth.validation.js';
+import { registerSchema, loginSchema, updateProfileSchema, forgotPasswordSchema, resetPasswordSchema, changePasswordSchema, sendOtpSchema, verifyOtpSchema } from './auth.validation.js';
 import { authenticate } from '../../common/middleware/auth.js';
 import { asyncHandler } from '../../common/utils/asyncHandler.js';
 
@@ -9,6 +9,8 @@ const router = Router();
 
 router.post('/register', validate(registerSchema), asyncHandler(register));
 router.post('/login', validate(loginSchema), asyncHandler(login));
+router.post('/send-otp', validate(sendOtpSchema), asyncHandler(sendOtp));
+router.post('/verify-otp', validate(verifyOtpSchema), asyncHandler(verifyOtp));
 router.post('/logout', asyncHandler(logout));
 router.post('/refresh', asyncHandler(refreshToken));
 router.get('/me', asyncHandler(authenticate), asyncHandler(getMe));

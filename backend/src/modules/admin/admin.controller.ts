@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import { AdminService } from './admin.service.js';
 import { sendSuccess } from '../../common/utils/response.js';
 import { FinancialRevenueService } from '../commerce/financial-revenue.service.js';
+import { SmsService } from '../../common/services/sms.service.js';
 
 export const getDashboardStats = async (req: Request, res: Response) => {
   const result = await AdminService.getDashboardStats();
@@ -283,6 +284,25 @@ export const setItemCommissionOverride = async (req: Request, res: Response) => 
     instructorSharePercent
   );
   sendSuccess(res, result, 'درصد اختصاصی با موفقیت ثبت شد');
+};
+
+export const testSms = async (req: Request, res: Response) => {
+  const { mobile, pattern, provider, apiKey, sender } = req.body;
+  if (!mobile) {
+    res.status(400).json({ success: false, message: 'شماره موبایل الزامی است' });
+    return;
+  }
+  const result = await SmsService.testSms(
+    mobile,
+    pattern || 'TecyadOTP',
+    {
+      smsProvider: provider,
+      smsApiKey: apiKey,
+      smsOtpPattern: pattern || 'TecyadOTP',
+      smsSenderNumber: sender
+    }
+  );
+  sendSuccess(res, result, result.message || 'پیامک تست ارسال شد');
 };
 
 

@@ -87,7 +87,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // Dynamic Courses Fetching
   let courseRoutes: MetadataRoute.Sitemap = [];
   try {
-    const res = await fetch('http://localhost:5000/api/v1/courses?limit=500&status=published', {
+    const res = await fetch('http://localhost:5000/api/courses?limit=500&status=published', {
       next: { revalidate: 3600 },
     });
     if (res.ok) {
@@ -117,7 +117,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // Dynamic Classes Fetching
   let classRoutes: MetadataRoute.Sitemap = [];
   try {
-    const res = await fetch('http://localhost:5000/api/v1/classes?limit=500', {
+    const res = await fetch('http://localhost:5000/api/classes?limit=500', {
       next: { revalidate: 3600 },
     });
     if (res.ok) {
@@ -147,7 +147,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // Dynamic Instructors Fetching
   let instructorRoutes: MetadataRoute.Sitemap = [];
   try {
-    const res = await fetch('http://localhost:5000/api/v1/instructors?limit=200', {
+    const res = await fetch('http://localhost:5000/api/instructors?limit=200', {
       next: { revalidate: 3600 },
     });
     if (res.ok) {
@@ -155,9 +155,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       const instructors = data?.data || [];
       if (Array.isArray(instructors)) {
         for (const inst of instructors) {
-          const id = inst._id || inst.id;
-          if (!id) continue;
-          const url = `${baseUrl}/instructors/${encodeURIComponent(id)}`;
+          const idOrSlug = inst.slug || inst._id || inst.id;
+          if (!idOrSlug) continue;
+          const url = `${baseUrl}/instructors/${encodeURIComponent(idOrSlug)}`;
           if (!seenUrls.has(url)) {
             seenUrls.add(url);
             instructorRoutes.push({
@@ -177,7 +177,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // Dynamic Blog Posts Fetching
   let blogRoutes: MetadataRoute.Sitemap = [];
   try {
-    const res = await fetch('http://localhost:5000/api/v1/blog?limit=500&status=published', {
+    const res = await fetch('http://localhost:5000/api/blog?limit=500&status=published', {
       next: { revalidate: 3600 },
     });
     if (res.ok) {
@@ -207,7 +207,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // Dynamic Categories Fetching (Active categories only)
   let categoryRoutes: MetadataRoute.Sitemap = [];
   try {
-    const res = await fetch('http://localhost:5000/api/v1/categories', {
+    const res = await fetch('http://localhost:5000/api/categories', {
       next: { revalidate: 3600 },
     });
     if (res.ok) {

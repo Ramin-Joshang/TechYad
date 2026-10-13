@@ -114,3 +114,14 @@ export const refreshToken = async (req: Request, res: Response) => {
   setAuthCookies(res, result.accessToken, result.refreshToken);
   sendSuccess(res, { user: result.user }, 'Token refreshed successfully');
 };
+
+export const sendOtp = async (req: Request, res: Response) => {
+  const result = await AuthService.sendOtp(req.body.mobile, req.body.purpose || 'auth');
+  sendSuccess(res, result, result.message);
+};
+
+export const verifyOtp = async (req: Request, res: Response) => {
+  const result = await AuthService.verifyOtp(req.body.mobile, req.body.code, req.body.purpose || 'auth');
+  setAuthCookies(res, result.accessToken, result.refreshToken);
+  sendSuccess(res, result, 'ورود با موفقیت انجام شد');
+};

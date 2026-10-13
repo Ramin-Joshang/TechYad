@@ -4,7 +4,7 @@ import type { Metadata } from 'next';
 
 async function fetchArticleData(identifier: string) {
   try {
-    const res = await fetch(`http://localhost:5000/api/v1/blog/${encodeURIComponent(identifier)}`, {
+    const res = await fetch(`http://localhost:5000/api/blog/${encodeURIComponent(identifier)}`, {
       next: { revalidate: 60 }
     });
     if (!res.ok) return null;

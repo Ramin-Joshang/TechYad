@@ -70,6 +70,8 @@ const authLimiter = rateLimit({
   legacyHeaders: false,
   message: { success: false, error: { code: 'TOO_MANY_REQUESTS', message: 'تعداد دفعات تلاش برای ورود یا ثبت‌نام بیش از حد مجاز بوده است. لطفاً ۱۵ دقیقه دیگر تلاش کنید.' } }
 });
+app.use('/api/auth/login', authLimiter);
+app.use('/api/auth/register', authLimiter);
 app.use('/api/v1/auth/login', authLimiter);
 app.use('/api/v1/auth/register', authLimiter);
 
@@ -79,7 +81,7 @@ app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 app.use(cookieParser());
 app.use(persianNormalizeMiddleware);
 
-// Serve static uploads folder (both directly at /uploads and at /api/v1/uploads) with cross-origin headers
+// Serve static uploads folder (both directly at /uploads, /api/uploads, and legacy /api/v1/uploads) with cross-origin headers
 const staticUploadsMiddleware = (req: express.Request, res: express.Response, next: express.NextFunction) => {
   res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -88,9 +90,12 @@ const staticUploadsMiddleware = (req: express.Request, res: express.Response, ne
 };
 
 app.use('/uploads', staticUploadsMiddleware, express.static(UPLOADS_ROOT));
+app.use('/api/uploads', staticUploadsMiddleware, express.static(UPLOADS_ROOT));
 app.use('/api/v1/uploads', staticUploadsMiddleware, express.static(UPLOADS_ROOT));
 
-// API Routes
+// Official production API route without /v1 prefix
+app.use('/api', routes);
+// Backwards compatibility for legacy clients/tools
 app.use('/api/v1', routes);
 
 // Swagger API Documentation
@@ -126,7 +131,7 @@ app.get('/', (req, res) => {
             <a href="/api-docs" class="w-full sm:w-auto inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-xl text-white bg-blue-600 hover:bg-blue-700 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
                 ورود به مستندات Swagger
             </a>
-            <a href="/api/v1/courses" class="w-full sm:w-auto inline-flex items-center justify-center px-6 py-3 border border-gray-200 text-base font-medium rounded-xl text-gray-700 bg-white hover:bg-gray-50 hover:text-gray-900 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-200">
+            <a href="/api/courses" class="w-full sm:w-auto inline-flex items-center justify-center px-6 py-3 border border-gray-200 text-base font-medium rounded-xl text-gray-700 bg-white hover:bg-gray-50 hover:text-gray-900 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-200">
                 تست API دوره‌ها
             </a>
         </div>

@@ -1,24 +1,67 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { authApi } from '@/features/auth/api/auth.api';
 import { useAuthStore } from '@/features/auth/stores/auth.store';
 import { GuestGuard } from '@/features/auth/components/guards/GuestGuard';
 import { AuthCardLayout } from '@/features/auth/components/AuthCardLayout';
 import Link from 'next/link';
-import { Mail, Lock, Eye, EyeOff, Loader2, AlertCircle, ArrowLeft } from 'lucide-react';
+import { 
+  Mail, Lock, Eye, EyeOff, Loader2, AlertCircle, ArrowLeft, 
+  Smartphone, KeyRound, RefreshCw, CheckCircle2 
+} from 'lucide-react';
+import toast from 'react-hot-toast';
 
 export default function LoginPage() {
   const router = useRouter();
   const { setAuth } = useAuthStore();
+  const [loginMethod, setLoginMethod] = useState<'password' | 'otp'>('password');
+  
+  // Password login state
   const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  
+  // OTP login state
+  const [mobile, setMobile] = useState('');
+  const [otpCode, setOtpCode] = useState('');
+  const [otpStep, setOtpStep] = useState<'mobile' | 'code'>('mobile');
+  const [countdown, setCountdown] = useState(0);
+  const [devCode, setDevCode] = useState<string | null>(null);
+
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const handleLogin = async (e: React.FormEvent) => {
+  useEffect(() => {
+    let timer: any;
+    if (countdown > 0) {
+      timer = setInterval(() => {
+        setCountdown(prev => prev - 1);
+      }, 1000);
+    }
+    return () => clearInterval(timer);
+  }, [countdown]);
+
+  const handleSuccessfulAuth = (user: any) => {
+    setAuth(user);
+    toast.success(`خوش آمدید، ${user.firstName || 'کاربر گرامی'}`);
+    
+    const params = new URLSearchParams(window.location.search);
+    const redirectUrl = params.get('redirect');
+    if (redirectUrl && !redirectUrl.startsWith('//') && redirectUrl.startsWith('/')) {
+      router.push(redirectUrl);
+      return;
+    }
+
+    const role = user.role;
+    if (role === 'super-admin') router.push('/super-admin');
+    else if (role === 'admin') router.push('/admin');
+    else if (role === 'instructor') router.push('/instructor');
+    else router.push('/student');
+  };
+
+  const handlePasswordLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     setLoading(true);
@@ -26,24 +69,56 @@ export default function LoginPage() {
     try {
       const response = await authApi.login({ identifier: identifier.trim(), password });
       if (response.success) {
-        setAuth(response.data.user);
-        
-        const params = new URLSearchParams(window.location.search);
-        const redirectUrl = params.get('redirect');
-        if (redirectUrl && !redirectUrl.startsWith('//') && redirectUrl.startsWith('/')) {
-          router.push(redirectUrl);
-          return;
-        }
-
-        // Redirect based on role
-        const role = response.data.user.role;
-        if (role === 'super-admin') router.push('/super-admin');
-        else if (role === 'admin') router.push('/admin');
-        else if (role === 'instructor') router.push('/instructor');
-        else router.push('/student');
+        handleSuccessfulAuth(response.data.user);
       }
     } catch (err: any) {
       setError(err.response?.data?.message || 'ایمیل/شماره موبایل یا رمز عبور اشتباه است.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSendOtp = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    setError('');
+    const cleanMobile = mobile.trim();
+    if (!cleanMobile) {
+      setError('لطفاً شماره موبایل خود را وارد نمایید');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const res = await authApi.sendOtp(cleanMobile, 'auth');
+      toast.success(res.message || 'کد تایید با موفقیت پیامک شد');
+      if (res.data?.devCode) {
+        setDevCode(res.data.devCode);
+      }
+      setOtpStep('code');
+      setCountdown(res.data?.expiresInSeconds || 180);
+    } catch (err: any) {
+      setError(err.response?.data?.message || 'خطا در ارسال کد تایید پیامکی');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleVerifyOtp = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+    if (!otpCode.trim()) {
+      setError('لطفاً کد تایید ۵ رقمی را وارد نمایید');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const response = await authApi.verifyOtp(mobile.trim(), otpCode.trim(), 'auth');
+      if (response.success) {
+        handleSuccessfulAuth(response.data.user);
+      }
+    } catch (err: any) {
+      setError(err.response?.data?.message || 'کد تایید اشتباه یا منقضی شده است');
     } finally {
       setLoading(false);
     }
@@ -54,6 +129,34 @@ export default function LoginPage() {
       <AuthCardLayout
         title="ورود به حساب کاربری"
       >
+        {/* Method Toggle */}
+        <div className="flex bg-[var(--neo-surface-2)] p-1 rounded-2xl mb-5 border border-[var(--neo-border)]">
+          <button
+            type="button"
+            onClick={() => { setLoginMethod('password'); setError(''); }}
+            className={`flex-1 py-2 text-xs font-bold rounded-xl transition-all flex items-center justify-center gap-1.5 ${
+              loginMethod === 'password'
+                ? 'bg-white text-[var(--neo-text-main)] shadow-xs'
+                : 'text-[var(--neo-text-secondary)] hover:text-[var(--neo-text-main)]'
+            }`}
+          >
+            <Lock className="w-3.5 h-3.5" />
+            <span>رمز عبور</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => { setLoginMethod('otp'); setError(''); }}
+            className={`flex-1 py-2 text-xs font-bold rounded-xl transition-all flex items-center justify-center gap-1.5 ${
+              loginMethod === 'otp'
+                ? 'bg-white text-[var(--neo-primary)] shadow-xs'
+                : 'text-[var(--neo-text-secondary)] hover:text-[var(--neo-text-main)]'
+            }`}
+          >
+            <Smartphone className="w-3.5 h-3.5" />
+            <span>پیامک یکبارمصرف (OTP)</span>
+          </button>
+        </div>
+
         {error && (
           <div className="mb-5 p-3.5 bg-rose-50 border border-rose-200 text-rose-700 rounded-xl text-xs sm:text-sm font-medium flex items-center gap-2">
             <AlertCircle className="w-4 h-4 shrink-0 text-rose-500" />
@@ -61,78 +164,210 @@ export default function LoginPage() {
           </div>
         )}
 
-        <form onSubmit={handleLogin} className="space-y-4">
-          <div>
-            <label className="block text-xs sm:text-sm font-bold text-[var(--neo-text-main)] mb-1.5">
-              ایمیل یا شماره موبایل
-            </label>
-            <div className="relative">
-              <input 
-                type="text"
-                value={identifier}
-                onChange={e => setIdentifier(e.target.value)}
-                className="w-full pl-11 pr-4 py-2.5 rounded-xl border border-[var(--neo-border)] bg-[var(--neo-surface)] text-[var(--neo-text-main)] focus:outline-none focus:ring-2 focus:ring-[var(--neo-primary)] focus:border-transparent transition dir-ltr text-left text-sm"
-                placeholder="name@example.com یا ۰۹۱۲۳۴۵۶۷۸۹"
-                required 
-              />
-              <Mail className="w-4 h-4 text-[var(--neo-text-muted)] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
-            </div>
-            <p className="text-[11px] text-[var(--neo-text-muted)] mt-1">
-              می‌توانید با آدرس ایمیل یا شماره همراه ثبت‌شده خود وارد شوید.
-            </p>
-          </div>
-
-          <div>
-            <div className="flex justify-between items-center mb-1.5">
-              <label className="block text-xs sm:text-sm font-bold text-[var(--neo-text-main)]">
-                رمز عبور
+        {/* 1. Password Login Form */}
+        {loginMethod === 'password' ? (
+          <form onSubmit={handlePasswordLogin} className="space-y-4">
+            <div>
+              <label className="block text-xs sm:text-sm font-bold text-[var(--neo-text-main)] mb-1.5">
+                ایمیل یا شماره موبایل
               </label>
-              <Link 
-                href="/forgot-password" 
-                className="text-xs font-medium text-[var(--neo-primary)] hover:underline"
-              >
-                فراموشی رمز عبور؟
-              </Link>
+              <div className="relative">
+                <input 
+                  type="text"
+                  value={identifier}
+                  onChange={e => setIdentifier(e.target.value)}
+                  className="w-full pl-11 pr-4 py-2.5 rounded-xl border border-[var(--neo-border)] bg-[var(--neo-surface)] text-[var(--neo-text-main)] focus:outline-none focus:ring-2 focus:ring-[var(--neo-primary)] focus:border-transparent transition dir-ltr text-left text-sm"
+                  placeholder="name@example.com یا ۰۹۱۲۳۴۵۶۷۸۹"
+                  required 
+                />
+                <Mail className="w-4 h-4 text-[var(--neo-text-muted)] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+              </div>
+              <p className="text-[11px] text-[var(--neo-text-muted)] mt-1">
+                می‌توانید با آدرس ایمیل یا شماره همراه ثبت‌شده خود وارد شوید.
+              </p>
             </div>
-            <div className="relative">
-              <input 
-                type={showPassword ? 'text' : 'password'}
-                value={password}
-                onChange={e => setPassword(e.target.value)}
-                className="w-full pl-11 pr-11 py-2.5 rounded-xl border border-[var(--neo-border)] bg-[var(--neo-surface)] text-[var(--neo-text-main)] focus:outline-none focus:ring-2 focus:ring-[var(--neo-primary)] focus:border-transparent transition dir-ltr text-left text-sm"
-                placeholder="••••••••"
-                required 
-              />
-              <Lock className="w-4 h-4 text-[var(--neo-text-muted)] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[var(--neo-text-muted)] hover:text-[var(--neo-text-main)] transition"
-                tabIndex={-1}
-              >
-                {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-              </button>
-            </div>
-          </div>
 
-          <button 
-            type="submit"
-            disabled={loading}
-            className="w-full mt-2 py-3 px-4 bg-[var(--neo-primary)] hover:bg-blue-700 text-white font-bold rounded-xl transition shadow-md shadow-[var(--neo-primary)]/20 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--neo-primary)] disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2 text-sm"
-          >
-            {loading ? (
-              <>
-                <Loader2 className="w-4 h-4 animate-spin" />
-                <span>در حال ورود...</span>
-              </>
+            <div>
+              <div className="flex justify-between items-center mb-1.5">
+                <label className="block text-xs sm:text-sm font-bold text-[var(--neo-text-main)]">
+                  رمز عبور
+                </label>
+                <Link 
+                  href="/forgot-password" 
+                  className="text-xs font-medium text-[var(--neo-primary)] hover:underline"
+                >
+                  فراموشی رمز عبور؟
+                </Link>
+              </div>
+              <div className="relative">
+                <input 
+                  type={showPassword ? 'text' : 'password'}
+                  value={password}
+                  onChange={e => setPassword(e.target.value)}
+                  className="w-full pl-11 pr-11 py-2.5 rounded-xl border border-[var(--neo-border)] bg-[var(--neo-surface)] text-[var(--neo-text-main)] focus:outline-none focus:ring-2 focus:ring-[var(--neo-primary)] focus:border-transparent transition dir-ltr text-left text-sm"
+                  placeholder="••••••••"
+                  required 
+                />
+                <Lock className="w-4 h-4 text-[var(--neo-text-muted)] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[var(--neo-text-muted)] hover:text-[var(--neo-text-main)] transition"
+                  tabIndex={-1}
+                >
+                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
+              </div>
+            </div>
+
+            <button 
+              type="submit"
+              disabled={loading}
+              className="w-full mt-2 py-3 px-4 bg-[var(--neo-primary)] hover:bg-blue-700 text-white font-bold rounded-xl transition shadow-md shadow-[var(--neo-primary)]/20 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--neo-primary)] disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2 text-sm"
+            >
+              {loading ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  <span>در حال ورود...</span>
+                </>
+              ) : (
+                <>
+                  <span>ورود به حساب</span>
+                  <ArrowLeft className="w-4 h-4" />
+                </>
+              )}
+            </button>
+          </form>
+        ) : (
+          /* 2. SMS OTP Login Form */
+          <div className="space-y-4">
+            {otpStep === 'mobile' ? (
+              <form onSubmit={handleSendOtp} className="space-y-4">
+                <div>
+                  <label className="block text-xs sm:text-sm font-bold text-[var(--neo-text-main)] mb-1.5">
+                    شماره موبایل
+                  </label>
+                  <div className="relative">
+                    <input 
+                      type="tel"
+                      value={mobile}
+                      onChange={e => setMobile(e.target.value)}
+                      className="w-full pl-11 pr-4 py-2.5 rounded-xl border border-[var(--neo-border)] bg-[var(--neo-surface)] text-[var(--neo-text-main)] focus:outline-none focus:ring-2 focus:ring-[var(--neo-primary)] focus:border-transparent transition dir-ltr text-left text-sm font-mono"
+                      placeholder="۰۹۱۲۳۴۵۶۷۸۹"
+                      required 
+                      autoFocus
+                    />
+                    <Smartphone className="w-4 h-4 text-[var(--neo-text-muted)] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                  </div>
+                  <p className="text-[11px] text-[var(--neo-text-muted)] mt-1.5">
+                    کد تایید ۵ رقمی با الگوی <b className="text-[var(--neo-primary)] font-mono">TecyadOTP</b> برای این شماره ارسال خواهد شد.
+                  </p>
+                </div>
+
+                <button 
+                  type="submit"
+                  disabled={loading}
+                  className="w-full py-3 px-4 bg-[var(--neo-primary)] hover:bg-blue-700 text-white font-bold rounded-xl transition shadow-md shadow-[var(--neo-primary)]/20 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--neo-primary)] disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2 text-sm"
+                >
+                  {loading ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      <span>در حال ارسال پیامک...</span>
+                    </>
+                  ) : (
+                    <>
+                      <span>دریافت کد تایید پیامکی</span>
+                      <ArrowLeft className="w-4 h-4" />
+                    </>
+                  )}
+                </button>
+              </form>
             ) : (
-              <>
-                <span>ورود به حساب</span>
-                <ArrowLeft className="w-4 h-4" />
-              </>
+              <form onSubmit={handleVerifyOtp} className="space-y-4">
+                <div className="p-3 bg-blue-50/70 border border-blue-100 rounded-xl flex items-center justify-between text-xs">
+                  <div>
+                    <span className="text-gray-500">کد به شماره: </span>
+                    <span className="font-bold text-gray-900 font-mono dir-ltr inline-block">{mobile}</span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => { setOtpStep('mobile'); setOtpCode(''); }}
+                    className="text-[var(--neo-primary)] hover:underline font-bold text-[11px]"
+                  >
+                    ویرایش شماره
+                  </button>
+                </div>
+
+                {devCode && (
+                  <div className="p-2.5 bg-amber-50 border border-amber-200 text-amber-900 rounded-xl text-xs flex items-center justify-between">
+                    <span>کد تستی (شبیه‌ساز): <b className="font-mono text-sm">{devCode}</b></span>
+                    <button
+                      type="button"
+                      onClick={() => setOtpCode(devCode)}
+                      className="text-amber-800 underline text-[11px]"
+                    >
+                      درج خودکار
+                    </button>
+                  </div>
+                )}
+
+                <div>
+                  <label className="block text-xs sm:text-sm font-bold text-[var(--neo-text-main)] mb-1.5">
+                    کد تایید پیامک‌شده
+                  </label>
+                  <div className="relative">
+                    <input 
+                      type="text"
+                      maxLength={6}
+                      value={otpCode}
+                      onChange={e => setOtpCode(e.target.value)}
+                      className="w-full px-4 py-3 rounded-xl border border-[var(--neo-border)] bg-[var(--neo-surface)] text-[var(--neo-text-main)] focus:outline-none focus:ring-2 focus:ring-[var(--neo-primary)] focus:border-transparent transition dir-ltr text-center font-mono tracking-widest text-lg font-bold"
+                      placeholder="• • • • •"
+                      required 
+                      autoFocus
+                    />
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-between text-xs">
+                  {countdown > 0 ? (
+                    <span className="text-gray-400 font-mono text-[11px]">
+                      ارسال مجدد تا {Math.floor(countdown / 60)}:{(countdown % 60).toString().padStart(2, '0')}
+                    </span>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => handleSendOtp()}
+                      disabled={loading}
+                      className="text-[var(--neo-primary)] hover:underline font-bold flex items-center gap-1 text-[11px]"
+                    >
+                      <RefreshCw className="w-3 h-3" />
+                      ارسال مجدد کد تایید
+                    </button>
+                  )}
+                </div>
+
+                <button 
+                  type="submit"
+                  disabled={loading}
+                  className="w-full py-3 px-4 bg-[var(--neo-primary)] hover:bg-blue-700 text-white font-bold rounded-xl transition shadow-md shadow-[var(--neo-primary)]/20 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--neo-primary)] disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2 text-sm"
+                >
+                  {loading ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      <span>در حال اعتبارسنجی...</span>
+                    </>
+                  ) : (
+                    <>
+                      <span>تایید و ورود به سایت</span>
+                      <CheckCircle2 className="w-4 h-4" />
+                    </>
+                  )}
+                </button>
+              </form>
             )}
-          </button>
-        </form>
+          </div>
+        )}
 
         {/* Bottom register link */}
         <div className="mt-6 text-center text-xs sm:text-sm text-[var(--neo-text-secondary)] pt-4 border-t border-[var(--neo-border)]">

@@ -2,6 +2,7 @@ import { Schema, Types, model, Document } from "mongoose";
 
 export interface IInstructorProfile extends Document {
   userId: Types.ObjectId;
+  slug?: string;
   title: string;
   bio: string;
   avatar?: string;
@@ -36,6 +37,7 @@ export interface IInstructorProfile extends Document {
 const instructorProfileSchema = new Schema<IInstructorProfile>(
   {
     userId: { type: Schema.Types.ObjectId, ref: "User", required: true, unique: true },
+    slug: { type: String, trim: true, sparse: true, index: true },
     title: { type: String, required: true },
     bio: { type: String, required: true },
     avatar: String,
