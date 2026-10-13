@@ -83,12 +83,21 @@ export class AuthService {
       lastName: data.lastName,
       email: email || undefined,
       mobile: mobile || undefined,
+      slug: `user-${Date.now().toString().slice(-6)}`,
       passwordHash,
       role: studentRole._id,
-      status: 'active',
+      status: 'pending',
       emailVerified: false,
-      mobileVerified: !!mobile
+      mobileVerified: false
     });
+
+    if (mobile) {
+      try {
+        await AuthService.sendOtp(mobile, 'auth');
+      } catch (otpErr) {
+        console.error('Failed to send registration OTP:', otpErr);
+      }
+    }
 
     // Ensure newly created user gets a unique referral code
     const userReferralCode = await ReferralService.ensureUserReferralCode(newUser);
@@ -171,34 +180,25 @@ export class AuthService {
   static async login(data: any, clientInfo: { ip?: string; userAgent?: string } = {}) {
     const { browser, os, device } = this.parseClientInfo(clientInfo.userAgent || '');
     
-    // Support login via email OR mobile (or general identifier)
-    const rawIdentifier = (data.identifier || data.email || data.mobile || '').trim();
-    // Normalize Persian/Arabic digits to English digits if mobile
-    const normalizedIdentifier = rawIdentifier.replace(/[۰-۹]/g, (d: string) => "۰۱۲۳۴۵۶۷۸۹".indexOf(d).toString());
-    const isEmail = normalizedIdentifier.includes('@');
+    const rawIdentifier = (data.identifier || data.mobile || data.email || '').trim();
 
-    let user;
-    if (isEmail) {
-      user = await User.findOne({ email: normalizedIdentifier.toLowerCase() }).select('+passwordHash').populate('role');
-    } else {
-      // Clean mobile format (e.g. +98 or 09...)
-      let cleanMobile = normalizedIdentifier.replace(/[\s\-_]/g, '');
-      if (cleanMobile.startsWith('+98')) cleanMobile = '0' + cleanMobile.slice(3);
-      else if (cleanMobile.startsWith('0098')) cleanMobile = '0' + cleanMobile.slice(4);
-
-      user = await User.findOne({
-        $or: [
-          { mobile: normalizedIdentifier },
-          { mobile: cleanMobile },
-          { email: normalizedIdentifier.toLowerCase() }
-        ]
-      }).select('+passwordHash').populate('role');
+    // Reject email login: User explicitly requested mobile-only login
+    if (rawIdentifier.includes('@')) {
+      throw new AppError('ورود به سامانه فقط با شماره موبایل امکان‌پذیر است. لطفاً شماره موبایل خود را وارد نمایید.', 400, 'AUTH_MOBILE_ONLY_ALLOWED');
     }
+
+    // Normalize Persian/Arabic digits to English digits
+    const cleanMobile = SmsService.normalizeMobile(rawIdentifier);
+    if (!cleanMobile || !/^09\d{9}$/.test(cleanMobile)) {
+      throw new AppError('شماره موبایل وارد شده نامعتبر است (فرمت صحیح: ۰۹۱۲۳۴۵۶۷۸۹)', 400, 'INVALID_MOBILE');
+    }
+
+    const user = await User.findOne({ mobile: cleanMobile }).select('+passwordHash').populate('role');
     
     if (!user) {
       try {
         await AuditLog.create({
-          userEmail: rawIdentifier,
+          userEmail: cleanMobile,
           action: 'ورود ناموفق (کاربر یافت نشد)',
           category: 'auth',
           status: 'failure',
@@ -207,10 +207,10 @@ export class AuthService {
           device,
           browser,
           os,
-          details: { reason: 'User not found with provided identifier (email/mobile)' }
+          details: { reason: 'User not found with provided mobile number' }
         });
       } catch (e) {}
-      throw new AppError('ایمیل، شماره موبایل یا رمز عبور اشتباه است', 401, 'AUTH_INVALID_CREDENTIALS');
+      throw new AppError('شماره موبایل یا رمز عبور اشتباه است', 401, 'AUTH_INVALID_CREDENTIALS');
     }
 
     const isPasswordCorrect = await argon2.verify(user.passwordHash, data.password);
@@ -218,7 +218,7 @@ export class AuthService {
       try {
         await AuditLog.create({
           userId: user._id,
-          userEmail: user.email,
+          userEmail: user.email || cleanMobile,
           userName: `${user.firstName || ''} ${user.lastName || ''}`.trim(),
           action: 'ورود ناموفق (رمز عبور اشتباه)',
           category: 'auth',
@@ -231,27 +231,23 @@ export class AuthService {
           details: { reason: 'Incorrect password' }
         });
       } catch (e) {}
-      throw new AppError('Invalid email or password', 401, 'AUTH_INVALID_CREDENTIALS');
+      throw new AppError('شماره موبایل یا رمز عبور اشتباه است', 401, 'AUTH_INVALID_CREDENTIALS');
     }
 
-    if (user.status !== 'active') {
+    if (user.status === 'blocked') {
+      throw new AppError('حساب کاربری شما مسدود شده است', 403, 'AUTH_ACCOUNT_BLOCKED');
+    }
+
+    const roleSlug = (user.role as any)?.slug || user.role;
+    const isExempt = roleSlug === 'super-admin';
+
+    // Verification check: unverified mobile numbers cannot use account
+    if (!isExempt && !user.mobileVerified) {
+      // Trigger OTP automatically so user can quickly verify
       try {
-        await AuditLog.create({
-          userId: user._id,
-          userEmail: user.email,
-          userName: `${user.firstName || ''} ${user.lastName || ''}`.trim(),
-          action: 'ورود ناموفق (حساب کاربری غیرفعال یا مسدود)',
-          category: 'auth',
-          status: 'failure',
-          ip: clientInfo.ip || '127.0.0.1',
-          userAgent: clientInfo.userAgent,
-          device,
-          browser,
-          os,
-          details: { status: user.status }
-        });
+        await AuthService.sendOtp(cleanMobile, 'auth');
       } catch (e) {}
-      throw new AppError('Your account is not active', 403, 'AUTH_ACCOUNT_INACTIVE');
+      throw new AppError('شماره موبایل شما تایید نشده است. کد تایید پیامکی ارسال شد؛ لطفاً شماره خود را تایید نمایید.', 403, 'AUTH_PHONE_NOT_VERIFIED');
     }
 
     const accessToken = signToken(user._id.toString());
@@ -520,6 +516,7 @@ export class AuthService {
       user = await User.create({
         firstName: 'کاربر',
         lastName: mobile.slice(-4),
+        slug: `user-${mobile.slice(-4)}-${Date.now().toString().slice(-4)}`,
         mobile,
         email: `${mobile}@tecyad.local`,
         passwordHash: dummyPassword,
@@ -529,6 +526,15 @@ export class AuthService {
         emailVerified: false
       });
       await ReferralService.ensureUserReferralCode(user);
+    } else {
+      user.mobileVerified = true;
+      if (user.status === 'pending') {
+        user.status = 'active';
+      }
+      if (!user.slug) {
+        user.slug = `user-${mobile.slice(-4)}-${Date.now().toString().slice(-4)}`;
+      }
+      await user.save();
     }
 
     const accessToken = signToken(user._id.toString());
@@ -542,6 +548,8 @@ export class AuthService {
         lastName: user.lastName,
         email: user.email,
         mobile: user.mobile,
+        mobileVerified: true,
+        slug: user.slug,
         avatar: user.avatar,
         role,
         permissions: (user.role as any)?.permissions || [],

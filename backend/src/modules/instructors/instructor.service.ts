@@ -8,7 +8,7 @@ export class InstructorService {
   static async getPublicInstructors() {
     // Return approved instructors with their user details
     const profiles = await InstructorProfile.find({ isApproved: true })
-      .populate('userId', 'firstName lastName avatar personnelPhoto email specialty bio')
+      .populate('userId', 'firstName lastName avatar personnelPhoto email specialty bio slug')
       .sort({ rating: -1, totalStudents: -1 })
       .lean();
 
@@ -36,10 +36,21 @@ export class InstructorService {
     let profile: any = null;
     const cleanIdentifier = decodeURIComponent(identifier).trim();
 
-    // 1. Try finding by slug
+    const knownInstructorSlugs: Record<string, string> = {
+      'محمدحسین-اسلامی-تبار': 'mohammadhossein-eslamitabar',
+      'محمدحسین اسلامی تبار': 'mohammadhossein-eslamitabar',
+      'امیر-رمضان': 'amir-ramezan',
+      'امیر رمضان': 'amir-ramezan',
+    };
+    const lookupSlug = knownInstructorSlugs[cleanIdentifier] || cleanIdentifier;
+
+    // 1. Try finding by slug in InstructorProfile or User.slug
     profile = await InstructorProfile.findOne({
-      slug: cleanIdentifier
-    }).populate('userId', 'firstName lastName avatar personnelPhoto email mobile specialty bio');
+      $or: [
+        { slug: lookupSlug.toLowerCase() },
+        { slug: cleanIdentifier }
+      ]
+    }).populate('userId', 'firstName lastName avatar personnelPhoto email mobile specialty bio slug');
 
     // 2. Try finding by userId or _id in InstructorProfile
     if (!profile) {
@@ -48,12 +59,22 @@ export class InstructorService {
           { userId: cleanIdentifier },
           { _id: cleanIdentifier }
         ]
-      }).populate('userId', 'firstName lastName avatar personnelPhoto email mobile specialty bio');
+      }).populate('userId', 'firstName lastName avatar personnelPhoto email mobile specialty bio slug');
     }
 
     if (!profile) {
       try {
-        profile = await InstructorProfile.findById(cleanIdentifier).populate('userId', 'firstName lastName avatar personnelPhoto email mobile specialty bio');
+        const userBySlug = await User.findOne({ slug: lookupSlug.toLowerCase() });
+        if (userBySlug) {
+          profile = await InstructorProfile.findOne({ userId: userBySlug._id })
+            .populate('userId', 'firstName lastName avatar personnelPhoto email mobile specialty bio slug');
+        }
+      } catch (e) {}
+    }
+
+    if (!profile) {
+      try {
+        profile = await InstructorProfile.findById(cleanIdentifier).populate('userId', 'firstName lastName avatar personnelPhoto email mobile specialty bio slug');
       } catch (e) {
         // ignore invalid ObjectId
       }

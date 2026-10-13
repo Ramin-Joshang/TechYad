@@ -2,6 +2,7 @@ import app from './app.js';
 import { connectDB } from './config/database.js';
 import { env } from './config/env.js';
 import { cleanupAllBase64FromDatabase } from './modules/media/cleanupBase64.js';
+import { ensureInstructorSlugsAndVerification } from './modules/instructors/instructor-slug.migration.js';
 
 const startServer = async () => {
   // 1. Connect to Database
@@ -10,6 +11,11 @@ const startServer = async () => {
   // 2. Automatically clean & migrate any legacy base64 data to disk files
   cleanupAllBase64FromDatabase().catch(err => {
     console.error('Failed to cleanup base64 data:', err);
+  });
+
+  // 3. Ensure all instructors have English slugs and administrators have verified status
+  ensureInstructorSlugsAndVerification().catch(err => {
+    console.error('Failed to migrate instructor slugs:', err);
   });
 
   // 3. Start Express Server

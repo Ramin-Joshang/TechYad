@@ -153,10 +153,16 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     if (res.ok) {
       const data = await res.json();
       const instructors = data?.data || [];
-      if (Array.isArray(instructors)) {
+        const knownSlugs: Record<string, string> = {
+          'محمدحسین-اسلامی-تبار': 'mohammadhossein-eslamitabar',
+          'محمدحسین اسلامی تبار': 'mohammadhossein-eslamitabar',
+          'امیر-رمضان': 'amir-ramezan',
+          'امیر رمضان': 'amir-ramezan',
+        };
         for (const inst of instructors) {
-          const idOrSlug = inst.slug || inst._id || inst.id;
-          if (!idOrSlug) continue;
+          const rawSlug = inst.slug || inst.userId?.slug || inst._id || inst.id;
+          if (!rawSlug) continue;
+          const idOrSlug = knownSlugs[rawSlug] || rawSlug;
           const url = `${baseUrl}/instructors/${encodeURIComponent(idOrSlug)}`;
           if (!seenUrls.has(url)) {
             seenUrls.add(url);
@@ -169,7 +175,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
           }
         }
       }
-    }
   } catch (err) {
     // Fail silently
   }

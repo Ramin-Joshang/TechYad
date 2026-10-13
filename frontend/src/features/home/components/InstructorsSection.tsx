@@ -49,7 +49,7 @@ export function InstructorsSection({ instructors }: Props) {
               </div>
               
               <Link 
-                href={`/instructors/${instructor.id}`}
+                href={`/instructors/${encodeURIComponent(instructor.slug || instructor.id)}`}
                 className="block w-full py-2 bg-gray-50 text-gray-700 font-medium rounded-xl group-hover:bg-blue-50 group-hover:text-blue-700 transition-colors"
               >
                 مشاهده پروفایل

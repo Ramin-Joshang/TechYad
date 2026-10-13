@@ -29,9 +29,27 @@ export const authenticate = async (req: AuthRequest, res: Response, next: NextFu
       return next(new AppError('The user belonging to this token does no longer exist.', 401, 'AUTH_USER_NOT_FOUND'));
     }
 
+    if (currentUser.status === 'blocked') {
+      return next(new AppError('حساب کاربری شما مسدود شده است.', 403, 'AUTH_ACCOUNT_BLOCKED'));
+    }
+
+    const roleSlug = (currentUser.role as any)?.slug || currentUser.role;
+    const isExempt = roleSlug === 'super-admin';
+    const isVerificationEndpoint = req.originalUrl?.includes('/api/auth/me') ||
+                                  req.originalUrl?.includes('/api/auth/logout') ||
+                                  req.originalUrl?.includes('/api/auth/send-otp') ||
+                                  req.originalUrl?.includes('/api/auth/verify-otp');
+
+    if (!isExempt && !currentUser.mobileVerified && !isVerificationEndpoint) {
+      return next(new AppError('شماره موبایل شما تایید نشده است. لطفاً ابتدا شماره همراه خود را از طریق کد پیامکی تایید نمایید.', 403, 'AUTH_PHONE_NOT_VERIFIED'));
+    }
+
     req.user = currentUser;
     next();
-  } catch (error) {
+  } catch (error: any) {
+    if (error instanceof AppError) {
+      return next(error);
+    }
     next(new AppError('Invalid token or token has expired', 401, 'AUTH_INVALID_TOKEN'));
   }
 };

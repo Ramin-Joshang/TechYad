@@ -64,15 +64,34 @@ export default function LoginPage() {
   const handlePasswordLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+
+    const cleanInput = identifier.trim();
+    if (cleanInput.includes('@')) {
+      setError('ورود با ایمیل غیرفعال است. لطفاً شماره موبایل خود را وارد نمایید.');
+      return;
+    }
+
     setLoading(true);
 
     try {
-      const response = await authApi.login({ identifier: identifier.trim(), password });
+      const response = await authApi.login({ identifier: cleanInput, password });
       if (response.success) {
         handleSuccessfulAuth(response.data.user);
       }
     } catch (err: any) {
-      setError(err.response?.data?.message || 'ایمیل/شماره موبایل یا رمز عبور اشتباه است.');
+      const errCode = err.response?.data?.error?.code || err.response?.data?.code;
+      const errMsg = err.response?.data?.message || 'شماره موبایل یا رمز عبور اشتباه است.';
+      
+      if (errCode === 'AUTH_PHONE_NOT_VERIFIED' || errMsg.includes('تایید نشده')) {
+        toast.error('شماره موبایل شما تایید نشده است. کد تایید پیامکی ارسال شد.');
+        setMobile(cleanInput);
+        setLoginMethod('otp');
+        setOtpStep('code');
+        setCountdown(180);
+        setError('شماره شما هنوز تایید نشده است. لطفاً کد تایید پیامکی ارسال‌شده را وارد نمایید.');
+      } else {
+        setError(errMsg);
+      }
     } finally {
       setLoading(false);
     }
@@ -169,21 +188,21 @@ export default function LoginPage() {
           <form onSubmit={handlePasswordLogin} className="space-y-4">
             <div>
               <label className="block text-xs sm:text-sm font-bold text-[var(--neo-text-main)] mb-1.5">
-                ایمیل یا شماره موبایل
+                شماره موبایل
               </label>
               <div className="relative">
                 <input 
-                  type="text"
+                  type="tel"
                   value={identifier}
                   onChange={e => setIdentifier(e.target.value)}
-                  className="w-full pl-11 pr-4 py-2.5 rounded-xl border border-[var(--neo-border)] bg-[var(--neo-surface)] text-[var(--neo-text-main)] focus:outline-none focus:ring-2 focus:ring-[var(--neo-primary)] focus:border-transparent transition dir-ltr text-left text-sm"
-                  placeholder="name@example.com یا ۰۹۱۲۳۴۵۶۷۸۹"
+                  className="w-full pl-11 pr-4 py-2.5 rounded-xl border border-[var(--neo-border)] bg-[var(--neo-surface)] text-[var(--neo-text-main)] focus:outline-none focus:ring-2 focus:ring-[var(--neo-primary)] focus:border-transparent transition dir-ltr text-left text-sm font-mono"
+                  placeholder="۰۹۱۲۳۴۵۶۷۸۹"
                   required 
                 />
-                <Mail className="w-4 h-4 text-[var(--neo-text-muted)] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                <Smartphone className="w-4 h-4 text-[var(--neo-text-muted)] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
               </div>
               <p className="text-[11px] text-[var(--neo-text-muted)] mt-1">
-                می‌توانید با آدرس ایمیل یا شماره همراه ثبت‌شده خود وارد شوید.
+                ورود به سامانه فقط با شماره موبایل ثبت‌شده امکان‌پذیر است.
               </p>
             </div>
 

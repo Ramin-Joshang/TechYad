@@ -4,6 +4,8 @@ export interface User {
   lastName: string;
   email: string;
   mobile: string;
+  mobileVerified?: boolean;
+  slug?: string;
   role: 'student' | 'instructor' | 'admin' | 'super-admin';
   avatar?: string;
   isActive: boolean;

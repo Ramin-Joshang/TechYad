@@ -34,10 +34,21 @@ export const loginSchema = z.object({
     email: z.string().optional(),
     mobile: z.string().optional(),
     identifier: z.string().optional(),
-    password: z.string().min(1, 'Password is required'),
-  }).refine((data) => !!(data.email || data.mobile || data.identifier), {
-    message: 'ایمیل یا شماره موبایل الزامی است',
-    path: ['identifier']
+    password: z.string().min(1, 'وارد کردن رمز عبور الزامی است'),
+  }).refine((data) => {
+    const ident = (data.identifier || data.mobile || data.email || '').trim();
+    return !ident.includes('@');
+  }, {
+    message: 'ورود به سامانه فقط با شماره موبایل امکان‌پذیر است. لطفاً شماره موبایل خود را وارد نمایید.',
+    path: ['mobile']
+  }).refine((data) => {
+    const ident = (data.identifier || data.mobile || '').trim();
+    if (!ident) return false;
+    const clean = ident.replace(/[۰-۹]/g, (d: string) => "۰۱۲۳۴۵۶۷۸۹".indexOf(d).toString()).replace(/[\s\-_]/g, '');
+    return /^(\+98|0098|98|0)?9\d{9}$/.test(clean);
+  }, {
+    message: 'شماره موبایل نامعتبر است (فرمت صحیح: ۰۹۱۲۳۴۵۶۷۸۹)',
+    path: ['mobile']
   })
 });
 

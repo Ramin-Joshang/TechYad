@@ -12,8 +12,10 @@ export async function generateMetadata({
   const identifier = resolvedParams.slug || resolvedParams.id || '';
   const instructor = await fetchInstructor(identifier);
 
+  const user = instructor?.userId || instructor;
+  const officialSlug = instructor?.slug || user?.slug || identifier;
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://tecyad.ir';
-  const pageUrl = `${baseUrl}/instructors/${encodeURIComponent(identifier)}`;
+  const pageUrl = `${baseUrl}/instructors/${encodeURIComponent(officialSlug)}`;
 
   if (!instructor) {
     return {
@@ -22,7 +24,6 @@ export async function generateMetadata({
     };
   }
 
-  const user = instructor.userId || instructor;
   const fullName = `${user.firstName || ''} ${user.lastName || ''}`.trim() || 'استاد تک‌یاد';
   const specialty = instructor.specialty || user.specialty || 'مدرس برنامه‌نویسی و فناوری اطلاعات';
   const bio = instructor.bio || user.bio || `پروفایل و دوره‌های آموزشی استاد ${fullName} در پلتفرم تک‌یاد.`;
@@ -79,10 +80,10 @@ export default async function InstructorProfilePage({
   const identifier = resolvedParams.id || resolvedParams.slug || '';
   const instructor = await fetchInstructor(identifier);
 
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://tecyad.ir';
-  const pageUrl = `${baseUrl}/instructors/${encodeURIComponent(identifier)}`;
-
   const user = instructor?.userId || instructor;
+  const officialSlug = instructor?.slug || user?.slug || identifier;
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://tecyad.ir';
+  const pageUrl = `${baseUrl}/instructors/${encodeURIComponent(officialSlug)}`;
   const fullName = user ? `${user.firstName || ''} ${user.lastName || ''}`.trim() : 'استاد تک‌یاد';
 
   const personJsonLd = instructor ? {

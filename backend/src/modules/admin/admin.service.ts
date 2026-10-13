@@ -271,15 +271,25 @@ export class AdminService {
 
     const passwordHash = await argon2.hash(password);
 
+    // English slug processing
+    let userSlug = (data.slug || '').trim().toLowerCase();
+    if (userSlug) {
+      userSlug = userSlug.replace(/[^a-z0-9-]/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '');
+    }
+    if (targetRole.slug === 'instructor' && !userSlug) {
+      userSlug = `instructor-${cleanMobile ? cleanMobile.slice(-4) : Date.now().toString().slice(-4)}`;
+    }
+
     const newUser = await User.create({
       firstName: firstName.trim(),
       lastName: lastName.trim(),
+      slug: userSlug || undefined,
       mobile: cleanMobile,
       email: cleanEmail,
       passwordHash,
       role: targetRole._id,
       status: status === 'pending' || status === 'blocked' ? status : 'active',
-      mobileVerified: !!cleanMobile,
+      mobileVerified: data.mobileVerified !== undefined ? Boolean(data.mobileVerified) : !!cleanMobile,
       emailVerified: !!cleanEmail,
     });
 
@@ -294,6 +304,7 @@ export class AdminService {
       if (!existingProfile) {
         await InstructorProfile.create({
           userId: newUser._id,
+          slug: userSlug || `instructor-${newUser._id.toString().slice(-6)}`,
           title: specialty || 'مدرس تک‌یاد',
           bio: bio || `استاد ${newUser.firstName} ${newUser.lastName}`,
           isApproved: true,
@@ -481,6 +492,20 @@ export class AdminService {
         throw new AppError('این شماره موبایل قبلاً توسط کاربر دیگری ثبت شده است', 400);
       }
       data.mobile = mobileClean;
+    }
+    if (data.mobileVerified !== undefined) {
+      data.mobileVerified = Boolean(data.mobileVerified);
+    }
+    if (data.slug) {
+      let slugClean = String(data.slug).trim().toLowerCase().replace(/[^a-z0-9-]/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '');
+      if (slugClean) {
+        const existingSlug = await User.findOne({ slug: slugClean, _id: { $ne: id } });
+        if (existingSlug) {
+          throw new AppError('این شناسه انگلیسی (اسلاگ) قبلاً توسط کاربر دیگری استفاده شده است', 400);
+        }
+        data.slug = slugClean;
+        await InstructorProfile.findOneAndUpdate({ userId: id }, { slug: slugClean });
+      }
     }
     if (data.password) {
       if (data.password.length < 6) {

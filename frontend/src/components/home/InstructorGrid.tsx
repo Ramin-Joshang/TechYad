@@ -36,7 +36,7 @@ export function InstructorGrid({ data = [], isLoading = false }: { data?: any[],
                 </div>
               ))
             : data.map((inst: any) => {
-                const instId = inst.userId?._id || inst._id;
+                const instId = inst.slug || inst.userId?.slug || inst.userId?._id || inst._id;
                 const fullName = inst.userId
                   ? `${inst.userId.firstName || ''} ${inst.userId.lastName || ''}`.trim()
                   : 'استاد تک‌یاد';

@@ -6,6 +6,9 @@ export interface User {
   firstName: string;
   lastName: string;
   email: string;
+  mobile?: string;
+  mobileVerified?: boolean;
+  slug?: string;
   role: 'super-admin' | 'admin' | 'instructor' | 'student';
   avatar?: string;
   personnelPhoto?: string;

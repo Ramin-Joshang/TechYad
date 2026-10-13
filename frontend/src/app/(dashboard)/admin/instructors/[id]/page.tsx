@@ -49,8 +49,10 @@ export default function InstructorDetailPage() {
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
+    slug: '',
     email: '',
     mobile: '',
+    mobileVerified: true,
     specialty: '',
     bio: '',
     status: 'active',
@@ -59,7 +61,7 @@ export default function InstructorDetailPage() {
     website: '',
   });
 
-  const [errors, setErrors] = useState<FormErrors>({});
+  const [errors, setErrors] = useState<FormErrors & { slug?: string }>({});
   const [touched, setTouched] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
@@ -67,8 +69,10 @@ export default function InstructorDetailPage() {
       setFormData({
         firstName: user.firstName || '',
         lastName: user.lastName || '',
+        slug: user.slug || instructorProfile?.slug || '',
         email: user.email || '',
         mobile: user.mobile || '',
+        mobileVerified: user.mobileVerified !== false,
         specialty: user.specialty || instructorProfile?.title || '',
         bio: user.bio || instructorProfile?.bio || '',
         status: user.status || 'active',
@@ -92,6 +96,10 @@ export default function InstructorDetailPage() {
       case 'email':
         if (!value.trim()) return 'ایمیل الزامی است';
         if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim())) return 'فرمت ایمیل نامعتبر است';
+        return undefined;
+      case 'slug':
+        if (!value.trim()) return 'اسلاگ انگلیسی استاد الزامی است';
+        if (!/^[a-z0-9-]+$/.test(value.trim().toLowerCase())) return 'اسلاگ باید فقط شامل حروف کوچک انگلیسی، اعداد و خط تیره (-) باشد';
         return undefined;
       case 'mobile':
         if (value.trim() && !/^09\d{9}$/.test(value.trim())) {
@@ -146,7 +154,7 @@ export default function InstructorDetailPage() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const newErrors: FormErrors = {};
+    const newErrors: FormErrors & { slug?: string } = {};
     Object.keys(formData).forEach(key => {
       const err = validateField(key, (formData as any)[key]);
       if (err) (newErrors as any)[key] = err;
@@ -154,7 +162,7 @@ export default function InstructorDetailPage() {
 
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
-      setTouched({ firstName: true, lastName: true, email: true, mobile: true, password: true });
+      setTouched({ firstName: true, lastName: true, slug: true, email: true, mobile: true, password: true });
       toast.error('لطفاً خطاهای فرم را برطرف فرمایید');
       return;
     }
@@ -162,8 +170,10 @@ export default function InstructorDetailPage() {
     const payload: any = {
       firstName: formData.firstName,
       lastName: formData.lastName,
+      slug: formData.slug.trim().toLowerCase(),
       email: formData.email,
       mobile: formData.mobile,
+      mobileVerified: formData.mobileVerified,
       status: formData.status,
       specialty: formData.specialty,
       bio: formData.bio,
@@ -521,6 +531,36 @@ export default function InstructorDetailPage() {
                 }`} 
               />
               {touched.lastName && errors.lastName && <p className="text-[10px] text-rose-500 mt-1">{errors.lastName}</p>}
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold text-[var(--neo-text-main)] mb-1.5">شناسه انگلیسی در آدرس سایت (Slug) *</label>
+              <input 
+                type="text" 
+                value={formData.slug} 
+                onChange={e => handleChange('slug', e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '-'))}
+                onBlur={() => handleBlur('slug')}
+                placeholder="مثال: dr-rezaei یا mohammadhossein-eslamitabar"
+                className={`w-full px-4 py-2.5 rounded-xl border bg-[var(--neo-surface-2)] text-xs outline-none focus:ring-2 focus:ring-[var(--neo-primary)] dir-ltr text-left font-mono ${
+                  touched.slug && errors.slug ? 'border-rose-400 bg-rose-50/20' : 'border-[var(--neo-border)]'
+                }`} 
+              />
+              <p className="text-[10px] text-[var(--neo-text-muted)] mt-1">
+                آدرس عمومی پروفایل استاد: tecyad.ir/instructors/{formData.slug || 'slug'}
+              </p>
+              {touched.slug && errors.slug && <p className="text-[10px] text-rose-500 mt-1">{errors.slug}</p>}
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold text-[var(--neo-text-main)] mb-1.5">وضعیت تایید شماره همراه</label>
+              <select
+                value={formData.mobileVerified ? 'true' : 'false'}
+                onChange={e => setFormData(prev => ({ ...prev, mobileVerified: e.target.value === 'true' }))}
+                className="w-full px-4 py-2.5 rounded-xl border border-[var(--neo-border)] bg-[var(--neo-surface-2)] text-xs outline-none focus:ring-2 focus:ring-[var(--neo-primary)]"
+              >
+                <option value="true">تایید شده (فعال و مجاز برای فعالیت)</option>
+                <option value="false">تایید نشده (در انتظار پیامک اعتبارسنجی)</option>
+              </select>
             </div>
 
             <div>

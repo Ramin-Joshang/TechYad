@@ -357,15 +357,41 @@ export default function ProfilePage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-[var(--neo-text-main)] mb-1.5">ایمیل (شناسه کاربری)</label>
+                <div className="flex items-center justify-between mb-1.5">
+                  <label className="block text-sm font-medium text-[var(--neo-text-main)]">شماره موبایل (شناسه ورود)</label>
+                  {user?.mobileVerified ? (
+                    <span className="text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200 flex items-center gap-1">
+                      <ShieldCheck className="w-3 h-3" />
+                      تایید شده
+                    </span>
+                  ) : (
+                    <span className="text-[11px] font-bold text-amber-700 bg-amber-50 px-2 py-0.5 rounded-full border border-amber-200">
+                      تایید نشده
+                    </span>
+                  )}
+                </div>
                 <input 
-                  type="email"
-                  value={user?.email || ''}
+                  type="text"
+                  value={user?.mobile || 'ثبت نشده'}
                   disabled
                   className="w-full px-4 py-2.5 rounded-xl border border-[var(--neo-border)] bg-[var(--neo-surface-2)] text-[var(--neo-text-secondary)] dir-ltr text-left cursor-not-allowed font-mono text-sm"
                 />
-                <p className="text-xs text-[var(--neo-text-secondary)] mt-1.5">ایمیل جهت ورود به سیستم استفاده می‌شود و غیرقابل تغییر است.</p>
+                <p className="text-xs text-[var(--neo-text-secondary)] mt-1.5">
+                  تغییر شماره همراه به دلایل امنیتی فقط توسط مدیر سامانه امکان‌پذیر است.
+                </p>
               </div>
+
+              {user?.email && (
+                <div>
+                  <label className="block text-sm font-medium text-[var(--neo-text-main)] mb-1.5">ایمیل کاربر</label>
+                  <input 
+                    type="email"
+                    value={user?.email || ''}
+                    disabled
+                    className="w-full px-4 py-2.5 rounded-xl border border-[var(--neo-border)] bg-[var(--neo-surface-2)] text-[var(--neo-text-secondary)] dir-ltr text-left cursor-not-allowed font-mono text-sm"
+                  />
+                </div>
+              )}
 
               <div className="pt-2 flex justify-end">
                 <button 

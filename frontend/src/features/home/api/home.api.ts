@@ -24,6 +24,7 @@ export interface Course {
 
 export interface Instructor {
   id: string;
+  slug?: string;
   name: string;
   specialty: string;
   avatar: string;

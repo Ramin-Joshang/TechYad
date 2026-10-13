@@ -103,6 +103,7 @@ export function CourseDetailsContainer({ slug, initialData }: { slug: string; in
   const isFree = course.price === 0;
   const hasDiscount = course.discountPrice && course.discountPrice < course.price;
   const instructor = course.instructors?.[0];
+  const instructorSlug = instructor?.slug || instructor?.userId?.slug || instructor?._id;
   const finalPrice = hasDiscount ? course.discountPrice : course.price;
   
   const isInCart = cartData?.items?.some((item: any) => item.itemId === course._id && item.itemType === 'course');
@@ -185,7 +186,7 @@ export function CourseDetailsContainer({ slug, initialData }: { slug: string; in
             <div className="flex flex-wrap items-center gap-6 text-gray-300">
               {instructor && (
                 <Link 
-                  href={`/instructors/${instructor._id}`}
+                  href={`/instructors/${instructorSlug}`}
                   className="flex items-center gap-3 bg-white/10 hover:bg-white/20 transition rounded-full pr-1.5 pl-4 py-1 border border-white/20 group cursor-pointer"
                   title="مشاهده رزومه و مشخصات استاد"
                 >
@@ -339,7 +340,7 @@ export function CourseDetailsContainer({ slug, initialData }: { slug: string; in
                    مدرس این دوره
                  </h2>
                  <Link 
-                   href={`/instructors/${instructor._id}`}
+                   href={`/instructors/${instructorSlug}`}
                    className="text-xs font-bold text-[var(--neo-primary)] hover:underline flex items-center gap-1 self-start sm:self-auto"
                  >
                    مشاهده صفحه کامل و رزومه استاد
@@ -348,7 +349,7 @@ export function CourseDetailsContainer({ slug, initialData }: { slug: string; in
                </div>
 
                <div className="flex flex-col sm:flex-row gap-5 items-start">
-                  <Link href={`/instructors/${instructor._id}`} className="shrink-0 group">
+                  <Link href={`/instructors/${instructorSlug}`} className="shrink-0 group">
                     <img
                       src={getImageUrl(instructor.personnelPhoto || instructor.avatar, "avatar", `${instructor.firstName || ""} ${instructor.lastName || ""}`)}
                       alt={`${instructor.firstName} ${instructor.lastName}`}
@@ -360,7 +361,7 @@ export function CourseDetailsContainer({ slug, initialData }: { slug: string; in
                  <div className="flex-1 space-y-2">
                    <div className="flex flex-wrap items-center justify-between gap-2">
                      <div>
-                       <Link href={`/instructors/${instructor._id}`}>
+                       <Link href={`/instructors/${instructorSlug}`}>
                          <h3 className="text-lg font-bold text-[var(--neo-text-main)] hover:text-[var(--neo-primary)] transition">
                            {instructor.firstName} {instructor.lastName}
                          </h3>
@@ -381,7 +382,7 @@ export function CourseDetailsContainer({ slug, initialData }: { slug: string; in
 
                    <div className="pt-2">
                      <Link 
-                       href={`/instructors/${instructor._id}`}
+                       href={`/instructors/${instructorSlug}`}
                        className="inline-flex items-center gap-2 text-xs sm:text-sm font-bold text-[var(--neo-primary)] hover:text-blue-800 transition bg-blue-50/80 hover:bg-blue-100 px-4 py-2 rounded-xl"
                      >
                        مشاهده رزومه کاری، سوابق تحصیلی و سایر دوره‌های استاد
@@ -447,7 +448,7 @@ export function CourseDetailsContainer({ slug, initialData }: { slug: string; in
                 </div>
               </div>
               <Link 
-                href={`/instructors/${instructor._id}`}
+                href={`/instructors/${instructorSlug}`}
                 className="w-full flex items-center justify-center gap-1.5 py-2.5 px-4 bg-white border border-[var(--neo-border)] rounded-xl text-xs font-bold text-[var(--neo-text-main)] hover:bg-blue-50 hover:text-blue-700 hover:border-blue-200 transition shadow-2xs"
               >
                 <span>مشاهده رزومه استاد</span>

@@ -402,7 +402,7 @@ export function ClassDetailsContainer({ slug, initialData }: { slug: string; ini
               <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent flex items-end p-5">
                 {instructor && (
                   <Link 
-                    href={`/instructors/${instructor._id}`}
+                    href={`/instructors/${instructor.slug || instructor._id}`}
                     className="flex items-center gap-3 bg-black/50 hover:bg-black/75 backdrop-blur-xs px-3 py-1.5 rounded-2xl border border-white/20 transition group"
                     title="مشاهده رزومه استاد"
                   >
@@ -715,7 +715,7 @@ export function ClassDetailsContainer({ slug, initialData }: { slug: string; ini
                   </h2>
                   {instructor && (
                     <Link 
-                      href={`/instructors/${instructor._id}`}
+                      href={`/instructors/${instructor.slug || instructor._id}`}
                       className="text-xs font-bold text-blue-600 hover:underline flex items-center gap-1 self-start sm:self-auto"
                     >
                       مشاهده صفحه و رزومه استاد
@@ -725,9 +725,11 @@ export function ClassDetailsContainer({ slug, initialData }: { slug: string; ini
                 </div>
 
                 <div className="space-y-6">
-                  {uniqueInstructors.map((inst: any) => (
+                  {uniqueInstructors.map((inst: any) => {
+                    const instSlug = inst.slug || inst._id || inst;
+                    return (
                     <div key={inst._id || inst} className="flex flex-col sm:flex-row gap-5 items-start">
-                      <Link href={`/instructors/${inst._id || inst}`} className="shrink-0 group">
+                      <Link href={`/instructors/${instSlug}`} className="shrink-0 group">
                         <img 
                           src={getImageUrl(inst.personnelPhoto || inst.avatar, 'avatar', `${inst.firstName || ''} ${inst.lastName || ''}`)} 
                           className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl object-cover border border-slate-200 shadow-xs group-hover:scale-105 transition duration-300 bg-slate-100" 
@@ -738,7 +740,7 @@ export function ClassDetailsContainer({ slug, initialData }: { slug: string; ini
                       <div className="space-y-2 flex-1">
                         <div className="flex flex-wrap items-center justify-between gap-2">
                           <div>
-                            <Link href={`/instructors/${inst._id || inst}`}>
+                            <Link href={`/instructors/${instSlug}`}>
                               <h3 className="text-lg font-bold text-slate-900 hover:text-blue-600 transition">
                                 {inst.firstName} {inst.lastName}
                               </h3>
@@ -758,7 +760,7 @@ export function ClassDetailsContainer({ slug, initialData }: { slug: string; ini
 
                         <div className="pt-2">
                           <Link 
-                            href={`/instructors/${inst._id || inst}`}
+                            href={`/instructors/${instSlug}`}
                             className="inline-flex items-center gap-2 text-xs sm:text-sm font-bold text-blue-600 hover:text-blue-800 transition bg-blue-50/80 hover:bg-blue-100 px-4 py-2 rounded-xl"
                           >
                             مشاهده رزومه کاری، سوابق تحصیلی و سایر کلاس‌های استاد
@@ -767,7 +769,8 @@ export function ClassDetailsContainer({ slug, initialData }: { slug: string; ini
                         </div>
                       </div>
                     </div>
-                  ))}
+                  );
+                })}
                 </div>
               </section>
             ) : null}

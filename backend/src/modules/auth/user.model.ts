@@ -10,6 +10,7 @@ export interface IUser extends Document {
 
   firstName: string;
   lastName: string;
+  slug?: string;
 
   email?: string;
   mobile?: string;
@@ -60,6 +61,15 @@ const userSchema = new Schema<IUser>(
       required: true,
       trim: true,
       maxlength: 100,
+    },
+
+    slug: {
+      type: String,
+      unique: true,
+      sparse: true,
+      lowercase: true,
+      trim: true,
+      index: true,
     },
 
     email: {

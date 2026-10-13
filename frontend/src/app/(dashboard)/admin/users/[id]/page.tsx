@@ -64,8 +64,10 @@ export default function UserDetailPage() {
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
+    slug: '',
     email: '',
     mobile: '',
+    mobileVerified: true,
     password: '',
     status: 'active',
     role: '',
@@ -73,7 +75,7 @@ export default function UserDetailPage() {
     bio: '',
   });
 
-  const [errors, setErrors] = useState<FormErrors>({});
+  const [errors, setErrors] = useState<FormErrors & { slug?: string }>({});
   const [touched, setTouched] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
@@ -81,8 +83,10 @@ export default function UserDetailPage() {
       setFormData({
         firstName: user.firstName || '',
         lastName: user.lastName || '',
+        slug: user.slug || instructorProfile?.slug || '',
         email: user.email || '',
         mobile: user.mobile || '',
+        mobileVerified: user.mobileVerified !== false,
         password: '',
         status: user.status || 'active',
         role: user.role?._id || user.role || '',
@@ -193,8 +197,10 @@ export default function UserDetailPage() {
     const payload: any = {
       firstName: formData.firstName,
       lastName: formData.lastName,
+      slug: formData.slug ? formData.slug.trim().toLowerCase() : undefined,
       email: formData.email,
       mobile: formData.mobile,
+      mobileVerified: formData.mobileVerified,
       status: formData.status,
       role: formData.role,
       specialty: formData.specialty,
@@ -815,6 +821,34 @@ export default function UserDetailPage() {
                 {rolesData?.map((r: any) => (
                   <option key={r._id || r.slug} value={r._id || r.slug}>{r.name || r.slug}</option>
                 ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold text-[var(--neo-text-main)] mb-1.5">
+                شناسه انگلیسی کاربر و استاد (Slug)
+              </label>
+              <input 
+                type="text" 
+                value={formData.slug} 
+                onChange={e => handleChange('slug', e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '-'))}
+                placeholder="مثال: amir-ramezan یا dr-rezaei"
+                className="w-full px-4 py-2.5 rounded-xl border border-[var(--neo-border)] bg-[var(--neo-surface-2)] text-xs outline-none focus:ring-2 focus:ring-[var(--neo-primary)] dir-ltr text-left font-mono" 
+              />
+              <p className="text-[10px] text-[var(--neo-text-muted)] mt-1">
+                برای اساتید در آدرس عمومی (tecyad.ir/instructors/slug) استفاده می‌شود.
+              </p>
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold text-[var(--neo-text-main)] mb-1.5">وضعیت تایید شماره همراه</label>
+              <select
+                value={formData.mobileVerified ? 'true' : 'false'}
+                onChange={e => setFormData(prev => ({ ...prev, mobileVerified: e.target.value === 'true' }))}
+                className="w-full px-4 py-2.5 rounded-xl border border-[var(--neo-border)] bg-[var(--neo-surface-2)] text-xs outline-none focus:ring-2 focus:ring-[var(--neo-primary)]"
+              >
+                <option value="true">تایید شده (فعال و مجاز برای فعالیت)</option>
+                <option value="false">تایید نشده (در انتظار پیامک اعتبارسنجی)</option>
               </select>
             </div>
           </div>

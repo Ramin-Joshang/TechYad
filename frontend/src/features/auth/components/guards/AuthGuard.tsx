@@ -3,9 +3,10 @@
 import { useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { useAuthStore } from '../../stores/auth.store';
+import { PhoneVerificationGate } from '../PhoneVerificationGate';
 
 export function AuthGuard({ children }: { children: React.ReactNode }) {
-  const { isAuthenticated, isInitializing } = useAuthStore();
+  const { user, isAuthenticated, isInitializing } = useAuthStore();
   const router = useRouter();
   const pathname = usePathname();
 
@@ -21,6 +22,18 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
 
   if (!isAuthenticated) {
     return null;
+  }
+
+  // If user phone number is unverified, enforce verification modal
+  if (user && user.mobileVerified === false && user.role !== 'super-admin') {
+    return (
+      <>
+        <PhoneVerificationGate />
+        <div className="opacity-30 pointer-events-none filter blur-sm">
+          {children}
+        </div>
+      </>
+    );
   }
 
   return <>{children}</>;
