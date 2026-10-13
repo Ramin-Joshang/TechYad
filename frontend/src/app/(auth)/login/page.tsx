@@ -43,6 +43,18 @@ export default function LoginPage() {
     return () => clearInterval(timer);
   }, [countdown]);
 
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const reason = params.get('reason');
+      if (reason === 'inactivity') {
+        setError('نشست کاری شما به دلیل عدم فعالیت جهت حفظ امنیت سامانه منقضی شد. لطفاً دوباره وارد شوید.');
+      } else if (reason === 'revoked') {
+        setError('نشست کاری شما باطل شده است. لطفاً مجدداً وارد حساب کاربری خود شوید.');
+      }
+    }
+  }, []);
+
   const handleSuccessfulAuth = (user: any) => {
     setAuth(user);
     toast.success(`خوش آمدید، ${user.firstName || 'کاربر گرامی'}`);
@@ -76,11 +88,20 @@ export default function LoginPage() {
     try {
       const response = await authApi.login({ identifier: cleanInput, password });
       if (response.success) {
+        if (!response.data.user.mobileVerified) {
+          toast.error('شماره موبایل شما تایید نشده است. کد تایید پیامکی ارسال شد.');
+          setMobile(cleanInput);
+          setLoginMethod('otp');
+          setOtpStep('code');
+          setCountdown(180);
+          setError('شماره موبایل شما تایید نشده است. لطفاً کد تایید پیامک‌شده را وارد نمایید.');
+          return;
+        }
         handleSuccessfulAuth(response.data.user);
       }
     } catch (err: any) {
       const errCode = err.response?.data?.error?.code || err.response?.data?.code;
-      const errMsg = err.response?.data?.message || 'شماره موبایل یا رمز عبور اشتباه است.';
+      const errMsg = err.response?.data?.error?.message || err.response?.data?.message || 'شماره موبایل یا رمز عبور اشتباه است.';
       
       if (errCode === 'AUTH_PHONE_NOT_VERIFIED' || errMsg.includes('تایید نشده')) {
         toast.error('شماره موبایل شما تایید نشده است. کد تایید پیامکی ارسال شد.');
@@ -88,7 +109,7 @@ export default function LoginPage() {
         setLoginMethod('otp');
         setOtpStep('code');
         setCountdown(180);
-        setError('شماره شما هنوز تایید نشده است. لطفاً کد تایید پیامکی ارسال‌شده را وارد نمایید.');
+        setError('شماره شما هنوز تایید نشده است. کد تایید پیامکی ارسال شد؛ لطفاً آن را وارد نمایید.');
       } else {
         setError(errMsg);
       }

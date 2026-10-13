@@ -12,15 +12,64 @@ import { InstructorProfile } from '../instructors/instructor-profile.model.js';
 import { Otp } from './otp.model.js';
 import { SmsService } from '../../common/services/sms.service.js';
 
-const signToken = (id: string) => {
-  return jwt.sign({ id }, env.JWT_SECRET, {
-    expiresIn: '15m',
+export const ROLE_SESSION_CONFIG: Record<string, {
+  accessTokenExpiresIn: string;
+  accessTokenMaxAgeMs: number;
+  refreshTokenExpiresIn: string;
+  refreshTokenMaxAgeMs: number;
+  inactivityTimeoutMs: number;
+  title: string;
+}> = {
+  'student': {
+    accessTokenExpiresIn: '15m',
+    accessTokenMaxAgeMs: 15 * 60 * 1000,
+    refreshTokenExpiresIn: '30d',
+    refreshTokenMaxAgeMs: 30 * 24 * 60 * 60 * 1000,
+    inactivityTimeoutMs: 30 * 24 * 60 * 60 * 1000, // 30 days
+    title: 'دانشجو',
+  },
+  'instructor': {
+    accessTokenExpiresIn: '15m',
+    accessTokenMaxAgeMs: 15 * 60 * 1000,
+    refreshTokenExpiresIn: '30d',
+    refreshTokenMaxAgeMs: 30 * 24 * 60 * 60 * 1000,
+    inactivityTimeoutMs: 30 * 24 * 60 * 60 * 1000, // 30 days
+    title: 'استاد',
+  },
+  'admin': {
+    accessTokenExpiresIn: '15m',
+    accessTokenMaxAgeMs: 15 * 60 * 1000,
+    refreshTokenExpiresIn: '8h',
+    refreshTokenMaxAgeMs: 8 * 60 * 60 * 1000, // 8 hours max session
+    inactivityTimeoutMs: 30 * 60 * 1000, // 30 minutes inactivity timeout
+    title: 'ادمین',
+  },
+  'super-admin': {
+    accessTokenExpiresIn: '15m',
+    accessTokenMaxAgeMs: 15 * 60 * 1000,
+    refreshTokenExpiresIn: '4h',
+    refreshTokenMaxAgeMs: 4 * 60 * 60 * 1000, // 4 hours max session
+    inactivityTimeoutMs: 15 * 60 * 1000, // 15 minutes inactivity timeout
+    title: 'سوپرادمین',
+  },
+};
+
+export const getSessionConfigForRole = (roleSlug?: string) => {
+  const slug = roleSlug || 'student';
+  return ROLE_SESSION_CONFIG[slug] || ROLE_SESSION_CONFIG['student'];
+};
+
+export const signToken = (id: string, roleSlug?: string, tokenVersion = 0) => {
+  const config = getSessionConfigForRole(roleSlug);
+  return jwt.sign({ id, role: roleSlug || 'student', tokenVersion }, env.JWT_SECRET, {
+    expiresIn: config.accessTokenExpiresIn as any,
   });
 };
 
-const signRefreshToken = (id: string) => {
-  return jwt.sign({ id }, env.JWT_REFRESH_SECRET, {
-    expiresIn: '30d',
+export const signRefreshToken = (id: string, roleSlug?: string, tokenVersion = 0) => {
+  const config = getSessionConfigForRole(roleSlug);
+  return jwt.sign({ id, role: roleSlug || 'student', tokenVersion, type: 'refresh' }, env.JWT_REFRESH_SECRET, {
+    expiresIn: config.refreshTokenExpiresIn as any,
   });
 };
 
@@ -114,9 +163,6 @@ export class AuthService {
       }
     }
 
-    const accessToken = signToken(newUser._id.toString());
-    const refreshToken = signRefreshToken(newUser._id.toString());
-
     // Audit Log for user registration
     AuditService.log({
       userId: newUser._id,
@@ -139,6 +185,8 @@ export class AuthService {
         firstName: newUser.firstName,
         lastName: newUser.lastName,
         email: newUser.email,
+        mobile: newUser.mobile,
+        mobileVerified: false,
         avatar: newUser.avatar,
         personnelPhoto: (newUser as any).personnelPhoto,
         bio: newUser.bio,
@@ -148,8 +196,8 @@ export class AuthService {
         referralCode: userReferralCode,
         walletBalance: newUser.walletBalance || 0
       },
-      accessToken,
-      refreshToken
+      requireVerification: true,
+      message: 'ثبت‌نام شما انجام شد. کد تایید پیامکی ارسال شد؛ لطفاً شماره همراه خود را تایید نمایید.'
     };
   }
 
@@ -241,11 +289,8 @@ export class AuthService {
       throw new AppError('حساب کاربری شما مسدود شده است', 403, 'AUTH_ACCOUNT_BLOCKED');
     }
 
-    const roleSlug = (user.role as any)?.slug || user.role;
-    const isExempt = roleSlug === 'super-admin';
-
     // Verification check: unverified mobile numbers cannot use account
-    if (!isExempt && !user.mobileVerified) {
+    if (!user.mobileVerified) {
       // Trigger OTP automatically so user can quickly verify
       try {
         await AuthService.sendOtp(cleanMobile, 'auth');
@@ -253,10 +298,15 @@ export class AuthService {
       throw new AppError('شماره موبایل شما تایید نشده است. کد تایید پیامکی ارسال شد؛ لطفاً شماره خود را تایید نمایید.', 403, 'AUTH_PHONE_NOT_VERIFIED');
     }
 
-    const accessToken = signToken(user._id.toString());
-    const refreshToken = signRefreshToken(user._id.toString());
-
     const role = user.role as any;
+    const roleSlug = role?.slug || 'student';
+    const tokenVersion = user.tokenVersion || 0;
+
+    user.lastActiveAt = new Date();
+    await user.save();
+
+    const accessToken = signToken(user._id.toString(), roleSlug, tokenVersion);
+    const refreshToken = signRefreshToken(user._id.toString(), roleSlug, tokenVersion);
 
     // Log successful authentication event
     try {
@@ -264,9 +314,9 @@ export class AuthService {
         userId: user._id,
         userEmail: user.email,
         userName: `${user.firstName || ''} ${user.lastName || ''}`.trim(),
-        userRole: role?.slug || user.role,
+        userRole: roleSlug,
         action: 'ورود موفق به سیستم',
-        title: `${role?.slug === 'instructor' ? 'استاد' : (role?.slug === 'student' ? 'دانشجو' : 'کاربر')} وارد سامانه شد`,
+        title: `${roleSlug === 'instructor' ? 'استاد' : (roleSlug === 'student' ? 'دانشجو' : (roleSlug === 'super-admin' ? 'سوپرادمین' : 'ادمین'))} وارد سامانه شد`,
         category: 'auth',
         status: 'success',
         ip: clientInfo.ip || '127.0.0.1',
@@ -285,20 +335,23 @@ export class AuthService {
         firstName: user.firstName,
         lastName: user.lastName,
         email: user.email,
+        mobile: user.mobile,
+        mobileVerified: Boolean(user.mobileVerified),
         avatar: user.avatar,
         personnelPhoto: user.personnelPhoto,
         bio: user.bio,
         specialty: user.specialty,
-        role: role?.slug,
+        role: roleSlug,
         permissions: role?.permissions || [],
-        canTeach: role?.slug === 'instructor' || role?.slug === 'super-admin' || !!user.canTeach,
+        canTeach: roleSlug === 'instructor' || roleSlug === 'super-admin' || !!user.canTeach,
         hasExplicitTeachingGrant: !!user.canTeach,
         instructorCapabilityGrantedAt: user.instructorCapabilityGrantedAt,
         referralCode: user.referralCode,
         walletBalance: user.walletBalance || 0
       },
       accessToken,
-      refreshToken
+      refreshToken,
+      roleSlug
     };
   }
 
@@ -430,16 +483,35 @@ export class AuthService {
     }
 
     try {
-      const decoded = jwt.verify(refreshToken, env.JWT_REFRESH_SECRET) as { id: string };
+      const decoded = jwt.verify(refreshToken, env.JWT_REFRESH_SECRET) as { id: string; tokenVersion?: number; role?: string };
       const user = await User.findById(decoded.id).populate('role');
       
       if (!user || user.status !== 'active') {
         throw new AppError('User no longer exists or is inactive', 401, 'AUTH_USER_NOT_FOUND');
       }
 
-      const newAccessToken = signToken(user._id.toString());
-      const newRefreshToken = signRefreshToken(user._id.toString());
+      // 1. Server-side session invalidation check: verify tokenVersion matches
+      if (typeof decoded.tokenVersion === 'number' && decoded.tokenVersion !== (user.tokenVersion || 0)) {
+        throw new AppError('نشست شما باطل شده است. لطفاً دوباره وارد شوید.', 401, 'AUTH_SESSION_REVOKED');
+      }
+
       const role = user.role as any;
+      const roleSlug = role?.slug || 'student';
+      const sessionConfig = getSessionConfigForRole(roleSlug);
+
+      // 2. Inactivity timeout check (e.g. 15m for super-admin, 30m for admin)
+      const lastActive = user.lastActiveAt ? new Date(user.lastActiveAt).getTime() : Date.now();
+      const inactiveDuration = Date.now() - lastActive;
+      if (inactiveDuration > sessionConfig.inactivityTimeoutMs) {
+        throw new AppError('نشست شما به دلیل عدم فعالیت منقضی شد. لطفاً مجدداً وارد شوید.', 401, 'AUTH_SESSION_INACTIVE_TIMEOUT');
+      }
+
+      user.lastActiveAt = new Date();
+      await user.save();
+
+      // 3. Re-issue and rotate tokens with role-specific expiration
+      const newAccessToken = signToken(user._id.toString(), roleSlug, user.tokenVersion || 0);
+      const newRefreshToken = signRefreshToken(user._id.toString(), roleSlug, user.tokenVersion || 0);
 
       return {
         user: {
@@ -447,20 +519,34 @@ export class AuthService {
           firstName: user.firstName,
           lastName: user.lastName,
           email: user.email,
+          mobile: user.mobile,
+          mobileVerified: Boolean(user.mobileVerified),
           avatar: user.avatar,
           personnelPhoto: user.personnelPhoto,
           bio: user.bio,
           specialty: user.specialty,
-          role: role?.slug,
+          role: roleSlug,
           permissions: role?.permissions || [],
           referralCode: user.referralCode,
           walletBalance: user.walletBalance || 0
         },
         accessToken: newAccessToken,
-        refreshToken: newRefreshToken
+        refreshToken: newRefreshToken,
+        roleSlug
       };
-    } catch (error) {
+    } catch (error: any) {
+      if (error instanceof AppError) throw error;
       throw new AppError('Invalid or expired refresh token', 401, 'AUTH_INVALID_REFRESH_TOKEN');
+    }
+  }
+
+  static async logout(userId?: string) {
+    if (userId) {
+      try {
+        await User.findByIdAndUpdate(userId, { $inc: { tokenVersion: 1 } });
+      } catch (e) {
+        console.error('Failed to increment tokenVersion on logout:', e);
+      }
     }
   }
 
@@ -498,9 +584,8 @@ export class AuthService {
     const code = String(inputCode).trim();
 
     const otpRecord = await Otp.findOne({ mobile, purpose, code });
-    const isMockBypass = code === '12345';
 
-    if (!otpRecord && !isMockBypass) {
+    if (!otpRecord) {
       throw new AppError('کد تایید اشتباه یا منقضی شده است', 400, 'INVALID_OTP');
     }
 
@@ -540,9 +625,12 @@ export class AuthService {
       await user.save();
     }
 
-    const accessToken = signToken(user._id.toString());
-    const refreshToken = signRefreshToken(user._id.toString());
     const role = (user.role as any)?.slug || 'student';
+    user.lastActiveAt = new Date();
+    await user.save();
+
+    const accessToken = signToken(user._id.toString(), role, user.tokenVersion || 0);
+    const refreshToken = signRefreshToken(user._id.toString(), role, user.tokenVersion || 0);
 
     return {
       user: {
@@ -559,7 +647,8 @@ export class AuthService {
         walletBalance: user.walletBalance || 0
       },
       accessToken,
-      refreshToken
+      refreshToken,
+      roleSlug: role
     };
   }
 }

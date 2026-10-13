@@ -38,6 +38,8 @@ export interface IUser extends Document {
   instructorCapabilityGrantedBy?: Types.ObjectId;
   instructorCapabilityGrantedAt?: Date;
   instructorCapabilityRevokedAt?: Date;
+  tokenVersion?: number;
+  lastActiveAt?: Date;
 }
 
 const userSchema = new Schema<IUser>(
@@ -178,8 +180,15 @@ const userSchema = new Schema<IUser>(
       type: Date,
     },
 
-    instructorCapabilityRevokedAt: {
+    // Session & Inactivity Management
+    tokenVersion: {
+      type: Number,
+      default: 0,
+    },
+
+    lastActiveAt: {
       type: Date,
+      default: Date.now,
     },
   },
   {

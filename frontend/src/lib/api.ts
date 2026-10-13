@@ -130,7 +130,7 @@ api.interceptors.response.use(
           isRefreshing = false;
         }
 
-      } else if (!hideToast && status !== 401) {
+      } else if (!hideToast && status !== 401 && !isAuthAction) {
 
         switch (status) {
           case 403:

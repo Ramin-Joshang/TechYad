@@ -5,6 +5,7 @@ import { api } from '@/lib/api';
 import { Hero } from './Hero';
 import { Intro } from './Intro';
 import { Categories } from './Categories';
+import { SnappPayBanner } from './SnappPayBanner';
 import { CourseList } from './CourseList';
 import { InstructorGrid } from './InstructorGrid';
 import { Advantages } from './Advantages';
@@ -68,7 +69,10 @@ export function HomeDataView({ initialData }: { initialData?: any }) {
         isLoading={isLoading} 
       />
 
-      {/* 5. Hierarchical Categories Section */}
+      {/* 5. SnappPay 4-Installment Promotion Banner */}
+      <SnappPayBanner />
+
+      {/* 6. Hierarchical Categories Section ("گسترش مرزهای دانش") */}
       <Categories data={d.categories} isLoading={isLoading} />
 
       {/* 6. Top Instructors */}

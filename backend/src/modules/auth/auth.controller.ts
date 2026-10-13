@@ -1,23 +1,24 @@
 import { Request, Response } from 'express';
-import { AuthService } from './auth.service.js';
+import { AuthService, ROLE_SESSION_CONFIG } from './auth.service.js';
 import { sendSuccess } from '../../common/utils/response.js';
 import { AuthRequest } from '../../common/middleware/auth.js';
 
-const setAuthCookies = (res: Response, accessToken: string, refreshToken: string) => {
+const setAuthCookies = (res: Response, accessToken: string, refreshToken: string, roleSlug = 'student') => {
   const isProduction = process.env.NODE_ENV === 'production';
   const sameSiteMode: 'none' | 'lax' = isProduction ? 'none' : 'lax';
+  const sessionConfig = ROLE_SESSION_CONFIG[roleSlug] || ROLE_SESSION_CONFIG['student'];
   
   res.cookie('accessToken', accessToken, {
     httpOnly: true,
     secure: isProduction,
     sameSite: sameSiteMode,
-    maxAge: 15 * 60 * 1000, // 15 mins
+    maxAge: sessionConfig.accessTokenMaxAgeMs,
   });
   res.cookie('refreshToken', refreshToken, {
     httpOnly: true,
     secure: isProduction,
     sameSite: sameSiteMode,
-    maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
+    maxAge: sessionConfig.refreshTokenMaxAgeMs,
   });
 };
 
@@ -27,8 +28,15 @@ export const register = async (req: Request, res: Response) => {
     userAgent: req.headers['user-agent'] || 'Unknown'
   };
   const result = await AuthService.register(req.body, clientInfo);
-  setAuthCookies(res, result.accessToken, result.refreshToken);
-  sendSuccess(res, { user: result.user }, 'User registered successfully', 201);
+  // Do NOT set auth cookies if verification is required
+  if (!(result as any).requireVerification && (result as any).accessToken && (result as any).refreshToken) {
+    setAuthCookies(res, (result as any).accessToken, (result as any).refreshToken, result.user.role);
+  }
+  sendSuccess(res, { 
+    user: result.user,
+    requireVerification: (result as any).requireVerification,
+    message: (result as any).message
+  }, (result as any).message || 'User registered successfully', 201);
 };
 
 export const login = async (req: Request, res: Response) => {
@@ -37,7 +45,7 @@ export const login = async (req: Request, res: Response) => {
     userAgent: req.headers['user-agent'] || 'Unknown'
   };
   const result = await AuthService.login(req.body, clientInfo);
-  setAuthCookies(res, result.accessToken, result.refreshToken);
+  setAuthCookies(res, result.accessToken, result.refreshToken, (result as any).roleSlug);
   sendSuccess(res, { user: result.user }, 'Login successful');
 };
 
@@ -45,6 +53,12 @@ export const logout = async (req: Request, res: Response) => {
   const isProduction = process.env.NODE_ENV === 'production';
   const sameSiteMode: 'none' | 'lax' = isProduction ? 'none' : 'lax';
   
+  // Invalidate server-side session token version if user is present
+  const authReq = req as AuthRequest;
+  if (authReq.user?._id) {
+    await AuthService.logout(authReq.user._id.toString());
+  }
+
   const cookieOptions = {
     httpOnly: true,
     secure: isProduction,
@@ -114,7 +128,7 @@ export const changePassword = async (req: AuthRequest, res: Response) => {
 export const refreshToken = async (req: Request, res: Response) => {
   const token = req.cookies?.refreshToken;
   const result = await AuthService.refreshToken(token);
-  setAuthCookies(res, result.accessToken, result.refreshToken);
+  setAuthCookies(res, result.accessToken, result.refreshToken, (result as any).roleSlug);
   sendSuccess(res, { user: result.user }, 'Token refreshed successfully');
 };
 
@@ -125,6 +139,6 @@ export const sendOtp = async (req: Request, res: Response) => {
 
 export const verifyOtp = async (req: Request, res: Response) => {
   const result = await AuthService.verifyOtp(req.body.mobile, req.body.code, req.body.purpose || 'auth');
-  setAuthCookies(res, result.accessToken, result.refreshToken);
+  setAuthCookies(res, result.accessToken, result.refreshToken, (result as any).roleSlug);
   sendSuccess(res, result, 'ورود با موفقیت انجام شد');
 };

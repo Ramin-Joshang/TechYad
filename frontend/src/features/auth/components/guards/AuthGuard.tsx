@@ -25,7 +25,7 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
   }
 
   // If user phone number is unverified, enforce verification modal
-  if (user && user.mobileVerified === false && user.role !== 'super-admin') {
+  if (user && !user.mobileVerified) {
     return (
       <>
         <PhoneVerificationGate />

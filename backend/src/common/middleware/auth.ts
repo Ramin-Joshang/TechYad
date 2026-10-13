@@ -22,7 +22,7 @@ export const authenticate = async (req: AuthRequest, res: Response, next: NextFu
       return next(new AppError('You are not logged in! Please log in to get access.', 401, 'AUTH_UNAUTHORIZED'));
     }
 
-    const decoded = jwt.verify(token, env.JWT_SECRET) as { id: string };
+    const decoded = jwt.verify(token, env.JWT_SECRET) as { id: string; tokenVersion?: number; role?: string };
     const currentUser = await User.findById(decoded.id).populate<{ role: IRole }>('role');
 
     if (!currentUser) {
@@ -33,14 +33,38 @@ export const authenticate = async (req: AuthRequest, res: Response, next: NextFu
       return next(new AppError('حساب کاربری شما مسدود شده است.', 403, 'AUTH_ACCOUNT_BLOCKED'));
     }
 
-    const roleSlug = (currentUser.role as any)?.slug || currentUser.role;
-    const isExempt = roleSlug === 'super-admin';
-    const isVerificationEndpoint = req.originalUrl?.includes('/api/auth/me') ||
-                                  req.originalUrl?.includes('/api/auth/logout') ||
-                                  req.originalUrl?.includes('/api/auth/send-otp') ||
-                                  req.originalUrl?.includes('/api/auth/verify-otp');
+    // 1. Token revocation check: if tokenVersion was bumped, token is revoked
+    if (typeof decoded.tokenVersion === 'number' && decoded.tokenVersion !== (currentUser.tokenVersion || 0)) {
+      return next(new AppError('نشست شما منقضی یا باطل شده است. لطفاً مجدداً وارد شوید.', 401, 'AUTH_SESSION_REVOKED'));
+    }
 
-    if (!isExempt && !currentUser.mobileVerified && !isVerificationEndpoint) {
+    const roleSlug = currentUser.role?.slug || 'student';
+
+    // 2. Role-based inactivity timeout enforcement
+    const isVerificationOrAuthEndpoint = req.originalUrl?.includes('/api/auth/me') ||
+                                         req.originalUrl?.includes('/api/auth/logout') ||
+                                         req.originalUrl?.includes('/api/auth/send-otp') ||
+                                         req.originalUrl?.includes('/api/auth/verify-otp') ||
+                                         req.originalUrl?.includes('/api/auth/refresh-token');
+
+    const lastActive = currentUser.lastActiveAt ? new Date(currentUser.lastActiveAt).getTime() : Date.now();
+    const inactiveMs = Date.now() - lastActive;
+
+    if (roleSlug === 'super-admin' && inactiveMs > 15 * 60 * 1000 && !isVerificationOrAuthEndpoint) {
+      return next(new AppError('نشست شما به دلیل عدم فعالیت بیش از ۱۵ دقیقه منقضی شد. لطفاً دوباره وارد شوید.', 401, 'AUTH_SESSION_INACTIVE_TIMEOUT'));
+    }
+
+    if (roleSlug === 'admin' && inactiveMs > 30 * 60 * 1000 && !isVerificationOrAuthEndpoint) {
+      return next(new AppError('نشست شما به دلیل عدم فعالیت بیش از ۳۰ دقیقه منقضی شد. لطفاً دوباره وارد شوید.', 401, 'AUTH_SESSION_INACTIVE_TIMEOUT'));
+    }
+
+    // Update lastActiveAt throttled (every 30 seconds)
+    if (inactiveMs > 30000) {
+      User.updateOne({ _id: currentUser._id }, { $set: { lastActiveAt: new Date() } }).exec().catch(() => {});
+    }
+
+    // 3. Mobile phone verification check
+    if (!currentUser.mobileVerified && !isVerificationOrAuthEndpoint) {
       return next(new AppError('شماره موبایل شما تایید نشده است. لطفاً ابتدا شماره همراه خود را از طریق کد پیامکی تایید نمایید.', 403, 'AUTH_PHONE_NOT_VERIFIED'));
     }
 

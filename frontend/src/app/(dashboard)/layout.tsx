@@ -3,6 +3,7 @@
 import { NotificationDropdown } from "./components/NotificationDropdown";
 import { useAuthStore } from "@/features/auth/stores/auth.store";
 import { AuthGuard } from "@/features/auth/components/guards/AuthGuard";
+import { InactivityTracker } from "@/features/auth/components/InactivityTracker";
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
 import { authApi } from "@/features/auth/api/auth.api";
@@ -806,6 +807,7 @@ export default function DashboardLayout({
           </header>
 
           <div className="flex-1 overflow-y-auto bg-[var(--neo-bg)] p-3 sm:p-5 md:p-8 pb-24 lg:pb-8">
+            <InactivityTracker />
             <div className="max-w-7xl mx-auto">{children}</div>
           </div>
 

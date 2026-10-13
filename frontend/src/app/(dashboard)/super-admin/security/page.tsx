@@ -190,6 +190,52 @@ export default function SecurityPage() {
               />
               <span className="text-[11px] text-gray-400">پس از عدم فعالیت کاربر، خروج خودکار صورت می‌گیرد.</span>
             </div>
+
+            {/* Role Session Policy Table based on OWASP Standards */}
+            <div className="mt-4 pt-4 border-t border-gray-100">
+              <div className="text-xs font-bold text-gray-800 mb-2 flex items-center justify-between">
+                <span>پیکربندی هوشمند نشست‌ها بر اساس سطح دسترسی (OWASP)</span>
+                <span className="text-[10px] text-emerald-600 font-bold bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">فعال</span>
+              </div>
+              <div className="overflow-x-auto">
+                <table className="w-full text-[11px] text-right border-collapse">
+                  <thead>
+                    <tr className="bg-gray-100 text-gray-600 font-bold">
+                      <th className="p-2 rounded-r-lg">نقش</th>
+                      <th className="p-2">ماندگاری ورود</th>
+                      <th className="p-2">خروج در صورت عدم فعالیت</th>
+                      <th className="p-2 rounded-l-lg">Access / Refresh</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-100 text-gray-700 font-medium">
+                    <tr className="hover:bg-gray-50">
+                      <td className="p-2 font-bold text-slate-800">دانشجو</td>
+                      <td className="p-2 text-indigo-600 font-bold">۳۰ روز</td>
+                      <td className="p-2">پس از ۳۰ روز</td>
+                      <td className="p-2 font-mono text-[10px] text-gray-500">15m / 30d</td>
+                    </tr>
+                    <tr className="hover:bg-gray-50">
+                      <td className="p-2 font-bold text-slate-800">استاد</td>
+                      <td className="p-2 text-indigo-600 font-bold">۳۰ روز</td>
+                      <td className="p-2">پس از ۳۰ روز</td>
+                      <td className="p-2 font-mono text-[10px] text-gray-500">15m / 30d</td>
+                    </tr>
+                    <tr className="hover:bg-amber-50/50">
+                      <td className="p-2 font-bold text-amber-800">ادمین</td>
+                      <td className="p-2 text-amber-700 font-bold">حداکثر ۸ ساعت</td>
+                      <td className="p-2 text-amber-700 font-bold">پس از ۳۰ دقیقه</td>
+                      <td className="p-2 font-mono text-[10px] text-amber-700">15m / 8h</td>
+                    </tr>
+                    <tr className="hover:bg-red-50/50">
+                      <td className="p-2 font-bold text-red-800">سوپرادمین</td>
+                      <td className="p-2 text-red-700 font-bold">حداکثر ۴ ساعت</td>
+                      <td className="p-2 text-red-700 font-bold">پس از ۱۵ دقیقه</td>
+                      <td className="p-2 font-mono text-[10px] text-red-700">15m / 4h</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
           </div>
         </div>
 

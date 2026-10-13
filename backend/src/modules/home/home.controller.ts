@@ -19,7 +19,24 @@ export const getHomeData = async (req: Request, res: Response, next: NextFunctio
        });
     }
 
-    const categories = await Category.find({ isActive: true }).limit(8);
+    // Fetch active categories sorted in standardized hierarchy (level, sortOrder, name)
+    const rawCategories = await Category.find({ isActive: true })
+      .sort({ level: 1, sortOrder: 1, createdAt: 1 })
+      .limit(12)
+      .lean();
+
+    // Enrich categories with actual published course counts
+    const categoryIds = rawCategories.map((c: any) => c._id);
+    const courseCounts = await Course.aggregate([
+      { $match: { status: "published", categoryId: { $in: categoryIds } } },
+      { $group: { _id: "$categoryId", count: { $sum: 1 } } }
+    ]);
+    const countMap = new Map(courseCounts.map((item: any) => [item._id?.toString(), item.count]));
+
+    const categories = rawCategories.map((cat: any) => ({
+      ...cat,
+      coursesCount: countMap.get(cat._id?.toString()) || 0
+    }));
     const popularCourses = await Course.find({ status: "published" }).sort({ totalLessons: -1 }).limit(4).populate('instructors', 'firstName lastName avatar personnelPhoto specialty');
     const newCourses = await Course.find({ status: "published" }).sort({ createdAt: -1 }).limit(4).populate('instructors', 'firstName lastName avatar personnelPhoto specialty');
     const freeCourses = await Course.find({ status: "published", price: 0 }).limit(4).populate('instructors', 'firstName lastName avatar personnelPhoto specialty');
