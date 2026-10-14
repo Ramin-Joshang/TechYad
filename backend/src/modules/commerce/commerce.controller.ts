@@ -55,21 +55,75 @@ export const verifyMockPayment = async (req: AuthRequest, res: Response) => {
   sendSuccess(res, result, 'Payment verification processed');
 };
 
+import { Payment } from './payment.model.js';
+import { WalletTransaction } from '../wallet/wallet-transaction.model.js';
+import { WalletService } from '../wallet/wallet.service.js';
+
 export const handleGatewayCallback = async (req: Request, res: Response) => {
-  // Support both GET query parameters and POST body parameters from Iranian gateways (ZarinPal, Saman/SEP, SnappPay)
+  // Support both GET query parameters and POST body parameters from Iranian gateways (Saman/SEP, ZarinPal, SnappPay)
   const params = { ...req.query, ...req.body };
-  const authority = params.Authority || params.authority || params.RefNum || params.Token || params.resNum || '';
-  const status = params.Status || params.status || (params.state === 'OK' ? 'OK' : '') || '';
-  const gateway = req.params.gateway || params.gateway || 'shaparak';
+  const resNum = params.ResNum || params.resNum || '';
+  const refNum = params.RefNum || params.refNum || '';
+  const token = params.Token || params.token || '';
+  const authority = resNum || refNum || token || params.Authority || params.authority || '';
+  const status = params.Status || params.status || '';
+  const state = String(params.State || params.state || '').toUpperCase();
+  const gateway = req.params.gateway || params.gateway || 'saman';
 
   const frontendBaseUrl = process.env.FRONTEND_URL || 'https://tecyad.ir';
+  const isSuccess = state === 'OK' || status === '100' || status === '2';
 
-  // If status is OK or positive state
-  if (status === 'OK' || status === '100' || String(params.State).toLowerCase() === 'ok') {
-    return res.redirect(`${frontendBaseUrl}/payment/success?authority=${encodeURIComponent(authority)}&gateway=${encodeURIComponent(gateway)}`);
+  // 1. Handle online wallet charge callback
+  if (authority && String(authority).startsWith('WALLET_')) {
+    try {
+      const tx = await WalletTransaction.findOne({ referenceId: authority });
+      if (tx) {
+        if (isSuccess) {
+          await WalletService.verifyCharge(tx.userId.toString(), authority, 'OK');
+          return res.redirect(`${frontendBaseUrl}/student/wallet?charged=true&amount=${tx.amount}`);
+        } else {
+          await WalletService.verifyCharge(tx.userId.toString(), authority, 'NOK');
+          return res.redirect(`${frontendBaseUrl}/student/wallet?charged=failed`);
+        }
+      }
+    } catch (e) {
+      console.error('Wallet gateway callback handling error:', e);
+    }
+    return res.redirect(`${frontendBaseUrl}/student/wallet?charged=failed`);
   }
 
-  // Otherwise redirect to failed payment page
+  // 2. Handle order purchase callback
+  if (isSuccess && authority) {
+    try {
+      const payment = await Payment.findOne({
+        $or: [
+          { authority },
+          { referenceId: authority },
+          { referenceId: resNum },
+          { authority: token }
+        ]
+      });
+
+      if (payment) {
+        if (payment.status === 'pending') {
+          const verifyRes = await CommerceService.verifyPaymentMock(
+            payment.userId.toString(),
+            payment.authority || authority,
+            'OK'
+          );
+          if (verifyRes.success) {
+            return res.redirect(`${frontendBaseUrl}/payment/success?orderId=${encodeURIComponent(payment.orderId.toString())}&refNum=${encodeURIComponent(refNum)}&gateway=${encodeURIComponent(gateway)}`);
+          }
+        } else if (payment.status === 'paid') {
+          return res.redirect(`${frontendBaseUrl}/payment/success?orderId=${encodeURIComponent(payment.orderId.toString())}&refNum=${encodeURIComponent(refNum)}&gateway=${encodeURIComponent(gateway)}`);
+        }
+      }
+    } catch (err: any) {
+      console.error('Order gateway callback handling error:', err);
+    }
+  }
+
+  // Fallback to failed payment page
   return res.redirect(`${frontendBaseUrl}/payment/failed?authority=${encodeURIComponent(authority)}&gateway=${encodeURIComponent(gateway)}`);
 };
 

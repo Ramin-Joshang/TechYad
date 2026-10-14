@@ -26,6 +26,8 @@ export default function SettingsPage() {
     queryFn: () => superAdminApi.getSettings().then((res: any) => {
       const data = res.data || {};
       if (!data.smsOtpPattern) data.smsOtpPattern = 'TecyadOTP';
+      if (!data.samanTerminalId) data.samanTerminalId = '15859910';
+      if (data.samanGatewayEnabled === undefined) data.samanGatewayEnabled = true;
       setFormData(data);
       return data;
     })

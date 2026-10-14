@@ -15,6 +15,7 @@ import { AppError } from "../../common/errors/AppError.js";
 import { ReferralService } from "../referral/referral.service.js";
 import { FinancialRevenueService } from "../commerce/financial-revenue.service.js";
 import { Settlement } from "../commerce/settlement.model.js";
+import { SamanGatewayService } from "../commerce/saman-gateway.service.js";
 import {
   WalletTransaction,
   IWalletTransaction,
@@ -298,6 +299,29 @@ export class WalletService {
     if (!user) throw new AppError("کاربر یافت نشد", 404);
 
     const authority = `WALLET_${Date.now()}_${Math.floor(Math.random() * 100000)}`;
+    const isSamanEnabled = await SamanGatewayService.isEnabled();
+    const terminalId = await SamanGatewayService.getTerminalId();
+    const appUrl = process.env.APP_URL || "https://tecyad.ir";
+    const callbackUrl = `${appUrl}/api/payments/callback/saman`;
+
+    let paymentUrl = "";
+    let gatewayName = "saman";
+
+    if (isSamanEnabled) {
+      const sepResult = await SamanGatewayService.requestToken({
+        amountToman: amount,
+        resNum: authority,
+        redirectUrl: callbackUrl,
+        cellNumber: user.mobile || "",
+      });
+      paymentUrl = sepResult.paymentUrl.includes("mock-gateway")
+        ? `${sepResult.paymentUrl}&type=wallet`
+        : sepResult.paymentUrl;
+      gatewayName = "saman";
+    } else {
+      paymentUrl = `/payment/mock-gateway?authority=${authority}&type=wallet&amount=${amount}`;
+      gatewayName = "zarinpal_mock";
+    }
 
     const transaction = await WalletTransaction.create({
       userId: user._id,
@@ -306,24 +330,24 @@ export class WalletService {
       amount,
       balanceAfter: user.walletBalance || 0, // will update on success
       status: "pending",
-      title: "افزایش اعتبار کیف پول (شتاب)",
-      description: `درخواست شارژ آنلاین کیف پول به مبلغ ${amount.toLocaleString("fa-IR")} تومان`,
+      title: "افزایش اعتبار کیف پول (شتاب - سامان)",
+      description: `درخواست شارژ آنلاین کیف پول به مبلغ ${amount.toLocaleString("fa-IR")} تومان از درگاه پرداخت سامان`,
       referenceId: authority,
-      gateway: "zarinpal_mock",
+      gateway: gatewayName,
     });
-
-    const paymentUrl = `/payment/mock-gateway?authority=${authority}&type=wallet&amount=${amount}`;
 
     return {
       transactionId: transaction._id,
       authority,
       amount,
       paymentUrl,
+      gateway: gatewayName,
+      terminalId,
     };
   }
 
   /**
-   * Verify online wallet charge callback from mock gateway
+   * Verify online wallet charge callback from gateway
    */
   static async verifyCharge(userId: string, authority: string, status: "OK" | "NOK") {
     const transaction = await WalletTransaction.findOne({
@@ -354,6 +378,11 @@ export class WalletService {
         success: false,
         message: "عملیات پرداخت یا شارژ لغو گردید",
       };
+    }
+
+    // If Saman SEP gateway, verify transaction
+    if (transaction.gateway === "saman") {
+      await SamanGatewayService.verifyTransaction(authority);
     }
 
     // Atomically increment user wallet balance

@@ -31,10 +31,15 @@ export class AdminService {
   // --- Global Settings ---
   static async getSettings() {
     const settings = await Setting.find().lean();
+    const defaults: Record<string, any> = {
+      samanTerminalId: process.env.SAMAN_TERMINAL_ID || '15859910',
+      samanGatewayEnabled: true,
+      mockGatewayEnabled: false,
+    };
     return settings.reduce((acc, curr) => {
        acc[curr.key] = curr.value;
        return acc;
-    }, {} as Record<string, any>);
+    }, defaults);
   }
 
   static async getPublicSettings() {

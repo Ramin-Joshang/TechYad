@@ -14,6 +14,7 @@ import { WalletTransaction } from '../wallet/wallet-transaction.model.js';
 import { Notification } from '../notifications/notification.model.js';
 import { AuditService } from '../../common/services/audit.service.js';
 import { FinancialRevenueService } from './financial-revenue.service.js';
+import { SamanGatewayService } from './saman-gateway.service.js';
 
 export class CommerceService {
   static async getInstructorSales(instructorId: string, month?: number, year?: number) {
@@ -490,7 +491,7 @@ export class CommerceService {
     };
   }
 
-  // --- Payment Mock / Flow ---
+  // --- Payment Gateway Flow (SEP / Saman Bank Terminal 15859910 & Hybrid Wallet) ---
   static async createPaymentMock(userId: string, orderId: string) {
     const order = await this.getOrderById(userId, orderId);
     if (order.status !== 'pending') throw new AppError('Order is already processed', 400, 'ORDER_PROCESSED');
@@ -502,20 +503,55 @@ export class CommerceService {
       throw new AppError('این سفارش باید از طریق کیف پول پرداخت شود', 400);
     }
 
+    const user = await User.findById(userId);
+    const isSamanEnabled = await SamanGatewayService.isEnabled();
+    const terminalId = await SamanGatewayService.getTerminalId();
+    const appUrl = process.env.APP_URL || 'https://tecyad.ir';
+    const callbackUrl = `${appUrl}/api/payments/callback/saman`;
+
+    const resNum = `SEP_ORD_${order._id.toString().slice(-6)}_${Date.now().toString().slice(-4)}`;
+    let authority = resNum;
+    let paymentUrl = '';
+    let gatewayName = 'saman';
+
+    if (isSamanEnabled) {
+      const sepResult = await SamanGatewayService.requestToken({
+        amountToman: payableAmount,
+        resNum,
+        redirectUrl: callbackUrl,
+        cellNumber: user?.mobile || '',
+      });
+      authority = sepResult.token || resNum;
+      paymentUrl = sepResult.paymentUrl;
+      if (order.walletAmountApplied && order.walletAmountApplied > 0) {
+        gatewayName = 'hybrid_saman';
+        paymentUrl += `&walletApplied=${order.walletAmountApplied}`;
+      }
+    } else {
+      authority = `AUTH_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
+      const walletParam = order.walletAmountApplied ? `&walletApplied=${order.walletAmountApplied}` : '';
+      paymentUrl = `/payment/mock-gateway?authority=${authority}&amount=${payableAmount}${walletParam}`;
+      gatewayName = order.walletAmountApplied && order.walletAmountApplied > 0 ? 'hybrid_gateway' : 'zarinpal_mock';
+    }
+
     // Create a pending payment
     const payment = await Payment.create({
       orderId,
       userId,
       amount: payableAmount,
-      gateway: order.walletAmountApplied && order.walletAmountApplied > 0 ? 'hybrid_gateway' : 'zarinpal_mock',
-      authority: `AUTH_${Date.now()}_${Math.floor(Math.random() * 1000)}`,
+      gateway: gatewayName,
+      authority,
+      referenceId: resNum,
+      rawResponse: { terminalId, resNum },
       status: 'pending'
     });
 
-    const walletParam = order.walletAmountApplied ? `&walletApplied=${order.walletAmountApplied}` : '';
     return { 
       payment, 
-      paymentUrl: `/payment/mock-gateway?authority=${payment.authority}&amount=${payableAmount}${walletParam}` 
+      paymentUrl,
+      gateway: gatewayName,
+      terminalId,
+      orderId: order._id
     };
   }
 
@@ -524,7 +560,10 @@ export class CommerceService {
     session.startTransaction();
 
     try {
-      const payment = await Payment.findOne({ authority, userId }).session(session);
+      const payment = await Payment.findOne({
+        $or: [{ authority }, { referenceId: authority }],
+        userId
+      }).session(session);
       if (!payment) throw new AppError('Payment not found', 404, 'NOT_FOUND');
       if (payment.status !== 'pending') throw new AppError('Payment already processed', 400, 'PAYMENT_PROCESSED');
 
@@ -539,6 +578,11 @@ export class CommerceService {
         await session.commitTransaction();
         session.endSession();
         return { success: false, message: 'Payment failed' };
+      }
+
+      // If Saman SEP gateway, run verification check
+      if (payment.gateway && payment.gateway.includes('saman')) {
+        await SamanGatewayService.verifyTransaction(payment.referenceId || authority);
       }
 
       // If hybrid payment, deduct wallet balance atomically inside this transaction
