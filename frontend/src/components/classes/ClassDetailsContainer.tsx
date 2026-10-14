@@ -754,29 +754,18 @@ export function ClassDetailsContainer({ slug, initialData }: { slug: string; ini
                           </span>
                         </div>
 
-                        {/* Full Instructor Bio and Resume (No truncation, multi-line preserved) */}
-                        <div className="text-xs sm:text-sm text-slate-700 leading-relaxed text-justify whitespace-pre-line bg-slate-50/80 p-4 rounded-2xl border border-slate-100/90 font-normal">
+                        {/* Instructor Bio Summary (Concise 1-2 lines) */}
+                        <p className="text-xs sm:text-sm text-slate-600 leading-relaxed text-justify line-clamp-2 mt-1">
                           {inst.bio || 'دارای سال‌ها تجربه در آموزش تخصصی، هدایت پروژه‌های عملی و کارگاهی و تدریس مباحث مهارتی در آکادمی تک‌یاد.'}
-                        </div>
-
-                        {/* Optional Education or Experience badges if available */}
-                        {inst.experience && inst.experience.length > 0 && (
-                          <div className="flex flex-wrap gap-1.5 pt-1">
-                            {inst.experience.slice(0, 3).map((exp: any, idx: number) => (
-                              <span key={idx} className="text-[11px] bg-white border border-slate-200 text-slate-700 px-2.5 py-1 rounded-lg">
-                                {exp.position} {exp.company ? `@ ${exp.company}` : ''}
-                              </span>
-                            ))}
-                          </div>
-                        )}
+                        </p>
 
                         <div className="pt-2">
                           <Link 
                             href={`/instructors/${instSlug}`}
-                            className="inline-flex items-center gap-2 text-xs sm:text-sm font-bold text-blue-600 hover:text-blue-800 transition bg-blue-50/80 hover:bg-blue-100 px-4 py-2 rounded-xl"
+                            className="inline-flex items-center gap-1.5 text-xs font-bold text-blue-600 hover:text-blue-800 transition hover:underline"
                           >
-                            مشاهده رزومه کاری، سوابق تحصیلی و سایر کلاس‌های استاد
-                            <ChevronLeft className="w-4 h-4" />
+                            مشاهده رزومه کامل، سوابق تحصیلی و سایر کلاس‌های استاد
+                            <ChevronLeft className="w-3.5 h-3.5" />
                           </Link>
                         </div>
                       </div>

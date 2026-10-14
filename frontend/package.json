@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev -p 4000",
-    "build": "cross-env NODE_ENV=production next build",
+    "build": "node -e \"try{require('fs').rmSync('.next/dev',{recursive:true,force:true})}catch{}\" && cross-env NODE_ENV=production next build",
     "start": "cross-env PORT=4000 next start -p 4000",
     "lint": "eslint"
   },
