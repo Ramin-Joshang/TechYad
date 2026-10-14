@@ -115,8 +115,8 @@ export default function CartPage() {
                 const hasDiscount = originalPrice > finalPrice;
                 const title = item.titleSnapshot || item.title || 'دوره آموزشی';
                 const instructor = item.instructorName || 'استاد تک‌یاد';
-                const thumb = getImageUrl(item.thumbnail, isCourse ? 'course' : 'class', title);
                 const isCourse = item.itemType === 'course';
+                const thumb = getImageUrl(item.thumbnail, isCourse ? 'course' : 'class', title);
 
                 return (
                   <div key={item.itemId || Math.random()} className="bg-white p-4 sm:p-5 rounded-2xl border border-[var(--neo-border)] shadow-sm flex flex-col sm:flex-row items-center gap-5">

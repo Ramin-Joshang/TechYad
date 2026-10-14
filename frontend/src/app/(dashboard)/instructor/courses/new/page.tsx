@@ -137,10 +137,10 @@ export default function NewCoursePage() {
                 inputMode="numeric"
                 name="price"
                 required
-                value={formData.price}
+                value={formData.price === 0 ? '' : formData.price}
                 onChange={(e) => {
                   const val = toEnDigits(e.target.value).replace(/[^0-9]/g, '');
-                  setFormData(prev => ({ ...prev, price: val }));
+                  setFormData(prev => ({ ...prev, price: val ? Number(val) : 0 }));
                 }}
                 className="w-full px-4 py-2.5 bg-[var(--neo-surface-2)] border border-[var(--neo-border)] rounded-xl focus:ring-2 focus:ring-[var(--neo-primary)] outline-none text-sm font-medium text-left dir-ltr"
                 placeholder="0 برای رایگان"

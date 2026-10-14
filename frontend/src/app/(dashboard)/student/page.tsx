@@ -676,7 +676,7 @@ export default function StudentDashboard() {
             <div className="flex items-center justify-between text-xs pt-1 border-t border-white/10 text-purple-200">
               <span>درآمد کسب شده:</span>
               <span className="font-black text-white font-mono">
-                {(referralData?.totalEarned || 0).toLocaleString('fa-IR')} تومان
+                {((referralData?.stats?.totalEarned ?? (referralData as any)?.totalEarned) || 0).toLocaleString('fa-IR')} تومان
               </span>
             </div>
 

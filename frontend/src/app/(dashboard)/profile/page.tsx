@@ -5,6 +5,7 @@ import { useAuthStore } from '@/features/auth/stores/auth.store';
 import { authApi } from '@/features/auth/api/auth.api';
 import { mediaApi } from '@/features/media/api/media.api';
 import { Loader2, Upload, Lock, ShieldCheck, UserCheck, Eye, EyeOff, GraduationCap } from 'lucide-react';
+import toast from 'react-hot-toast';
 import { getImageUrl, handleImageError } from '@/lib/utils';
 
 export default function ProfilePage() {

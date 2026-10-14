@@ -332,12 +332,12 @@ export default function CheckoutPage() {
                     <div>
                       <div className="font-bold text-slate-900 text-sm flex items-center gap-2">
                         درگاه پرداخت آنلاین شتاب (شاپرک)
-                        <span className="text-[10px] bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded-full">
-                          زرین‌پال
+                        <span className="text-[10px] bg-blue-100 text-blue-800 font-bold px-2 py-0.5 rounded-full">
+                          سامان کیش (SEP)
                         </span>
                       </div>
                       <div className="text-xs text-slate-600 mt-1">
-                        پرداخت مبلغ باقیمانده ({remainingToPay.toLocaleString('fa-IR')} تومان) با کلیه کارت‌های عضو شتاب و رمز پویا
+                        پرداخت مبلغ باقیمانده ({remainingToPay.toLocaleString('fa-IR')} تومان) با کلیه کارت‌های عضو شتاب از طریق درگاه امن سامان (شماره ترمینال: ۱۵۸۵۹۹۱۰)
                       </div>
                     </div>
                   </div>

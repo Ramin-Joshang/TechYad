@@ -3,6 +3,7 @@ import { persist, createJSONStorage } from 'zustand/middleware';
 
 export interface User {
   id: string; // the backend returns id in login/getMe response
+  _id?: string;
   firstName: string;
   lastName: string;
   email: string;
@@ -28,6 +29,7 @@ interface AuthState {
   isInitializing: boolean;
   hasHydrated: boolean;
   setAuth: (user: User) => void;
+  setUser: (user: User | null) => void;
   updateUser: (user: Partial<User>) => void;
   logout: () => void;
   setInitializing: (status: boolean) => void;
@@ -43,6 +45,9 @@ export const useAuthStore = create<AuthState>()(
       hasHydrated: false,
       setAuth: (user) => {
         set({ user, isAuthenticated: true, isInitializing: false });
+      },
+      setUser: (user) => {
+        set({ user, isAuthenticated: !!user });
       },
       updateUser: (updatedUser) => {
         set((state) => ({

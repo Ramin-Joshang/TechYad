@@ -1,6 +1,7 @@
 import { InstructorsList } from '@/components/instructors/InstructorsList';
 import { fetchInstructors } from '@/lib/server-api';
 import type { Metadata } from 'next';
+export const dynamic = 'force-dynamic';
 
 export const metadata: Metadata = {
   title: "اساتید و مدرسان برجسته | تک‌یاد",

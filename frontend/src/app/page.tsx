@@ -2,6 +2,8 @@ import { HomeDataView } from "@/components/home/HomeDataView";
 import { fetchHomeData } from "@/lib/server-api";
 import type { Metadata } from "next";
 
+export const dynamic = 'force-dynamic';
+
 export const metadata: Metadata = {
   title: "تک‌یاد | پلتفرم جامع آموزش آنلاین، دوره‌ها و کلاس‌های تخصصی برنامه‌نویسی",
   description: "سامانه آموزش آنلاین تک‌یاد (Tecyad)؛ مرجع تخصصی دوره‌های پروژه‌محور برنامه‌نویسی، طراحی وب، هوش مصنوعی، کلاس‌های زنده و کارگاه‌های مهارتی با برترین اساتید ایران.",

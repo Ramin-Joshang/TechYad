@@ -1,6 +1,8 @@
 // Server-side data fetching utility for Next.js App Router (SSR)
 
-const INTERNAL_API_URL = process.env.INTERNAL_BACKEND_URL || 'http://127.0.0.1:5000/api';
+const rawBackend = process.env.INTERNAL_BACKEND_URL || 'http://127.0.0.1:5000';
+const normalizedBackend = rawBackend.replace(/\/api\/?$/, '');
+const INTERNAL_API_URL = `${normalizedBackend}/api`;
 
 export interface ServerFetchOptions {
   revalidate?: number | false;
@@ -41,8 +43,13 @@ export async function serverFetch<T = any>(
       return json.data as T;
     }
     return json as T;
-  } catch (err) {
-    console.error(`[SSR serverFetch error: ${endpoint}]:`, err);
+  } catch (err: any) {
+    if (process.env.NODE_ENV !== 'production' || process.env.NEXT_PHASE?.includes('build')) {
+      // Build-time or offline development warning
+      console.warn(`[SSR serverFetch offline/build: ${endpoint}]: Backend at ${INTERNAL_API_URL} not reachable.`);
+    } else {
+      console.error(`[SSR serverFetch error: ${endpoint}]:`, err?.message || err);
+    }
     return null;
   }
 }

@@ -2,6 +2,7 @@ import Link from 'next/link';
 import type { Metadata } from 'next';
 import { fetchCategories } from '@/lib/server-api';
 import { FolderTree, Sparkles, BookOpen, GraduationCap, ChevronLeft } from 'lucide-react';
+export const dynamic = 'force-dynamic';
 
 export const metadata: Metadata = {
   title: 'دسته‌بندی جامع دوره‌ها و کلاس‌های آموزشی | تک‌یاد',

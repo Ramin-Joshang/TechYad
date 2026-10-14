@@ -12,6 +12,7 @@ export interface Course {
     firstName: string;
     lastName: string;
     avatar?: string;
+    personnelPhoto?: string;
     bio?: string;
   }[];
   categoryId: {

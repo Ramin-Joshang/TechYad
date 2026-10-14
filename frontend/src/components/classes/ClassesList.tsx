@@ -8,6 +8,7 @@ import { useState } from 'react';
 import { format } from 'date-fns-jalali';
 import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import { getImageUrl, handleImageError } from '@/lib/utils';
+import { ClassCard } from './ClassCard';
 
 export function ClassesList({ initialData }: { initialData?: any } = {}) {
   const router = useRouter();
@@ -365,7 +366,7 @@ export function ClassesList({ initialData }: { initialData?: any } = {}) {
   );
 }
 
-function ClassCard({ cls }: { cls: any }) {
+function OldClassCard({ cls }: { cls: any }) {
   const isOnline = cls.mode === 'online';
   const instructor = cls.instructors?.[0];
   const startDate = cls.startDate ? new Date(cls.startDate) : new Date();

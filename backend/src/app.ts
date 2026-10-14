@@ -9,13 +9,15 @@ import { persianNormalizeMiddleware } from './common/middleware/persianNormalize
 import { AppError } from './common/errors/AppError.js';
 import { swaggerDocument } from './docs/swagger.js';
 import { UPLOADS_ROOT, initUploadDirectories } from './modules/media/storage.config.js';
+import { sanitizeProxyHeadersMiddleware, rateLimitKeyGenerator } from './common/utils/ip-sanitizer.js';
 
 initUploadDirectories();
 
 const app = express();
 
-// Trust the reverse proxy (required for express-rate-limit in cloud environments)
+// Trust the reverse proxy (required for express-rate-limit in cloud environments / IIS)
 app.set('trust proxy', 1);
+app.use(sanitizeProxyHeadersMiddleware);
 
 // Security Middlewares - CORS configured to allow Port 4000, Port 3000, and standard client apps
 const allowedOrigins = [
@@ -58,6 +60,8 @@ const globalLimiter = rateLimit({
   max: 3000, // Generous limit for normal dashboard navigation and active platform users
   standardHeaders: true,
   legacyHeaders: false,
+  keyGenerator: rateLimitKeyGenerator,
+  validate: { xForwardedForHeader: false },
   message: { success: false, error: { code: 'TOO_MANY_REQUESTS', message: 'درخواست‌های بیش از حد از این IP ثبت شده است. لطفاً کمی بعد دوباره تلاش کنید.' } }
 });
 app.use('/api', globalLimiter);
@@ -68,12 +72,29 @@ const authLimiter = rateLimit({
   max: 30, // 30 attempts per 15 minutes per IP for login/register
   standardHeaders: true,
   legacyHeaders: false,
+  keyGenerator: rateLimitKeyGenerator,
+  validate: { xForwardedForHeader: false },
   message: { success: false, error: { code: 'TOO_MANY_REQUESTS', message: 'تعداد دفعات تلاش برای ورود یا ثبت‌نام بیش از حد مجاز بوده است. لطفاً ۱۵ دقیقه دیگر تلاش کنید.' } }
 });
 app.use('/api/auth/login', authLimiter);
 app.use('/api/auth/register', authLimiter);
 app.use('/api/v1/auth/login', authLimiter);
 app.use('/api/v1/auth/register', authLimiter);
+
+// Dedicated OTP SMS Rate Limiter to prevent SMS credit exhaustion
+const otpLimiter = rateLimit({
+  windowMs: 2 * 60 * 1000, // 2 minutes
+  max: 5, // 5 OTP requests per 2 minutes per IP
+  standardHeaders: true,
+  legacyHeaders: false,
+  keyGenerator: rateLimitKeyGenerator,
+  validate: { xForwardedForHeader: false },
+  message: { success: false, error: { code: 'OTP_RATE_LIMITED', message: 'درخواست‌های ارسال کد تأیید بیش از حد مجاز است. لطفاً ۲ دقیقه دیگر تلاش کنید.' } }
+});
+app.use('/api/auth/send-otp', otpLimiter);
+app.use('/api/auth/verify-otp', otpLimiter);
+app.use('/api/v1/auth/send-otp', otpLimiter);
+app.use('/api/v1/auth/verify-otp', otpLimiter);
 
 // Body & Cookie Parser
 app.use(express.json({ limit: '50mb' }));

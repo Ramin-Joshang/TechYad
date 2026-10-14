@@ -1,8 +1,12 @@
 import type { NextConfig } from "next";
 
+const rawBackend = process.env.INTERNAL_BACKEND_URL || 'http://127.0.0.1:5000';
+const backendUrl = rawBackend.replace(/\/api\/?$/, '');
+
 const nextConfig: NextConfig = {
   typescript: {
-    ignoreBuildErrors: true,
+    // Enforce TypeScript validation for production safety
+    ignoreBuildErrors: false,
   },
   allowedDevOrigins: [
     '62.220.123.21',
@@ -14,7 +18,6 @@ const nextConfig: NextConfig = {
     '*.run.app'
   ],
   async rewrites() {
-    const backendUrl = process.env.INTERNAL_BACKEND_URL || 'http://127.0.0.1:5000';
     return [
       {
         source: "/uploads/:path*",
