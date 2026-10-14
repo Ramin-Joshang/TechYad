@@ -23,10 +23,12 @@ export function FloatingContactWidget() {
     return null;
   }
 
+  const isClassOrCourseDetail = pathname?.startsWith("/classes/") || pathname?.startsWith("/courses/");
+
   return (
     <aside 
       aria-label="پشتیبانی و راه‌های ارتباطی سریع" 
-      className="fixed bottom-6 left-6 z-50 print:hidden select-none flex flex-col items-start" 
+      className={`fixed ${isClassOrCourseDetail ? 'bottom-24 lg:bottom-6' : 'bottom-6'} left-4 sm:left-6 z-40 print:hidden select-none flex flex-col items-start transition-all duration-300`} 
       dir="ltr"
     >
       <div className="relative flex flex-col items-start">

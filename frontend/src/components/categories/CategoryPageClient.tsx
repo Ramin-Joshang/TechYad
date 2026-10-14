@@ -8,6 +8,7 @@ import {
 } from 'lucide-react';
 import { CategoryBreadcrumb, BreadcrumbItem } from './CategoryBreadcrumb';
 import { CategoryCard } from './CategoryCard';
+import { ClassCard } from '@/components/classes/ClassCard';
 import { getImageUrl, handleImageError } from '@/lib/utils';
 
 interface CategoryPageClientProps {
@@ -237,74 +238,9 @@ export function CategoryPageClient({
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {filteredClasses.map((item) => {
-                    const instructor = item.instructors?.[0] || item.instructor;
-                    const instructorName = instructor ? `${instructor.firstName || ''} ${instructor.lastName || ''}`.trim() : 'استاد تک‌یاد';
-                    const isFree = item.price === 0;
-                    const hasDiscount = item.discountPrice && item.discountPrice < item.price;
-                    const displayPrice = hasDiscount ? item.discountPrice : item.price;
-
-                    return (
-                      <Link
-                        key={item._id}
-                        href={`/classes/${item.slug || item._id}`}
-                        className="group flex flex-col bg-white rounded-2xl border border-[var(--neo-border)] hover:border-[var(--neo-primary)]/50 hover:shadow-lg transition-all duration-300 overflow-hidden"
-                      >
-                        <div className="relative aspect-[16/10] bg-[var(--neo-surface-2)] overflow-hidden">
-                          <img
-                            src={getImageUrl(item.thumbnail, 'class', item.title)}
-                            onError={(e) => handleImageError(e, 'class', item.title)}
-                            alt={item.title}
-                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                          />
-                          <div className="absolute top-3 right-3 flex items-center gap-1.5">
-                            {item.mode === 'online' ? (
-                              <span className="bg-blue-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1">
-                                <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
-                                آنلاین (Live)
-                              </span>
-                            ) : (
-                              <span className="bg-amber-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1">
-                                <MapPin className="w-3 h-3" />
-                                حضوری {item.city ? `(${item.city})` : ''}
-                              </span>
-                            )}
-                            {item.allowPreRegistration && (
-                              <span className="bg-emerald-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">
-                                پیش‌ثبت‌نام
-                              </span>
-                            )}
-                          </div>
-                        </div>
-
-                        <div className="p-5 flex flex-col flex-1 justify-between gap-4">
-                          <div className="space-y-2">
-                            <h3 className="font-bold text-base text-[var(--neo-text-main)] group-hover:text-[var(--neo-primary)] transition-colors line-clamp-2 leading-snug">
-                              {item.title}
-                            </h3>
-                            <div className="flex items-center gap-2 text-xs text-[var(--neo-text-muted)]">
-                              <Users className="w-3.5 h-3.5" />
-                              <span>{instructorName}</span>
-                            </div>
-                          </div>
-
-                          <div className="pt-3 border-t border-[var(--neo-border)]/60 flex items-center justify-between text-xs">
-                            <div className="text-[var(--neo-text-muted)] flex items-center gap-2">
-                              <span>{item.sessions || 10} جلسه</span>
-                              {item.scheduleTime && <span>• {item.scheduleTime}</span>}
-                            </div>
-                            <div className="font-bold text-sm text-[var(--neo-primary)] font-mono">
-                              {isFree ? (
-                                <span className="text-emerald-600">رایگان</span>
-                              ) : (
-                                <span>{displayPrice.toLocaleString('fa-IR')} تومان</span>
-                              )}
-                            </div>
-                          </div>
-                        </div>
-                      </Link>
-                    );
-                  })}
+                  {filteredClasses.map((item) => (
+                    <ClassCard key={item._id} cls={item} />
+                  ))}
                 </div>
               </section>
             )}

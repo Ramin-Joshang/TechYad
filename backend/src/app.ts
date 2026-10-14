@@ -3,6 +3,9 @@ import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import rateLimit from 'express-rate-limit';
 import swaggerUi from 'swagger-ui-express';
+import fs from 'fs';
+import path from 'path';
+import axios from 'axios';
 import routes from './routes/index.js';
 import { errorHandler } from './common/middleware/errorHandler.js';
 import { persianNormalizeMiddleware } from './common/middleware/persianNormalize.js';
@@ -102,7 +105,7 @@ app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 app.use(cookieParser());
 app.use(persianNormalizeMiddleware);
 
-// Serve static uploads folder (both directly at /uploads, /api/uploads, and legacy /api/v1/uploads) with cross-origin headers
+// Serve static uploads folder with auto-sync from production storage if file is in DB but not local
 const staticUploadsMiddleware = (req: express.Request, res: express.Response, next: express.NextFunction) => {
   res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -110,9 +113,40 @@ const staticUploadsMiddleware = (req: express.Request, res: express.Response, ne
   next();
 };
 
-app.use('/uploads', staticUploadsMiddleware, express.static(UPLOADS_ROOT));
-app.use('/api/uploads', staticUploadsMiddleware, express.static(UPLOADS_ROOT));
-app.use('/api/v1/uploads', staticUploadsMiddleware, express.static(UPLOADS_ROOT));
+const uploadsProxyFallback = async (req: express.Request, res: express.Response, next: express.NextFunction) => {
+  if (req.method !== 'GET' && req.method !== 'HEAD') return next();
+  const cleanPath = req.path.replace(/^\/+/, '');
+  if (!cleanPath) return next();
+  const localFilePath = path.join(UPLOADS_ROOT, cleanPath);
+  if (fs.existsSync(localFilePath)) {
+    return res.sendFile(localFilePath);
+  }
+
+  // Fallback to production storage on tecyad.ir for media files existing in DB
+  const remoteUrl = `https://tecyad.ir/uploads/${cleanPath}`;
+  try {
+    const upstream = await axios.get(remoteUrl, { responseType: 'stream', timeout: 5000 });
+    const contentType = String(upstream.headers['content-type'] || 'image/webp');
+    res.setHeader('Content-Type', contentType);
+    res.setHeader('Cache-Control', 'public, max-age=86400');
+    res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
+    res.setHeader('Access-Control-Allow-Origin', '*');
+
+    const dir = path.dirname(localFilePath);
+    if (!fs.existsSync(dir)) {
+      fs.mkdirSync(dir, { recursive: true });
+    }
+    const writeStream = fs.createWriteStream(localFilePath);
+    upstream.data.pipe(writeStream);
+    upstream.data.pipe(res);
+  } catch {
+    next();
+  }
+};
+
+app.use('/uploads', staticUploadsMiddleware, express.static(UPLOADS_ROOT), uploadsProxyFallback);
+app.use('/api/uploads', staticUploadsMiddleware, express.static(UPLOADS_ROOT), uploadsProxyFallback);
+app.use('/api/v1/uploads', staticUploadsMiddleware, express.static(UPLOADS_ROOT), uploadsProxyFallback);
 
 // Official production API route without /v1 prefix
 app.use('/api', routes);

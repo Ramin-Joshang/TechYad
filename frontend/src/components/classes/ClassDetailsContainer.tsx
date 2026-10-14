@@ -754,9 +754,21 @@ export function ClassDetailsContainer({ slug, initialData }: { slug: string; ini
                           </span>
                         </div>
 
-                        <p className="text-xs sm:text-sm text-slate-600 leading-relaxed text-justify">
-                          {inst.bio || 'دارای سال‌ها تجربه در آموزش تخصصی و هدایت پروژه‌های عملی و کارگاهی در حوزه نرم‌افزار و تکنولوژی.'}
-                        </p>
+                        {/* Full Instructor Bio and Resume (No truncation, multi-line preserved) */}
+                        <div className="text-xs sm:text-sm text-slate-700 leading-relaxed text-justify whitespace-pre-line bg-slate-50/80 p-4 rounded-2xl border border-slate-100/90 font-normal">
+                          {inst.bio || 'دارای سال‌ها تجربه در آموزش تخصصی، هدایت پروژه‌های عملی و کارگاهی و تدریس مباحث مهارتی در آکادمی تک‌یاد.'}
+                        </div>
+
+                        {/* Optional Education or Experience badges if available */}
+                        {inst.experience && inst.experience.length > 0 && (
+                          <div className="flex flex-wrap gap-1.5 pt-1">
+                            {inst.experience.slice(0, 3).map((exp: any, idx: number) => (
+                              <span key={idx} className="text-[11px] bg-white border border-slate-200 text-slate-700 px-2.5 py-1 rounded-lg">
+                                {exp.position} {exp.company ? `@ ${exp.company}` : ''}
+                              </span>
+                            ))}
+                          </div>
+                        )}
 
                         <div className="pt-2">
                           <Link 
@@ -929,7 +941,7 @@ export function ClassDetailsContainer({ slug, initialData }: { slug: string; ini
       </div>
 
       {/* Mobile Sticky Bar */}
-      <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 p-4 shadow-lg z-50 flex items-center justify-between">
+      <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-md border-t border-slate-200 p-3.5 sm:p-4 shadow-2xl z-30 flex items-center justify-between">
         <div>
           <span className="text-[11px] text-slate-400 block">
             {paymentChoice === 'deposit' && cls.allowPreRegistration ? 'مبلغ بیعانه پیش‌ثبت‌نام' : 'شهریه کلاس'}

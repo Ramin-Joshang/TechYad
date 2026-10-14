@@ -35,7 +35,7 @@ export function CourseGrid({ title, description, courses, viewAllLink }: Props) 
             <div key={course.id} className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden hover:shadow-lg transition-shadow group flex flex-col h-full">
               <div className="relative aspect-video overflow-hidden">
                 <img 
-                  src={getImageUrl(course.coverImage, 'course', course.title)} 
+                  src={getImageUrl((course as any).thumbnail || course.coverImage, 'course', course.title)} 
                   onError={(e) => handleImageError(e, 'course', course.title)}
                   alt={course.title} 
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"

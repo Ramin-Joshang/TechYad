@@ -203,18 +203,13 @@ export function getImageUrl(
 
   let clean = rawUrl.trim();
 
-  // Strip obvious invalid or mock URLs
+  // Strip only truly invalid strings
   if (
     clean === '' ||
     clean === 'null' ||
     clean === 'undefined' ||
     clean.startsWith('blob:') ||
-    clean.startsWith('file://') ||
-    clean.includes('picsum.photos') ||
-    clean.includes('via.placeholder.com') ||
-    clean.includes('placeholder.com') ||
-    clean.includes('unsplash.com') ||
-    clean.includes('pravatar.cc')
+    clean.startsWith('file://')
   ) {
     return getDefaultFallbackImage(fallbackType, titleOrName);
   }

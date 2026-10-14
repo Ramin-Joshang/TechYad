@@ -22,6 +22,7 @@ export function ClassCard({ cls, variant = 'standard' }: ClassCardProps) {
     ? `${instructor.firstName || ''} ${instructor.lastName || ''}`.trim() || instructor.name
     : (typeof instructor === 'string' ? instructor : 'استاد تک‌یاد');
   const instructorAvatar = instructor?.personnelPhoto || instructor?.avatar;
+  const instructorId = instructor?.slug || instructor?._id;
 
   const startDate = cls.startDate ? new Date(cls.startDate) : new Date();
   const enrolled = cls.enrolledCount || 0;
@@ -87,39 +88,49 @@ export function ClassCard({ cls, variant = 'standard' }: ClassCardProps) {
   const linkHref = `/classes/${cls.slug || cls._id}`;
 
   return (
-    <div className="group bg-white rounded-2xl border border-[var(--neo-border)] overflow-hidden hover:border-[var(--neo-primary)]/50 hover:shadow-xl transition-all duration-300 flex flex-col h-full text-right">
+    <div className="group flex flex-col bg-white rounded-2xl border border-[var(--neo-border)] overflow-hidden hover:shadow-xl hover:shadow-[var(--neo-primary)]/5 transition duration-300 text-right h-full">
       
-      {/* 1. Class Image Poster Frame (Aspect 16/9, no overflow, contained border) */}
-      <Link href={linkHref} className="relative aspect-video w-full overflow-hidden bg-slate-900 block shrink-0">
+      {/* 1. Class Image Poster Frame (Aspect 16/10 matching CourseCard) */}
+      <Link href={linkHref} className="relative aspect-[16/10] overflow-hidden bg-[var(--neo-surface-2)] block shrink-0">
         <img
-          src={getImageUrl(cls.coverImage || cls.thumbnail, 'class', cls.title)}
+          src={getImageUrl(cls.thumbnail || cls.coverImage || cls.banner, 'class', cls.title)}
           alt={cls.title}
-          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 ease-out"
+          className="w-full h-full object-cover group-hover:scale-105 transition duration-500"
           onError={(e) => handleImageError(e, 'class', cls.title)}
         />
 
-        {/* Minimal Unobtrusive Badges on Top of Image */}
-        {/* RTL Right Corner (Start): Online / In-person Mode */}
-        <div className="absolute top-3 right-3 z-10 flex items-center gap-1.5">
-          <span className={`px-2.5 py-1 rounded-full text-[11px] font-black shadow-sm backdrop-blur-md flex items-center gap-1.5 ${
+        {/* Top Right Badges */}
+        <div className="absolute top-4 right-4 flex flex-wrap gap-2 z-10">
+          {cls.categoryId?.name && (
+            <div className="bg-white/90 backdrop-blur text-[var(--neo-text-main)] text-xs font-bold px-3 py-1 rounded-full shadow-2xs">
+              {cls.categoryId.name}
+            </div>
+          )}
+          <span className={`px-2.5 py-1 rounded-full text-xs font-bold shadow-2xs flex items-center gap-1.5 ${
             isOnline 
               ? 'bg-blue-600/90 text-white' 
               : 'bg-emerald-600/90 text-white'
           }`}>
             {isOnline ? <Monitor className="w-3.5 h-3.5" /> : <MapPin className="w-3.5 h-3.5" />}
-            <span>{isOnline ? 'کلاس آنلاین (Live)' : 'کارگاه حضوری'}</span>
+            <span>{isOnline ? 'آنلاین (Live)' : 'کارگاه حضوری'}</span>
           </span>
+          {isRegistrationClosed && (
+            <div className="bg-rose-500 text-white text-xs font-bold px-2.5 py-1 rounded-full shadow-xs">
+              ثبت‌نام بسته شد
+            </div>
+          )}
         </div>
 
-        {/* RTL Left Corner (End): Public/Private or Deposit */}
-        <div className="absolute top-3 left-3 z-10 flex flex-col gap-1 items-end">
-          {cls.allowPreRegistration ? (
-            <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/95 text-white shadow-sm backdrop-blur-xs">
+        {/* Top Left Badges (Discount or Pre-registration) */}
+        <div className="absolute top-4 left-4 flex flex-col gap-1 items-end z-10">
+          {hasDiscount && !isFree && (
+            <div className="bg-rose-500 text-white text-xs font-bold px-2 py-1 rounded-full shadow-2xs">
+              {Math.round((1 - (discountPrice! / price)) * 100)}% تخفیف
+            </div>
+          )}
+          {cls.allowPreRegistration && (
+            <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-amber-500/95 text-white shadow-2xs backdrop-blur-xs">
               پیش‌ثبت‌نام بیعانه
-            </span>
-          ) : (
-            <span className="px-2.5 py-1 bg-white/95 text-slate-800 rounded-full text-[10px] font-bold shadow-sm backdrop-blur-xs">
-              {cls.type === 'private' ? 'خصوصی' : 'عمومی'}
             </span>
           )}
         </div>
@@ -128,93 +139,89 @@ export function ClassCard({ cls, variant = 'standard' }: ClassCardProps) {
       {/* 2. Card Body Content */}
       <div className="p-5 flex flex-col flex-grow text-right">
         
-        {/* Status & Rating Bar (Outside image so it never covers visual content) */}
-        <div className="flex items-center justify-between mb-3 gap-2">
-          <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-bold border ${statusBadge.color}`}>
+        {/* Status & Rating Bar */}
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center gap-1 text-amber-500 text-xs font-bold">
+            <Star className="w-4 h-4 fill-current" />
+            <span>{Number(rating).toFixed(1)}</span>
+            <span className="text-[var(--neo-text-muted)] font-normal text-[11px]">({enrolled} دانشجو)</span>
+          </div>
+
+          <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-bold border ${statusBadge.color}`}>
             <span className={`w-1.5 h-1.5 rounded-full ${statusBadge.dot} animate-pulse`} />
             <span>{statusBadge.label}</span>
           </span>
-
-          <div className="flex items-center gap-1 text-amber-500 text-xs font-bold font-mono">
-            <Star className="w-3.5 h-3.5 fill-current" />
-            <span>{Number(rating).toFixed(1)}</span>
-          </div>
         </div>
 
         {/* Title */}
         <Link href={linkHref} className="block mb-2">
-          <h3 className="font-black text-base sm:text-lg text-[var(--neo-text-main)] group-hover:text-[var(--neo-primary)] transition-colors line-clamp-2 leading-snug">
+          <h3 className="font-bold text-[var(--neo-text-main)] mb-2 line-clamp-2 group-hover:text-[var(--neo-primary)] transition text-base leading-snug">
             {cls.title}
           </h3>
         </Link>
 
+        {/* Instructor Info */}
+        <Link
+          href={`/instructors/${instructorId || ''}`}
+          className="flex items-center gap-2 mb-4 text-xs text-[var(--neo-text-muted)] hover:text-blue-600 transition w-fit group/inst"
+          title="مشاهده رزومه و کلاس‌های استاد"
+        >
+          <img 
+            src={getImageUrl(instructorAvatar, 'avatar', instructorName)} 
+            onError={(e) => handleImageError(e, 'avatar', instructorName)}
+            className="w-6 h-6 rounded-full object-cover border border-slate-200" 
+            alt={instructorName} 
+          />
+          <span className="truncate font-medium">{instructorName}</span>
+          <span className="text-[10px] text-slate-400 group-hover/inst:text-blue-500">(رزومه)</span>
+        </Link>
+
         {/* Schedule & Timing Info */}
-        <div className="space-y-1.5 text-xs text-[var(--neo-text-secondary)] mb-4">
-          <div className="flex items-center gap-1.5">
-            <Calendar className="w-3.5 h-3.5 text-gray-400 shrink-0" />
-            <span>شروع: <span className="font-bold text-gray-800">{format(startDate, 'd MMMM yyyy')}</span></span>
+        <div className="flex items-center gap-4 text-xs text-[var(--neo-text-muted)] mb-4">
+          <div className="flex items-center gap-1">
+            <Clock className="w-4 h-4 text-gray-400" />
+            <span>{sessions} جلسه</span>
           </div>
-          <div className="flex items-center gap-1.5">
-            <Clock className="w-3.5 h-3.5 text-gray-400 shrink-0" />
-            <span className="line-clamp-1">
-              {sessions} جلسه
-              {cls.scheduleDays && cls.scheduleDays.length > 0 && ` • ${cls.scheduleDays.slice(0, 3).join('، ')}`}
-              {cls.scheduleTime && ` • ساعت ${cls.scheduleTime}`}
-            </span>
+          <div className="flex items-center gap-1">
+            <Calendar className="w-4 h-4 text-gray-400" />
+            <span>شروع: {format(startDate, 'd MMMM')}</span>
           </div>
         </div>
 
-        {/* Instructor Info (Square Avatar, No Distortion) */}
-        <div className="flex items-center gap-2.5 mt-auto pt-3 border-t border-[var(--neo-border)]">
-          <div className="w-8 h-8 rounded-full bg-slate-100 overflow-hidden border border-gray-200 shrink-0 aspect-square">
-            {instructorAvatar ? (
-              <img
-                src={getImageUrl(instructorAvatar, 'avatar', instructorName)}
-                alt={instructorName}
-                className="w-full h-full object-cover"
-                onError={(e) => handleImageError(e, 'avatar', instructorName)}
-              />
-            ) : (
-              <div className="w-full h-full flex items-center justify-center text-gray-400 bg-gray-100">
-                <Users className="w-4 h-4" />
-              </div>
-            )}
-          </div>
-          <div className="min-w-0 flex-1">
-            <span className="text-xs font-bold text-gray-800 line-clamp-1">
-              {instructorName}
-            </span>
-          </div>
-        </div>
+        {/* Price & Action Button Footer */}
+        <div className="mt-auto pt-4 border-t border-[var(--neo-border)] flex flex-col">
+          <div className="flex items-center justify-between mb-3">
+            <div className="font-bold text-lg font-mono">
+              {isFree ? (
+                <span className="text-emerald-600 font-sans">رایگان</span>
+              ) : (
+                <div className="flex flex-col">
+                  {hasDiscount ? (
+                    <>
+                      <span className="text-[var(--neo-text-muted)] text-xs line-through font-mono">
+                        {price.toLocaleString('fa-IR')} تومان
+                      </span>
+                      <span className="text-[var(--neo-primary)] font-mono">
+                        {finalPrice.toLocaleString('fa-IR')} <span className="text-xs font-normal font-sans text-gray-500">تومان</span>
+                      </span>
+                    </>
+                  ) : (
+                    <span className="text-[var(--neo-primary)] font-mono">
+                      {finalPrice.toLocaleString('fa-IR')} <span className="text-xs font-normal font-sans text-gray-500">تومان</span>
+                    </span>
+                  )}
+                </div>
+              )}
+            </div>
 
-        {/* Price & Action Button */}
-        <div className="pt-3 mt-3 border-t border-[var(--neo-border)] flex items-center justify-between">
-          <div>
-            <span className="text-[10px] text-gray-400 block">شهریه کلاس</span>
-            {isFree ? (
-              <span className="font-black text-emerald-600 text-sm">رایگان</span>
-            ) : (
-              <div className="flex items-baseline gap-1.5">
-                <span className="font-black text-base text-[var(--neo-primary)] font-mono">
-                  {finalPrice.toLocaleString('fa-IR')}
-                </span>
-                <span className="text-[10px] text-gray-500 font-normal">تومان</span>
-                {hasDiscount && (
-                  <span className="text-[11px] text-gray-400 line-through font-mono mr-1">
-                    {price.toLocaleString('fa-IR')}
-                  </span>
-                )}
-              </div>
-            )}
+            <Link
+              href={linkHref}
+              className="text-xs text-[var(--neo-text-secondary)] font-medium group-hover:text-[var(--neo-primary)] transition flex items-center gap-1"
+            >
+              <span>مشاهده کلاس</span>
+              <ArrowLeft className="w-3.5 h-3.5" />
+            </Link>
           </div>
-
-          <Link
-            href={linkHref}
-            className="inline-flex items-center gap-1 px-3.5 py-1.5 rounded-xl bg-[var(--neo-primary)]/10 hover:bg-[var(--neo-primary)] text-[var(--neo-primary)] hover:text-white font-bold text-xs transition-colors"
-          >
-            <span>مشاهده</span>
-            <ArrowLeft className="w-3.5 h-3.5" />
-          </Link>
         </div>
 
       </div>

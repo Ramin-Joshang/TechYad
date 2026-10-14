@@ -10,6 +10,7 @@ import { parseDateSafely } from '../../common/utils/date.js';
 import { AuditService } from '../../common/services/audit.service.js';
 import { FinancialRevenueService } from '../commerce/financial-revenue.service.js';
 import { MediaService } from '../media/media.service.js';
+import { InstructorProfile } from '../instructors/instructor-profile.model.js';
 
 export class ClassService {
   static async getInstructorClasses(instructorId: string) {
@@ -148,6 +149,36 @@ export class ClassService {
 
     if (!classData) throw new AppError('Class not found', 404, 'NOT_FOUND');
     const obj = classData.toObject();
+
+    // Enrich instructors with full InstructorProfile bio and qualifications
+    if (obj.instructors && Array.isArray(obj.instructors) && obj.instructors.length > 0) {
+      const instUserIds = obj.instructors
+        .map((i: any) => i?._id || i)
+        .filter(Boolean);
+      try {
+        const profiles = await InstructorProfile.find({ userId: { $in: instUserIds } }).lean();
+        const profileMap = new Map(profiles.map((p: any) => [p.userId.toString(), p]));
+
+        obj.instructors = obj.instructors.map((inst: any) => {
+          if (!inst || typeof inst !== 'object') return inst;
+          const prof = profileMap.get(inst._id?.toString());
+          if (prof) {
+            return {
+              ...inst,
+              bio: prof.bio || inst.bio,
+              specialty: prof.title || inst.specialty,
+              education: prof.education || [],
+              experience: prof.experience || [],
+              specialties: prof.specialties || [],
+            };
+          }
+          return inst;
+        });
+      } catch (e) {
+        // Fallback safely to populated user bio
+      }
+    }
+
     return {
       ...obj,
       phase: getClassPhase(obj),

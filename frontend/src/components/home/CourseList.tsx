@@ -4,6 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { Users, Star, ChevronRight, ChevronLeft } from 'lucide-react';
 import { getImageUrl, handleImageError } from '@/lib/utils';
+import { ClassCard } from '@/components/classes/ClassCard';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Autoplay } from 'swiper/modules';
 
@@ -132,6 +133,14 @@ export function CourseList({
                 const hasDiscount = item.discountPrice && item.discountPrice < item.price;
                 const displayPrice = hasDiscount ? item.discountPrice : item.price;
 
+                if (isClass) {
+                  return (
+                    <SwiperSlide key={item._id} className="h-auto">
+                      <ClassCard cls={item} />
+                    </SwiperSlide>
+                  );
+                }
+
                 return (
                   <SwiperSlide key={item._id} className="h-auto">
                     <Link
@@ -141,8 +150,8 @@ export function CourseList({
                       {/* Thumbnail Container */}
                       <div className="relative aspect-[16/10] overflow-hidden bg-[var(--neo-surface-2)]">
                         <img
-                          src={getImageUrl(item.coverImage || item.thumbnail, isClass ? 'class' : 'course', item.title)}
-                          onError={(e) => handleImageError(e, isClass ? 'class' : 'course', item.title)}
+                          src={getImageUrl(item.thumbnail || item.coverImage, 'course', item.title)}
+                          onError={(e) => handleImageError(e, 'course', item.title)}
                           alt={item.title}
                           className="w-full h-full object-cover group-hover:scale-105 transition duration-500 ease-out"
                         />
