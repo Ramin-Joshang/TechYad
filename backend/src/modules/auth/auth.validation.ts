@@ -49,7 +49,7 @@ export const updateProfileSchema = z.object({
     lastName: z.string().min(2).optional(),
     avatar: z.string().optional().nullable(),
     personnelPhoto: z.string().optional().nullable(),
-    bio: z.string().max(1000).optional().nullable(),
+    bio: z.string().max(10000).optional().nullable(),
     specialty: z.string().max(200).optional().nullable(),
   })
 });

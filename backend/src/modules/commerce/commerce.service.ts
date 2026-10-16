@@ -529,6 +529,8 @@ export class CommerceService {
     let authority = resNum;
     let paymentUrl = '';
     let gatewayName = 'saman';
+    let token: string | undefined = undefined;
+    let postActionUrl: string | undefined = undefined;
 
     if (isSamanEnabled) {
       const sepResult = await SamanGatewayService.requestToken({
@@ -539,6 +541,9 @@ export class CommerceService {
       });
       authority = sepResult.token || resNum;
       paymentUrl = sepResult.paymentUrl;
+      token = sepResult.token;
+      postActionUrl = sepResult.postActionUrl;
+
       if (order.walletAmountApplied && order.walletAmountApplied > 0) {
         gatewayName = 'hybrid_saman';
       }
@@ -568,6 +573,8 @@ export class CommerceService {
     return { 
       payment, 
       paymentUrl,
+      postActionUrl,
+      token,
       gateway: gatewayName,
       orderId: order._id
     };

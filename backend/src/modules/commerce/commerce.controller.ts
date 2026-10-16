@@ -83,8 +83,22 @@ export const handleGatewayCallback = async (req: Request, res: Response) => {
       const tx = await WalletTransaction.findOne({ referenceId: authority });
       if (tx) {
         if (isSuccess) {
-          await WalletService.verifyCharge(tx.userId.toString(), authority, 'OK');
-          return res.redirect(`${frontendBaseUrl}/student/wallet?charged=true&amount=${tx.amount}`);
+          const verifyChargeRes = await WalletService.verifyCharge(
+            tx.userId.toString(),
+            authority,
+            'OK',
+            {
+              refNum,
+              rrn,
+              traceNo,
+              rawParams: params
+            }
+          );
+          if (verifyChargeRes.success) {
+            return res.redirect(`${frontendBaseUrl}/student/wallet?charged=true&amount=${tx.amount}&refNum=${encodeURIComponent(refNum)}`);
+          } else {
+            return res.redirect(`${frontendBaseUrl}/student/wallet?charged=failed&message=${encodeURIComponent(verifyChargeRes.message || 'خطا در تایید شارژ')}`);
+          }
         } else {
           await WalletService.verifyCharge(tx.userId.toString(), authority, 'NOK');
           return res.redirect(`${frontendBaseUrl}/student/wallet?charged=failed`);

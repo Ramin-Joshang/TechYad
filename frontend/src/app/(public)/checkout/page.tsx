@@ -104,8 +104,35 @@ export default function CheckoutPage() {
       const paymentRes = await commerceApi.createMockPayment(orderId);
       return paymentRes.data;
     },
-    onSuccess: (data) => {
-      window.location.href = data.paymentUrl;
+    onSuccess: (data: any) => {
+      // Scenario A: Auto POST form submit to https://sep.shaparak.ir/OnlinePG/OnlinePG
+      if (data?.postActionUrl && data?.token && !String(data?.paymentUrl || '').includes('mock-gateway')) {
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = data.postActionUrl;
+        form.style.display = 'none';
+
+        const tokenInput = document.createElement('input');
+        tokenInput.type = 'hidden';
+        tokenInput.name = 'Token';
+        tokenInput.value = data.token;
+        form.appendChild(tokenInput);
+
+        const getMethodInput = document.createElement('input');
+        getMethodInput.type = 'hidden';
+        getMethodInput.name = 'GetMethod';
+        getMethodInput.value = '';
+        form.appendChild(getMethodInput);
+
+        document.body.appendChild(form);
+        form.submit();
+        return;
+      }
+
+      // Scenario B: Direct redirect to https://sep.shaparak.ir/OnlinePG/SendToken?token=...
+      if (data?.paymentUrl) {
+        window.location.href = data.paymentUrl;
+      }
     },
     onError: (error: any) => {
       toast.error(error.response?.data?.message || 'خطا در ایجاد تراکنش بانکی');

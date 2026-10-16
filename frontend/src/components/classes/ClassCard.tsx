@@ -103,67 +103,109 @@ export function ClassCard({ cls, variant = "standard" }: ClassCardProps) {
   }
 
   const linkHref = `/classes/${cls.slug || cls._id}`;
+  const classImage = getImageUrl(
+    cls.thumbnail || cls.coverImage || cls.banner,
+    "class",
+    cls.title
+  );
+  const hasImage = Boolean(classImage && classImage.trim() !== "");
 
   return (
     <div className="group flex flex-col bg-white rounded-2xl border border-[var(--neo-border)] overflow-hidden hover:shadow-xl hover:shadow-[var(--neo-primary)]/5 transition duration-300 text-right h-full">
-      {/* 1. Class Image Poster Frame (Aspect 16/10 matching CourseCard) */}
-      <Link
-        href={linkHref}
-        className="relative aspect-[16/10] overflow-hidden bg-[var(--neo-surface-2)] block shrink-0"
-      >
-        <img
-          src={getImageUrl(
-            cls.thumbnail || cls.coverImage || cls.banner,
-            "class",
-            cls.title,
-          )}
-          alt={cls.title}
-          className="w-full h-full object-fill group-hover:scale-105 transition duration-500"
-          onError={(e) => handleImageError(e, "class", cls.title)}
-        />
+      {/* 1. Class Image Poster Frame (Only rendered if image exists) */}
+      {hasImage ? (
+        <Link
+          href={linkHref}
+          className="relative aspect-[16/10] overflow-hidden bg-[var(--neo-surface-2)] block shrink-0"
+        >
+          <img
+            src={classImage}
+            alt={cls.title}
+            className="w-full h-full object-fill group-hover:scale-105 transition duration-500"
+            onError={(e) => handleImageError(e, "class", cls.title)}
+          />
 
-        {/* Top Right Badges */}
-        <div className="absolute bottom-4 right-4 flex flex-wrap gap-2 z-10">
-          {cls.categoryId?.name && (
-            <div className="bg-white/90 backdrop-blur text-[var(--neo-text-main)] text-xs font-bold px-3 py-1 rounded-full shadow-2xs">
-              {cls.categoryId.name}
-            </div>
-          )}
-          <span
-            className={`px-2.5 py-1 rounded-full text-xs font-bold shadow-2xs flex items-center gap-1.5 ${
-              isOnline
-                ? "bg-blue-600/90 text-white"
-                : "bg-emerald-600/90 text-white"
-            }`}
-          >
-            {isOnline ? (
-              <Monitor className="w-3.5 h-3.5" />
-            ) : (
-              <MapPin className="w-3.5 h-3.5" />
+          {/* Top Right Badges */}
+          <div className="absolute bottom-4 right-4 flex flex-wrap gap-2 z-10">
+            {cls.categoryId?.name && (
+              <div className="bg-white/90 backdrop-blur text-[var(--neo-text-main)] text-xs font-bold px-3 py-1 rounded-full shadow-2xs">
+                {cls.categoryId.name}
+              </div>
             )}
-            <span>{isOnline ? "آنلاین (Live)" : "کارگاه حضوری"}</span>
-          </span>
-          {isRegistrationClosed && (
-            <div className="bg-rose-500 text-white text-xs font-bold px-2.5 py-1 rounded-full shadow-xs">
-              ثبت‌نام بسته شد
-            </div>
-          )}
-        </div>
-
-        {/* Top Left Badges (Discount or Pre-registration) */}
-        <div className="absolute top-4 left-4 flex flex-col gap-1 items-end z-10">
-          {hasDiscount && !isFree && (
-            <div className="bg-rose-500 text-white text-xs font-bold px-2 py-1 rounded-full shadow-2xs">
-              {Math.round((1 - discountPrice! / price) * 100)}% تخفیف
-            </div>
-          )}
-          {cls.allowPreRegistration && (
-            <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-amber-500/95 text-white shadow-2xs backdrop-blur-xs">
-              پیش‌ثبت‌نام بیعانه
+            <span
+              className={`px-2.5 py-1 rounded-full text-xs font-bold shadow-2xs flex items-center gap-1.5 ${
+                isOnline
+                  ? "bg-blue-600/90 text-white"
+                  : "bg-emerald-600/90 text-white"
+              }`}
+            >
+              {isOnline ? (
+                <Monitor className="w-3.5 h-3.5" />
+              ) : (
+                <MapPin className="w-3.5 h-3.5" />
+              )}
+              <span>{isOnline ? "آنلاین (Live)" : "کارگاه حضوری"}</span>
             </span>
-          )}
+            {isRegistrationClosed && (
+              <div className="bg-rose-500 text-white text-xs font-bold px-2.5 py-1 rounded-full shadow-xs">
+                ثبت‌نام بسته شد
+              </div>
+            )}
+          </div>
+
+          {/* Top Left Badges (Discount or Pre-registration) */}
+          <div className="absolute top-4 left-4 flex flex-col gap-1 items-end z-10">
+            {hasDiscount && !isFree && (
+              <div className="bg-rose-500 text-white text-xs font-bold px-2 py-1 rounded-full shadow-2xs">
+                {Math.round((1 - discountPrice! / price) * 100)}% تخفیف
+              </div>
+            )}
+            {cls.allowPreRegistration && (
+              <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-amber-500/95 text-white shadow-2xs backdrop-blur-xs">
+                پیش‌ثبت‌نام بیعانه
+              </span>
+            )}
+          </div>
+        </Link>
+      ) : (
+        /* Top badge header if no image */
+        <div className="p-4 pb-0 flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 bg-slate-50/50">
+          <div className="flex flex-wrap items-center gap-2">
+            {cls.categoryId?.name && (
+              <span className="bg-blue-50 text-blue-700 text-xs font-bold px-3 py-1 rounded-full border border-blue-100">
+                {cls.categoryId.name}
+              </span>
+            )}
+            <span
+              className={`px-2.5 py-1 rounded-full text-xs font-bold flex items-center gap-1.5 ${
+                isOnline
+                  ? "bg-blue-600 text-white"
+                  : "bg-emerald-600 text-white"
+              }`}
+            >
+              {isOnline ? (
+                <Monitor className="w-3.5 h-3.5" />
+              ) : (
+                <MapPin className="w-3.5 h-3.5" />
+              )}
+              <span>{isOnline ? "آنلاین (Live)" : "کارگاه حضوری"}</span>
+            </span>
+          </div>
+
+          <div className="flex items-center gap-1.5">
+            {hasDiscount && !isFree && (
+              <span className="bg-rose-500 text-white text-xs font-bold px-2 py-0.5 rounded-full">
+                {Math.round((1 - discountPrice! / price) * 100)}% تخفیف
+              </span>
+            )}
+            {isRegistrationClosed && (
+              <span className="bg-rose-100 text-rose-700 text-xs font-bold px-2.5 py-0.5 rounded-full">
+                تکمیل ظرفیت
+              </span>
+            )}
+          </div>
         </div>
-      </Link>
+      )}
 
       {/* 2. Card Body Content */}
       <div className="p-5 flex flex-col flex-grow text-right">

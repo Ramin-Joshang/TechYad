@@ -133,6 +133,8 @@ export const walletApi = {
       authority: string;
       amount: number;
       paymentUrl: string;
+      postActionUrl?: string;
+      token?: string;
     }>>('/wallet/charge', { amount });
   },
 

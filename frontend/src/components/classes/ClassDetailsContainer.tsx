@@ -390,40 +390,75 @@ export function ClassDetailsContainer({ slug, initialData }: { slug: string; ini
             </div>
           </div>
           
-          {/* Hero Thumbnail */}
-          <div className="w-full lg:w-[420px] shrink-0">
-            <div className="relative rounded-3xl overflow-hidden shadow-2xl border-4 border-white/10 aspect-video lg:aspect-[4/3] bg-slate-950">
-              <img 
-                src={getImageUrl(cls.thumbnail, 'class', cls.title)} 
-                alt={cls.title} 
-                className="w-full h-full object-fill" 
-                onError={(e) => handleImageError(e, 'class', cls.title)}
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent flex items-end p-5">
-                {instructor && (
-                  <Link 
-                    href={`/instructors/${instructor.slug || instructor._id}`}
-                    className="flex items-center gap-3 bg-black/50 hover:bg-black/75 backdrop-blur-xs px-3 py-1.5 rounded-2xl border border-white/20 transition group"
-                    title="مشاهده رزومه استاد"
-                  >
-                    <img 
-                      src={getImageUrl(instructor.personnelPhoto || instructor.avatar, 'avatar', `${instructor.firstName || ''} ${instructor.lastName || ''}`)} 
-                      className="w-10 h-10 rounded-full border-2 border-white object-cover" 
-                      alt={`${instructor.firstName || ''} ${instructor.lastName || ''}`}
-                      onError={(e) => handleImageError(e, 'avatar', `${instructor.firstName || ''} ${instructor.lastName || ''}`)} 
-                    />
-                    <div>
-                      <span className="text-[10px] text-slate-300 block">مدرس کلاس:</span>
-                      <span className="font-bold text-sm text-white group-hover:text-blue-300 transition flex items-center gap-1">
-                        {instructor.firstName} {instructor.lastName}
-                        <ChevronLeft className="w-3.5 h-3.5" />
-                      </span>
-                    </div>
-                  </Link>
-                )}
+          {/* Hero Thumbnail (Only rendered if class has image) */}
+          {(() => {
+            const classImg = getImageUrl(cls.thumbnail || cls.coverImage || cls.banner, 'class', cls.title);
+            const hasClassImg = Boolean(classImg && classImg.trim() !== '');
+
+            if (!hasClassImg) {
+              return instructor ? (
+                <div className="w-full lg:w-[320px] shrink-0">
+                  <div className="bg-white/10 backdrop-blur-md rounded-3xl p-6 border border-white/15">
+                    <span className="text-xs text-blue-300 block mb-3 font-medium">مدرس این کلاس:</span>
+                    <Link 
+                      href={`/instructors/${instructor.slug || instructor._id}`}
+                      className="flex items-center gap-4 group"
+                    >
+                      <img 
+                        src={getImageUrl(instructor.personnelPhoto || instructor.avatar, 'avatar', `${instructor.firstName || ''} ${instructor.lastName || ''}`)} 
+                        className="w-16 h-16 rounded-2xl border-2 border-white/20 object-fill aspect-square shrink-0" 
+                        alt={`${instructor.firstName || ''} ${instructor.lastName || ''}`}
+                        onError={(e) => handleImageError(e, 'avatar', `${instructor.firstName || ''} ${instructor.lastName || ''}`)} 
+                      />
+                      <div>
+                        <div className="font-bold text-base text-white group-hover:text-blue-300 transition flex items-center gap-1">
+                          {instructor.firstName} {instructor.lastName}
+                          <ChevronLeft className="w-4 h-4" />
+                        </div>
+                        <div className="text-xs text-slate-300 mt-1 line-clamp-1">{instructor.specialty || 'مدرس تک‌یاد'}</div>
+                      </div>
+                    </Link>
+                  </div>
+                </div>
+              ) : null;
+            }
+
+            return (
+              <div className="w-full lg:w-[420px] shrink-0">
+                <div className="relative rounded-3xl overflow-hidden shadow-2xl border-4 border-white/10 aspect-video lg:aspect-[4/3] bg-slate-950">
+                  <img 
+                    src={classImg} 
+                    alt={cls.title} 
+                    className="w-full h-full object-fill" 
+                    onError={(e) => handleImageError(e, 'class', cls.title)}
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent flex items-end p-5">
+                    {instructor && (
+                      <Link 
+                        href={`/instructors/${instructor.slug || instructor._id}`}
+                        className="flex items-center gap-3 bg-black/50 hover:bg-black/75 backdrop-blur-xs px-3 py-1.5 rounded-2xl border border-white/20 transition group"
+                        title="مشاهده رزومه استاد"
+                      >
+                        <img 
+                          src={getImageUrl(instructor.personnelPhoto || instructor.avatar, 'avatar', `${instructor.firstName || ''} ${instructor.lastName || ''}`)} 
+                          className="w-10 h-10 rounded-full border-2 border-white object-cover" 
+                          alt={`${instructor.firstName || ''} ${instructor.lastName || ''}`}
+                          onError={(e) => handleImageError(e, 'avatar', `${instructor.firstName || ''} ${instructor.lastName || ''}`)} 
+                        />
+                        <div>
+                          <span className="text-[10px] text-slate-300 block">مدرس کلاس:</span>
+                          <span className="font-bold text-sm text-white group-hover:text-blue-300 transition flex items-center gap-1">
+                            {instructor.firstName} {instructor.lastName}
+                            <ChevronLeft className="w-3.5 h-3.5" />
+                          </span>
+                        </div>
+                      </Link>
+                    )}
+                  </div>
+                </div>
               </div>
-            </div>
-          </div>
+            );
+          })()}
 
         </div>
       </div>

@@ -166,14 +166,18 @@ export class SamanGatewayService {
       const token = resData?.token || resData?.Token;
 
       if (status === 1 && token) {
-        // سناریوی ب: ریدایرکت با متد GET به SendToken جهت رفع قطعی خطای 404
-        const paymentUrl = `${this.SEP_GET_GATEWAY_URL}?token=${encodeURIComponent(token)}`;
+        // خواندن هدر X-IPG-Url در صورت فعال بودن سرویس neo-pg طبق مستند فنی
+        const xIpgUrl = response.headers?.['x-ipg-url'] || response.headers?.['X-IPG-Url'];
+        const postActionUrl = (xIpgUrl && typeof xIpgUrl === 'string') ? xIpgUrl : this.SEP_POST_GATEWAY_URL;
+        const paymentUrl = xIpgUrl 
+          ? `${xIpgUrl}?token=${encodeURIComponent(token)}` 
+          : `${this.SEP_GET_GATEWAY_URL}?token=${encodeURIComponent(token)}`;
 
         return {
           success: true,
           token,
           paymentUrl,
-          postActionUrl: this.SEP_POST_GATEWAY_URL,
+          postActionUrl,
           isSimulated: false,
           message: 'توکن پرداخت سامان با موفقیت دریافت شد.',
         };
@@ -313,21 +317,45 @@ export class SamanGatewayService {
     const terminalId = await this.getTerminalId();
     const terminalNumber = Number(terminalId) || Number(this.DEFAULT_TERMINAL_ID);
 
+    let response: any;
+    const verifyPayload = {
+      RefNum: refNum.trim(),
+      refnum: refNum.trim(),
+      TerminalNumber: terminalNumber,
+      terminalnumber: terminalNumber,
+    };
+
     try {
-      const response = await axios.post(
-        this.SEP_VERIFY_URL,
-        {
-          RefNum: refNum.trim(),
-          TerminalNumber: terminalNumber,
-        },
-        {
-          headers: {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json',
-          },
-          timeout: 8000,
+      try {
+        response = await axios.post(
+          this.SEP_VERIFY_URL,
+          verifyPayload,
+          {
+            headers: {
+              'Content-Type': 'application/json',
+              'Accept': 'application/json',
+            },
+            timeout: 8000,
+          }
+        );
+      } catch (firstErr: any) {
+        if (firstErr?.response?.status === 404) {
+          // در صورت املای VerifyTranscation مطابق با Postman collection
+          response = await axios.post(
+            'https://sep.shaparak.ir/verifyTxnRandomSessionkey/ipg/VerifyTranscation',
+            verifyPayload,
+            {
+              headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+              },
+              timeout: 8000,
+            }
+          );
+        } else {
+          throw firstErr;
         }
-      );
+      }
 
       const resData = response.data;
       const resultCode = Number(resData?.ResultCode);
