@@ -1,3 +1,7 @@
+# User uploaded files
+backend/uploads/*
+!backend/uploads/.gitkeep
+
 # Logs
 logs
 *.log
