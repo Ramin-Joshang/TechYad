@@ -337,7 +337,7 @@ export default function CheckoutPage() {
                         </span>
                       </div>
                       <div className="text-xs text-slate-600 mt-1">
-                        پرداخت مبلغ باقیمانده ({remainingToPay.toLocaleString('fa-IR')} تومان) با کلیه کارت‌های عضو شتاب از طریق درگاه امن سامان (شماره ترمینال: ۱۵۸۵۹۹۱۰)
+                        پرداخت مبلغ باقیمانده ({remainingToPay.toLocaleString('fa-IR')} تومان) با کلیه کارت‌های عضو شتاب از طریق درگاه پرداخت الکترونیک سامان (شاپرک)
                       </div>
                     </div>
                   </div>

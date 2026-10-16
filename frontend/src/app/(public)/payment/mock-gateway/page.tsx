@@ -92,12 +92,6 @@ function MockGatewayContent() {
             <span className="font-bold text-gray-900">آکادمی تک‌یاد (TechYad)</span>
           </div>
           <div className="flex justify-between items-center">
-            <span className="text-gray-500">شماره ترمینال (Terminal ID):</span>
-            <span className="font-mono font-black text-blue-700 text-sm px-2 py-0.5 bg-blue-100/70 rounded-md">
-              {terminalId}
-            </span>
-          </div>
-          <div className="flex justify-between items-center">
             <span className="text-gray-500">شناسه خرید / ارجاع:</span>
             <span className="font-mono text-gray-700 text-[11px] max-w-[200px] truncate" title={authority}>
               {authority}
