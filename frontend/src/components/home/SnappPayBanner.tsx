@@ -1,157 +1,138 @@
 'use client';
 
-import { useState } from 'react';
 import Link from 'next/link';
 import { 
   CreditCard, Sparkles, ArrowLeft, CheckCircle2, ShieldCheck, 
-  Zap, Percent, Wallet
+  Zap, Wallet, GraduationCap, ChevronLeft
 } from 'lucide-react';
 
-const PRESET_AMOUNTS = [
-  { label: 'دوره عمومی', amount: 1200000 },
-  { label: 'دوره جامع تخصصی', amount: 2400000 },
-  { label: 'بوت‌کمپ و کلاس زنده', amount: 3600000 },
-];
-
 export function SnappPayBanner() {
-  const [selectedAmount, setSelectedAmount] = useState<number>(2400000);
-
-  const installmentAmount = Math.round(selectedAmount / 4);
-
-  const formatPrice = (val: number) => {
-    return val.toLocaleString('fa-IR');
-  };
-
   return (
-    <section className="py-8 sm:py-12 bg-[var(--neo-bg)] border-b border-[var(--neo-border)]">
+    <section className="py-8 sm:py-12 bg-[var(--neo-bg)] border-b border-[var(--neo-border)] overflow-hidden">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div 
           dir="rtl"
-          className="relative overflow-hidden rounded-3xl bg-white border-2 border-[var(--neo-border)] shadow-sm hover:shadow-md transition-all duration-300 p-6 sm:p-8 md:p-10"
+          className="relative overflow-hidden rounded-3xl bg-linear-to-br from-slate-900 via-indigo-950 to-slate-900 text-white shadow-xl p-6 sm:p-10 md:p-12 border border-indigo-900/60"
         >
-          {/* Subtle themed ambient gradients */}
-          <div className="absolute top-0 right-0 w-80 h-80 bg-[var(--neo-primary)]/5 rounded-full blur-3xl pointer-events-none" />
-          <div className="absolute bottom-0 left-0 w-80 h-80 bg-sky-400/5 rounded-full blur-3xl pointer-events-none" />
+          {/* Subtle ambient lighting decorations */}
+          <div className="absolute top-0 right-1/4 w-96 h-96 bg-blue-500/15 rounded-full blur-3xl pointer-events-none" />
+          <div className="absolute -bottom-20 -left-20 w-80 h-80 bg-cyan-400/15 rounded-full blur-3xl pointer-events-none" />
 
           <div className="relative z-10 flex flex-col lg:flex-row items-center justify-between gap-8 lg:gap-12">
             
-            {/* Right Side (Content & Benefits) */}
+            {/* Right Side: Introduction & Value Proposition */}
             <div className="flex-1 text-right w-full">
-              {/* Badge */}
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-50 border border-cyan-200 text-cyan-800 text-xs font-bold mb-3 shadow-2xs">
-                <span className="w-2 h-2 rounded-full bg-cyan-500 animate-pulse" />
-                <span className="text-cyan-700 font-black">اسنپ‌پی | SnappPay</span>
-                <span className="text-gray-300">|</span>
-                <span className="text-cyan-800 font-medium">پرداخت در ۴ قسط مساوی</span>
+              {/* Promotional Status Badge */}
+              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-cyan-500/15 border border-cyan-400/30 text-cyan-300 text-xs font-bold mb-4 backdrop-blur-md">
+                <Sparkles className="w-3.5 h-3.5 text-cyan-300 animate-pulse" />
+                <span>فرصت ویژه یادگیری در تک‌یاد</span>
+                <span className="text-cyan-600">|</span>
+                <span className="font-normal text-cyan-200">با همکاری اسنپ‌پی و سرویس‌های اعتباری</span>
               </div>
 
-              {/* Title */}
-              <h2 className="text-xl sm:text-2xl md:text-3xl font-black text-[var(--neo-text-main)] leading-snug mb-2.5">
-                یادگیری امروز، <span className="text-[var(--neo-primary)]">پرداخت در ۴ قسط</span> بدون کارمزد!
+              {/* Catchy Headline */}
+              <h2 className="text-2xl sm:text-3xl md:text-4xl font-black leading-tight sm:leading-snug mb-3.5 text-white">
+                امکان <span className="text-transparent bg-clip-text bg-linear-to-r from-cyan-300 via-blue-300 to-indigo-200">خرید اقساطی دوره‌ها</span>؛
+                <br className="hidden sm:inline" /> یادگیری امروز، پرداخت منعطف و آسان
               </h2>
 
-              {/* Subtitle */}
-              <p className="text-xs sm:text-sm text-[var(--neo-text-secondary)] leading-relaxed mb-5 max-w-xl">
-                با اعتبار اسنپ‌پی، هزینه دوره‌ها و کلاس‌های تک‌یاد را بدون چک، بدون ضامن و بدون سود در ۴ قسط ماهانه بپردازید و یادگیری را همین لحظه با پرداخت فقط ۲۵٪ مبلغ شروع کنید.
+              {/* Concise descriptive copy */}
+              <p className="text-sm sm:text-base text-slate-300 leading-relaxed mb-6 max-w-2xl font-light">
+                دسترسی به آموزش‌های تخصصی و ورود به بازار کار نباید معطل محدودیت‌های مالی بماند. با راهکار پرداخت اقساطی تک‌یاد، می‌توانید بدون دغدغه در دوره‌ها و کلاس‌های مورد علاقه‌تان ثبت‌نام کنید و هزینه آن را در بازه‌های زمانی راحت بپردازید.
               </p>
 
-              {/* Quick Feature Badges */}
-              <div className="flex flex-wrap items-center gap-2.5 sm:gap-4 mb-6 text-xs font-bold text-[var(--neo-text-main)]">
-                <div className="flex items-center gap-1.5 bg-[var(--neo-surface-2)] px-3 py-1.5 rounded-xl border border-[var(--neo-border)]">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
-                  <span>۰٪ کارمزد و سود اضافه</span>
+              {/* Advantage Badges */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-8">
+                <div className="flex items-center gap-2.5 bg-white/5 border border-white/10 rounded-2xl p-3 backdrop-blur-xs">
+                  <div className="w-8 h-8 rounded-xl bg-cyan-400/20 text-cyan-300 flex items-center justify-center shrink-0">
+                    <Zap className="w-4 h-4" />
+                  </div>
+                  <div className="text-right">
+                    <div className="text-xs font-bold text-white">دسترسی آنی به آموزش</div>
+                    <div className="text-[11px] text-slate-400 mt-0.5">شروع سریع یادگیری بدون وقفه</div>
+                  </div>
                 </div>
-                <div className="flex items-center gap-1.5 bg-[var(--neo-surface-2)] px-3 py-1.5 rounded-xl border border-[var(--neo-border)]">
-                  <ShieldCheck className="w-4 h-4 text-cyan-600 shrink-0" />
-                  <span>بدون چک، سفته و ضامن</span>
+
+                <div className="flex items-center gap-2.5 bg-white/5 border border-white/10 rounded-2xl p-3 backdrop-blur-xs">
+                  <div className="w-8 h-8 rounded-xl bg-indigo-400/20 text-indigo-300 flex items-center justify-center shrink-0">
+                    <ShieldCheck className="w-4 h-4" />
+                  </div>
+                  <div className="text-right">
+                    <div className="text-xs font-bold text-white">بدون چک و ضامن پیچیده</div>
+                    <div className="text-[11px] text-slate-400 mt-0.5">ثبت‌نام آنلاین و بدون مدارک سنتی</div>
+                  </div>
                 </div>
-                <div className="flex items-center gap-1.5 bg-[var(--neo-surface-2)] px-3 py-1.5 rounded-xl border border-[var(--neo-border)]">
-                  <Zap className="w-4 h-4 text-amber-500 shrink-0" />
-                  <span>دسترسی آنی به کل دوره</span>
+
+                <div className="flex items-center gap-2.5 bg-white/5 border border-white/10 rounded-2xl p-3 backdrop-blur-xs">
+                  <div className="w-8 h-8 rounded-xl bg-emerald-400/20 text-emerald-300 flex items-center justify-center shrink-0">
+                    <Wallet className="w-4 h-4" />
+                  </div>
+                  <div className="text-right">
+                    <div className="text-xs font-bold text-white">مدیریت آسان هزینه‌ها</div>
+                    <div className="text-[11px] text-slate-400 mt-0.5">تقسیم شهریه در بازه‌های منظم</div>
+                  </div>
                 </div>
               </div>
 
-              {/* Action Button */}
-              <div className="flex items-center gap-3">
+              {/* Call To Action Buttons */}
+              <div className="flex flex-wrap items-center gap-4">
                 <Link
                   href="/courses"
-                  className="px-5 py-2.5 rounded-xl bg-[var(--neo-primary)] hover:bg-[#5a3ae6] text-white font-bold text-xs sm:text-sm shadow-sm transition flex items-center gap-2 cursor-pointer"
+                  className="px-6 py-3 rounded-2xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-black text-sm shadow-lg shadow-cyan-500/25 transition-all duration-200 flex items-center gap-2 group cursor-pointer"
                 >
-                  <span>مشاهده دوره‌ها و خرید اقساطی</span>
-                  <ArrowLeft className="w-4 h-4" />
+                  <GraduationCap className="w-4 h-4 text-slate-950" />
+                  <span>مشاهده و انتخاب دوره‌ها</span>
+                  <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
                 </Link>
-                <span className="text-[11px] text-[var(--neo-text-muted)] font-medium">
-                  انتخاب درگاه اسنپ‌پی در مرحله پرداخت
-                </span>
+
+                <div className="text-xs text-slate-400 flex items-center gap-2 font-medium">
+                  <CheckCircle2 className="w-4 h-4 text-cyan-400 shrink-0" />
+                  <span>امکان پرداخت از درگاه‌های معتبر شتاب و به‌زودی سرویس اقساطی اسنپ‌پی</span>
+                </div>
               </div>
             </div>
 
-            {/* Left Side (Compact Interactive Mini-Calculator) */}
-            <div className="w-full lg:w-[420px] bg-[var(--neo-surface-2)] border border-[var(--neo-border)] rounded-2xl p-5 sm:p-6 text-right shrink-0">
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 rounded-xl bg-white text-[var(--neo-primary)] flex items-center justify-center border border-[var(--neo-border)] shadow-2xs">
-                    <Wallet className="w-4 h-4" />
+            {/* Left Side: Modern Promotional Visual Card */}
+            <div className="w-full lg:w-[380px] shrink-0">
+              <div className="bg-white/10 backdrop-blur-md rounded-3xl border border-white/15 p-6 shadow-2xl relative">
+                <div className="flex items-center justify-between pb-4 border-b border-white/10 mb-5">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-2xl bg-cyan-500/20 border border-cyan-400/30 flex items-center justify-center text-cyan-300 font-bold">
+                      <CreditCard className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <div className="text-sm font-bold text-white">خرید اقساطی هوشمند</div>
+                      <div className="text-[11px] text-cyan-300">سرمایه‌گذاری روی مهارت و تخصص</div>
+                    </div>
                   </div>
-                  <div>
-                    <h3 className="text-xs sm:text-sm font-bold text-[var(--neo-text-main)]">
-                      محاسبه‌گر سریع اقساط
-                    </h3>
-                    <p className="text-[10px] text-[var(--neo-text-muted)]">مبلغ نمونه را انتخاب کنید</p>
+                  <span className="text-[10px] font-bold px-2.5 py-1 rounded-full bg-cyan-400/20 text-cyan-300 border border-cyan-400/30">
+                    BNPL
+                  </span>
+                </div>
+
+                <div className="space-y-3.5 mb-6 text-xs text-slate-300">
+                  <div className="flex items-start gap-2.5">
+                    <CheckCircle2 className="w-4 h-4 text-cyan-400 shrink-0 mt-0.5" />
+                    <span>انتخاب هر دوره، کارگاه یا کلاس زنده مورد نظرتان در سایت</span>
+                  </div>
+                  <div className="flex items-start gap-2.5">
+                    <CheckCircle2 className="w-4 h-4 text-cyan-400 shrink-0 mt-0.5" />
+                    <span>بهره‌مندی از پرداخت قسطی بدون نیاز به پرداخت یکجای شهریه</span>
+                  </div>
+                  <div className="flex items-start gap-2.5">
+                    <CheckCircle2 className="w-4 h-4 text-cyan-400 shrink-0 mt-0.5" />
+                    <span>شروع مستقیم مسیر یادگیری همراه با پشتیبانی اساتید</span>
                   </div>
                 </div>
 
-                <div className="px-2.5 py-1 rounded-lg bg-emerald-50 text-emerald-700 text-[11px] font-bold border border-emerald-200">
-                  سود: ۰ تومان
-                </div>
-              </div>
-
-              {/* Preset Selectors */}
-              <div className="grid grid-cols-3 gap-2 mb-4">
-                {PRESET_AMOUNTS.map((p) => (
-                  <button
-                    key={p.amount}
-                    type="button"
-                    onClick={() => setSelectedAmount(p.amount)}
-                    className={`py-2 px-2 rounded-xl text-center text-xs font-bold transition cursor-pointer border ${
-                      selectedAmount === p.amount
-                        ? 'bg-white text-[var(--neo-primary)] border-[var(--neo-primary)] shadow-xs'
-                        : 'bg-white/60 text-[var(--neo-text-secondary)] border-transparent hover:bg-white'
-                    }`}
-                  >
-                    <div className="text-[10px] text-gray-500 font-normal">{p.label}</div>
-                    <div className="font-mono mt-0.5">{formatPrice(p.amount / 1000)}ک ت</div>
-                  </button>
-                ))}
-              </div>
-
-              {/* Result Highlight */}
-              <div className="bg-white p-3.5 rounded-xl border border-[var(--neo-border)] mb-4 text-center">
-                <div className="text-[11px] text-[var(--neo-text-secondary)] mb-1">
-                  مبلغ هر قسط ماهانه (۴ قسط مساوی):
-                </div>
-                <div className="text-xl sm:text-2xl font-black text-[var(--neo-primary)] font-mono">
-                  {formatPrice(installmentAmount)} <span className="text-xs font-normal text-gray-500">تومان</span>
-                </div>
-              </div>
-
-              {/* 4 Steps timeline pills */}
-              <div className="grid grid-cols-4 gap-1.5 text-center">
-                <div className="p-2 rounded-lg bg-cyan-50 border border-cyan-200">
-                  <div className="text-[9px] font-bold text-cyan-800">امروز</div>
-                  <div className="text-[10px] font-black text-cyan-900 mt-0.5">قسط ۱ (۲۵٪)</div>
-                </div>
-                <div className="p-2 rounded-lg bg-white border border-[var(--neo-border)]">
-                  <div className="text-[9px] text-gray-500">ماه ۱</div>
-                  <div className="text-[10px] font-bold text-gray-700 mt-0.5">قسط ۲</div>
-                </div>
-                <div className="p-2 rounded-lg bg-white border border-[var(--neo-border)]">
-                  <div className="text-[9px] text-gray-500">ماه ۲</div>
-                  <div className="text-[10px] font-bold text-gray-700 mt-0.5">قسط ۳</div>
-                </div>
-                <div className="p-2 rounded-lg bg-white border border-[var(--neo-border)]">
-                  <div className="text-[9px] text-gray-500">ماه ۳</div>
-                  <div className="text-[10px] font-bold text-gray-700 mt-0.5">قسط ۴</div>
+                <div className="p-3.5 rounded-2xl bg-slate-900/60 border border-white/10 text-center">
+                  <div className="text-[11px] text-slate-400 mb-1">
+                    همکاری برای آموزش دسترس‌پذیر برای همه
+                  </div>
+                  <div className="text-xs font-bold text-cyan-300 flex items-center justify-center gap-1.5">
+                    <Sparkles className="w-3.5 h-3.5 text-amber-300" />
+                    <span>فرصت یادگیری بدون مرز مالی در تک‌یاد</span>
+                  </div>
                 </div>
               </div>
             </div>

@@ -15,6 +15,8 @@ export function InstructorsList({ initialData }: { initialData?: any } = {}) {
     queryKey: ['instructors'],
     queryFn: () => api.get('/instructors').then((res: any) => res.data),
     initialData: initialData,
+    staleTime: 0,
+    refetchOnMount: true,
   });
 
   const instructors = instructorsData || initialData;
@@ -191,15 +193,15 @@ function InstructorCard({ instructor, featured = false }: { instructor: any, fea
         )}
         
         <div className="relative z-10 flex gap-5 items-center mb-5">
-          <div className="relative">
+          <div className="relative w-20 h-20 aspect-square shrink-0 rounded-2xl overflow-hidden bg-slate-100 shadow-md">
              <img
                src={displayAvatar}
                onError={(e) => handleImageError(e, 'avatar', fullName)}
                alt={fullName}
-               className={`w-20 h-20 rounded-2xl object-cover shadow-md ${featured ? 'border-2 border-amber-200' : ''}`}
+               className={`w-full h-full aspect-square object-fill ${featured ? 'border-2 border-amber-200' : ''}`}
              />
              {featured && (
-               <div className="absolute -top-2 -right-2 bg-amber-400 text-white rounded-full p-1 shadow-sm">
+               <div className="absolute -top-2 -right-2 bg-amber-400 text-white rounded-full p-1 shadow-sm z-10">
                  <Award className="w-4 h-4" />
                </div>
              )}

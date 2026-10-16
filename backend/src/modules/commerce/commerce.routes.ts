@@ -27,6 +27,8 @@ router.get('/me/orders/:id', requireAuth, asyncHandler(Controller.getOrderById))
 router.post('/payments/:orderId/create', requireAuth, asyncHandler(Controller.createMockPayment));
 router.post('/payments/verify', requireAuth, asyncHandler(Controller.verifyMockPayment));
 // Universal bank gateway callbacks (GET / POST)
+router.get('/payments/saman/form/:token', asyncHandler(Controller.renderSepForm));
+router.get('/payments/saman/form', asyncHandler(Controller.renderSepForm));
 router.get('/payments/callback', asyncHandler(Controller.handleGatewayCallback));
 router.post('/payments/callback', asyncHandler(Controller.handleGatewayCallback));
 router.get('/payments/callback/:gateway', asyncHandler(Controller.handleGatewayCallback));

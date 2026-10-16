@@ -76,6 +76,8 @@ export function ClassesList({ initialData }: { initialData?: any } = {}) {
       return res.data;
     },
     initialData: initialData,
+    staleTime: 0,
+    refetchOnMount: true,
   });
 
   const resolvedData = responseData || initialData;

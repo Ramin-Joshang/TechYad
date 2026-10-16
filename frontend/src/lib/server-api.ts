@@ -56,7 +56,7 @@ export async function serverFetch<T = any>(
 
 // 1. Home / Landing Data
 export async function fetchHomeData() {
-  return serverFetch<any>('/home', { revalidate: 60 });
+  return serverFetch<any>('/home', { revalidate: 10, tags: ['home'] });
 }
 
 // 2. Courses
@@ -70,12 +70,12 @@ export async function fetchCourses(params?: Record<string, string | number | boo
     });
   }
   const endpoint = `/courses${query.toString() ? `?${query.toString()}` : ''}`;
-  return serverFetch<any>(endpoint, { revalidate: 60 });
+  return serverFetch<any>(endpoint, { revalidate: 10, tags: ['courses'] });
 }
 
 export async function fetchCourse(slugOrId: string) {
   if (!slugOrId) return null;
-  return serverFetch<any>(`/courses/${encodeURIComponent(slugOrId)}`, { revalidate: 60 });
+  return serverFetch<any>(`/courses/${encodeURIComponent(slugOrId)}`, { revalidate: 10, tags: ['courses', `course-${slugOrId}`] });
 }
 
 // 3. Classes
@@ -89,22 +89,22 @@ export async function fetchClasses(params?: Record<string, string | number | boo
     });
   }
   const endpoint = `/classes${query.toString() ? `?${query.toString()}` : ''}`;
-  return serverFetch<any>(endpoint, { revalidate: 60 });
+  return serverFetch<any>(endpoint, { revalidate: 10, tags: ['classes'] });
 }
 
 export async function fetchClass(slugOrId: string) {
   if (!slugOrId) return null;
-  return serverFetch<any>(`/classes/${encodeURIComponent(slugOrId)}`, { revalidate: 60 });
+  return serverFetch<any>(`/classes/${encodeURIComponent(slugOrId)}`, { revalidate: 10, tags: ['classes', `class-${slugOrId}`] });
 }
 
 // 4. Instructors
 export async function fetchInstructors() {
-  return serverFetch<any[]>('/instructors', { revalidate: 120 });
+  return serverFetch<any[]>('/instructors', { revalidate: 15, tags: ['instructors'] });
 }
 
 export async function fetchInstructor(idOrSlug: string) {
   if (!idOrSlug) return null;
-  return serverFetch<any>(`/instructors/${encodeURIComponent(idOrSlug)}`, { revalidate: 60 });
+  return serverFetch<any>(`/instructors/${encodeURIComponent(idOrSlug)}`, { revalidate: 15, tags: ['instructors', `instructor-${idOrSlug}`] });
 }
 
 // 5. Blog
@@ -118,30 +118,29 @@ export async function fetchArticles(params?: Record<string, string | number | bo
     });
   }
   const endpoint = `/blog/articles${query.toString() ? `?${query.toString()}` : ''}`;
-  return serverFetch<any>(endpoint, { revalidate: 60 });
+  return serverFetch<any>(endpoint, { revalidate: 15, tags: ['blog'] });
 }
 
 export async function fetchArticle(slug: string) {
   if (!slug) return null;
-  // Try /blog/articles/:slug first, fallback to /blog/:slug
-  const res = await serverFetch<any>(`/blog/articles/${encodeURIComponent(slug)}`, { revalidate: 60 });
+  const res = await serverFetch<any>(`/blog/articles/${encodeURIComponent(slug)}`, { revalidate: 15, tags: ['blog', `article-${slug}`] });
   if (res) return res;
-  return serverFetch<any>(`/blog/${encodeURIComponent(slug)}`, { revalidate: 60 });
+  return serverFetch<any>(`/blog/${encodeURIComponent(slug)}`, { revalidate: 15, tags: ['blog', `article-${slug}`] });
 }
 
 export async function fetchBlogCategories() {
-  return serverFetch<any[]>('/blog/categories', { revalidate: 300 });
+  return serverFetch<any[]>('/blog/categories', { revalidate: 60, tags: ['blog-categories'] });
 }
 
 // 6. Categories & Taxonomies
 export async function fetchCategories(params?: { tree?: boolean }) {
   const query = params?.tree ? '?tree=true' : '';
-  return serverFetch<any[]>(`/categories${query}`, { revalidate: 60 });
+  return serverFetch<any[]>(`/categories${query}`, { revalidate: 30, tags: ['categories'] });
 }
 
 export async function fetchCategoryBySlug(slug: string) {
   if (!slug) return null;
-  return serverFetch<any>(`/categories/slug/${encodeURIComponent(slug)}`, { revalidate: 60 });
+  return serverFetch<any>(`/categories/slug/${encodeURIComponent(slug)}`, { revalidate: 15, tags: ['categories', `category-${slug}`] });
 }
 
 export async function fetchCategoryContent(slug: string, params?: Record<string, string | number | boolean | undefined>) {
@@ -155,13 +154,13 @@ export async function fetchCategoryContent(slug: string, params?: Record<string,
     });
   }
   const endpoint = `/categories/slug/${encodeURIComponent(slug)}/content${query.toString() ? `?${query.toString()}` : ''}`;
-  return serverFetch<any>(endpoint, { revalidate: 30 });
+  return serverFetch<any>(endpoint, { revalidate: 10, tags: ['categories', `category-content-${slug}`] });
 }
 
 export async function fetchLevels() {
-  return serverFetch<any[]>('/levels', { revalidate: 300 });
+  return serverFetch<any[]>('/levels', { revalidate: 60, tags: ['levels'] });
 }
 
 export async function fetchPublicSettings() {
-  return serverFetch<any>('/settings/public', { revalidate: 300 });
+  return serverFetch<any>('/settings/public', { revalidate: 60, tags: ['settings'] });
 }

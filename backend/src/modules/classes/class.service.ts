@@ -519,15 +519,39 @@ export class ClassService {
       throw new AppError('این کلاس به صورت حضوری برگزار می‌شود و لینک آنلاین ندارد', 400, 'BAD_REQUEST');
     }
 
-    const enrollment = await ClassEnrollment.findOne({ userId, classId, status: 'active' });
-    if (!enrollment) {
-      throw new AppError('شما در این کلاس ثبت‌نام نکرده‌اید', 403, 'FORBIDDEN');
+    // Check if user is instructor or creator of this class
+    const isInstructor = classData.createdBy?.toString() === userId.toString() ||
+      classData.instructors?.some((instId: any) => (instId?._id || instId)?.toString() === userId.toString());
+
+    if (!isInstructor) {
+      const enrollment = await ClassEnrollment.findOne({ userId, classId, status: 'active' });
+      if (!enrollment) {
+        throw new AppError('شما در این کلاس ثبت‌نام نکرده‌اید', 403, 'FORBIDDEN');
+      }
     }
 
     return { meetingUrl: classData.meetingLink || 'https://www.skyroom.online/ch/tecyad' };
   }
 
   static async getClassEnrollmentStatus(userId: string, classId: string) {
+    const classData = await Class.findById(classId);
+    if (classData) {
+      const isInstructor = classData.createdBy?.toString() === userId.toString() ||
+        classData.instructors?.some((instId: any) => (instId?._id || instId)?.toString() === userId.toString());
+      if (isInstructor) {
+        return {
+          _id: `INSTRUCTOR_ACCESS_${classId}`,
+          classId,
+          userId,
+          status: 'active',
+          isInstructor: true,
+          paymentType: 'full',
+          amount: 0,
+          enrolledAt: (classData as any).createdAt || new Date(),
+        } as any;
+      }
+    }
+
     const enrollment = await ClassEnrollment.findOne({ userId, classId, status: 'active' });
     return enrollment || null;
   }
@@ -536,6 +560,13 @@ export class ClassService {
   static async registerForClass(userId: string, classId: string, data: { paymentType?: 'full' | 'deposit' } = {}) {
     const classData = await Class.findById(classId);
     if (!classData) throw new AppError('کلاس مورد نظر یافت نشد', 404, 'NOT_FOUND');
+
+    const isInstructor = classData.createdBy?.toString() === userId.toString() ||
+      classData.instructors?.some((instId: any) => (instId?._id || instId)?.toString() === userId.toString());
+    if (isInstructor) {
+      throw new AppError('شما مدرس این کلاس هستید و دسترسی رایگان و کامل به آن دارید.', 400, 'INSTRUCTOR_OWNER_ACCESS');
+    }
+
     if (classData.status !== 'published') throw new AppError('این کلاس در حال حاضر در دسترس نیست یا هنوز تایید نشده است', 400, 'BAD_REQUEST');
 
     const regOpen = isClassRegistrationOpen(classData);

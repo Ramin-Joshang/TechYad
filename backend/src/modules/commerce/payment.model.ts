@@ -7,6 +7,10 @@ export interface IPayment extends Document {
   gateway: string;
   authority?: string;
   referenceId?: string;
+  refNum?: string;
+  rrn?: string;
+  traceNo?: string;
+  maskedPan?: string;
   status: "pending" | "paid" | "failed" | "refunded";
   rawResponse?: Record<string, unknown>;
   paidAt?: Date;
@@ -44,6 +48,14 @@ const paymentSchema = new Schema<IPayment>(
       type: String,
       index: true,
     },
+    refNum: {
+      type: String,
+      index: true,
+      sparse: true,
+    },
+    rrn: String,
+    traceNo: String,
+    maskedPan: String,
     status: {
       type: String,
       enum: ["pending", "paid", "failed", "refunded"],

@@ -3,6 +3,8 @@ import { fetchClasses } from '@/lib/server-api';
 import { Suspense } from 'react';
 import type { Metadata } from 'next';
 
+export const dynamic = 'force-dynamic';
+
 export const metadata: Metadata = {
   title: "کلاس‌های آنلاین، کارگاه‌های زنده و وبینارهای تخصصی | تک‌یاد",
   description: "شرکت در کلاس‌های تعاملی آنلاین، کارگاه‌های پروژه‌محور و جلسات رفع اشکال با ظرفیت محدود و اساتید مجرب در آکادمی تک‌یاد.",

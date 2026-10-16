@@ -225,7 +225,7 @@ export default function BlogPage() {
                     <img 
                       src={getImageUrl(featuredArticle.thumbnail, 'blog', featuredArticle.title)} 
                       alt={featuredArticle.title}
-                      className="w-full h-full object-cover group-hover:scale-105 transition duration-700"
+                      className="w-full h-full object-fill group-hover:scale-105 transition duration-700"
                       onError={(e) => handleImageError(e, 'blog', featuredArticle.title)}
                     />
                     <div className="absolute top-4 right-4 bg-blue-600 text-white text-xs font-bold px-3 py-1.5 rounded-full shadow-md flex items-center gap-1.5">
@@ -299,7 +299,7 @@ export default function BlogPage() {
                     <img 
                       src={getImageUrl(article.thumbnail, 'blog', article.title)} 
                       alt={article.title}
-                      className="w-full h-full object-cover group-hover:scale-105 transition duration-500" 
+                      className="w-full h-full object-fill group-hover:scale-105 transition duration-500" 
                       onError={(e) => handleImageError(e, 'blog', article.title)}
                     />
                     <div className="absolute bottom-3 right-3 bg-black/60 backdrop-blur-xs text-white text-[10px] font-bold px-2.5 py-1 rounded-xl flex items-center gap-1">

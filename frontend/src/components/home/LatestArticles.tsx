@@ -42,7 +42,7 @@ export function LatestArticles({ data = [], isLoading = false }: { data?: any[],
                 <Link key={article._id} href={`/blog/${article.slug}`} dir="rtl" className="group flex flex-col bg-white rounded-[20px] border border-[var(--neo-border)] overflow-hidden hover:border-[var(--neo-primary)]/50 transition duration-300 neo-card text-right">
                   <div className="aspect-video relative overflow-hidden bg-[var(--neo-surface-2)]">
                     {article.coverImage || article.thumbnail ? (
-                      <img src={article.coverImage || article.thumbnail} alt={article.title} className="w-full h-full object-cover group-hover:scale-105 transition duration-700 ease-out" />
+                      <img src={article.coverImage || article.thumbnail} alt={article.title} className="w-full h-full object-fill group-hover:scale-105 transition duration-700 ease-out" />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center text-[var(--neo-text-muted)]">
                         <FileText className="w-12 h-12 opacity-20" />

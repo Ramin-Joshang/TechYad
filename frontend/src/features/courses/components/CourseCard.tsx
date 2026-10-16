@@ -17,7 +17,7 @@ export function CourseCard({ course }: CourseCardProps) {
         <img 
           src={getImageUrl(course.thumbnail, 'course', course.title)} 
           alt={course.title} 
-          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
+          className="w-full h-full object-fill group-hover:scale-105 transition-transform duration-500" 
           onError={(e) => handleImageError(e, 'course', course.title)}
         />
         

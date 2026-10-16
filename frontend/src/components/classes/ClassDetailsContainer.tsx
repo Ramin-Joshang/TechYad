@@ -230,7 +230,7 @@ export function ClassDetailsContainer({ slug, initialData }: { slug: string; ini
     ctaClass = 'bg-gray-100 text-gray-400 border border-gray-200 cursor-wait animate-pulse';
     ctaDisabled = true;
   } else if (isEnrolled) {
-    ctaText = 'مشاهده کلاس در پنل کاربری (ثبت‌نام شده)';
+    ctaText = enrollmentData?.isInstructor ? 'ورود به کلاس زنده (شما مدرس این کلاس هستید)' : 'مشاهده کلاس در پنل کاربری (ثبت‌نام شده)';
     ctaClass = 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-emerald-600/30 shadow-lg';
     ctaDisabled = false;
   } else if (cls.status === 'completed') {
@@ -396,7 +396,7 @@ export function ClassDetailsContainer({ slug, initialData }: { slug: string; ini
               <img 
                 src={getImageUrl(cls.thumbnail, 'class', cls.title)} 
                 alt={cls.title} 
-                className="w-full h-full object-cover" 
+                className="w-full h-full object-fill" 
                 onError={(e) => handleImageError(e, 'class', cls.title)}
               />
               <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent flex items-end p-5">
@@ -732,7 +732,7 @@ export function ClassDetailsContainer({ slug, initialData }: { slug: string; ini
                       <Link href={`/instructors/${instSlug}`} className="shrink-0 group">
                         <img 
                           src={getImageUrl(inst.personnelPhoto || inst.avatar, 'avatar', `${inst.firstName || ''} ${inst.lastName || ''}`)} 
-                          className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl object-cover border border-slate-200 shadow-xs group-hover:scale-105 transition duration-300 bg-slate-100" 
+                          className="w-20 h-20 sm:w-24 sm:h-24 aspect-square rounded-2xl object-fill border border-slate-200 shadow-xs group-hover:scale-105 transition duration-300 bg-slate-100" 
                           alt={`${inst.firstName || ''} ${inst.lastName || ''}`}
                           onError={(e) => handleImageError(e, 'avatar', `${inst.firstName || ''} ${inst.lastName || ''}`)}
                         />

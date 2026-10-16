@@ -97,6 +97,8 @@ export function CourseListContainer({
       return res.data;
     },
     initialData: initialData,
+    staleTime: 0,
+    refetchOnMount: true,
   });
 
   const resolvedData = coursesData || initialData;
@@ -370,7 +372,7 @@ function CourseCard({ course }: { course: any }) {
           src={getImageUrl(course.thumbnail, 'course', course.title)}
           onError={(e) => handleImageError(e, 'course', course.title)}
           alt={course.title}
-          className="w-full h-full object-cover group-hover:scale-105 transition duration-500"
+          className="w-full h-full object-fill group-hover:scale-105 transition duration-500"
         />
         <div className="absolute top-4 right-4 flex flex-wrap gap-2">
           {course.categoryId?.name && (

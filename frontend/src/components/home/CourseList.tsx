@@ -153,7 +153,7 @@ export function CourseList({
                           src={getImageUrl(item.thumbnail || item.coverImage, 'course', item.title)}
                           onError={(e) => handleImageError(e, 'course', item.title)}
                           alt={item.title}
-                          className="w-full h-full object-cover group-hover:scale-105 transition duration-500 ease-out"
+                          className="w-full h-full object-fill group-hover:scale-105 transition duration-500 ease-out"
                         />
 
                         {/* Badges Overlay */}

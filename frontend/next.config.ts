@@ -17,6 +17,12 @@ const nextConfig: NextConfig = {
     '127.0.0.1:4000',
     '*.run.app'
   ],
+  experimental: {
+    staleTimes: {
+      dynamic: 0,
+      static: 60,
+    },
+  },
   async rewrites() {
     return [
       {

@@ -308,6 +308,14 @@ export class CommerceService {
     if (data.itemType === 'course') {
       const course = await Course.findById(data.itemId);
       if (!course) throw new AppError('دوره مورد نظر یافت نشد', 404, 'NOT_FOUND');
+
+      // Check if user is instructor or creator of this course
+      const isInstructor = course.createdBy?.toString() === userId.toString() ||
+        course.instructors?.some((instId: any) => (instId?._id || instId)?.toString() === userId.toString());
+      if (isInstructor) {
+        throw new AppError('شما مدرس این دوره هستید و دسترسی رایگان و کامل به تمام محتوای آن دارید.', 400, 'INSTRUCTOR_OWNER_ACCESS');
+      }
+
       if (course.status !== 'published') throw new AppError('این دوره در دسترس نیست', 400, 'UNAVAILABLE');
       if (course.isRegistrationOpen === false) {
         throw new AppError('ثبت‌نام این دوره در حال حاضر بسته شده است.', 400, 'COURSE_REGISTRATION_CLOSED');
@@ -318,6 +326,14 @@ export class CommerceService {
     } else if (data.itemType === 'class') {
       const classItem = await Class.findById(data.itemId);
       if (!classItem) throw new AppError('کلاس مورد نظر یافت نشد', 404, 'NOT_FOUND');
+
+      // Check if user is instructor or creator of this class
+      const isInstructor = classItem.createdBy?.toString() === userId.toString() ||
+        classItem.instructors?.some((instId: any) => (instId?._id || instId)?.toString() === userId.toString());
+      if (isInstructor) {
+        throw new AppError('شما مدرس این کلاس هستید و دسترسی رایگان و کامل به تمام جلسات آن دارید.', 400, 'INSTRUCTOR_OWNER_ACCESS');
+      }
+
       if (classItem.status !== 'published') throw new AppError('این کلاس در دسترس نیست یا هنوز تایید نشده است', 400, 'UNAVAILABLE');
       
       const now = new Date();
@@ -525,6 +541,9 @@ export class CommerceService {
       paymentUrl = sepResult.paymentUrl;
       if (order.walletAmountApplied && order.walletAmountApplied > 0) {
         gatewayName = 'hybrid_saman';
+      }
+      // Only append walletApplied if simulated/mock gateway, never on official SEP URL
+      if (sepResult.isSimulated && order.walletAmountApplied && order.walletAmountApplied > 0) {
         paymentUrl += `&walletApplied=${order.walletAmountApplied}`;
       }
     } else {
@@ -542,7 +561,7 @@ export class CommerceService {
       gateway: gatewayName,
       authority,
       referenceId: resNum,
-      rawResponse: { terminalId, resNum },
+      rawResponse: { resNum },
       status: 'pending'
     });
 
@@ -550,12 +569,23 @@ export class CommerceService {
       payment, 
       paymentUrl,
       gateway: gatewayName,
-      terminalId,
       orderId: order._id
     };
+
   }
 
-  static async verifyPaymentMock(userId: string, authority: string, status: 'OK' | 'NOK') {
+  static async verifyPaymentMock(
+    userId: string, 
+    authority: string, 
+    status: 'OK' | 'NOK',
+    verifyData?: {
+      refNum?: string;
+      rrn?: string;
+      traceNo?: string;
+      maskedPan?: string;
+      rawParams?: Record<string, unknown>;
+    }
+  ) {
     const session = await mongoose.startSession();
     session.startTransaction();
 
@@ -566,6 +596,19 @@ export class CommerceService {
       }).session(session);
       if (!payment) throw new AppError('Payment not found', 404, 'NOT_FOUND');
       if (payment.status !== 'pending') throw new AppError('Payment already processed', 400, 'PAYMENT_PROCESSED');
+
+      // Double-spending prevention: ensure RefNum hasn't been approved for another payment
+      const targetRefNum = verifyData?.refNum || payment.refNum;
+      if (targetRefNum) {
+        const existingPaid = await Payment.findOne({
+          refNum: targetRefNum,
+          status: 'paid',
+          _id: { $ne: payment._id }
+        }).session(session);
+        if (existingPaid) {
+          throw new AppError('این رسید پرداخت قبلاً برای سفارش دیگری مصرف شده است', 400, 'DOUBLE_SPENDING');
+        }
+      }
 
       const order = await Order.findById(payment.orderId).session(session);
       if (!order) throw new AppError('Order not found', 404, 'NOT_FOUND');
@@ -580,10 +623,31 @@ export class CommerceService {
         return { success: false, message: 'Payment failed' };
       }
 
-      // If Saman SEP gateway, run verification check
-      if (payment.gateway && payment.gateway.includes('saman')) {
-        await SamanGatewayService.verifyTransaction(payment.referenceId || authority);
+      // If Saman SEP gateway, run verification check with Bank (SEP v3.6)
+      if (payment.gateway && payment.gateway.includes('saman') && targetRefNum) {
+        const expectedRials = (payment.amount || 0) * 10;
+        const verifyRes = await SamanGatewayService.verifyTransaction(targetRefNum, expectedRials);
+        if (!verifyRes.success) {
+          payment.status = 'failed';
+          payment.rawResponse = { ...(payment.rawResponse || {}), verifyError: verifyRes.resultDescription };
+          await payment.save({ session });
+          order.status = 'failed';
+          await order.save({ session });
+          await session.commitTransaction();
+          session.endSession();
+          return { success: false, message: verifyRes.resultDescription };
+        }
+        if (verifyRes.rrn) payment.rrn = verifyRes.rrn;
+        if (verifyRes.traceNo) payment.traceNo = verifyRes.traceNo;
+        if (verifyRes.maskedPan) payment.maskedPan = verifyRes.maskedPan;
+        payment.refNum = targetRefNum;
+      } else if (verifyData) {
+        if (verifyData.refNum) payment.refNum = verifyData.refNum;
+        if (verifyData.rrn) payment.rrn = verifyData.rrn;
+        if (verifyData.traceNo) payment.traceNo = verifyData.traceNo;
+        if (verifyData.maskedPan) payment.maskedPan = verifyData.maskedPan;
       }
+
 
       // If hybrid payment, deduct wallet balance atomically inside this transaction
       if (order.walletAmountApplied && order.walletAmountApplied > 0) {
@@ -643,6 +707,7 @@ export class CommerceService {
 
       // 2. Mark Payment as success
       payment.status = 'paid';
+      payment.paidAt = new Date();
       await payment.save({ session });
 
       // 3. Mark Order as paid

@@ -284,7 +284,7 @@ export function CategoryPageClient({
                             src={getImageUrl(item.thumbnail || item.coverImage, 'course', item.title)}
                             onError={(e) => handleImageError(e, 'course', item.title)}
                             alt={item.title}
-                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                            className="w-full h-full object-fill group-hover:scale-105 transition-transform duration-500"
                           />
                           <div className="absolute top-3 right-3 flex items-center gap-1.5">
                             {isFree ? (

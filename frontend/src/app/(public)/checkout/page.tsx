@@ -24,27 +24,31 @@ export default function CheckoutPage() {
   const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [isApplyingCoupon, setIsApplyingCoupon] = useState(false);
   
-  // Hybrid Wallet State: user can choose to apply available wallet balance
-  const [applyWalletBalance, setApplyWalletBalance] = useState(true);
+  // Hybrid Wallet State: user can choose to apply available wallet balance (unchecked by default per requirement)
+  const [applyWalletBalance, setApplyWalletBalance] = useState(false);
 
   // Optional Quick Charge Modal
   const [showChargeModal, setShowChargeModal] = useState(false);
   const [customChargeAmount, setCustomChargeAmount] = useState<number>(100000);
   const [isCharging, setIsCharging] = useState(false);
 
-  // Fetch standard cart preview
+  // Fetch standard cart preview (always fresh, no stale cache)
   const { data: baseData, isLoading: isBaseLoading } = useQuery({
     queryKey: ['checkoutPreviewBase'],
     queryFn: () => commerceApi.checkoutPreview().then(res => res.data),
     enabled: isAuthenticated && !isInitializing,
+    staleTime: 0,
+    refetchOnMount: true,
     retry: false,
   });
 
-  // Fetch live wallet balance
+  // Fetch live wallet balance (always fresh)
   const { data: walletData, refetch: refetchWallet } = useQuery({
     queryKey: ['myWalletOverview'],
     queryFn: () => walletApi.getOverview().then(res => res.data),
     enabled: isAuthenticated && !isInitializing,
+    staleTime: 0,
+    refetchOnMount: true,
   });
 
   // Preview data state that holds either base or coupon-applied preview
@@ -216,9 +220,9 @@ export default function CheckoutPage() {
                   </div>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-[var(--neo-text-secondary)] mb-1">ایمیل</label>
-                  <div className="w-full bg-[var(--neo-bg)] border border-[var(--neo-border)] rounded-xl px-4 py-3 text-[var(--neo-text-muted)] text-left font-mono text-sm">
-                    {user?.email}
+                  <label className="block text-sm font-medium text-[var(--neo-text-secondary)] mb-1">شماره موبایل خریدار</label>
+                  <div className="w-full bg-[var(--neo-bg)] border border-[var(--neo-border)] rounded-xl px-4 py-3 text-[var(--neo-text-main)] text-right font-mono text-sm font-bold dir-ltr">
+                    {user?.mobile || 'ثبت‌نشده'}
                   </div>
                 </div>
               </div>
@@ -231,25 +235,44 @@ export default function CheckoutPage() {
                 آیتم‌های سفارش ({items.length} مورد)
               </h2>
               <div className="space-y-4">
-                {items.map((item: any) => (
-                  <div key={item.itemId} className="flex flex-col sm:flex-row sm:items-center justify-between py-4 border-b border-gray-100 last:border-0 gap-3">
-                    <div className="flex items-center gap-3 sm:gap-4">
-                      <img 
-                        src={getImageUrl(item.thumbnail, item.itemType === 'course' ? 'course' : 'class', item.titleSnapshot)} 
-                        alt={item.titleSnapshot} 
-                        className="w-14 h-14 sm:w-16 sm:h-16 rounded-xl object-cover border border-slate-100 shrink-0 bg-slate-900" 
-                        onError={(e) => handleImageError(e, item.itemType === 'course' ? 'course' : 'class', item.titleSnapshot)}
-                      />
-                      <div>
-                        <div className="text-xs text-[var(--neo-primary)] font-bold mb-0.5">{item.itemType === 'course' ? 'دوره آموزشی' : 'کلاس زنده'}</div>
-                        <h4 className="font-bold text-[var(--neo-text-main)] text-sm sm:text-base leading-snug">{item.titleSnapshot}</h4>
+                {items.map((item: any) => {
+                  const hasDiscount = item.price && item.finalPrice && item.price > item.finalPrice;
+                  return (
+                    <div key={item.itemId} className="flex flex-col sm:flex-row sm:items-center justify-between py-4 border-b border-gray-100 last:border-0 gap-3">
+                      <div className="flex items-center gap-3 sm:gap-4">
+                        <img 
+                          src={getImageUrl(item.thumbnail, item.itemType === 'course' ? 'course' : 'class', item.titleSnapshot)} 
+                          alt={item.titleSnapshot} 
+                          className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl object-fill border border-slate-100 shrink-0 bg-slate-900" 
+                          onError={(e) => handleImageError(e, item.itemType === 'course' ? 'course' : 'class', item.titleSnapshot)}
+                        />
+                        <div className="space-y-1">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <span className="text-[11px] bg-blue-50 text-[var(--neo-primary)] font-bold px-2 py-0.5 rounded-md">
+                              {item.itemType === 'course' ? 'دوره آموزشی' : 'کلاس زنده'}
+                            </span>
+                            {item.instructorName && (
+                              <span className="text-xs text-[var(--neo-text-muted)]">
+                                استاد: <span className="text-slate-800 font-semibold">{item.instructorName}</span>
+                              </span>
+                            )}
+                          </div>
+                          <h4 className="font-bold text-[var(--neo-text-main)] text-sm sm:text-base leading-snug">{item.titleSnapshot}</h4>
+                        </div>
+                      </div>
+                      <div className="text-left self-end sm:self-auto shrink-0">
+                        {hasDiscount && (
+                          <div className="text-xs text-gray-400 line-through">
+                            {item.price.toLocaleString('fa-IR')} تومان
+                          </div>
+                        )}
+                        <div className="font-black text-[var(--neo-text-main)] text-base">
+                          {item.finalPrice.toLocaleString('fa-IR')} <span className="text-xs font-normal text-[var(--neo-text-muted)]">تومان</span>
+                        </div>
                       </div>
                     </div>
-                    <div className="font-black text-[var(--neo-text-main)] text-base self-end sm:self-auto shrink-0">
-                      {item.finalPrice.toLocaleString('fa-IR')} <span className="text-xs font-normal text-[var(--neo-text-muted)]">تومان</span>
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
 
@@ -442,7 +465,10 @@ export default function CheckoutPage() {
                   className="mt-1 w-5 h-5 rounded border-[var(--neo-border)] text-indigo-600 focus:ring-indigo-500 cursor-pointer" 
                 />
                 <span className="text-xs text-[var(--neo-text-secondary)] leading-relaxed">
-                  قوانین و مقررات وبسایت تک‌یاد و شرایط استفاده را مطالعه کرده‌ام و با آن‌ها موافقم.
+                  <Link href="/rules" target="_blank" className="text-blue-600 font-bold hover:underline ml-1">
+                    قوانین و مقررات وبسایت تک‌یاد
+                  </Link>
+                  و شرایط استفاده از خدمات آموزشی را مطالعه کرده‌ام و با آن‌ها موافقم.
                 </span>
               </label>
 

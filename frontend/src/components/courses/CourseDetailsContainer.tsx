@@ -215,7 +215,7 @@ export function CourseDetailsContainer({ slug, initialData }: { slug: string; in
                 <img 
                   src={getImageUrl(course.thumbnail, 'course', course.title)} 
                   alt={course.title} 
-                  className="w-full h-full object-cover group-hover:scale-105 transition duration-700" 
+                  className="w-full h-full object-fill group-hover:scale-105 transition duration-700" 
                   onError={(e) => handleImageError(e, 'course', course.title)}
                 />
                 <div className="absolute inset-0 bg-black/40 flex items-center justify-center group-hover:bg-black/20 transition duration-500">
@@ -230,9 +230,12 @@ export function CourseDetailsContainer({ slug, initialData }: { slug: string; in
                 {isEnrolled ? (
                   <div className="text-center py-2">
                     <div className="inline-flex items-center gap-2 bg-emerald-50 text-emerald-700 px-4 py-1.5 rounded-full font-bold text-sm mb-2 border border-emerald-200">
-                      <CheckCircle className="w-4 h-4" /> شما دانشجوی این دوره هستید
+                      <CheckCircle className="w-4 h-4" /> 
+                      {enrollment?.isInstructor ? 'شما مدرس این دوره هستید' : 'شما دانشجوی این دوره هستید'}
                     </div>
-                    <p className="text-xs text-[var(--neo-text-muted)]">دسترسی کامل به ویدیوها و محتوای دوره فعال است</p>
+                    <p className="text-xs text-[var(--neo-text-muted)]">
+                      {enrollment?.isInstructor ? 'دسترسی رایگان و کامل به تمامی ویدیوها و فایل‌های دوره' : 'دسترسی کامل به ویدیوها و محتوای دوره فعال است'}
+                    </p>
                   </div>
                 ) : isFree ? (
                   <div className="text-4xl font-black text-emerald-600 mb-2">رایگان</div>
@@ -353,7 +356,7 @@ export function CourseDetailsContainer({ slug, initialData }: { slug: string; in
                     <img
                       src={getImageUrl(instructor.personnelPhoto || instructor.avatar, "avatar", `${instructor.firstName || ""} ${instructor.lastName || ""}`)}
                       alt={`${instructor.firstName} ${instructor.lastName}`}
-                      className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl object-cover border-2 border-blue-100 shadow-sm group-hover:scale-105 transition duration-300"
+                      className="w-20 h-20 sm:w-24 sm:h-24 aspect-square rounded-2xl object-fill border-2 border-blue-100 shadow-sm group-hover:scale-105 transition duration-300"
                       onError={(e) => handleImageError(e, "avatar", `${instructor.firstName || ""} ${instructor.lastName || ""}`)}
                     />
                   </Link>

@@ -3,6 +3,8 @@ import { fetchCourses, fetchCategories, fetchInstructors, fetchLevels } from "@/
 import { Suspense } from "react";
 import type { Metadata } from "next";
 
+export const dynamic = 'force-dynamic';
+
 export const metadata: Metadata = {
   title: "دوره‌های آموزشی برنامه‌نویسی و مهارت‌های تخصصی | تک‌یاد",
   description: "کاتالوگ جامع دوره‌های آنلاین برنامه‌نویسی، طراحی وب، هوش مصنوعی و مهندسی نرم‌افزار با اساتید مطرح و گواهینامه معتبر در پلتفرم تک‌یاد.",

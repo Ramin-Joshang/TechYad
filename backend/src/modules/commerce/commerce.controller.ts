@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import { CommerceService } from './commerce.service.js';
+import { SamanGatewayService } from './saman-gateway.service.js';
 import { sendSuccess } from '../../common/utils/response.js';
 import { AuthRequest } from '../../common/middleware/auth.js';
 
@@ -73,6 +74,9 @@ export const handleGatewayCallback = async (req: Request, res: Response) => {
   const frontendBaseUrl = process.env.FRONTEND_URL || 'https://tecyad.ir';
   const isSuccess = state === 'OK' || status === '100' || status === '2';
 
+  const rrn = params.RRN || params.rrn || '';
+  const traceNo = params.TraceNo || params.traceNo || '';
+
   // 1. Handle online wallet charge callback
   if (authority && String(authority).startsWith('WALLET_')) {
     try {
@@ -93,38 +97,65 @@ export const handleGatewayCallback = async (req: Request, res: Response) => {
   }
 
   // 2. Handle order purchase callback
-  if (isSuccess && authority) {
-    try {
-      const payment = await Payment.findOne({
-        $or: [
-          { authority },
-          { referenceId: authority },
-          { referenceId: resNum },
-          { authority: token }
-        ]
-      });
+  try {
+    const payment = await Payment.findOne({
+      $or: [
+        { authority },
+        { referenceId: authority },
+        { referenceId: resNum },
+        { authority: token }
+      ]
+    });
 
-      if (payment) {
+    if (payment) {
+      if (isSuccess) {
         if (payment.status === 'pending') {
           const verifyRes = await CommerceService.verifyPaymentMock(
             payment.userId.toString(),
             payment.authority || authority,
-            'OK'
+            'OK',
+            {
+              refNum,
+              rrn,
+              traceNo,
+              rawParams: params
+            }
           );
           if (verifyRes.success) {
-            return res.redirect(`${frontendBaseUrl}/payment/success?orderId=${encodeURIComponent(payment.orderId.toString())}&refNum=${encodeURIComponent(refNum)}&gateway=${encodeURIComponent(gateway)}`);
+            return res.redirect(`${frontendBaseUrl}/payment/success?orderId=${encodeURIComponent(payment.orderId.toString())}&refNum=${encodeURIComponent(refNum || payment.refNum || '')}&gateway=${encodeURIComponent(gateway)}`);
+          } else {
+            return res.redirect(`${frontendBaseUrl}/payment/failed?authority=${encodeURIComponent(authority)}&gateway=${encodeURIComponent(gateway)}&message=${encodeURIComponent(verifyRes.message || 'خطا در تایید تراکنش')}`);
           }
         } else if (payment.status === 'paid') {
-          return res.redirect(`${frontendBaseUrl}/payment/success?orderId=${encodeURIComponent(payment.orderId.toString())}&refNum=${encodeURIComponent(refNum)}&gateway=${encodeURIComponent(gateway)}`);
+          return res.redirect(`${frontendBaseUrl}/payment/success?orderId=${encodeURIComponent(payment.orderId.toString())}&refNum=${encodeURIComponent(payment.refNum || refNum)}&gateway=${encodeURIComponent(gateway)}`);
+        }
+      } else {
+        // State is not OK or payment canceled
+        if (payment.status === 'pending') {
+          await CommerceService.verifyPaymentMock(
+            payment.userId.toString(),
+            payment.authority || authority,
+            'NOK'
+          );
         }
       }
-    } catch (err: any) {
-      console.error('Order gateway callback handling error:', err);
     }
+  } catch (err: any) {
+    console.error('Order gateway callback handling error:', err);
   }
 
   // Fallback to failed payment page
   return res.redirect(`${frontendBaseUrl}/payment/failed?authority=${encodeURIComponent(authority)}&gateway=${encodeURIComponent(gateway)}`);
+};
+
+export const renderSepForm = async (req: Request, res: Response) => {
+  const token = (req.params.token || req.query.token || '') as string;
+  if (!token) {
+    return res.status(400).send('توکن پرداخت یافت نشد');
+  }
+  const html = SamanGatewayService.generateAutoSubmitForm(token);
+  res.setHeader('Content-Type', 'text/html; charset=utf-8');
+  return res.send(html);
 };
 
 export const getInstructorSales = async (req: AuthRequest, res: Response) => {
@@ -136,3 +167,4 @@ export const getInstructorSales = async (req: AuthRequest, res: Response) => {
   );
   sendSuccess(res, result, 'Instructor sales retrieved successfully');
 };
+

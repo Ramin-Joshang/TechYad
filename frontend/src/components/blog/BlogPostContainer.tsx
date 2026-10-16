@@ -365,7 +365,7 @@ export function BlogPostContainer({ slug }: { slug: string }) {
           {/* Article Cover Image */}
           {article.thumbnail && (
             <div className="w-full aspect-video bg-[var(--neo-surface-2)] relative border-b border-[var(--neo-border)]">
-              <img src={article.thumbnail} alt={article.title} className="w-full h-full object-cover" />
+              <img src={article.thumbnail} alt={article.title} className="w-full h-full object-fill" />
             </div>
           )}
           

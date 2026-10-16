@@ -37,6 +37,8 @@ export function InstructorProfileContainer({ id, initialData }: { id: string; in
     queryKey: ['instructor', id],
     queryFn: () => api.get(`/instructors/${id}`).then((res: any) => res.data?.data || res.data),
     initialData: initialData,
+    staleTime: 0,
+    refetchOnMount: true,
   });
 
   const profile = profileData || initialData;
@@ -140,12 +142,12 @@ export function InstructorProfileContainer({ id, initialData }: { id: string; in
 
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
           
-          {/* Avatar */}
+          {/* Avatar (1:1 square frame, no distortion) */}
           <div className="relative inline-block mb-6">
             <img 
               src={displayAvatar} 
               alt={fullName} 
-              className="w-28 h-28 sm:w-36 sm:h-36 rounded-3xl object-cover shadow-2xl mx-auto border-4 border-white/15 ring-4 ring-black/20" 
+              className="w-28 h-28 sm:w-36 sm:h-36 aspect-square rounded-3xl object-fill shadow-2xl mx-auto border-4 border-white/15 ring-4 ring-black/20" 
             />
             <div className="absolute -bottom-2 -left-2 bg-emerald-500 text-white p-1.5 rounded-xl shadow-lg border-2 border-slate-900" title="مدرس تاییدشده">
               <CheckCircle2 className="w-4 h-4" />

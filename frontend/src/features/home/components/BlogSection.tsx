@@ -34,7 +34,7 @@ export function BlogSection({ posts }: Props) {
                 <img 
                   src={getImageUrl(post.image, 'blog', post.title)} 
                   alt={post.title} 
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                  className="w-full h-full object-fill group-hover:scale-105 transition-transform duration-500"
                   onError={(e) => handleImageError(e, 'blog', post.title)}
                 />
               </Link>

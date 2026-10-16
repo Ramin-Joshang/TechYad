@@ -24,7 +24,8 @@ export default function CartPage() {
       return res.data;
     },
     enabled: !!isAuthenticated && !isInitializing,
-    staleTime: 1000 * 60 * 5,
+    staleTime: 0,
+    refetchOnMount: true,
   });
 
   const removeItemMutation = useMutation({
@@ -123,7 +124,7 @@ export default function CartPage() {
                     <img 
                       src={thumb} 
                       alt={title} 
-                      className="w-full sm:w-36 h-28 object-cover rounded-xl shrink-0 bg-gray-100" 
+                      className="w-full sm:w-36 h-28 object-fill rounded-xl shrink-0 bg-gray-100 border border-slate-100" 
                       onError={(e) => handleImageError(e, isCourse ? 'course' : 'class', title)}
                     />
                     

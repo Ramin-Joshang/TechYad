@@ -92,6 +92,25 @@ export class LearningService {
   }
 
   static async getMyEnrollmentDetails(userId: string, courseId: string) {
+    // 1. Check if user is instructor or creator of this course
+    const course = await Course.findById(courseId);
+    if (course) {
+      const isInstructor = course.createdBy?.toString() === userId.toString() ||
+        course.instructors?.some((instId: any) => (instId?._id || instId)?.toString() === userId.toString());
+      if (isInstructor) {
+        return {
+          _id: `INSTRUCTOR_ACCESS_${courseId}`,
+          userId,
+          courseId,
+          status: 'active',
+          isInstructor: true,
+          enrolledAt: (course as any).createdAt || new Date(),
+          progress: 100,
+          completedLessons: [],
+        } as any;
+      }
+    }
+
     const enrollment = await Enrollment.findOne({ userId, courseId });
     return enrollment || null;
   }
@@ -104,9 +123,17 @@ export class LearningService {
     let enrollment = null;
     // Only check enrollment if the lesson is not free
     if (!lesson.isFree) {
-      enrollment = await Enrollment.findOne({ userId, courseId: lesson.courseId });
-      if (!enrollment) {
-        throw new AppError('Must be enrolled to track progress for this lesson', 403, 'FORBIDDEN');
+      const course = await Course.findById(lesson.courseId);
+      const isInstructor = course && (
+        course.createdBy?.toString() === userId.toString() ||
+        course.instructors?.some((instId: any) => (instId?._id || instId)?.toString() === userId.toString())
+      );
+
+      if (!isInstructor) {
+        enrollment = await Enrollment.findOne({ userId, courseId: lesson.courseId });
+        if (!enrollment) {
+          throw new AppError('Must be enrolled to track progress for this lesson', 403, 'FORBIDDEN');
+        }
       }
     }
 
