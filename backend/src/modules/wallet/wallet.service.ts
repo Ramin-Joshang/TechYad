@@ -318,13 +318,10 @@ export class WalletService {
       });
       token = sepResult.token;
       postActionUrl = sepResult.postActionUrl;
-      paymentUrl = sepResult.paymentUrl.includes("mock-gateway")
-        ? `${sepResult.paymentUrl}&type=wallet`
-        : sepResult.paymentUrl;
+      paymentUrl = sepResult.paymentUrl;
       gatewayName = "saman";
     } else {
-      paymentUrl = `/payment/mock-gateway?authority=${authority}&type=wallet&amount=${amount}`;
-      gatewayName = "zarinpal_mock";
+      throw new AppError('درگاه پرداخت بانکی سامان در حال حاضر غیرفعال است.', 400);
     }
 
     const transaction = await WalletTransaction.create({

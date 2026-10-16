@@ -547,15 +547,8 @@ export class CommerceService {
       if (order.walletAmountApplied && order.walletAmountApplied > 0) {
         gatewayName = 'hybrid_saman';
       }
-      // Only append walletApplied if simulated/mock gateway, never on official SEP URL
-      if (sepResult.isSimulated && order.walletAmountApplied && order.walletAmountApplied > 0) {
-        paymentUrl += `&walletApplied=${order.walletAmountApplied}`;
-      }
     } else {
-      authority = `AUTH_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
-      const walletParam = order.walletAmountApplied ? `&walletApplied=${order.walletAmountApplied}` : '';
-      paymentUrl = `/payment/mock-gateway?authority=${authority}&amount=${payableAmount}${walletParam}`;
-      gatewayName = order.walletAmountApplied && order.walletAmountApplied > 0 ? 'hybrid_gateway' : 'zarinpal_mock';
+      throw new AppError('درگاه پرداخت سامان در حال حاضر غیرفعال است. لطفاً از پنل مدیریت وضعیت درگاه را بررسی نمایید.', 400);
     }
 
     // Create a pending payment

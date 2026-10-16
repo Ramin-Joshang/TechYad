@@ -66,8 +66,8 @@ export default function StudentWalletPage() {
       const res = await walletApi.chargeWallet(depositAmount);
       const data = res.data;
 
-      // Scenario A: Auto POST form submit to SEP
-      if (data?.postActionUrl && data?.token && !String(data?.paymentUrl || '').includes('mock-gateway')) {
+      // Scenario A: Auto POST form submit to SEP (https://sep.shaparak.ir/OnlinePG/OnlinePG)
+      if (data?.postActionUrl && data?.token) {
         const form = document.createElement('form');
         form.method = 'POST';
         form.action = data.postActionUrl;
@@ -90,7 +90,7 @@ export default function StudentWalletPage() {
         return;
       }
 
-      // Scenario B: Direct redirect to SEP SendToken URL
+      // Scenario B: Direct redirect to SEP SendToken URL (https://sep.shaparak.ir/OnlinePG/SendToken?token=...)
       if (data?.paymentUrl) {
         window.location.href = data.paymentUrl;
       }

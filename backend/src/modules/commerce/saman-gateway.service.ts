@@ -134,19 +134,20 @@ export class SamanGatewayService {
     if (cellNumber.startsWith('+98')) cellNumber = '0' + cellNumber.slice(3);
     if (cellNumber.startsWith('98')) cellNumber = '0' + cellNumber.slice(2);
 
+    const terminalIdNum = Number(terminalId);
     const payload = {
-      action: 'Token',
-      Action: 'Token',
-      TerminalId: terminalId,
+      action: 'token',
+      Action: 'token',
+      TerminalId: isNaN(terminalIdNum) ? terminalId : terminalIdNum,
       Amount: amountRials,
       ResNum: data.resNum,
-      RedirectURL: data.redirectUrl,
       RedirectUrl: data.redirectUrl,
-      CellNumber: cellNumber || undefined,
+      RedirectURL: data.redirectUrl,
+      ...(cellNumber ? { CellNumber: cellNumber } : {}),
     };
 
     try {
-      // ارسال درخواست به شاپرک سپ
+      // ارسال مستقیم درخواست دریافت توکن به شاپرک سپ
       const response = await axios.post(
         this.SEP_TOKEN_URL,
         payload,
@@ -155,7 +156,7 @@ export class SamanGatewayService {
             'Content-Type': 'application/json',
             'Accept': 'application/json',
           },
-          timeout: 7000,
+          timeout: 15000,
         }
       );
 
@@ -183,43 +184,21 @@ export class SamanGatewayService {
         };
       }
 
-      // در صورت بروز خطا در پاسخ درگاه
-      const errorCode = String(resData?.errorCode || resData?.ErrorCode || status);
-      const errorDesc = resData?.errorDesc || resData?.ErrorDesc || SEP_TOKEN_ERROR_CODES[errorCode] || 'خطای ناشناخته در درگاه پرداخت سامان';
+      // در صورت عدم موفقیت، استخراج پیام خطای دقیق سپ
+      const errorCode = String(resData?.errorCode ?? resData?.ErrorCode ?? status);
+      const errorDesc = resData?.errorDesc || resData?.ErrorDesc || SEP_TOKEN_ERROR_CODES[errorCode] || 'خطای درگاه پرداخت سامان در ایجاد توکن';
 
-      console.error(`[SEP Token Error] Code: ${errorCode}, Desc: ${errorDesc}`);
-      
-      // در محیط توسعه اگر IP سرور در سپ ثبت نشده باشد، به پرتال امن شبیه‌ساز منتقل می‌شود
-      if (process.env.NODE_ENV !== 'production' || errorCode === '-6') {
-        console.warn(`[SEP] IP not whitelisted or dev mode. Providing simulated gateway for local testing.`);
-        const simulatedToken = `SEP_DEV_${Date.now()}_${Math.floor(Math.random() * 10000)}`;
-        return {
-          success: true,
-          token: simulatedToken,
-          paymentUrl: `/payment/mock-gateway?authority=${encodeURIComponent(data.resNum)}&amount=${data.amountToman}&gateway=saman`,
-          postActionUrl: this.SEP_POST_GATEWAY_URL,
-          isSimulated: true,
-          message: `شبیه‌ساز پرداخت سامان (دلیل عدم اتصال مستقیم: ${errorDesc})`,
-        };
-      }
-
+      console.error(`[SEP Token Rejected] Terminal: ${terminalId}, Code: ${errorCode}, Desc: ${errorDesc}`, resData);
       throw new AppError(`خطای درگاه سامان (${errorCode}): ${errorDesc}`, 400);
 
     } catch (err: any) {
       if (err instanceof AppError) throw err;
 
-      console.warn(`[SEP Token Network Exception] ${err?.message || err}`);
-
-      // شبیه‌ساز امن در صورت خطای شبکه برای تست روان توسعه‌دهنده
-      const simulatedToken = `SEP_FALLBACK_${Date.now()}`;
-      return {
-        success: true,
-        token: simulatedToken,
-        paymentUrl: `/payment/mock-gateway?authority=${encodeURIComponent(data.resNum)}&amount=${data.amountToman}&gateway=saman`,
-        postActionUrl: this.SEP_POST_GATEWAY_URL,
-        isSimulated: true,
-        message: 'هدایت به پرتال درگاه سامان کیش',
-      };
+      console.error(`[SEP Token Exception]`, err?.message || err);
+      if (err?.code === 'ECONNABORTED' || err?.message?.includes('timeout')) {
+        throw new AppError('پاسخی از سرور درگاه سامان (شاپرک) دریافت نشد (Timeout). لطفاً اتصال اینترنت سرور و در دسترس بودن شاپرک را بررسی نمایید.', 504);
+      }
+      throw new AppError(`خطا در اتصال به درگاه پرداخت سامان شاپرک: ${err?.message || 'خطای شبکه'}`, 502);
     }
   }
 
