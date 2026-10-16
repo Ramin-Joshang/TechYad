@@ -522,10 +522,14 @@ export class CommerceService {
     const user = await User.findById(userId);
     const isSamanEnabled = await SamanGatewayService.isEnabled();
     const terminalId = await SamanGatewayService.getTerminalId();
-    const appUrl = process.env.APP_URL || 'https://tecyad.ir';
+    const rawAppUrl = process.env.APP_URL || 'https://tecyad.ir';
+    let appUrl = rawAppUrl.trim().replace(/\/+$/, '');
+    if (appUrl.includes('localhost') || appUrl.includes('127.0.0.1')) {
+      appUrl = 'https://tecyad.ir';
+    }
     const callbackUrl = `${appUrl}/api/payments/callback/saman`;
 
-    const resNum = `SEP_ORD_${order._id.toString().slice(-6)}_${Date.now().toString().slice(-4)}`;
+    const resNum = `ORD${order._id.toString().slice(-8)}${Date.now().toString().slice(-4)}`;
     let authority = resNum;
     let paymentUrl = '';
     let gatewayName = 'saman';

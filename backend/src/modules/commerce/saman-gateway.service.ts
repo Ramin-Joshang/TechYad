@@ -113,38 +113,84 @@ export class SamanGatewayService {
   }
 
   /**
+   * بررسی فعال بودن حالت آزمایشی (سندباکس)
+   * پیش‌فرض: غیرفعال (اتصال به درگاه واقعی شاپرک)
+   */
+  static async isSandboxMode(): Promise<boolean> {
+    try {
+      const setting = await Setting.findOne({ key: 'samanSandboxMode' }).lean();
+      if (setting && typeof setting.value === 'boolean') {
+        return setting.value;
+      }
+    } catch {
+      // غیرفعال پیش‌فرض
+    }
+    return process.env.SAMAN_SANDBOX === 'true';
+  }
+
+  /**
    * ۱. دریافت توکن پرداخت از درگاه سپ (Get Token)
    * طبق مستند رسمی SEP v3.6:
    * - ارسال درخواست POST به https://sep.shaparak.ir/OnlinePG/OnlinePG
    * - هدر Content-Type: application/json
-   * - فیلدهای بدنه: Action: "Token", TerminalId, Amount (ریال), ResNum, RedirectUrl, CellNumber
+   * - فیلدهای بدنه: action: "token", TerminalId, Amount (ریال), ResNum, RedirectUrl, CellNumber
    */
   static async requestToken(data: SepTokenRequest): Promise<SepTokenResult> {
+    // در صورت فعال بودن صریح حالت سندباکس در پنل مدیریت
+    const isSandbox = await this.isSandboxMode();
+    if (isSandbox) {
+      const mockToken = `SIM_SEP_${Date.now()}_${Math.floor(10000 + Math.random() * 90000)}`;
+      return {
+        success: true,
+        token: mockToken,
+        paymentUrl: `/payment/mock-gateway?token=${mockToken}&amount=${data.amountToman}&resNum=${data.resNum}`,
+        postActionUrl: `/payment/mock-gateway`,
+        isSimulated: true,
+        message: 'توکن شبیه‌ساز پرداخت سامان (حالت آزمایشی) ایجاد شد.',
+      };
+    }
+
     const terminalId = await this.getTerminalId();
     
     // تبدیل دقیق مبلغ به ریال به صورت عدد صحیح
     const amountRials = Math.round(Number(data.amountToman) * 10);
 
     if (amountRials < 1000) {
-      throw new AppError('مبلغ پرداخت باید حداقل ۱،۰۰۰ ریال (۱۰۰ تومان) باشد.', 400);
+      throw new AppError('مبلغ پرداخت باید حداقل ۱،۰۰۰ ریال (۱۰۰ تومان) باشد.', 400, 'INVALID_AMOUNT');
     }
 
-    // پاکسازی شماره موبایل (فرمت استاندارد 09xxxxxxxxx)
+    // پاکسازی شماره موبایل (فقط در صورتی که ۱۱ رقم استاندارد 09xxxxxxxxx باشد ارسال می‌شود)
     let cellNumber = data.cellNumber ? String(data.cellNumber).trim() : '';
     if (cellNumber.startsWith('+98')) cellNumber = '0' + cellNumber.slice(3);
     if (cellNumber.startsWith('98')) cellNumber = '0' + cellNumber.slice(2);
+    const isValidCellNumber = /^09\d{9}$/.test(cellNumber);
 
-    const terminalIdNum = Number(terminalId);
-    const payload = {
+    // تبدیل شماره ترمینال به عدد
+    const terminalIdClean = String(terminalId || this.DEFAULT_TERMINAL_ID).trim();
+    const terminalIdNum = Number(terminalIdClean);
+
+    // پاکسازی شناسه فاکتور (تنها حروف و اعداد مجاز هستند بدون کاراکترهای خاص)
+    const cleanResNum = String(data.resNum || '').replace(/[^a-zA-Z0-9]/g, '').slice(0, 40) || `SEP${Date.now()}`;
+
+    // پاکسازی و استانداردسازی آدرس بازگشت (RedirectUrl)
+    // شاپرک آدرس‌های localhost یا 127.0.0.1 را به عنوان خطای -1 رد می‌کند
+    let redirectUrl = String(data.redirectUrl || '').trim();
+    if (!redirectUrl || redirectUrl.includes('localhost') || redirectUrl.includes('127.0.0.1')) {
+      redirectUrl = 'https://tecyad.ir/api/payments/callback/saman';
+    }
+
+    // ساخت بدنه استاندارد مطابق مستند پرداخت الکترونیک سامان (بدون کلیدهای تکراری یا حروف بزرگ/کوچک متناقض)
+    const payload: Record<string, any> = {
       action: 'token',
-      Action: 'token',
-      TerminalId: isNaN(terminalIdNum) ? terminalId : terminalIdNum,
+      TerminalId: !isNaN(terminalIdNum) && terminalIdNum > 0 ? terminalIdNum : terminalIdClean,
       Amount: amountRials,
-      ResNum: data.resNum,
-      RedirectUrl: data.redirectUrl,
-      RedirectURL: data.redirectUrl,
-      ...(cellNumber ? { CellNumber: cellNumber } : {}),
+      ResNum: cleanResNum,
+      RedirectUrl: redirectUrl,
     };
+
+    if (isValidCellNumber) {
+      payload.CellNumber = cellNumber;
+    }
 
     try {
       // ارسال مستقیم درخواست دریافت توکن به شاپرک سپ
@@ -188,17 +234,17 @@ export class SamanGatewayService {
       const errorCode = String(resData?.errorCode ?? resData?.ErrorCode ?? status);
       const errorDesc = resData?.errorDesc || resData?.ErrorDesc || SEP_TOKEN_ERROR_CODES[errorCode] || 'خطای درگاه پرداخت سامان در ایجاد توکن';
 
-      console.error(`[SEP Token Rejected] Terminal: ${terminalId}, Code: ${errorCode}, Desc: ${errorDesc}`, resData);
-      throw new AppError(`خطای درگاه سامان (${errorCode}): ${errorDesc}`, 400);
+      console.error(`[SEP Token Rejected] Terminal: ${terminalIdClean}, Code: ${errorCode}, Desc: ${errorDesc}`, resData);
+      throw new AppError(`خطای درگاه سامان (${errorCode}): ${errorDesc}`, 400, 'GATEWAY_ERROR');
 
     } catch (err: any) {
       if (err instanceof AppError) throw err;
 
       console.error(`[SEP Token Exception]`, err?.message || err);
       if (err?.code === 'ECONNABORTED' || err?.message?.includes('timeout')) {
-        throw new AppError('پاسخی از سرور درگاه سامان (شاپرک) دریافت نشد (Timeout). لطفاً اتصال اینترنت سرور و در دسترس بودن شاپرک را بررسی نمایید.', 504);
+        throw new AppError('پاسخی از سرور درگاه سامان (شاپرک) دریافت نشد (Timeout). لطفاً اتصال اینترنت سرور و در دسترس بودن شاپرک را بررسی نمایید.', 504, 'GATEWAY_TIMEOUT');
       }
-      throw new AppError(`خطا در اتصال به درگاه پرداخت سامان شاپرک: ${err?.message || 'خطای شبکه'}`, 502);
+      throw new AppError(`خطا در اتصال به درگاه پرداخت سامان شاپرک: ${err?.message || 'خطای شبکه'}`, 502, 'GATEWAY_CONNECTION_ERROR');
     }
   }
 
@@ -299,9 +345,7 @@ export class SamanGatewayService {
     let response: any;
     const verifyPayload = {
       RefNum: refNum.trim(),
-      refnum: refNum.trim(),
       TerminalNumber: terminalNumber,
-      terminalnumber: terminalNumber,
     };
 
     try {

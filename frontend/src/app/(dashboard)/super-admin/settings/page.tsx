@@ -522,6 +522,21 @@ export default function SettingsPage() {
                     />
                   </div>
                 </div>
+                <div className="pt-2 border-t border-gray-100 flex items-center justify-between">
+                  <div>
+                    <span className="text-xs font-bold text-gray-800">حالت شبیه‌ساز آزمایشی (Sandbox Simulator)</span>
+                    <p className="text-[11px] text-gray-400">در صورت فعال بودن، جهت تست توسعه‌دهنده به شبیه‌ساز امن هدایت می‌شود (پیش‌فرض: غیرفعال / اتصال زنده به شاپرک)</p>
+                  </div>
+                  <label className="relative inline-flex items-center cursor-pointer">
+                    <input 
+                      type="checkbox" 
+                      className="sr-only peer"
+                      checked={formData.samanSandboxMode === true}
+                      onChange={e => handleChange('samanSandboxMode', e.target.checked)}
+                    />
+                    <div className="w-9 h-5 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-amber-500"></div>
+                  </label>
+                </div>
               </div>
 
               {/* SnappPay (اسنپ‌پی - خرید اقساطی BNPL) */}
