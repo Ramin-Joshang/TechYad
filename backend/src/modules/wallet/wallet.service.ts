@@ -306,6 +306,8 @@ export class WalletService {
 
     let paymentUrl = "";
     let gatewayName = "saman";
+    let token: string | undefined = undefined;
+    let postActionUrl: string | undefined = undefined;
 
     if (isSamanEnabled) {
       const sepResult = await SamanGatewayService.requestToken({
@@ -314,6 +316,8 @@ export class WalletService {
         redirectUrl: callbackUrl,
         cellNumber: user.mobile || "",
       });
+      token = sepResult.token;
+      postActionUrl = sepResult.postActionUrl;
       paymentUrl = sepResult.paymentUrl.includes("mock-gateway")
         ? `${sepResult.paymentUrl}&type=wallet`
         : sepResult.paymentUrl;
@@ -341,15 +345,26 @@ export class WalletService {
       authority,
       amount,
       paymentUrl,
+      postActionUrl,
+      token,
       gateway: gatewayName,
-      terminalId,
     };
   }
 
   /**
    * Verify online wallet charge callback from gateway
    */
-  static async verifyCharge(userId: string, authority: string, status: "OK" | "NOK") {
+  static async verifyCharge(
+    userId: string, 
+    authority: string, 
+    status: "OK" | "NOK",
+    verifyData?: {
+      refNum?: string;
+      rrn?: string;
+      traceNo?: string;
+      rawParams?: Record<string, unknown>;
+    }
+  ) {
     const transaction = await WalletTransaction.findOne({
       referenceId: authority,
       userId,
@@ -371,6 +386,19 @@ export class WalletService {
       };
     }
 
+    // Double spending prevention: ensure RefNum hasn't been approved for another transaction
+    const targetRefNum = verifyData?.refNum;
+    if (targetRefNum) {
+      const existingTx = await WalletTransaction.findOne({
+        trackingCode: targetRefNum,
+        status: "completed",
+        _id: { $ne: transaction._id }
+      });
+      if (existingTx) {
+        throw new AppError("این رسید دیجیتالی قبلاً برای تراکنش دیگری تایید شده است (Double Spending)", 400);
+      }
+    }
+
     if (status !== "OK") {
       transaction.status = "failed";
       await transaction.save();
@@ -380,9 +408,18 @@ export class WalletService {
       };
     }
 
-    // If Saman SEP gateway, verify transaction
-    if (transaction.gateway === "saman") {
-      await SamanGatewayService.verifyTransaction(authority);
+    // If Saman SEP gateway, verify transaction using RefNum and amount in Rials
+    if (transaction.gateway === "saman" && targetRefNum) {
+      const expectedRials = (transaction.amount || 0) * 10;
+      const verifyRes = await SamanGatewayService.verifyTransaction(targetRefNum, expectedRials);
+      if (!verifyRes.success) {
+        transaction.status = "failed";
+        await transaction.save();
+        return {
+          success: false,
+          message: verifyRes.resultDescription,
+        };
+      }
     }
 
     // Atomically increment user wallet balance
@@ -394,10 +431,16 @@ export class WalletService {
 
     if (!user) throw new AppError("کاربر یافت نشد", 404);
 
-    const trackingCode = `TRK-WLT-${Date.now().toString().slice(-6)}`;
+    const trackingCode = targetRefNum || `TRK-WLT-${Date.now().toString().slice(-6)}`;
     transaction.status = "completed";
     transaction.balanceAfter = user.walletBalance || 0;
     transaction.trackingCode = trackingCode;
+    if (verifyData?.rrn || verifyData?.traceNo) {
+      transaction.bankInfo = {
+        ...(transaction.bankInfo || {}),
+        cardNumber: verifyData.rrn ? `RRN: ${verifyData.rrn}` : undefined,
+      };
+    }
     await transaction.save();
 
     // Send in-app notification

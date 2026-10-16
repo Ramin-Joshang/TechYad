@@ -140,30 +140,8 @@ export function getDefaultFallbackImage(type: FallbackImageType = 'general', tit
   }
 
   if (type === 'class') {
-    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="800" height="450" viewBox="0 0 800 450">
-      <defs>
-        <linearGradient id="clsGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stop-color="#090d16" />
-          <stop offset="50%" stop-color="#1e1b4b" />
-          <stop offset="100%" stop-color="#0f172a" />
-        </linearGradient>
-      </defs>
-      <rect width="800" height="450" fill="url(#clsGrad)" />
-      <circle cx="680" cy="100" r="150" fill="#4f46e5" opacity="0.2" filter="blur(40px)" />
-      
-      <!-- Live Badge -->
-      <g transform="translate(60, 60)">
-        <rect width="130" height="36" rx="18" fill="#ef4444" fill-opacity="0.2" stroke="#ef4444" stroke-width="1" />
-        <circle cx="24" cy="18" r="5" fill="#ef4444" />
-        <text x="40" y="24" font-family="system-ui, sans-serif" font-weight="bold" font-size="14" fill="#fca5a5">کارگاه زنده و آنلاین</text>
-      </g>
-      
-      <!-- Title -->
-      <text x="60" y="320" font-family="system-ui, sans-serif" font-weight="900" font-size="32" fill="#ffffff">${safeText || 'کلاس آنلاین و کارگاه تعاملی'}</text>
-      <text x="60" y="365" font-family="system-ui, sans-serif" font-weight="600" font-size="18" fill="#a5b4fc">پلتفرم آموزش زنده تک‌یاد • TechYad</text>
-      <rect x="60" y="390" width="120" height="6" rx="3" fill="#4f46e5" />
-    </svg>`;
-    return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
+    // If a class has no image, do not show any dummy SVG image
+    return '';
   }
 
   if (type === 'blog') {
@@ -197,6 +175,14 @@ export function getImageUrl(
   fallbackType: FallbackImageType = 'general',
   titleOrName?: string
 ): string {
+  if (fallbackType === 'class') {
+    if (!rawUrl || typeof rawUrl !== 'string') return '';
+    const trimmed = rawUrl.trim();
+    if (trimmed === '' || trimmed === 'null' || trimmed === 'undefined' || trimmed.startsWith('data:image/svg') || trimmed.startsWith('blob:') || trimmed.startsWith('file://')) {
+      return '';
+    }
+  }
+
   if (!rawUrl || typeof rawUrl !== 'string') {
     return getDefaultFallbackImage(fallbackType, titleOrName);
   }
@@ -209,9 +195,10 @@ export function getImageUrl(
     clean === 'null' ||
     clean === 'undefined' ||
     clean.startsWith('blob:') ||
-    clean.startsWith('file://')
+    clean.startsWith('file://') ||
+    (fallbackType === 'class' && clean.startsWith('data:image/svg'))
   ) {
-    return getDefaultFallbackImage(fallbackType, titleOrName);
+    return fallbackType === 'class' ? '' : getDefaultFallbackImage(fallbackType, titleOrName);
   }
 
   // Windows backslash normalization
@@ -238,7 +225,7 @@ export function getImageUrl(
 
   // If it's a Windows drive letter path without /uploads/, return fallback
   if (/^[a-zA-Z]:\//.test(clean)) {
-    return getDefaultFallbackImage(fallbackType, titleOrName);
+    return fallbackType === 'class' ? '' : getDefaultFallbackImage(fallbackType, titleOrName);
   }
 
   return clean;
@@ -254,6 +241,10 @@ export function handleImageError(
 ) {
   const target = e.currentTarget;
   target.onerror = null; // Prevent infinite error loops
+  if (fallbackType === 'class') {
+    target.style.display = 'none';
+    return;
+  }
   const fallback = getDefaultFallbackImage(fallbackType, titleOrName);
   if (target.src !== fallback) {
     target.src = fallback;

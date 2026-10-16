@@ -64,8 +64,35 @@ export default function StudentWalletPage() {
     setIsDepositing(true);
     try {
       const res = await walletApi.chargeWallet(depositAmount);
-      if (res.data?.paymentUrl) {
-        window.location.href = res.data.paymentUrl;
+      const data = res.data;
+
+      // Scenario A: Auto POST form submit to SEP
+      if (data?.postActionUrl && data?.token && !String(data?.paymentUrl || '').includes('mock-gateway')) {
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = data.postActionUrl;
+        form.style.display = 'none';
+
+        const tokenInput = document.createElement('input');
+        tokenInput.type = 'hidden';
+        tokenInput.name = 'Token';
+        tokenInput.value = data.token;
+        form.appendChild(tokenInput);
+
+        const getMethodInput = document.createElement('input');
+        getMethodInput.type = 'hidden';
+        getMethodInput.name = 'GetMethod';
+        getMethodInput.value = '';
+        form.appendChild(getMethodInput);
+
+        document.body.appendChild(form);
+        form.submit();
+        return;
+      }
+
+      // Scenario B: Direct redirect to SEP SendToken URL
+      if (data?.paymentUrl) {
+        window.location.href = data.paymentUrl;
       }
     } catch (err: any) {
       toast.error(err.response?.data?.message || 'خطا در ایجاد تراکنش شارژ');

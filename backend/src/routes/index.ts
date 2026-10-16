@@ -47,6 +47,7 @@ router.use('/', catalogRoutes);
 router.use('/', courseRoutes);
 router.use('/', learningRoutes);
 router.use('/', commerceRoutes);
+router.use('/commerce', commerceRoutes);
 router.use('/', assignmentRoutes);
 router.use('/', quizRoutes);
 router.use('/', communityRoutes);
