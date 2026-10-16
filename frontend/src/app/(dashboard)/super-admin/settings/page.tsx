@@ -521,6 +521,18 @@ export default function SettingsPage() {
                       placeholder="••••••••"
                     />
                   </div>
+                  <div className="sm:col-span-2 space-y-2">
+                    <label className="text-xs font-bold text-gray-700">آدرس بازگشت تراکنش (Callback URL)</label>
+                    <input
+                      type="text"
+                      value={formData.samanCallbackUrl || ''}
+                      onChange={e => handleChange('samanCallbackUrl', e.target.value)}
+                      className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl outline-none text-left font-mono text-xs"
+                      dir="ltr"
+                      placeholder="https://tecyad.ir/api/payments/callback/saman"
+                    />
+                    <p className="text-[11px] text-gray-400">باید دقیقاً با آدرس بازگشت ثبت‌شده در پرتال سامان (my.sep.ir) برای ترمینال ۱۵۸۵۹۹۱۰ مطابقت داشته باشد.</p>
+                  </div>
                 </div>
                 <div className="pt-2 border-t border-gray-100 flex items-center justify-between">
                   <div>

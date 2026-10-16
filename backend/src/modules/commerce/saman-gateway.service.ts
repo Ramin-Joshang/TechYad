@@ -129,6 +129,30 @@ export class SamanGatewayService {
   }
 
   /**
+   * دریافت آدرس صفحه بازگشت (Callback URL) از تنظیمات دیتابیس یا متغیر محیطی
+   */
+  static async getCallbackUrl(): Promise<string> {
+    try {
+      const setting = await Setting.findOne({ key: 'samanCallbackUrl' }).lean();
+      if (setting && setting.value && String(setting.value).trim()) {
+        return String(setting.value).trim();
+      }
+    } catch {
+      // استفاده از مقدار پیش‌فرض
+    }
+    const envCallback = process.env.SAMAN_CALLBACK_URL;
+    if (envCallback && envCallback.trim()) {
+      return envCallback.trim();
+    }
+    const rawAppUrl = process.env.APP_URL || 'https://tecyad.ir';
+    let appUrl = rawAppUrl.trim().replace(/\/+$/, '');
+    if (appUrl.includes('localhost') || appUrl.includes('127.0.0.1')) {
+      appUrl = 'https://tecyad.ir';
+    }
+    return `${appUrl}/api/payments/callback/saman`;
+  }
+
+  /**
    * ۱. دریافت توکن پرداخت از درگاه سپ (Get Token)
    * طبق مستند رسمی SEP v3.6:
    * - ارسال درخواست POST به https://sep.shaparak.ir/OnlinePG/OnlinePG
@@ -176,7 +200,7 @@ export class SamanGatewayService {
     // شاپرک آدرس‌های localhost یا 127.0.0.1 را به عنوان خطای -1 رد می‌کند
     let redirectUrl = String(data.redirectUrl || '').trim();
     if (!redirectUrl || redirectUrl.includes('localhost') || redirectUrl.includes('127.0.0.1')) {
-      redirectUrl = 'https://tecyad.ir/api/payments/callback/saman';
+      redirectUrl = await this.getCallbackUrl();
     }
 
     // ساخت بدنه استاندارد مطابق مستند پرداخت الکترونیک سامان (بدون کلیدهای تکراری یا حروف بزرگ/کوچک متناقض)

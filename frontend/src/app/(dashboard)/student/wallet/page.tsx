@@ -79,12 +79,6 @@ export default function StudentWalletPage() {
         tokenInput.value = data.token;
         form.appendChild(tokenInput);
 
-        const getMethodInput = document.createElement('input');
-        getMethodInput.type = 'hidden';
-        getMethodInput.name = 'GetMethod';
-        getMethodInput.value = '';
-        form.appendChild(getMethodInput);
-
         document.body.appendChild(form);
         form.submit();
         return;

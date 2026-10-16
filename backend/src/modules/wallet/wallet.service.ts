@@ -301,12 +301,7 @@ export class WalletService {
     const authority = `WALLET${user._id.toString().slice(-6)}${Date.now().toString().slice(-6)}`;
     const isSamanEnabled = await SamanGatewayService.isEnabled();
     const terminalId = await SamanGatewayService.getTerminalId();
-    const rawAppUrl = process.env.APP_URL || "https://tecyad.ir";
-    let appUrl = rawAppUrl.trim().replace(/\/+$/, '');
-    if (appUrl.includes('localhost') || appUrl.includes('127.0.0.1')) {
-      appUrl = 'https://tecyad.ir';
-    }
-    const callbackUrl = `${appUrl}/api/payments/callback/saman`;
+    const callbackUrl = await SamanGatewayService.getCallbackUrl();
 
     let paymentUrl = "";
     let gatewayName = "saman";
