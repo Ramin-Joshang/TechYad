@@ -5,41 +5,46 @@ import type { Metadata } from "next";
 export const dynamic = 'force-dynamic';
 
 export const metadata: Metadata = {
-  title: "تک‌یاد | پلتفرم جامع آموزش آنلاین، دوره‌ها و کلاس‌های تخصصی برنامه‌نویسی",
-  description: "سامانه آموزش آنلاین تک‌یاد (Tecyad)؛ مرجع تخصصی دوره‌های پروژه‌محور برنامه‌نویسی، طراحی وب، هوش مصنوعی، کلاس‌های زنده و کارگاه‌های مهارتی با برترین اساتید ایران.",
+  title: "آکادمی تک‌یاد | پلتفرم جامع آموزش آنلاین، دوره‌ها و کلاس‌های تخصصی برنامه‌نویسی",
+  description: "سامانه آموزش آنلاین آکادمی تک‌یاد (Tecyad)؛ مرجع تخصصی دوره‌های پروژه‌محور برنامه‌نویسی، طراحی وب، هوش مصنوعی، کلاس‌های زنده و کارگاه‌های مهارتی با برترین اساتید ایران.",
   keywords: [
+    "آکادمی تک‌یاد",
+    "آکادمی تک یاد",
+    "تک‌یاد",
+    "تک یاد",
+    "تکیاد",
+    "Tecyad",
+    "Tecyad Academy",
     "آموزش برنامه‌نویسی",
     "کلاس آنلاین",
     "دوره آموزش پایتون",
     "دوره آموزش طراحی وب",
     "هوش مصنوعی",
-    "تک‌یاد",
-    "Tecyad",
     "آموزشگاه مجازی",
   ],
   alternates: {
-    canonical: "/",
+    canonical: "https://tecyad.ir",
   },
   openGraph: {
     type: "website",
     locale: "fa_IR",
     url: "https://tecyad.ir",
-    siteName: "تک‌یاد | Tecyad",
-    title: "تک‌یاد | پلتفرم جامع آموزش آنلاین، دوره‌ها و کلاس‌های تخصصی",
-    description: "سامانه آموزش آنلاین تک‌یاد؛ مرجع تخصصی دوره‌های پروژه‌محور برنامه‌نویسی، طراحی وب و هوش مصنوعی با برترین اساتید.",
+    siteName: "آکادمی تک‌یاد | Tecyad",
+    title: "آکادمی تک‌یاد | پلتفرم جامع آموزش آنلاین، دوره‌ها و کلاس‌های تخصصی",
+    description: "سامانه آموزش آنلاین آکادمی تک‌یاد؛ مرجع تخصصی دوره‌های پروژه‌محور برنامه‌نویسی، طراحی وب و هوش مصنوعی با برترین اساتید.",
     images: [
       {
         url: "https://tecyad.ir/hero-image.png",
         width: 1200,
         height: 630,
-        alt: "آکادمی آموزشی تک‌یاد Tecyad",
+        alt: "آکادمی تک‌یاد Tecyad",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "تک‌یاد | پلتفرم جامع آموزش آنلاین، دوره‌ها و کلاس‌های تخصصی",
-    description: "مرجع تخصصی دوره‌های برنامه‌نویسی، کلاس‌های آنلاین و کارگاه‌های مهارتی.",
+    title: "آکادمی تک‌یاد | پلتفرم جامع آموزش آنلاین، دوره‌ها و کلاس‌های تخصصی",
+    description: "مرجع تخصصی دوره‌های برنامه‌نویسی، کلاس‌های آنلاین و کارگاه‌های مهارتی در آکادمی تک‌یاد.",
     images: ["https://tecyad.ir/hero-image.png"],
   },
 };
@@ -50,9 +55,16 @@ export default async function HomePage() {
   const websiteJsonLd = {
     "@context": "https://schema.org",
     "@type": "WebSite",
-    "name": "تک‌یاد | Tecyad",
+    "name": "آکادمی تک‌یاد",
+    "alternateName": [
+      "آکادمی تک یاد",
+      "تک‌یاد",
+      "تک یاد",
+      "تکیاد",
+      "Tecyad"
+    ],
     "url": "https://tecyad.ir",
-    "description": "پلتفرم جامع آموزش آنلاین، دوره‌ها و کلاس‌های تخصصی",
+    "description": "پلتفرم جامع آموزش آنلاین، دوره‌ها و کلاس‌های تخصصی آکادمی تک‌یاد",
     "potentialAction": {
       "@type": "SearchAction",
       "target": "https://tecyad.ir/search?q={search_term_string}",
@@ -63,7 +75,15 @@ export default async function HomePage() {
   const orgJsonLd = {
     "@context": "https://schema.org",
     "@type": "EducationalOrganization",
-    "name": "تک‌یاد | Tecyad",
+    "name": "آکادمی تک‌یاد",
+    "alternateName": [
+      "آکادمی تک یاد",
+      "تک‌یاد",
+      "تک یاد",
+      "تکیاد",
+      "Tecyad Academy",
+      "Tecyad"
+    ],
     "url": "https://tecyad.ir",
     "logo": "https://tecyad.ir/logo.png",
     "telephone": "09372731037",

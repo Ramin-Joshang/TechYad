@@ -3,7 +3,14 @@ import { z } from 'zod';
 export const addToCartSchema = z.object({
   body: z.object({
     itemType: z.enum(['course', 'class']),
-    itemId: z.string().min(1, 'Item ID is required')
+    itemId: z.string().min(1, 'Item ID is required'),
+    paymentPlan: z.enum(['cash', 'installment']).optional()
+  })
+});
+
+export const updateCartItemPlanSchema = z.object({
+  body: z.object({
+    paymentPlan: z.enum(['cash', 'installment'])
   })
 });
 

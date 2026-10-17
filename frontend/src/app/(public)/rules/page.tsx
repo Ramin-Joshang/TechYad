@@ -21,15 +21,24 @@ export default function RulesPage() {
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-[var(--neo-primary)]/10 text-[var(--neo-primary)] mb-6">
             <Scale className="w-8 h-8" />
           </div>
-          <h1 className="text-3xl md:text-4xl font-bold text-[var(--neo-text-main)] mb-4">قوانین و مقررات</h1>
+          <h1 className="text-3xl md:text-4xl font-bold text-[var(--neo-text-main)] mb-4">قوانین و مقررات آکادمی تک‌یاد</h1>
           <p className="text-lg text-[var(--neo-text-secondary)]">
-            لطفاً پیش از ثبت‌نام و استفاده از خدمات تک‌یاد، این قوانین را به دقت مطالعه فرمایید.
+            لطفاً پیش از ثبت‌نام و استفاده از خدمات آکادمی تک‌یاد، این قوانین را به دقت مطالعه فرمایید.
           </p>
+          <div className="mt-4">
+            <Link
+              href="/terms"
+              className="inline-flex items-center gap-2 text-sm font-bold text-blue-600 bg-blue-50 px-4 py-2 rounded-xl hover:bg-blue-100 transition border border-blue-200"
+            >
+              <span>مشاهده شرایط اختصاصی خرید، اقساط اسنپ‌پی و قوانین انصراف</span>
+              <span>←</span>
+            </Link>
+          </div>
         </div>
 
         <div className="bg-white rounded-3xl p-8 md:p-12 shadow-sm border border-[var(--neo-border)] relative">
           <div className="absolute top-8 left-8 text-xs font-medium text-[var(--neo-text-muted)] bg-[var(--neo-bg)] px-3 py-1.5 rounded-lg border border-[var(--neo-border)]">
-            نسخه رسمی سامانه تک‌یاد
+            نسخه رسمی آکادمی تک‌یاد
           </div>
 
           {customRules ? (

@@ -19,6 +19,11 @@ export const removeFromCart = async (req: AuthRequest, res: Response) => {
   sendSuccess(res, result, 'Item removed from cart');
 };
 
+export const updateCartItemPlan = async (req: AuthRequest, res: Response) => {
+  const result = await CommerceService.updateCartItemPlan(req.user._id as string, req.params.itemId as string, req.body.paymentPlan);
+  sendSuccess(res, result, 'Cart item payment plan updated');
+};
+
 export const clearCart = async (req: AuthRequest, res: Response) => {
   const result = await CommerceService.clearCart(req.user._id as string);
   sendSuccess(res, result, 'Cart cleared');

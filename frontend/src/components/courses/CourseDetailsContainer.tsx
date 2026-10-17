@@ -45,9 +45,12 @@ export function CourseDetailsContainer({ slug, initialData }: { slug: string; in
   const isEnrolled = !!enrollment;
   const isCheckingEnrollment = isAuthenticated && (enrollmentLoading || isInitializing);
 
+  const [paymentChoice, setPaymentChoice] = useState<'cash' | 'installment'>('cash');
+
   // Add to Cart Mutation
   const addToCartMutation = useMutation({
-    mutationFn: () => commerceApi.addToCart('course', course._id),
+    mutationFn: (plan?: 'cash' | 'installment') => 
+      commerceApi.addToCart('course', course._id, plan || (paymentChoice === 'installment' ? 'installment' : 'cash')),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['cart'] });
       toast.success('دوره با موفقیت به سبد خرید اضافه شد');
@@ -130,7 +133,7 @@ export function CourseDetailsContainer({ slug, initialData }: { slug: string; in
     }
 
     if (!isInCart) {
-      addToCartMutation.mutate();
+      addToCartMutation.mutate(paymentChoice === 'installment' ? 'installment' : 'cash');
     } else {
       router.push('/cart');
     }
@@ -240,12 +243,80 @@ export function CourseDetailsContainer({ slug, initialData }: { slug: string; in
                 ) : isFree ? (
                   <div className="text-4xl font-black text-emerald-600 mb-2">رایگان</div>
                 ) : (
-                  <>
+                  <div className="w-full text-center">
                     {hasDiscount && (
-                      <div className="text-[var(--neo-text-muted)] line-through mb-1 text-lg">{course.price.toLocaleString('fa-IR')} تومان</div>
+                      <div className="flex items-center justify-center gap-2 mb-1">
+                        <span className="text-[var(--neo-text-muted)] line-through text-sm font-mono">{course.price?.toLocaleString('fa-IR')} تومان</span>
+                        <span className="bg-rose-500 text-white text-[11px] font-bold px-2 py-0.5 rounded-full">
+                          {Math.round((1 - finalPrice / course.price) * 100)}% تخفیف
+                        </span>
+                      </div>
                     )}
-                    <div className="text-4xl font-black text-[var(--neo-text-main)] mb-2">{finalPrice.toLocaleString('fa-IR')} <span className="text-xl text-[var(--neo-text-muted)] font-normal">تومان</span></div>
-                  </>
+                    <div className="text-3xl font-black text-[var(--neo-text-main)] mb-4 font-mono">
+                      {finalPrice.toLocaleString('fa-IR')} <span className="text-lg text-[var(--neo-text-muted)] font-normal font-sans">تومان</span>
+                    </div>
+
+                    {/* Payment Plan Selector (Cash vs SnappPay) */}
+                    <div className="space-y-2.5 text-right bg-slate-50 p-3 rounded-2xl border border-slate-200 mb-2">
+                      <span className="text-xs font-bold text-slate-700 block">انتخاب نوع پرداخت:</span>
+                      
+                      <label 
+                        onClick={() => setPaymentChoice('cash')}
+                        className={`p-2.5 rounded-xl border cursor-pointer block transition ${
+                          paymentChoice === 'cash'
+                            ? 'bg-white border-blue-500 shadow-xs ring-2 ring-blue-500/20'
+                            : 'bg-white/60 border-slate-200 hover:bg-white'
+                        }`}
+                      >
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <input
+                              type="radio"
+                              name="coursePaymentMode"
+                              checked={paymentChoice === 'cash'}
+                              onChange={() => setPaymentChoice('cash')}
+                              className="text-blue-600"
+                            />
+                            <span className="text-xs font-bold text-slate-900">پرداخت نقدی یکجا</span>
+                          </div>
+                          <span className="text-xs font-mono font-bold text-blue-600">
+                            {finalPrice.toLocaleString('fa-IR')} تومان
+                          </span>
+                        </div>
+                      </label>
+
+                      <label 
+                        onClick={() => setPaymentChoice('installment')}
+                        className={`p-2.5 rounded-xl border cursor-pointer block transition ${
+                          paymentChoice === 'installment'
+                            ? 'bg-purple-50/80 border-purple-500 shadow-xs ring-2 ring-purple-500/20'
+                            : 'bg-white/60 border-slate-200 hover:bg-white'
+                        }`}
+                      >
+                        <div className="flex items-center justify-between mb-1">
+                          <div className="flex items-center gap-2">
+                            <input
+                              type="radio"
+                              name="coursePaymentMode"
+                              checked={paymentChoice === 'installment'}
+                              onChange={() => setPaymentChoice('installment')}
+                              className="text-purple-600"
+                            />
+                            <span className="text-xs font-bold text-purple-950">اقساط ۴ ماهه اسنپ‌پی</span>
+                          </div>
+                          <span className="text-[10px] bg-purple-100 text-purple-700 font-bold px-1.5 py-0.5 rounded">
+                            بدون کارمزد
+                          </span>
+                        </div>
+                        <div className="text-[11px] font-semibold text-purple-900 pr-5">
+                          پیش‌پرداخت امروز: <span className="font-mono font-bold">{Math.round((course.installmentPrice || finalPrice) * 0.25).toLocaleString('fa-IR')}</span> تومان
+                        </div>
+                        <div className="text-[10px] text-purple-700 pr-5">
+                          + ۳ قسط ماهانه هر قسط <span className="font-mono font-bold">{Math.round(((course.installmentPrice || finalPrice) - Math.round((course.installmentPrice || finalPrice) * 0.25)) / 3).toLocaleString('fa-IR')}</span> تومان
+                        </div>
+                      </label>
+                    </div>
+                  </div>
                 )}
               </div>
               

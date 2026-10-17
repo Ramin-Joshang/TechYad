@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { Star, BookOpen, Users, Award, Search, Filter, CheckCircle } from 'lucide-react';
 import { useState } from 'react';
 import { getImageUrl, handleImageError } from '@/lib/utils';
+import { InstructorCard } from './InstructorCard';
 
 export function InstructorsList({ initialData }: { initialData?: any } = {}) {
   const [searchTerm, setSearchTerm] = useState('');
@@ -167,86 +168,5 @@ export function InstructorsList({ initialData }: { initialData?: any } = {}) {
         )}
       </div>
     </div>
-  );
-}
-
-function InstructorCard({ instructor, featured = false }: { instructor: any, featured?: boolean }) {
-  const { userId, title, avatar, specialties } = instructor;
-  const fullName = `${userId?.firstName} ${userId?.lastName}`;
-  const displayAvatar = getImageUrl(userId?.personnelPhoto || instructor.personnelPhoto || avatar || userId?.avatar, 'avatar', fullName);
-  
-  // Consistent mock data
-  // Real accurate data from backend profile
-  const rating = instructor.rating !== undefined && instructor.rating > 0 ? Number(instructor.rating) : 5.0;
-  const coursesCount = instructor.coursesCount !== undefined ? instructor.coursesCount : 0;
-  const classesCount = instructor.classesCount !== undefined ? instructor.classesCount : 0;
-  const instructorSlug = instructor.slug || `${userId?.firstName || ''}-${userId?.lastName || ''}`.trim().replace(/\s+/g, '-') || userId?._id;
-
-  return (
-    <Link href={`/instructors/${encodeURIComponent(instructorSlug)}`} className="block group h-full">
-      <div className={`bg-white rounded-3xl p-6 shadow-sm hover:shadow-xl hover:-translate-y-1 transition duration-300 relative overflow-hidden h-full flex flex-col ${featured ? 'border-2 border-amber-100' : 'border border-[var(--neo-border)]'}`}>
-        {featured && (
-          <div className="absolute top-0 right-0 w-32 h-32 bg-amber-50 rounded-full -translate-y-16 translate-x-16 z-0"></div>
-        )}
-        {!featured && (
-          <div className="absolute top-0 right-0 w-32 h-32 bg-[var(--neo-primary)]/5 rounded-full -translate-y-16 translate-x-16 group-hover:scale-150 transition duration-500 ease-out z-0"></div>
-        )}
-        
-        <div className="relative z-10 flex gap-5 items-center mb-5">
-          <div className="relative w-20 h-20 aspect-square shrink-0 rounded-2xl overflow-hidden bg-slate-100 shadow-md">
-             <img
-               src={displayAvatar}
-               onError={(e) => handleImageError(e, 'avatar', fullName)}
-               alt={fullName}
-               className={`w-full h-full aspect-square object-fill ${featured ? 'border-2 border-amber-200' : ''}`}
-             />
-             {featured && (
-               <div className="absolute -top-2 -right-2 bg-amber-400 text-white rounded-full p-1 shadow-sm z-10">
-                 <Award className="w-4 h-4" />
-               </div>
-             )}
-          </div>
-          <div>
-            <h3 className="font-bold text-lg text-[var(--neo-text-main)] group-hover:text-[var(--neo-primary)] transition">{fullName}</h3>
-            <p className="text-sm text-[var(--neo-text-muted)] mt-1 line-clamp-1">{title}</p>
-          </div>
-        </div>
-
-        {specialties && specialties.length > 0 && (
-          <div className="relative z-10 mb-6 flex-grow">
-            <div className="flex flex-wrap gap-1.5">
-              {specialties.slice(0, 3).map((spec: string, i: number) => (
-                <span key={i} className="text-xs font-medium text-blue-700 bg-[var(--neo-primary)]/5 px-2 py-1 rounded-md border border-blue-100">
-                  {spec}
-                </span>
-              ))}
-              {specialties.length > 3 && (
-                <span className="text-xs font-medium text-[var(--neo-text-muted)] bg-[var(--neo-bg)] px-2 py-1 rounded-md border border-[var(--neo-border)]">
-                  +{specialties.length - 3}
-                </span>
-              )}
-            </div>
-          </div>
-        )}
-
-        <div className="relative z-10 grid grid-cols-3 gap-2 pt-4 border-t border-gray-50 mt-auto text-center">
-           <div className="flex flex-col items-center">
-             <div className="flex items-center gap-1 text-amber-500 mb-1">
-               <Star className="w-4 h-4 fill-current" />
-               <span className="font-bold text-sm">{rating.toFixed(1)}</span>
-             </div>
-             <span className="text-xs text-[var(--neo-text-muted)]">امتیاز</span>
-           </div>
-           <div className="flex flex-col items-center border-r border-l border-[var(--neo-border)]">
-             <div className="font-bold text-[var(--neo-text-secondary)] text-sm mb-1">{coursesCount}</div>
-             <span className="text-xs text-[var(--neo-text-muted)]">دوره</span>
-           </div>
-           <div className="flex flex-col items-center">
-             <div className="font-bold text-[var(--neo-text-secondary)] text-sm mb-1">{classesCount}</div>
-             <span className="text-xs text-[var(--neo-text-muted)]">کلاس</span>
-           </div>
-        </div>
-      </div>
-    </Link>
   );
 }

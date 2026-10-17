@@ -243,12 +243,35 @@ export class ClassService {
       payload.allowPreRegistration = true;
     }
 
-    const isPrivilegedAdmin = userRole === 'admin' || userRole === 'super-admin' || userRole === 'super_admin';
-    const initialStatus = isPrivilegedAdmin ? (payload.status || 'published') : 'pending_approval';
-    if (!payload.status) payload.status = initialStatus;
-    if (payload.registrationOpen === undefined) payload.registrationOpen = true;
-    if (!isPrivilegedAdmin) {
-      delete payload.instructorSharePercent; // Never allow non-admin to override class commission
+    // Explicit pricing normalization (Cash vs Installment vs Free)
+    if (payload.isFree === true || Number(payload.price) === 0) {
+      payload.isFree = true;
+      payload.price = 0;
+      payload.cashPrice = 0;
+      payload.installmentPrice = 0;
+      delete payload.discountPrice;
+    } else {
+      payload.isFree = false;
+      const basePrice = Number(payload.price) || 0;
+      payload.price = basePrice;
+      
+      const rawCash = payload.cashPrice !== undefined && payload.cashPrice !== null ? Number(payload.cashPrice) : undefined;
+      const rawDiscount = payload.discountPrice !== undefined && payload.discountPrice !== null ? Number(payload.discountPrice) : undefined;
+      
+      if (rawDiscount !== undefined && rawDiscount > 0 && rawDiscount < basePrice) {
+        payload.discountPrice = rawDiscount;
+        payload.cashPrice = rawCash !== undefined && rawCash > 0 ? rawCash : rawDiscount;
+      } else {
+        delete payload.discountPrice;
+        payload.cashPrice = rawCash !== undefined && rawCash > 0 ? rawCash : basePrice;
+      }
+
+      const rawInstallment = payload.installmentPrice !== undefined && payload.installmentPrice !== null ? Number(payload.installmentPrice) : undefined;
+      if (rawInstallment !== undefined && rawInstallment > 0) {
+        payload.installmentPrice = rawInstallment;
+      } else {
+        payload.installmentPrice = (payload.cashPrice || basePrice) * 2;
+      }
     }
 
     const createdClass = await Class.create({
@@ -259,6 +282,7 @@ export class ClassService {
     });
 
     // Audit Log for creating class
+    const isPrivilegedAdmin = userRole === 'admin' || userRole === 'super-admin';
     AuditService.log({
       userId,
       userRole: isPrivilegedAdmin ? 'admin' : 'instructor',
@@ -430,6 +454,41 @@ export class ClassService {
       MediaService.deleteFile(userId || existingClass.createdBy?.toString() || '', existingClass.thumbnail, true).catch(err => {
         console.error('Failed to cleanup old class thumbnail:', err);
       });
+    }
+
+    // Explicit pricing normalization (Cash vs Installment vs Free)
+    if (payload.price !== undefined || payload.cashPrice !== undefined || payload.installmentPrice !== undefined || payload.isFree !== undefined) {
+      if (payload.isFree === true || Number(payload.price) === 0) {
+        payload.isFree = true;
+        payload.price = 0;
+        payload.cashPrice = 0;
+        payload.installmentPrice = 0;
+        payload.$unset = { ...(payload.$unset || {}), discountPrice: 1 };
+        delete payload.discountPrice;
+      } else {
+        payload.isFree = false;
+        const basePrice = payload.price !== undefined ? (Number(payload.price) || 0) : existingClass.price;
+        payload.price = basePrice;
+        
+        const rawCash = payload.cashPrice !== undefined && payload.cashPrice !== null ? Number(payload.cashPrice) : undefined;
+        const rawDiscount = payload.discountPrice !== undefined && payload.discountPrice !== null ? Number(payload.discountPrice) : undefined;
+        
+        if (rawDiscount !== undefined && rawDiscount > 0 && rawDiscount < basePrice) {
+          payload.discountPrice = rawDiscount;
+          payload.cashPrice = rawCash !== undefined && rawCash > 0 ? rawCash : rawDiscount;
+        } else if (rawDiscount === 0 || rawDiscount === undefined) {
+          payload.$unset = { ...(payload.$unset || {}), discountPrice: 1 };
+          delete payload.discountPrice;
+          payload.cashPrice = rawCash !== undefined && rawCash > 0 ? rawCash : (existingClass.cashPrice || basePrice);
+        }
+
+        const rawInstallment = payload.installmentPrice !== undefined && payload.installmentPrice !== null ? Number(payload.installmentPrice) : undefined;
+        if (rawInstallment !== undefined && rawInstallment > 0) {
+          payload.installmentPrice = rawInstallment;
+        } else {
+          payload.installmentPrice = (payload.cashPrice || basePrice) * 2;
+        }
+      }
     }
 
     const cls = await Class.findByIdAndUpdate(existingClass._id, payload, { new: true });

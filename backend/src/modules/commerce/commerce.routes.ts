@@ -3,7 +3,7 @@ import * as Controller from './commerce.controller.js';
 import { validate } from '../../common/middleware/validate.js';
 import { authenticate, authorize } from '../../common/middleware/auth.js';
 import { asyncHandler } from '../../common/utils/asyncHandler.js';
-import { addToCartSchema, applyCouponSchema } from './commerce.validation.js';
+import { addToCartSchema, updateCartItemPlanSchema, applyCouponSchema } from './commerce.validation.js';
 
 const router = Router();
 const requireAuth = asyncHandler(authenticate);
@@ -12,6 +12,7 @@ const isInstructor = [requireAuth, authorize('create_course')];
 // --- Cart ---
 router.get('/me/cart', requireAuth, asyncHandler(Controller.getCart));
 router.post('/me/cart/items', requireAuth, validate(addToCartSchema), asyncHandler(Controller.addToCart));
+router.patch('/me/cart/items/:itemId', requireAuth, validate(updateCartItemPlanSchema), asyncHandler(Controller.updateCartItemPlan));
 router.delete('/me/cart/items/:itemId', requireAuth, asyncHandler(Controller.removeFromCart));
 router.delete('/me/cart', requireAuth, asyncHandler(Controller.clearCart));
 

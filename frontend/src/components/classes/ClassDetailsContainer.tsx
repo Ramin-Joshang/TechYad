@@ -23,7 +23,7 @@ export function ClassDetailsContainer({ slug, initialData }: { slug: string; ini
   const queryClient = useQueryClient();
   const { isAuthenticated, isInitializing, user } = useAuthStore();
 
-  const [paymentChoice, setPaymentChoice] = useState<'full' | 'deposit'>('full');
+  const [paymentChoice, setPaymentChoice] = useState<'cash' | 'installment' | 'deposit'>('cash');
   const [copiedAddress, setCopiedAddress] = useState(false);
   const [expandedSession, setExpandedSession] = useState<number | null>(1);
 
@@ -38,6 +38,19 @@ export function ClassDetailsContainer({ slug, initialData }: { slug: string; ini
 
   const cls = clsData || initialData;
   const isLoading = !cls && queryLoading;
+
+  // Pricing calculations
+  const rawPrice = cls?.price && cls?.price > 0 ? cls.price : (cls?.cashPrice && cls.cashPrice > 0 ? cls.cashPrice : 0);
+  const isFree = cls?.isFree === true;
+  const discountPrice = cls?.discountPrice;
+  const hasDiscount = !isFree && discountPrice !== undefined && discountPrice !== null && discountPrice > 0 && discountPrice < rawPrice;
+  const finalCashPrice = isFree ? 0 : (hasDiscount ? discountPrice : rawPrice);
+  const discountPercent = hasDiscount && rawPrice > 0 ? Math.round((1 - discountPrice! / rawPrice) * 100) : 0;
+  
+  // Installment calculations (SnappPay 4 months, 0% interest)
+  const installmentTotal = cls?.installmentPrice && cls.installmentPrice > 0 ? cls.installmentPrice : finalCashPrice;
+  const downPayment = Math.round(installmentTotal * 0.25);
+  const monthlyInstallment = Math.round((installmentTotal - downPayment) / 3);
 
   // Check enrollment in class
   const { data: enrollmentData, isLoading: isEnrollmentLoading } = useQuery({
@@ -62,12 +75,13 @@ export function ClassDetailsContainer({ slug, initialData }: { slug: string; ini
 
   const isInCart = cartData?.items?.some((item: any) => item.itemId === cls?._id && item.itemType === 'class');
 
-  // Add to cart mutation for full payment
+  // Add to cart mutation supporting cash or installment
   const addToCartMutation = useMutation({
-    mutationFn: () => commerceApi.addToCart('class', cls._id),
+    mutationFn: (plan?: 'cash' | 'installment') => 
+      commerceApi.addToCart('class', cls._id, plan || (paymentChoice === 'installment' ? 'installment' : 'cash')),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['cart'] });
-      toast.success('کلاس به سبد خرید اضافه شد');
+      toast.success('کلاس با موفقیت به سبد خرید اضافه شد');
       router.push('/cart');
     },
     onError: (err: any) => {
@@ -132,7 +146,7 @@ export function ClassDetailsContainer({ slug, initialData }: { slug: string; ini
       return;
     }
 
-    if (cls?.price === 0) {
+    if (isFree) {
       enrollFreeMutation.mutate();
       return;
     }
@@ -143,11 +157,11 @@ export function ClassDetailsContainer({ slug, initialData }: { slug: string; ini
       return;
     }
 
-    // Full Payment
+    // Cash or Installment Payment via Cart
     if (isInCart) {
       router.push('/cart');
     } else {
-      addToCartMutation.mutate();
+      addToCartMutation.mutate(paymentChoice === 'installment' ? 'installment' : 'cash');
     }
   };
 
@@ -830,53 +844,43 @@ export function ClassDetailsContainer({ slug, initialData }: { slug: string; ini
               {/* Header Price */}
               <div className="text-center pb-4 border-b border-slate-100">
                 <span className="text-xs font-bold text-slate-400 block mb-1">شهریه کلاس</span>
-                <div className="text-3xl font-black text-slate-900">
-                  {cls.price === 0 ? (
-                    <span className="text-emerald-600">رایگان</span>
+                <div className="flex flex-col items-center justify-center">
+                  {isFree ? (
+                    <span className="text-3xl font-black text-emerald-600">رایگان</span>
+                  ) : finalCashPrice > 0 ? (
+                    <>
+                      {hasDiscount && (
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="text-sm text-slate-400 line-through font-mono">
+                            {rawPrice.toLocaleString('fa-IR')} تومان
+                          </span>
+                          <span className="bg-rose-500 text-white text-[11px] font-bold px-2 py-0.5 rounded-full shadow-2xs">
+                            {discountPercent}% تخفیف
+                          </span>
+                        </div>
+                      )}
+                      <div className="text-3xl font-black text-slate-900 font-mono">
+                        {finalCashPrice.toLocaleString('fa-IR')}{' '}
+                        <span className="text-sm font-normal text-slate-500 font-sans">تومان</span>
+                      </div>
+                    </>
                   ) : (
-                    <span>
-                      {cls.price.toLocaleString('fa-IR')}{' '}
-                      <span className="text-sm font-normal text-slate-500">تومان</span>
-                    </span>
+                    <span className="text-lg font-bold text-slate-600">شهریه به‌زودی</span>
                   )}
                 </div>
               </div>
 
-              {/* Pre-Registration Option Picker */}
-              {cls.price > 0 && cls.allowPreRegistration && (
+              {/* Payment Option Picker */}
+              {!isFree && finalCashPrice > 0 && (
                 <div className="space-y-3 bg-slate-50 p-3.5 rounded-2xl border border-slate-200">
-                  <span className="text-xs font-bold text-slate-700 block">نحوه پرداخت شهریه:</span>
+                  <span className="text-xs font-bold text-slate-700 block">انتخاب روش پرداخت:</span>
 
+                  {/* 1. Cash Payment */}
                   <label 
-                    onClick={() => setPaymentChoice('full')}
+                    onClick={() => setPaymentChoice('cash')}
                     className={`p-3 rounded-xl border cursor-pointer block transition ${
-                      paymentChoice === 'full'
+                      paymentChoice === 'cash'
                         ? 'bg-white border-blue-500 shadow-xs ring-2 ring-blue-500/20'
-                        : 'bg-white/60 border-slate-200 hover:bg-white'
-                    }`}
-                  >
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <input
-                          type="radio"
-                          name="paymentMode"
-                          checked={paymentChoice === 'full'}
-                          onChange={() => setPaymentChoice('full')}
-                          className="text-blue-600"
-                        />
-                        <span className="text-xs font-bold text-slate-900">پرداخت کامل</span>
-                      </div>
-                      <span className="text-xs font-mono font-bold text-blue-600">
-                        {cls.price.toLocaleString('fa-IR')} تومان
-                      </span>
-                    </div>
-                  </label>
-
-                  <label 
-                    onClick={() => setPaymentChoice('deposit')}
-                    className={`p-3 rounded-xl border cursor-pointer block transition ${
-                      paymentChoice === 'deposit'
-                        ? 'bg-amber-50/80 border-amber-500 shadow-xs ring-2 ring-amber-500/20'
                         : 'bg-white/60 border-slate-200 hover:bg-white'
                     }`}
                   >
@@ -885,20 +889,83 @@ export function ClassDetailsContainer({ slug, initialData }: { slug: string; ini
                         <input
                           type="radio"
                           name="paymentMode"
-                          checked={paymentChoice === 'deposit'}
-                          onChange={() => setPaymentChoice('deposit')}
-                          className="text-amber-600"
+                          checked={paymentChoice === 'cash'}
+                          onChange={() => setPaymentChoice('cash')}
+                          className="text-blue-600"
                         />
-                        <span className="text-xs font-bold text-amber-950">پیش‌ثبت‌نام با بیعانه</span>
+                        <span className="text-xs font-bold text-slate-900">پرداخت نقدی یکجا</span>
                       </div>
-                      <span className="text-xs font-mono font-bold text-amber-700">
-                        {cls.preRegistrationDeposit?.toLocaleString('fa-IR')} تومان
+                      <span className="text-xs font-mono font-bold text-blue-600">
+                        {finalCashPrice.toLocaleString('fa-IR')} تومان
                       </span>
                     </div>
-                    <div className="text-[10px] text-amber-800 pr-5">
-                      مابقی شهریه ({(cls.price - (cls.preRegistrationDeposit || 0)).toLocaleString('fa-IR')} تومان) پس از جلسه {cls.remainingPaymentDueAfterSession || 2} تسویه خواهد شد.
+                    <div className="text-[10px] text-slate-500 pr-5">
+                      تسویه کامل شهریه و دسترسی آنی به تمامی امکانات کلاس
                     </div>
                   </label>
+
+                  {/* 2. SnappPay 4-Installment Plan */}
+                  <label 
+                    onClick={() => setPaymentChoice('installment')}
+                    className={`p-3 rounded-xl border cursor-pointer block transition ${
+                      paymentChoice === 'installment'
+                        ? 'bg-purple-50/80 border-purple-500 shadow-xs ring-2 ring-purple-500/20'
+                        : 'bg-white/60 border-slate-200 hover:bg-white'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between mb-1">
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="radio"
+                          name="paymentMode"
+                          checked={paymentChoice === 'installment'}
+                          onChange={() => setPaymentChoice('installment')}
+                          className="text-purple-600"
+                        />
+                        <span className="text-xs font-bold text-purple-950">اقساط ۴ ماهه اسنپ‌پی</span>
+                      </div>
+                      <span className="text-[10px] bg-purple-100 text-purple-700 font-bold px-1.5 py-0.5 rounded">
+                        بدون کارمزد
+                      </span>
+                    </div>
+                    <div className="text-[11px] font-semibold text-purple-900 pr-5 mb-0.5">
+                      پیش‌پرداخت امروز: <span className="font-mono font-bold">{downPayment.toLocaleString('fa-IR')}</span> تومان
+                    </div>
+                    <div className="text-[10px] text-purple-700 pr-5">
+                      + ۳ قسط ماهانه هر قسط <span className="font-mono font-bold">{monthlyInstallment.toLocaleString('fa-IR')}</span> تومان بدون چک و ضامن
+                    </div>
+                  </label>
+
+                  {/* 3. Pre-Registration Deposit (if enabled for this class) */}
+                  {cls.allowPreRegistration && (
+                    <label 
+                      onClick={() => setPaymentChoice('deposit')}
+                      className={`p-3 rounded-xl border cursor-pointer block transition ${
+                        paymentChoice === 'deposit'
+                          ? 'bg-amber-50/80 border-amber-500 shadow-xs ring-2 ring-amber-500/20'
+                          : 'bg-white/60 border-slate-200 hover:bg-white'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between mb-1">
+                        <div className="flex items-center gap-2">
+                          <input
+                            type="radio"
+                            name="paymentMode"
+                            checked={paymentChoice === 'deposit'}
+                            onChange={() => setPaymentChoice('deposit')}
+                            className="text-amber-600"
+                          />
+                          <span className="text-xs font-bold text-amber-950">پیش‌ثبت‌نام با بیعانه</span>
+                        </div>
+                        <span className="text-xs font-mono font-bold text-amber-700">
+                          {cls.preRegistrationDeposit?.toLocaleString('fa-IR')} تومان
+                        </span>
+                      </div>
+                      <div className="text-[10px] text-amber-800 pr-5">
+                        رزرو صندلی با بیعانه؛ مابقی شهریه ({(finalCashPrice - (cls.preRegistrationDeposit || 0)).toLocaleString('fa-IR')} تومان) پس از جلسه {cls.remainingPaymentDueAfterSession || 2} تسویه خواهد شد.
+                      </div>
+                    </label>
+                  )}
                 </div>
               )}
 

@@ -48,14 +48,16 @@ export function ClassCard({ cls, variant = "standard" }: ClassCardProps) {
 
   const rating = cls.averageRating || cls.rating || 5.0;
   const sessions = cls.sessions || cls.totalSessions || 10;
-  const price = cls.price ?? 0;
+  const isFree = cls.isFree === true;
+  const rawPrice = cls.price && cls.price > 0 ? cls.price : (cls.cashPrice && cls.cashPrice > 0 ? cls.cashPrice : 0);
   const discountPrice = cls.discountPrice;
   const hasDiscount =
+    !isFree &&
     discountPrice !== undefined &&
     discountPrice !== null &&
-    discountPrice < price;
-  const finalPrice = hasDiscount ? discountPrice : price;
-  const isFree = finalPrice === 0;
+    discountPrice > 0 &&
+    discountPrice < rawPrice;
+  const finalPrice = isFree ? 0 : (hasDiscount ? discountPrice : rawPrice);
 
   // Status computation
   let statusBadge = {
@@ -155,9 +157,9 @@ export function ClassCard({ cls, variant = "standard" }: ClassCardProps) {
 
           {/* Top Left Badges (Discount or Pre-registration) */}
           <div className="absolute top-4 left-4 flex flex-col gap-1 items-end z-10">
-            {hasDiscount && !isFree && (
+            {hasDiscount && !isFree && rawPrice > 0 && (
               <div className="bg-rose-500 text-white text-xs font-bold px-2 py-1 rounded-full shadow-2xs">
-                {Math.round((1 - discountPrice! / price) * 100)}% تخفیف
+                {Math.round((1 - discountPrice! / rawPrice) * 100)}% تخفیف
               </div>
             )}
             {cls.allowPreRegistration && (
@@ -193,9 +195,9 @@ export function ClassCard({ cls, variant = "standard" }: ClassCardProps) {
           </div>
 
           <div className="flex items-center gap-1.5">
-            {hasDiscount && !isFree && (
+            {hasDiscount && !isFree && rawPrice > 0 && (
               <span className="bg-rose-500 text-white text-xs font-bold px-2 py-0.5 rounded-full">
-                {Math.round((1 - discountPrice! / price) * 100)}% تخفیف
+                {Math.round((1 - discountPrice! / rawPrice) * 100)}% تخفیف
               </span>
             )}
             {isRegistrationClosed && (
@@ -277,7 +279,7 @@ export function ClassCard({ cls, variant = "standard" }: ClassCardProps) {
                   {hasDiscount ? (
                     <>
                       <span className="text-[var(--neo-text-muted)] text-xs line-through font-mono">
-                        {price.toLocaleString("fa-IR")} تومان
+                        {rawPrice.toLocaleString("fa-IR")} تومان
                       </span>
                       <span className="text-[var(--neo-primary)] font-mono">
                         {finalPrice.toLocaleString("fa-IR")}{" "}

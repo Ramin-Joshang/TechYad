@@ -42,7 +42,7 @@ export function Footer() {
   const logoUrl = publicSettings?.siteFooterLogo || publicSettings?.siteLogo;
   const siteTitle = publicSettings?.siteName
     ? publicSettings.siteName.split("|")[0].trim()
-    : "تک‌یاد";
+    : "آکادمی تک‌یاد";
   const supportEmail = publicSettings?.supportEmail || "support@tecyad.ir";
   const supportPhone = publicSettings?.supportPhone || "09372731037";
   const telegramUrl = publicSettings?.telegramUrl || "https://t.me/tecyad_ir";
@@ -185,6 +185,14 @@ export function Footer() {
                   className="hover:text-[var(--neo-primary)] transition"
                 >
                   سوالات متداول
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="/terms"
+                  className="hover:text-[var(--neo-primary)] transition text-blue-600 font-bold"
+                >
+                  شرایط خرید و انصراف
                 </Link>
               </li>
               <li>

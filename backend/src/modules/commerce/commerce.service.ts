@@ -204,6 +204,8 @@ export class CommerceService {
     const validRawItems: any[] = [];
 
     for (const item of cart.items) {
+      const plan: 'cash' | 'installment' = item.paymentPlan === 'installment' ? 'installment' : 'cash';
+
       if (item.itemType === 'course') {
         const course = await Course.findById(item.itemId).populate('instructors', 'firstName lastName');
         if (!course || course.status !== 'published') {
@@ -211,11 +213,40 @@ export class CommerceService {
           continue;
         }
         validRawItems.push(item);
-        const originalPrice = course.price ?? 0;
-        const finalPrice = (course.discountPrice !== undefined && course.discountPrice !== null && course.discountPrice < originalPrice)
-          ? course.discountPrice 
-          : originalPrice;
-        const discount = originalPrice - finalPrice;
+
+        const isFree = Boolean(course.isFree && (course.price === 0 || !course.price));
+        let originalPrice = course.price ?? 0;
+        let finalPrice = originalPrice;
+        let discount = 0;
+        let downPayment = 0;
+        let monthlyInstallment = 0;
+
+        if (isFree) {
+          originalPrice = 0;
+          finalPrice = 0;
+          discount = 0;
+        } else if (plan === 'installment') {
+          // 4-month installment pricing (SnappPay 0% interest)
+          originalPrice = (course.installmentPrice && course.installmentPrice > 0)
+            ? course.installmentPrice
+            : (course.price > 0 ? course.price : 0);
+          finalPrice = originalPrice;
+          discount = 0;
+          downPayment = Math.round(finalPrice * 0.25);
+          monthlyInstallment = Math.round((finalPrice - downPayment) / 3);
+        } else {
+          // Cash pricing with discount check
+          const validDiscount = (course.discountPrice !== undefined && course.discountPrice !== null && course.discountPrice > 0 && course.discountPrice < originalPrice)
+            ? course.discountPrice 
+            : undefined;
+          const validCash = (course.cashPrice !== undefined && course.cashPrice !== null && course.cashPrice > 0 && course.cashPrice <= originalPrice)
+            ? course.cashPrice
+            : undefined;
+
+          finalPrice = validDiscount !== undefined ? validDiscount : (validCash !== undefined ? validCash : originalPrice);
+          discount = Math.max(0, originalPrice - finalPrice);
+        }
+
         subtotal += finalPrice;
 
         const instructor = (course.instructors && course.instructors.length > 0)
@@ -232,9 +263,13 @@ export class CommerceService {
           titleSnapshot: course.title,
           thumbnail: course.thumbnail || '',
           instructorName: instructor,
+          paymentPlan: plan,
           price: originalPrice,
           discount,
           finalPrice,
+          downPayment,
+          monthlyInstallment,
+          isFree,
           instructorId: commission.primaryInstructorId ? new mongoose.Types.ObjectId(commission.primaryInstructorId) : undefined,
           instructorPercentSnapshot: shares.instructorSharePercent,
           platformPercentSnapshot: shares.platformSharePercent,
@@ -248,8 +283,40 @@ export class CommerceService {
           continue;
         }
         validRawItems.push(item);
-        const originalPrice = classItem.price ?? 0;
-        const finalPrice = originalPrice;
+
+        const isFree = Boolean(classItem.isFree && (classItem.price === 0 || !classItem.price));
+        let originalPrice = classItem.price ?? 0;
+        let finalPrice = originalPrice;
+        let discount = 0;
+        let downPayment = 0;
+        let monthlyInstallment = 0;
+
+        if (isFree) {
+          originalPrice = 0;
+          finalPrice = 0;
+          discount = 0;
+        } else if (plan === 'installment') {
+          // 4-month installment pricing (SnappPay 0% interest)
+          originalPrice = (classItem.installmentPrice && classItem.installmentPrice > 0)
+            ? classItem.installmentPrice
+            : (classItem.price > 0 ? classItem.price : 0);
+          finalPrice = originalPrice;
+          discount = 0;
+          downPayment = Math.round(finalPrice * 0.25);
+          monthlyInstallment = Math.round((finalPrice - downPayment) / 3);
+        } else {
+          // Cash pricing with discount check
+          const validDiscount = (classItem.discountPrice !== undefined && classItem.discountPrice !== null && classItem.discountPrice > 0 && classItem.discountPrice < originalPrice)
+            ? classItem.discountPrice
+            : undefined;
+          const validCash = (classItem.cashPrice !== undefined && classItem.cashPrice !== null && classItem.cashPrice > 0 && classItem.cashPrice <= originalPrice)
+            ? classItem.cashPrice
+            : undefined;
+
+          finalPrice = validDiscount !== undefined ? validDiscount : (validCash !== undefined ? validCash : originalPrice);
+          discount = Math.max(0, originalPrice - finalPrice);
+        }
+
         subtotal += finalPrice;
 
         const instructor = (classItem.instructors && classItem.instructors.length > 0)
@@ -266,9 +333,13 @@ export class CommerceService {
           titleSnapshot: classItem.title,
           thumbnail: classItem.thumbnail || '',
           instructorName: instructor,
+          paymentPlan: plan,
           price: originalPrice,
-          discount: 0,
+          discount,
           finalPrice,
+          downPayment,
+          monthlyInstallment,
+          isFree,
           instructorId: commission.primaryInstructorId ? new mongoose.Types.ObjectId(commission.primaryInstructorId) : undefined,
           instructorPercentSnapshot: shares.instructorSharePercent,
           platformPercentSnapshot: shares.platformSharePercent,
@@ -298,12 +369,20 @@ export class CommerceService {
     return await this.enrichCartItems(cart);
   }
 
-  static async addToCart(userId: string, data: { itemType: 'course' | 'class'; itemId: string }) {
+  static async addToCart(userId: string, data: { itemType: 'course' | 'class'; itemId: string; paymentPlan?: 'cash' | 'installment' }) {
     const cart = await this.getCartDoc(userId);
+    const plan = data.paymentPlan === 'installment' ? 'installment' : 'cash';
     
     // Check if already in cart
-    const exists = cart.items.find(i => i.itemId.toString() === data.itemId && i.itemType === data.itemType);
-    if (exists) throw new AppError('Item already in cart', 400, 'ALREADY_IN_CART');
+    const existingIndex = cart.items.findIndex(i => i.itemId.toString() === data.itemId && i.itemType === data.itemType);
+    if (existingIndex > -1) {
+      if (data.paymentPlan && cart.items[existingIndex].paymentPlan !== plan) {
+        cart.items[existingIndex].paymentPlan = plan;
+        await cart.save();
+        return await this.getCart(userId);
+      }
+      throw new AppError('این مورد قبلاً به سبد خرید اضافه شده است', 400, 'ALREADY_IN_CART');
+    }
 
     if (data.itemType === 'course') {
       const course = await Course.findById(data.itemId);
@@ -355,7 +434,16 @@ export class CommerceService {
       if (enrollment) throw new AppError('شما قبلاً در این کلاس ثبت‌نام کرده‌اید', 409, 'CLASS_ALREADY_ENROLLED');
     }
 
-    cart.items.push({ itemType: data.itemType, itemId: data.itemId as any });
+    cart.items.push({ itemType: data.itemType, itemId: data.itemId as any, paymentPlan: plan });
+    await cart.save();
+    return await this.getCart(userId);
+  }
+
+  static async updateCartItemPlan(userId: string, itemId: string, paymentPlan: 'cash' | 'installment') {
+    const cart = await this.getCartDoc(userId);
+    const item = cart.items.find(i => i.itemId.toString() === itemId);
+    if (!item) throw new AppError('کالای مورد نظر در سبد خرید یافت نشد', 404, 'NOT_FOUND');
+    item.paymentPlan = paymentPlan === 'installment' ? 'installment' : 'cash';
     await cart.save();
     return await this.getCart(userId);
   }

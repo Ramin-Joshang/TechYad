@@ -3,6 +3,7 @@ import { Schema, Types, model, Document } from "mongoose";
 export interface ICartItem {
   itemType: "course" | "class";
   itemId: Types.ObjectId;
+  paymentPlan?: "cash" | "installment";
 }
 
 export interface ICart extends Document {
@@ -29,6 +30,11 @@ const cartSchema = new Schema<ICart>(
         itemId: {
           type: Schema.Types.ObjectId,
           required: true,
+        },
+        paymentPlan: {
+          type: String,
+          enum: ["cash", "installment"],
+          default: "cash",
         },
       },
     ],

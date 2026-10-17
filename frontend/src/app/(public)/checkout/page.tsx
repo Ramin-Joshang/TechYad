@@ -258,6 +258,8 @@ export default function CheckoutPage() {
               <div className="space-y-4">
                 {items.map((item: any) => {
                   const hasDiscount = item.price && item.finalPrice && item.price > item.finalPrice;
+                  const isInstallment = item.paymentPlan === 'installment';
+
                   return (
                     <div key={item.itemId} className="flex flex-col sm:flex-row sm:items-center justify-between py-4 border-b border-gray-100 last:border-0 gap-3">
                       <div className="flex items-center gap-3 sm:gap-4">
@@ -272,6 +274,11 @@ export default function CheckoutPage() {
                             <span className="text-[11px] bg-blue-50 text-[var(--neo-primary)] font-bold px-2 py-0.5 rounded-md">
                               {item.itemType === 'course' ? 'دوره آموزشی' : 'کلاس زنده'}
                             </span>
+                            <span className={`text-[11px] font-bold px-2 py-0.5 rounded-md ${
+                              isInstallment ? 'bg-purple-100 text-purple-700' : 'bg-emerald-50 text-emerald-700'
+                            }`}>
+                              {isInstallment ? 'اقساط ۴ ماهه اسنپ‌پی' : 'پرداخت نقدی'}
+                            </span>
                             {item.instructorName && (
                               <span className="text-xs text-[var(--neo-text-muted)]">
                                 استاد: <span className="text-slate-800 font-semibold">{item.instructorName}</span>
@@ -282,14 +289,30 @@ export default function CheckoutPage() {
                         </div>
                       </div>
                       <div className="text-left self-end sm:self-auto shrink-0">
-                        {hasDiscount && (
-                          <div className="text-xs text-gray-400 line-through">
-                            {item.price.toLocaleString('fa-IR')} تومان
+                        {isInstallment ? (
+                          <div className="space-y-0.5 text-left">
+                            <div className="text-xs text-purple-700 font-bold">
+                              پیش‌پرداخت امروز:
+                            </div>
+                            <div className="font-black text-purple-900 text-base font-mono">
+                              {item.downPayment?.toLocaleString('fa-IR')} <span className="text-xs font-normal text-slate-500 font-sans">تومان</span>
+                            </div>
+                            <div className="text-[11px] text-purple-600">
+                              + ۳ قسط ماهانه هر قسط {item.monthlyInstallment?.toLocaleString('fa-IR')} تومان
+                            </div>
                           </div>
+                        ) : (
+                          <>
+                            {hasDiscount && (
+                              <div className="text-xs text-gray-400 line-through font-mono">
+                                {item.price.toLocaleString('fa-IR')} تومان
+                              </div>
+                            )}
+                            <div className="font-black text-[var(--neo-text-main)] text-base font-mono">
+                              {item.finalPrice.toLocaleString('fa-IR')} <span className="text-xs font-normal text-[var(--neo-text-muted)] font-sans">تومان</span>
+                            </div>
+                          </>
                         )}
-                        <div className="font-black text-[var(--neo-text-main)] text-base">
-                          {item.finalPrice.toLocaleString('fa-IR')} <span className="text-xs font-normal text-[var(--neo-text-muted)]">تومان</span>
-                        </div>
                       </div>
                     </div>
                   );
@@ -486,8 +509,8 @@ export default function CheckoutPage() {
                   className="mt-1 w-5 h-5 rounded border-[var(--neo-border)] text-indigo-600 focus:ring-indigo-500 cursor-pointer" 
                 />
                 <span className="text-xs text-[var(--neo-text-secondary)] leading-relaxed">
-                  <Link href="/rules" target="_blank" className="text-blue-600 font-bold hover:underline ml-1">
-                    قوانین و مقررات وبسایت تک‌یاد
+                  <Link href="/terms" target="_blank" className="text-blue-600 font-bold hover:underline ml-1">
+                    قوانین، شرایط خرید و انصراف آکادمی تک‌یاد
                   </Link>
                   و شرایط استفاده از خدمات آموزشی را مطالعه کرده‌ام و با آن‌ها موافقم.
                 </span>

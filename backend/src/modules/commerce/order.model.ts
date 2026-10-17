@@ -9,6 +9,7 @@ export interface IOrderItem {
   price: number;
   discount: number;
   finalPrice: number;
+  paymentPlan?: "cash" | "installment";
   // Revenue & Share Snapshot
   instructorId?: Types.ObjectId;
   instructorPercentSnapshot?: number;
@@ -68,6 +69,11 @@ const orderSchema = new Schema<IOrder>(
         finalPrice: {
           type: Number,
           required: true,
+        },
+        paymentPlan: {
+          type: String,
+          enum: ["cash", "installment"],
+          default: "cash",
         },
         instructorId: {
           type: Schema.Types.ObjectId,

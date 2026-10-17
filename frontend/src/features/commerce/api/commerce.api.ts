@@ -10,8 +10,11 @@ export const commerceApi = {
   getCart: async () => {
     return api.get<any, ApiResponse<any>>('/me/cart');
   },
-  addToCart: async (itemType: 'course' | 'class', itemId: string) => {
-    return api.post<any, ApiResponse<any>>('/me/cart/items', { itemType, itemId });
+  addToCart: async (itemType: 'course' | 'class', itemId: string, paymentPlan?: 'cash' | 'installment') => {
+    return api.post<any, ApiResponse<any>>('/me/cart/items', { itemType, itemId, paymentPlan });
+  },
+  updateCartItemPlan: async (itemId: string, paymentPlan: 'cash' | 'installment') => {
+    return api.patch<any, ApiResponse<any>>(`/me/cart/items/${itemId}`, { paymentPlan });
   },
   removeFromCart: async (itemId: string) => {
     return api.delete<any, ApiResponse<any>>(`/me/cart/items/${itemId}`);

@@ -161,8 +161,8 @@ export function Navbar() {
   // Clean English characters (e.g. Tecyad / TechYad) from site title in header
   const rawSiteName = publicSettings?.siteName
     ? publicSettings.siteName.split("|")[0].trim()
-    : "تک‌یاد";
-  const displaySiteName = rawSiteName.replace(/[a-zA-Z]/g, '').trim() || "تک‌یاد";
+    : "آکادمی تک‌یاد";
+  const displaySiteName = rawSiteName.replace(/[a-zA-Z]/g, '').trim() || "آکادمی تک‌یاد";
 
   const userDashboardHref =
     user?.role === "super-admin"
@@ -541,11 +541,11 @@ export function Navbar() {
                 >
                   <img
                     src="/logo.png"
-                    alt="لوگو تک‌یاد"
+                    alt="لوگو آکادمی تک‌یاد"
                     className="h-9 w-auto max-w-[120px] object-contain rounded-lg"
                   />
                   <span className="font-bold text-xl text-[var(--neo-text-main)] tracking-tight">
-                    تک‌یاد
+                    آکادمی تک‌یاد
                   </span>
                 </Link>
                 <button

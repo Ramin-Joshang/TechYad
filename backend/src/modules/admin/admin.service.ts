@@ -61,6 +61,8 @@ export class AdminService {
     }, {} as Record<string, any>);
 
     return {
+      siteName: 'آکادمی تک‌یاد',
+      siteDescription: 'سامانه جامع یادگیری آنلاین آکادمی تک‌یاد؛ مرجع تخصصی دوره‌ها و کلاس‌های برنامه‌نویسی و مهارت‌های دانشگاهی با اساتید برتر',
       supportPhone: '09372731037',
       supportEmail: 'support@tecyad.ir',
       telegramUrl: 'https://t.me/tecyad_ir',

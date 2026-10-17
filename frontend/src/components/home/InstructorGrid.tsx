@@ -6,6 +6,7 @@ import { GraduationCap, ChevronRight, ChevronLeft } from 'lucide-react';
 import { getImageUrl, handleImageError } from '@/lib/utils';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Autoplay } from 'swiper/modules';
+import { InstructorCard } from '@/components/instructors/InstructorCard';
 
 export function InstructorGrid({ data = [], isLoading = false }: { data?: any[], isLoading?: boolean }) {
   const [swiper, setSwiper] = useState<any>(null);
@@ -102,63 +103,11 @@ export function InstructorGrid({ data = [], isLoading = false }: { data?: any[],
               }}
               className="!overflow-visible"
             >
-              {data.map((inst: any) => {
-                const instId = inst.slug || inst.userId?.slug || inst.userId?._id || inst._id;
-                const fullName = inst.userId
-                  ? `${inst.userId.firstName || ''} ${inst.userId.lastName || ''}`.trim()
-                  : 'استاد تک‌یاد';
-                const avatarUrl = getImageUrl(
-                  inst.userId?.personnelPhoto || inst.personnelPhoto || inst.userId?.avatar || inst.avatar,
-                  'avatar',
-                  fullName
-                );
-                const specialties = inst.specialties || inst.expertise || [];
-
-                return (
-                  <SwiperSlide key={inst._id} className="h-auto">
-                    <Link
-                      href={`/instructors/${instId}`}
-                      className="group bg-[var(--neo-bg)] rounded-2xl border border-[var(--neo-border)] overflow-hidden hover:border-[var(--neo-primary)]/40 hover:shadow-lg transition-all duration-300 flex flex-col h-full text-center"
-                    >
-                      <div className="aspect-square relative overflow-hidden bg-[var(--neo-surface-2)] m-3.5 rounded-xl">
-                        <img
-                          src={avatarUrl}
-                          onError={(e) => handleImageError(e, 'avatar', fullName)}
-                          alt={fullName}
-                          className="w-full h-full object-cover group-hover:scale-105 transition duration-500"
-                        />
-                      </div>
-
-                      <div className="p-4 pt-1 flex flex-col flex-1 justify-between">
-                        <div>
-                          <h3 className="font-bold text-[var(--neo-text-main)] mb-1 text-sm sm:text-base group-hover:text-[var(--neo-primary)] transition-colors line-clamp-1">
-                            {fullName}
-                          </h3>
-                          <div className="flex items-center justify-center gap-1 text-[var(--neo-text-secondary)] text-xs mb-3">
-                            <GraduationCap className="w-3.5 h-3.5 text-blue-600 shrink-0" />
-                            <span className="line-clamp-1">
-                              {inst.title || inst.userId?.specialty || 'مدرس ارشد تک‌یاد'}
-                            </span>
-                          </div>
-                        </div>
-
-                        {specialties.length > 0 && (
-                          <div className="flex flex-wrap items-center justify-center gap-1.5 mt-auto pt-2.5 border-t border-[var(--neo-border)]/60">
-                            {specialties.slice(0, 2).map((exp: string, idx: number) => (
-                              <span
-                                key={idx}
-                                className="text-[10px] font-medium px-2 py-0.5 rounded-full border border-[var(--neo-border)] bg-white text-[var(--neo-text-secondary)]"
-                              >
-                                {exp}
-                              </span>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                    </Link>
-                  </SwiperSlide>
-                );
-              })}
+              {data.map((inst: any) => (
+                <SwiperSlide key={inst._id} className="h-auto">
+                  <InstructorCard instructor={inst} />
+                </SwiperSlide>
+              ))}
             </Swiper>
           </div>
         )}

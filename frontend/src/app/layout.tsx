@@ -17,10 +17,10 @@ import { ReferralCapture } from "@/components/common/ReferralCapture";
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || 'https://tecyad.ir'),
   title: {
-    default: "تک‌یاد | پلتفرم جامع آموزش آنلاین، دوره‌ها و کلاس‌های تخصصی",
-    template: "%s | تک‌یاد"
+    default: "آکادمی تک‌یاد | پلتفرم جامع آموزش آنلاین، دوره‌ها و کلاس‌های تخصصی",
+    template: "%s | آکادمی تک‌یاد"
   },
-  description: "سامانه جامع یادگیری آنلاین تک‌یاد؛ مرجع تخصصی دوره‌های برنامه‌نویسی، طراحی وب، هوش مصنوعی و مهارت‌های دانشگاهی با اساتید برتر، پروژه‌محور و گواهی معتبر.",
+  description: "سامانه آموزش آنلاین آکادمی تک‌یاد؛ مرجع تخصصی دوره‌ها و کلاس‌های برنامه‌نویسی، طراحی وب، هوش مصنوعی و مهارت‌های دانشگاهی با اساتید برتر، پروژه‌محور و گواهی معتبر.",
   icons: {
     icon: [
       { url: '/favicon.ico', sizes: 'any' },
@@ -35,11 +35,16 @@ export const metadata: Metadata = {
     ],
   },
   keywords: [
+    "آکادمی تک‌یاد",
+    "آکادمی تک یاد",
+    "تک‌یاد",
+    "تک یاد",
+    "تکیاد",
+    "Tecyad",
+    "Tecyad Academy",
     "آموزش آنلاین",
     "دوره‌های برنامه‌نویسی",
     "کلاس آنلاین",
-    "تک‌یاد",
-    "Tecyad",
     "یادگیری مهارت",
     "آموزش هوش مصنوعی",
     "آموزش پایتون",
@@ -48,37 +53,37 @@ export const metadata: Metadata = {
     "کیف پول آموزشی",
     "آموزشگاه مجازی"
   ],
-  authors: [{ name: "تک‌یاد (Tecyad)", url: "https://tecyad.ir" }],
-  creator: "تک‌یاد - سامانه مدیریت آموزش Tecyad",
-  publisher: "تک‌یاد | Tecyad",
+  authors: [{ name: "آکادمی تک‌یاد (Tecyad)", url: "https://tecyad.ir" }],
+  creator: "آکادمی تک‌یاد - سامانه مدیریت آموزش Tecyad",
+  publisher: "آکادمی تک‌یاد | Tecyad",
   formatDetection: {
     email: false,
     address: false,
     telephone: false,
   },
   alternates: {
-    canonical: "/",
+    canonical: "https://tecyad.ir",
   },
   openGraph: {
     type: "website",
     locale: "fa_IR",
     url: "https://tecyad.ir",
-    siteName: "تک‌یاد | Tecyad",
-    title: "تک‌یاد (Tecyad) | پلتفرم جامع آموزش آنلاین، دوره‌ها و کلاس‌های تخصصی",
-    description: "سامانه جامع یادگیری آنلاین تک‌یاد (Tecyad)؛ مرجع تخصصی دوره‌های برنامه‌نویسی، طراحی وب، هوش مصنوعی و مهارت‌های دانشگاهی با اساتید برتر و گواهی معتبر.",
+    siteName: "آکادمی تک‌یاد | Tecyad",
+    title: "آکادمی تک‌یاد (Tecyad) | پلتفرم جامع آموزش آنلاین، دوره‌ها و کلاس‌های تخصصی",
+    description: "سامانه آموزش آنلاین آکادمی تک‌یاد (Tecyad)؛ مرجع تخصصی دوره‌های برنامه‌نویسی، طراحی وب، هوش مصنوعی و مهارت‌های دانشگاهی با اساتید برتر و گواهی معتبر.",
     images: [
       {
         url: "https://tecyad.ir/hero-image.png",
         width: 1200,
         height: 630,
-        alt: "تک‌یاد - سامانه یادگیری آنلاین Tecyad",
+        alt: "آکادمی تک‌یاد - سامانه یادگیری آنلاین Tecyad",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "تک‌یاد (Tecyad) | پلتفرم جامع آموزش آنلاین، دوره‌ها و کلاس‌های تخصصی",
-    description: "سامانه جامع یادگیری آنلاین تک‌یاد (Tecyad)؛ مرجع تخصصی دوره‌های برنامه‌نویسی، طراحی وب، هوش مصنوعی و مهارت‌های دانشگاهی با اساتید برتر و گواهی معتبر.",
+    title: "آکادمی تک‌یاد (Tecyad) | پلتفرم جامع آموزش آنلاین، دوره‌ها و کلاس‌های تخصصی",
+    description: "سامانه جامع آموزش آنلاین آکادمی تک‌یاد؛ مرجع تخصصی دوره‌های برنامه‌نویسی، طراحی وب، هوش مصنوعی و مهارت‌های دانشگاهی با اساتید برتر و گواهی معتبر.",
     images: ["https://tecyad.ir/hero-image.png"],
   },
   robots: {
@@ -105,7 +110,15 @@ export default function RootLayout({
       {
         "@type": "EducationalOrganization",
         "@id": "https://tecyad.ir/#organization",
-        "name": "تک‌یاد | Tecyad",
+        "name": "آکادمی تک‌یاد",
+        "alternateName": [
+          "آکادمی تک یاد",
+          "تک‌یاد",
+          "تک یاد",
+          "تکیاد",
+          "Tecyad Academy",
+          "Tecyad"
+        ],
         "url": "https://tecyad.ir",
         "logo": "https://tecyad.ir/logo.png",
         "description": "پلتفرم جامع آموزش آنلاین، دوره‌ها و کلاس‌های تخصصی دانشگاهی و مهندسی",
@@ -118,7 +131,14 @@ export default function RootLayout({
         "@type": "WebSite",
         "@id": "https://tecyad.ir/#website",
         "url": "https://tecyad.ir",
-        "name": "تک‌یاد | Tecyad",
+        "name": "آکادمی تک‌یاد",
+        "alternateName": [
+          "آکادمی تک یاد",
+          "تک‌یاد",
+          "تک یاد",
+          "تکیاد",
+          "Tecyad"
+        ],
         "publisher": { "@id": "https://tecyad.ir/#organization" },
         "potentialAction": {
           "@type": "SearchAction",

@@ -45,35 +45,44 @@ export const getHomeData = async (req: Request, res: Response, next: NextFunctio
       classCount: classMap.get(cat._id?.toString()) || 0,
       totalContent: (courseMap.get(cat._id?.toString()) || 0) + (classMap.get(cat._id?.toString()) || 0),
     }));
-    const popularCourses = await Course.find({ status: "published" }).sort({ totalLessons: -1 }).limit(4).populate('instructors', 'firstName lastName avatar personnelPhoto specialty');
-    const newCourses = await Course.find({ status: "published" }).sort({ createdAt: -1 }).limit(4).populate('instructors', 'firstName lastName avatar personnelPhoto specialty');
-    const freeCourses = await Course.find({ status: "published", price: 0 }).limit(4).populate('instructors', 'firstName lastName avatar personnelPhoto specialty');
+    const popularCourses = await Course.find({ status: "published" }).sort({ totalLessons: -1 }).limit(12).populate('instructors', 'firstName lastName avatar personnelPhoto specialty');
+    const newCourses = await Course.find({ status: "published" }).sort({ createdAt: -1 }).limit(12).populate('instructors', 'firstName lastName avatar personnelPhoto specialty');
+    const freeCourses = await Course.find({ status: "published", price: 0 }).limit(12).populate('instructors', 'firstName lastName avatar personnelPhoto specialty');
     
     // Classes: Fetch interactive live classes and in-person workshops from Class model if available, fallback to tagged courses
-    let rawOnlineClasses: any[] = await Class.find({ mode: 'online', status: 'published' }).limit(4).populate('instructors', 'firstName lastName avatar personnelPhoto specialty');
+    let rawOnlineClasses: any[] = await Class.find({ mode: 'online', status: 'published' }).sort({ startDate: 1, createdAt: -1 }).limit(12).populate('instructors', 'firstName lastName avatar personnelPhoto specialty');
     let onlineClasses = rawOnlineClasses.map((c: any) => {
       const obj = c.toObject();
       return { ...obj, phase: getClassPhase(obj), isRegistrationOpen: isClassRegistrationOpen(obj) };
     });
     if (!onlineClasses || onlineClasses.length === 0) {
-      onlineClasses = await Course.find({ status: "published", tags: "آنلاین" }).limit(4).populate('instructors', 'firstName lastName avatar personnelPhoto specialty');
+      onlineClasses = await Course.find({ status: "published", tags: "آنلاین" }).limit(12).populate('instructors', 'firstName lastName avatar personnelPhoto specialty');
     }
 
-    let rawInPersonClasses: any[] = await Class.find({ mode: 'in_person', status: 'published' }).limit(4).populate('instructors', 'firstName lastName avatar personnelPhoto specialty');
+    let rawInPersonClasses: any[] = await Class.find({ mode: 'in_person', status: 'published' }).sort({ startDate: 1, createdAt: -1 }).limit(12).populate('instructors', 'firstName lastName avatar personnelPhoto specialty');
     let inPersonClasses = rawInPersonClasses.map((c: any) => {
       const obj = c.toObject();
       return { ...obj, phase: getClassPhase(obj), isRegistrationOpen: isClassRegistrationOpen(obj) };
     });
     if (!inPersonClasses || inPersonClasses.length === 0) {
-      inPersonClasses = await Course.find({ status: "published", tags: "حضوری" }).limit(4).populate('instructors', 'firstName lastName avatar personnelPhoto specialty');
+      inPersonClasses = await Course.find({ status: "published", tags: "حضوری" }).limit(12).populate('instructors', 'firstName lastName avatar personnelPhoto specialty');
     }
 
+    const rawAllClasses = await Class.find({ status: 'published' })
+      .sort({ startDate: 1, createdAt: -1 })
+      .limit(12)
+      .populate('instructors', 'firstName lastName avatar personnelPhoto specialty');
+    const featuredClasses = rawAllClasses.map((c: any) => {
+      const obj = c.toObject();
+      return { ...obj, phase: getClassPhase(obj), isRegistrationOpen: isClassRegistrationOpen(obj) };
+    });
+
     const topInstructors = await InstructorProfile.find({ isApproved: true })
-      .limit(8)
+      .limit(12)
       .populate('userId', 'firstName lastName avatar personnelPhoto specialty bio')
       .lean();
-    const latestArticles = await Article.find({ status: "published" }).sort({ createdAt: -1 }).limit(4);
-    const testimonials = await Testimonial.find({ isActive: { $ne: false } }).sort({ order: 1, createdAt: -1 }).limit(6);
+    const latestArticles = await Article.find({ status: "published" }).sort({ createdAt: -1 }).limit(8);
+    const testimonials = await Testimonial.find({ isActive: { $ne: false } }).sort({ order: 1, createdAt: -1 }).limit(10);
 
     res.status(200).json({
       success: true,
@@ -84,6 +93,7 @@ export const getHomeData = async (req: Request, res: Response, next: NextFunctio
         freeCourses,
         onlineClasses,
         inPersonClasses,
+        featuredClasses,
         topInstructors,
         latestArticles,
         testimonials,

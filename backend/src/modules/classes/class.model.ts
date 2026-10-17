@@ -24,6 +24,9 @@ export interface IClass extends Document {
   subject?: Types.ObjectId;
   price: number;
   discountPrice?: number;
+  cashPrice?: number;
+  installmentPrice?: number;
+  isFree?: boolean;
   capacity: number;
   startDate: Date;
   endDate: Date;
@@ -124,6 +127,9 @@ const classSchema = new Schema<IClass>(
     subject: { type: Schema.Types.ObjectId, ref: "Subject" },
     price: { type: Number, required: true },
     discountPrice: Number,
+    cashPrice: Number,
+    installmentPrice: Number,
+    isFree: { type: Boolean, default: false },
     capacity: { type: Number, required: true },
     startDate: { type: Date, required: true },
     endDate: { type: Date, required: true },

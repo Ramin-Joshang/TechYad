@@ -6,6 +6,7 @@ import { Hero } from './Hero';
 import { Intro } from './Intro';
 import { Categories } from './Categories';
 import { SnappPayBanner } from './SnappPayBanner';
+import { PurchaseGuideSection } from './PurchaseGuideSection';
 import { CourseList } from './CourseList';
 import { InstructorGrid } from './InstructorGrid';
 import { Advantages } from './Advantages';
@@ -32,20 +33,33 @@ export function HomeDataView({ initialData }: { initialData?: any }) {
       <Intro />
       <Advantages />
       
-      {/* 3. Classes (Online & In-person) */}
+      {/* 3. Featured Classes & Workshops (All published classes up to 12 items) */}
       <CourseList 
-        title="کلاس‌های آنلاین و زنده (Live)" 
-        sectionName="تعامل مستقیم با اساتید" 
-        data={d.onlineClasses} 
+        title="کلاس‌ها و کارگاه‌های تخصصی آکادمی تک‌یاد" 
+        sectionName="تعامل مستقیم با اساتید و ظرفیت محدود" 
+        data={d.featuredClasses || d.inPersonClasses} 
         isLoading={isLoading} 
       />
 
-      <CourseList 
-        title="کارگاه‌ها و کلاس‌های حضوری" 
-        sectionName="یادگیری عملی در محیط فیزیکی" 
-        data={d.inPersonClasses} 
-        isLoading={isLoading} 
-      />
+      {/* Online Live Classes */}
+      {d.onlineClasses && d.onlineClasses.length > 0 && (
+        <CourseList 
+          title="کلاس‌های آنلاین و زنده (Live)" 
+          sectionName="آموزش تعاملی مجازی" 
+          data={d.onlineClasses} 
+          isLoading={isLoading} 
+        />
+      )}
+
+      {/* In-Person Workshops */}
+      {d.inPersonClasses && d.inPersonClasses.length > 0 && (
+        <CourseList 
+          title="کارگاه‌ها و کلاس‌های حضوری" 
+          sectionName="یادگیری عملی در محیط فیزیکی" 
+          data={d.inPersonClasses} 
+          isLoading={isLoading} 
+        />
+      )}
 
       {/* 4. Courses (Popular, New, Free) */}
       <CourseList 
@@ -71,6 +85,9 @@ export function HomeDataView({ initialData }: { initialData?: any }) {
 
       {/* 5. SnappPay 4-Installment Promotion Banner */}
       <SnappPayBanner />
+
+      {/* 5.1. Transparent Purchase & Payment Guide Section */}
+      <PurchaseGuideSection />
 
       {/* 6. Hierarchical Categories Section ("گسترش مرزهای دانش") */}
       <Categories data={d.categories} isLoading={isLoading} />

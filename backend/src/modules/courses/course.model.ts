@@ -25,6 +25,9 @@ export interface ICourse extends Document {
 
   price: number;
   discountPrice?: number;
+  cashPrice?: number;
+  installmentPrice?: number;
+  isFree?: boolean;
   averageRating: number;
   reviewCount: number;
   studentCount: number;
@@ -107,6 +110,18 @@ const courseSchema = new Schema<ICourse>(
     discountPrice: {
       type: Number,
       min: 0,
+    },
+    cashPrice: {
+      type: Number,
+      min: 0,
+    },
+    installmentPrice: {
+      type: Number,
+      min: 0,
+    },
+    isFree: {
+      type: Boolean,
+      default: false,
     },
     averageRating: {
       type: Number,
