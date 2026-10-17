@@ -27,7 +27,7 @@ export class CommerceService {
     const classMap = new Map(classes.map((c: any) => [c._id.toString(), c.title]));
 
     const allInstructorItemIds = [...courseIds, ...classIds];
-    
+
     let dateFilter: any = {};
     if (month && year) {
       const m = Number(month);
@@ -41,13 +41,13 @@ export class CommerceService {
       const endDate = new Date(y, 11, 31, 23, 59, 59, 999);
       dateFilter = { createdAt: { $gte: startDate, $lte: endDate } };
     }
-    
-    const orders = await Order.find({ 
-      status: 'paid', 
+
+    const orders = await Order.find({
+      status: 'paid',
       'items.itemId': { $in: allInstructorItemIds },
       ...dateFilter
     }).populate('userId', 'firstName lastName email avatar').sort({ createdAt: -1 });
-    
+
     let totalSales = 0;
     let coursesRevenue = 0;
     let classesRevenue = 0;
@@ -59,10 +59,10 @@ export class CommerceService {
         return allInstructorItemIds.includes(itemIdStr);
       }).map((item: any) => {
         const itemIdStr = item.itemId?.toString();
-        const title = item.itemType === 'course' 
-          ? (courseMap.get(itemIdStr) || item.title || 'دوره آموزشی') 
+        const title = item.itemType === 'course'
+          ? (courseMap.get(itemIdStr) || item.title || 'دوره آموزشی')
           : (classMap.get(itemIdStr) || item.title || 'کلاس آنلاین');
-        
+
         const price = item.finalPrice ?? item.price ?? 0;
         if (item.itemType === 'course') coursesRevenue += price;
         else classesRevenue += price;
@@ -91,7 +91,7 @@ export class CommerceService {
       const orderTotal = relevantItems.reduce((acc: number, curr: any) => acc + (curr.finalPrice || 0), 0);
       const instructorShare = relevantItems.reduce((acc: number, curr: any) => acc + (curr.instructorShare || 0), 0);
       totalSales += orderTotal;
-      
+
       return {
         _id: order._id,
         userId: order.userId,
@@ -160,7 +160,7 @@ export class CommerceService {
       const yNum = d.getFullYear();
       const mStart = new Date(yNum, mNum - 1, 1, 0, 0, 0, 0);
       const mEnd = new Date(yNum, mNum, 0, 23, 59, 59, 999);
-      
+
       const mSales = sales.filter(s => {
         const sDate = new Date(s.createdAt);
         return sDate >= mStart && sDate <= mEnd;
@@ -175,9 +175,9 @@ export class CommerceService {
       });
     }
 
-    return { 
-      sales, 
-      totalSales, 
+    return {
+      sales,
+      totalSales,
       netInstructorEarnings,
       instructorShare: netInstructorEarnings,
       totalOrders: sales.length,
@@ -237,7 +237,7 @@ export class CommerceService {
         } else {
           // Cash pricing with discount check
           const validDiscount = (course.discountPrice !== undefined && course.discountPrice !== null && course.discountPrice > 0 && course.discountPrice < originalPrice)
-            ? course.discountPrice 
+            ? course.discountPrice
             : undefined;
           const validCash = (course.cashPrice !== undefined && course.cashPrice !== null && course.cashPrice > 0 && course.cashPrice <= originalPrice)
             ? course.cashPrice
@@ -251,7 +251,7 @@ export class CommerceService {
 
         const instructor = (course.instructors && course.instructors.length > 0)
           ? `${(course.instructors[0] as any).firstName} ${(course.instructors[0] as any).lastName}`
-          : 'استاد تک‌یاد';
+          : 'استاد تک یاد';
 
         const commission = await FinancialRevenueService.resolveItemCommission('course', course._id.toString());
         const shares = FinancialRevenueService.calculateShares(finalPrice, commission.instructorSharePercent);
@@ -321,7 +321,7 @@ export class CommerceService {
 
         const instructor = (classItem.instructors && classItem.instructors.length > 0)
           ? `${(classItem.instructors[0] as any).firstName} ${(classItem.instructors[0] as any).lastName}`
-          : 'استاد تک‌یاد';
+          : 'استاد تک یاد';
 
         const commission = await FinancialRevenueService.resolveItemCommission('class', classItem._id.toString());
         const shares = FinancialRevenueService.calculateShares(finalPrice, commission.instructorSharePercent);
@@ -372,7 +372,7 @@ export class CommerceService {
   static async addToCart(userId: string, data: { itemType: 'course' | 'class'; itemId: string; paymentPlan?: 'cash' | 'installment' }) {
     const cart = await this.getCartDoc(userId);
     const plan = data.paymentPlan === 'installment' ? 'installment' : 'cash';
-    
+
     // Check if already in cart
     const existingIndex = cart.items.findIndex(i => i.itemId.toString() === data.itemId && i.itemType === data.itemType);
     if (existingIndex > -1) {
@@ -414,7 +414,7 @@ export class CommerceService {
       }
 
       if (classItem.status !== 'published') throw new AppError('این کلاس در دسترس نیست یا هنوز تایید نشده است', 400, 'UNAVAILABLE');
-      
+
       const now = new Date();
       const hasStarted = now >= new Date(classItem.startDate);
       const isRegOpen = classItem.registrationOpen === true || (classItem.registrationOpen !== false && !hasStarted);
@@ -477,7 +477,7 @@ export class CommerceService {
     if (couponCode) {
       const coupon = await Coupon.findOne({ code: couponCode.toUpperCase(), isActive: true });
       if (!coupon) throw new AppError('Invalid or expired coupon', 400, 'INVALID_COUPON');
-      
+
       // Basic validation
       if (coupon.startAt && new Date() < coupon.startAt) throw new AppError('Coupon is not active yet', 400, 'INVALID_COUPON');
       if (coupon.endAt && new Date() > coupon.endAt) throw new AppError('Coupon is expired', 400, 'EXPIRED_COUPON');
@@ -492,7 +492,7 @@ export class CommerceService {
       } else if (coupon.type === 'fixed') {
         discountAmount = coupon.value;
       }
-      
+
       if (discountAmount > subtotal) discountAmount = subtotal;
       couponRecord = coupon;
     }
@@ -520,7 +520,7 @@ export class CommerceService {
   static async createOrder(userId: string, couponCode?: string, useWallet: boolean = false) {
     const preview = await this.checkoutPreview(userId, couponCode);
     if (preview.items.length === 0) throw new AppError('Cart is empty', 400, 'CART_EMPTY');
-    
+
     let walletAmountApplied = 0;
     let gatewayAmount = preview.totalAmount;
     let paymentMethod: 'gateway' | 'wallet' | 'hybrid' = 'gateway';
@@ -599,7 +599,7 @@ export class CommerceService {
   static async createPaymentMock(userId: string, orderId: string) {
     const order = await this.getOrderById(userId, orderId);
     if (order.status !== 'pending') throw new AppError('Order is already processed', 400, 'ORDER_PROCESSED');
-    
+
     // In hybrid payment, only the remaining gatewayAmount is sent to the bank gateway
     const payableAmount = order.gatewayAmount !== undefined ? order.gatewayAmount : order.totalAmount;
 
@@ -650,8 +650,8 @@ export class CommerceService {
       status: 'pending'
     });
 
-    return { 
-      payment, 
+    return {
+      payment,
       paymentUrl,
       postActionUrl,
       token,
@@ -662,8 +662,8 @@ export class CommerceService {
   }
 
   static async verifyPaymentMock(
-    userId: string, 
-    authority: string, 
+    userId: string,
+    authority: string,
     status: 'OK' | 'NOK',
     verifyData?: {
       refNum?: string;
@@ -785,9 +785,9 @@ export class CommerceService {
         if (item.itemType === 'class') {
           const classItem = await Class.findById(item.itemId).session(session);
           if (classItem && classItem.enrolledCount !== undefined && classItem.capacity !== undefined) {
-             if (classItem.enrolledCount >= classItem.capacity) {
-               throw new AppError(`Class ${classItem.title} is full`, 400, 'CLASS_FULL_REJECT');
-             }
+            if (classItem.enrolledCount >= classItem.capacity) {
+              throw new AppError(`Class ${classItem.title} is full`, 400, 'CLASS_FULL_REJECT');
+            }
           }
         }
       }

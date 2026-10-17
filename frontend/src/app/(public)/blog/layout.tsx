@@ -2,13 +2,13 @@ import { Metadata } from 'next';
 
 export const metadata: Metadata = {
   title: 'وبلاگ و مقالات تخصصی',
-  description: 'تازه‌ترین مقالات آموزشی، راهنماهای کاربردی برنامه‌نویسی، هوش مصنوعی، فناوری اطلاعات و نکات تخصصی شغلی در وبلاگ تک‌یاد.',
+  description: 'تازه‌ترین مقالات آموزشی، راهنماهای کاربردی برنامه‌نویسی، هوش مصنوعی، فناوری اطلاعات و نکات تخصصی شغلی در وبلاگ تک یاد.',
   keywords: [
     'وبلاگ آموزشی',
     'مقالات برنامه‌نویسی',
     'آموزش هوش مصنوعی',
     'تکنولوژی',
-    'تک‌یاد',
+    'تک یاد',
     'Tecyad',
   ],
   alternates: {
@@ -18,22 +18,22 @@ export const metadata: Metadata = {
     type: 'website',
     locale: 'fa_IR',
     url: 'https://tecyad.ir/blog',
-    siteName: 'تک‌یاد | Tecyad',
-    title: 'وبلاگ تخصصی و مقالات آموزشی | تک‌یاد (Tecyad)',
-    description: 'تازه‌ترین مقالات آموزشی، راهنماهای کاربردی برنامه‌نویسی و هوش مصنوعی در وبلاگ تک‌یاد (Tecyad).',
+    siteName: 'تک یاد | Tecyad',
+    title: 'وبلاگ تخصصی و مقالات آموزشی | تک یاد (Tecyad)',
+    description: 'تازه‌ترین مقالات آموزشی، راهنماهای کاربردی برنامه‌نویسی و هوش مصنوعی در وبلاگ تک یاد (Tecyad).',
     images: [
       {
         url: 'https://tecyad.ir/hero-image.png',
         width: 1200,
         height: 630,
-        alt: 'وبلاگ تک‌یاد Tecyad',
+        alt: 'وبلاگ تک یاد Tecyad',
       },
     ],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'وبلاگ تخصصی و مقالات آموزشی | تک‌یاد (Tecyad)',
-    description: 'تازه‌ترین مقالات آموزشی، راهنماهای کاربردی برنامه‌نویسی و فناوری در تک‌یاد (Tecyad).',
+    title: 'وبلاگ تخصصی و مقالات آموزشی | تک یاد (Tecyad)',
+    description: 'تازه‌ترین مقالات آموزشی، راهنماهای کاربردی برنامه‌نویسی و فناوری در تک یاد (Tecyad).',
     images: ['https://tecyad.ir/hero-image.png'],
   },
 };

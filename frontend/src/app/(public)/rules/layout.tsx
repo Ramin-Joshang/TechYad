@@ -1,17 +1,18 @@
-import type { Metadata } from 'next';
+import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: 'قوانین و مقررات استفاده از خدمات | تک‌یاد',
-  description: 'قوانین و مقررات آموزشی، حریم خصوصی، شرایط بازپرداخت شهریه و حقوق مالکیت فکری محتوای آموزشی در پلتفرم آنلاین تک‌یاد.',
+  title: "قوانین و مقررات استفاده از خدمات | تک یاد",
+  description:
+    "قوانین و مقررات آموزشی، حریم خصوصی، شرایط بازپرداخت شهریه و حقوق مالکیت فکری محتوای آموزشی در پلتفرم آنلاین تک یاد.",
   alternates: {
-    canonical: '/rules',
+    canonical: "/rules",
   },
   openGraph: {
-    type: 'website',
-    locale: 'fa_IR',
-    url: 'https://tecyad.ir/rules',
-    title: 'قوانین و مقررات تک‌یاد',
-    description: 'قوانین و مقررات آموزشی و شرایط استفاده از خدمات تک‌یاد.',
+    type: "website",
+    locale: "fa_IR",
+    url: "https://tecyad.ir/rules",
+    title: "قوانین و مقررات تک یاد",
+    description: "قوانین و مقررات آموزشی و شرایط استفاده از خدمات تک یاد.",
   },
 };
 

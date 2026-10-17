@@ -4,14 +4,13 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { superAdminApi } from "@/features/admin/api/super-admin.api";
+import { Mail, Phone, MapPin, ShieldCheck, Award } from "lucide-react";
 import {
-  Mail,
-  Phone,
-  MapPin,
-  ShieldCheck,
-  Award,
-} from "lucide-react";
-import { TelegramIcon, InstagramIcon, WhatsAppIcon, LinkedInIcon } from "@/components/common/BrandSocialIcons";
+  TelegramIcon,
+  InstagramIcon,
+  WhatsAppIcon,
+  LinkedInIcon,
+} from "@/components/common/BrandSocialIcons";
 import { EnamadLogo } from "@/components/common/EnamadLogo";
 
 export function Footer() {
@@ -42,11 +41,12 @@ export function Footer() {
   const logoUrl = publicSettings?.siteFooterLogo || publicSettings?.siteLogo;
   const siteTitle = publicSettings?.siteName
     ? publicSettings.siteName.split("|")[0].trim()
-    : "آکادمی تک‌یاد";
+    : "آکادمی تک یاد";
   const supportEmail = publicSettings?.supportEmail || "support@tecyad.ir";
   const supportPhone = publicSettings?.supportPhone || "09372731037";
   const telegramUrl = publicSettings?.telegramUrl || "https://t.me/tecyad_ir";
-  const instagramUrl = publicSettings?.instagramUrl || "https://instagram.com/tecyad.ir";
+  const instagramUrl =
+    publicSettings?.instagramUrl || "https://instagram.com/tecyad.ir";
   const whatsappUrl = "https://wa.me/989372731037";
 
   return (
@@ -124,7 +124,7 @@ export function Footer() {
                 href={publicSettings?.linkedinUrl || "#"}
                 target={publicSettings?.linkedinUrl ? "_blank" : undefined}
                 rel="noopener noreferrer"
-                title="لینکدین تک‌یاد"
+                title="لینکدین تک یاد"
                 className="w-9 h-9 rounded-full border border-[var(--neo-border)] bg-[var(--neo-bg)] flex items-center justify-center text-slate-700 hover:bg-[#0A66C2] hover:text-white hover:border-transparent transition-colors shadow-2xs"
               >
                 <LinkedInIcon className="w-4 h-4" />
@@ -231,10 +231,10 @@ export function Footer() {
             <ul className="space-y-3 font-medium text-xs">
               <li className="flex items-center gap-2 text-gray-700">
                 <Phone className="w-4 h-4 text-[var(--neo-secondary)] shrink-0" />
-                <a 
-                  href={`tel:${supportPhone}`} 
+                <a
+                  href={`tel:${supportPhone}`}
                   dir="ltr"
-                  style={{ direction: 'ltr', unicodeBidi: 'plaintext' }}
+                  style={{ direction: "ltr", unicodeBidi: "plaintext" }}
                   className="font-bold hover:text-[var(--neo-primary)] transition-colors tracking-wide"
                 >
                   {supportPhone}
@@ -242,10 +242,10 @@ export function Footer() {
               </li>
               <li className="flex items-center gap-2 text-gray-700">
                 <Mail className="w-4 h-4 text-[var(--neo-accent)] shrink-0" />
-                <a 
-                  href={`mailto:${supportEmail}`} 
+                <a
+                  href={`mailto:${supportEmail}`}
                   dir="ltr"
-                  style={{ direction: 'ltr', unicodeBidi: 'plaintext' }}
+                  style={{ direction: "ltr", unicodeBidi: "plaintext" }}
                   className="font-medium hover:text-[var(--neo-primary)] transition-colors"
                 >
                   {supportEmail}
@@ -256,8 +256,8 @@ export function Footer() {
             {/* Electronic Trust & Security Symbols */}
             <div className="pt-2 flex flex-wrap items-center gap-3">
               {/* Enamad Container */}
-              {publicSettings?.enamadActive !== false && (
-                publicSettings?.enamadCode ? (
+              {publicSettings?.enamadActive !== false &&
+                (publicSettings?.enamadCode ? (
                   <div
                     className="p-2 bg-white border border-[var(--neo-border)] rounded-2xl max-w-[100px] overflow-hidden shadow-xs hover:shadow-md transition-shadow"
                     dangerouslySetInnerHTML={{
@@ -266,8 +266,7 @@ export function Footer() {
                   />
                 ) : (
                   <EnamadLogo />
-                )
-              )}
+                ))}
 
               {/* Samandehi Container */}
               {publicSettings?.samandehiActive !== false &&

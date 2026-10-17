@@ -1,15 +1,27 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import Link from 'next/link';
-import { 
-  BookOpen, GraduationCap, Layers, Star, Users, Clock, 
-  Calendar, MapPin, Video, Sparkles, Filter, ChevronDown, Check, ArrowRight 
-} from 'lucide-react';
-import { CategoryBreadcrumb, BreadcrumbItem } from './CategoryBreadcrumb';
-import { CategoryCard } from './CategoryCard';
-import { ClassCard } from '@/components/classes/ClassCard';
-import { getImageUrl, handleImageError } from '@/lib/utils';
+import { useState } from "react";
+import Link from "next/link";
+import {
+  BookOpen,
+  GraduationCap,
+  Layers,
+  Star,
+  Users,
+  Clock,
+  Calendar,
+  MapPin,
+  Video,
+  Sparkles,
+  Filter,
+  ChevronDown,
+  Check,
+  ArrowRight,
+} from "lucide-react";
+import { CategoryBreadcrumb, BreadcrumbItem } from "./CategoryBreadcrumb";
+import { CategoryCard } from "./CategoryCard";
+import { ClassCard } from "@/components/classes/ClassCard";
+import { getImageUrl, handleImageError } from "@/lib/utils";
 
 interface CategoryPageClientProps {
   category: any;
@@ -30,28 +42,36 @@ export function CategoryPageClient({
   totalCourses,
   totalClasses,
 }: CategoryPageClientProps) {
-  const [activeTab, setActiveTab] = useState<'all' | 'courses' | 'classes'>('all');
-  const [priceFilter, setPriceFilter] = useState<'all' | 'free' | 'paid'>('all');
-  const [sortBy, setSortBy] = useState<'newest' | 'popular' | 'price_asc' | 'price_desc'>('newest');
+  const [activeTab, setActiveTab] = useState<"all" | "courses" | "classes">(
+    "all",
+  );
+  const [priceFilter, setPriceFilter] = useState<"all" | "free" | "paid">(
+    "all",
+  );
+  const [sortBy, setSortBy] = useState<
+    "newest" | "popular" | "price_asc" | "price_desc"
+  >("newest");
 
   // Filter courses
   const filteredCourses = initialCourses.filter((course) => {
-    if (priceFilter === 'free' && course.price > 0) return false;
-    if (priceFilter === 'paid' && course.price === 0) return false;
+    if (priceFilter === "free" && course.price > 0) return false;
+    if (priceFilter === "paid" && course.price === 0) return false;
     return true;
   });
 
   // Filter classes
   const filteredClasses = initialClasses.filter((cls) => {
-    if (priceFilter === 'free' && cls.price > 0) return false;
-    if (priceFilter === 'paid' && cls.price === 0) return false;
+    if (priceFilter === "free" && cls.price > 0) return false;
+    if (priceFilter === "paid" && cls.price === 0) return false;
     return true;
   });
 
-  const showCourses = activeTab === 'all' || activeTab === 'courses';
-  const showClasses = activeTab === 'all' || activeTab === 'classes';
+  const showCourses = activeTab === "all" || activeTab === "courses";
+  const showClasses = activeTab === "all" || activeTab === "classes";
 
-  const hasAnyContent = (filteredCourses.length > 0 && showCourses) || (filteredClasses.length > 0 && showClasses);
+  const hasAnyContent =
+    (filteredCourses.length > 0 && showCourses) ||
+    (filteredClasses.length > 0 && showClasses);
 
   return (
     <div dir="rtl" className="min-h-screen bg-[var(--neo-bg)] text-right pb-24">
@@ -59,7 +79,10 @@ export function CategoryPageClient({
       <section className="bg-gradient-to-b from-white to-[var(--neo-surface-2)]/40 border-b border-[var(--neo-border)] pt-8 pb-12 sm:pb-16 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto space-y-6">
           {/* Breadcrumb Navigation */}
-          <CategoryBreadcrumb items={breadcrumbs} currentTitle={category.name} />
+          <CategoryBreadcrumb
+            items={breadcrumbs}
+            currentTitle={category.name}
+          />
 
           <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6 pt-2">
             <div className="space-y-3 max-w-3xl">
@@ -76,7 +99,8 @@ export function CategoryPageClient({
                 </p>
               ) : (
                 <p className="text-sm sm:text-base text-[var(--neo-text-secondary)] leading-relaxed font-normal">
-                  مجموعه جامع دوره‌های آموزشی ویدیویی، کارگاه‌های زنده و کلاس‌های تعاملی در شاخه {category.name} با برترین اساتید ایران
+                  مجموعه جامع دوره‌های آموزشی ویدیویی، کارگاه‌های زنده و
+                  کلاس‌های تعاملی در شاخه {category.name} با برترین اساتید ایران
                 </p>
               )}
             </div>
@@ -88,8 +112,12 @@ export function CategoryPageClient({
                   <BookOpen className="w-5 h-5" />
                 </div>
                 <div>
-                  <div className="text-xs text-[var(--neo-text-muted)] font-medium">دوره‌ها</div>
-                  <div className="text-lg font-black text-[var(--neo-text-main)]">{totalCourses}</div>
+                  <div className="text-xs text-[var(--neo-text-muted)] font-medium">
+                    دوره‌ها
+                  </div>
+                  <div className="text-lg font-black text-[var(--neo-text-main)]">
+                    {totalCourses}
+                  </div>
                 </div>
               </div>
 
@@ -98,8 +126,12 @@ export function CategoryPageClient({
                   <GraduationCap className="w-5 h-5" />
                 </div>
                 <div>
-                  <div className="text-xs text-[var(--neo-text-muted)] font-medium">کلاس‌ها</div>
-                  <div className="text-lg font-black text-[var(--neo-text-main)]">{totalClasses}</div>
+                  <div className="text-xs text-[var(--neo-text-muted)] font-medium">
+                    کلاس‌ها
+                  </div>
+                  <div className="text-lg font-black text-[var(--neo-text-main)]">
+                    {totalClasses}
+                  </div>
                 </div>
               </div>
             </div>
@@ -131,32 +163,32 @@ export function CategoryPageClient({
           {/* Content Type Tabs */}
           <div className="flex items-center gap-1.5 p-1 bg-[var(--neo-surface-2)] rounded-xl">
             <button
-              onClick={() => setActiveTab('all')}
+              onClick={() => setActiveTab("all")}
               className={`px-4 py-2 rounded-lg text-xs sm:text-sm font-bold transition-all cursor-pointer ${
-                activeTab === 'all'
-                  ? 'bg-white text-[var(--neo-primary)] shadow-xs'
-                  : 'text-[var(--neo-text-secondary)] hover:text-[var(--neo-text-main)]'
+                activeTab === "all"
+                  ? "bg-white text-[var(--neo-primary)] shadow-xs"
+                  : "text-[var(--neo-text-secondary)] hover:text-[var(--neo-text-main)]"
               }`}
             >
               همه محتواها ({totalCourses + totalClasses})
             </button>
             <button
-              onClick={() => setActiveTab('courses')}
+              onClick={() => setActiveTab("courses")}
               className={`px-4 py-2 rounded-lg text-xs sm:text-sm font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
-                activeTab === 'courses'
-                  ? 'bg-white text-[var(--neo-primary)] shadow-xs'
-                  : 'text-[var(--neo-text-secondary)] hover:text-[var(--neo-text-main)]'
+                activeTab === "courses"
+                  ? "bg-white text-[var(--neo-primary)] shadow-xs"
+                  : "text-[var(--neo-text-secondary)] hover:text-[var(--neo-text-main)]"
               }`}
             >
               <BookOpen className="w-4 h-4" />
               <span>دوره‌ها ({totalCourses})</span>
             </button>
             <button
-              onClick={() => setActiveTab('classes')}
+              onClick={() => setActiveTab("classes")}
               className={`px-4 py-2 rounded-lg text-xs sm:text-sm font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
-                activeTab === 'classes'
-                  ? 'bg-white text-[var(--neo-primary)] shadow-xs'
-                  : 'text-[var(--neo-text-secondary)] hover:text-[var(--neo-text-main)]'
+                activeTab === "classes"
+                  ? "bg-white text-[var(--neo-primary)] shadow-xs"
+                  : "text-[var(--neo-text-secondary)] hover:text-[var(--neo-text-main)]"
               }`}
             >
               <GraduationCap className="w-4 h-4" />
@@ -171,17 +203,17 @@ export function CategoryPageClient({
               <span>هزینه:</span>
             </div>
             <div className="flex items-center gap-1 text-xs">
-              {(['all', 'free', 'paid'] as const).map((p) => (
+              {(["all", "free", "paid"] as const).map((p) => (
                 <button
                   key={p}
                   onClick={() => setPriceFilter(p)}
                   className={`px-3 py-1.5 rounded-lg font-medium transition cursor-pointer ${
                     priceFilter === p
-                      ? 'bg-[var(--neo-primary)] text-white shadow-xs'
-                      : 'bg-[var(--neo-surface-2)] text-[var(--neo-text-secondary)] hover:bg-[var(--neo-border)]'
+                      ? "bg-[var(--neo-primary)] text-white shadow-xs"
+                      : "bg-[var(--neo-surface-2)] text-[var(--neo-text-secondary)] hover:bg-[var(--neo-border)]"
                   }`}
                 >
-                  {p === 'all' ? 'همه' : p === 'free' ? 'رایگان' : 'نقدی'}
+                  {p === "all" ? "همه" : p === "free" ? "رایگان" : "نقدی"}
                 </button>
               ))}
             </div>
@@ -198,7 +230,9 @@ export function CategoryPageClient({
               هنوز دوره یا کلاسی در این دسته‌بندی منتشر نشده است
             </h3>
             <p className="text-sm text-[var(--neo-text-secondary)] max-w-md mx-auto leading-relaxed">
-              تیم محتوای تک‌یاد به زودی دوره‌ها و کارگاه‌های جدیدی در شاخه {category.name} منتشر خواهد کرد. می‌توانید سایر شاخه‌ها را بررسی کنید.
+              تیم محتوای تک یاد به زودی دوره‌ها و کارگاه‌های جدیدی در شاخه{" "}
+              {category.name} منتشر خواهد کرد. می‌توانید سایر شاخه‌ها را بررسی
+              کنید.
             </p>
             <div className="pt-2 flex justify-center gap-3">
               <Link
@@ -268,10 +302,15 @@ export function CategoryPageClient({
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {filteredCourses.map((item) => {
                     const instructor = item.instructors?.[0] || item.instructor;
-                    const instructorName = instructor ? `${instructor.firstName || ''} ${instructor.lastName || ''}`.trim() : 'استاد تک‌یاد';
+                    const instructorName = instructor
+                      ? `${instructor.firstName || ""} ${instructor.lastName || ""}`.trim()
+                      : "استاد تک یاد";
                     const isFree = item.price === 0;
-                    const hasDiscount = item.discountPrice && item.discountPrice < item.price;
-                    const displayPrice = hasDiscount ? item.discountPrice : item.price;
+                    const hasDiscount =
+                      item.discountPrice && item.discountPrice < item.price;
+                    const displayPrice = hasDiscount
+                      ? item.discountPrice
+                      : item.price;
 
                     return (
                       <Link
@@ -281,8 +320,14 @@ export function CategoryPageClient({
                       >
                         <div className="relative aspect-[16/10] bg-[var(--neo-surface-2)] overflow-hidden">
                           <img
-                            src={getImageUrl(item.thumbnail || item.coverImage, 'course', item.title)}
-                            onError={(e) => handleImageError(e, 'course', item.title)}
+                            src={getImageUrl(
+                              item.thumbnail || item.coverImage,
+                              "course",
+                              item.title,
+                            )}
+                            onError={(e) =>
+                              handleImageError(e, "course", item.title)
+                            }
                             alt={item.title}
                             className="w-full h-full object-fill group-hover:scale-105 transition-transform duration-500"
                           />
@@ -305,10 +350,16 @@ export function CategoryPageClient({
                               {item.title}
                             </h3>
                             <div className="flex items-center justify-between text-xs text-[var(--neo-text-muted)]">
-                              <span className="line-clamp-1">{instructorName}</span>
+                              <span className="line-clamp-1">
+                                {instructorName}
+                              </span>
                               <div className="flex items-center gap-1 text-amber-500 font-bold">
                                 <Star className="w-3.5 h-3.5 fill-current" />
-                                <span>{item.averageRating ? Number(item.averageRating).toFixed(1) : '5.0'}</span>
+                                <span>
+                                  {item.averageRating
+                                    ? Number(item.averageRating).toFixed(1)
+                                    : "5.0"}
+                                </span>
                               </div>
                             </div>
                           </div>
@@ -324,7 +375,9 @@ export function CategoryPageClient({
                               {isFree ? (
                                 <span className="text-emerald-600">رایگان</span>
                               ) : (
-                                <span>{displayPrice.toLocaleString('fa-IR')} تومان</span>
+                                <span>
+                                  {displayPrice.toLocaleString("fa-IR")} تومان
+                                </span>
                               )}
                             </div>
                           </div>

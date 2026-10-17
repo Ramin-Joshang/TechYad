@@ -1,8 +1,8 @@
-import { Metadata } from 'next';
+import { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: 'فراموشی و بازیابی رمز عبور | تک‌یاد',
-  description: 'بازیابی رمز عبور حساب کاربری در پلتفرم آموزشی تک‌یاد',
+  title: "فراموشی و بازیابی رمز عبور | تک یاد",
+  description: "بازیابی رمز عبور حساب کاربری در پلتفرم آموزشی تک یاد",
 };
 
 export default function ForgotPasswordLayout({

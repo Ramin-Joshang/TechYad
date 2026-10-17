@@ -1,12 +1,15 @@
-import { BlogPostContainer } from '@/components/blog/BlogPostContainer';
-import { Breadcrumbs } from '@/components/common/Breadcrumbs';
-import type { Metadata } from 'next';
+import { BlogPostContainer } from "@/components/blog/BlogPostContainer";
+import { Breadcrumbs } from "@/components/common/Breadcrumbs";
+import type { Metadata } from "next";
 
 async function fetchArticleData(identifier: string) {
   try {
-    const res = await fetch(`http://localhost:5000/api/blog/${encodeURIComponent(identifier)}`, {
-      next: { revalidate: 60 }
-    });
+    const res = await fetch(
+      `http://localhost:5000/api/blog/${encodeURIComponent(identifier)}`,
+      {
+        next: { revalidate: 60 },
+      },
+    );
     if (!res.ok) return null;
     const json = await res.json();
     return json?.data || null;
@@ -15,34 +18,37 @@ async function fetchArticleData(identifier: string) {
   }
 }
 
-export async function generateMetadata({ 
-  params 
-}: { 
-  params: Promise<{ slug: string }> 
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
 }): Promise<Metadata> {
   const resolvedParams = await params;
   const slug = resolvedParams.slug;
   const article = await fetchArticleData(slug);
 
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://tecyad.ir';
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://tecyad.ir";
   const pageUrl = `${baseUrl}/blog/${encodeURIComponent(slug)}`;
 
   if (!article) {
     return {
-      title: 'مقاله تخصصی | تک‌یاد',
-      description: 'جدیدترین مقالات آموزشی، راهنماهای برنامه‌نویسی و فناوری در وبلاگ تک‌یاد.',
+      title: "مقاله تخصصی | تک یاد",
+      description:
+        "جدیدترین مقالات آموزشی، راهنماهای برنامه‌نویسی و فناوری در وبلاگ تک یاد.",
     };
   }
 
-  const title = `${article.title} | تک‌یاد`;
-  const rawExcerpt = article.excerpt || article.content || '';
-  const cleanExcerpt = rawExcerpt.replace(/<[^>]*>/g, '').slice(0, 155);
-  const description = cleanExcerpt.length > 50
-    ? `${cleanExcerpt}...`
-    : `مطالعه مقاله تخصصی ${article.title} در وبلاگ تک‌یاد (Tecyad) و ارتقای دانش مهندسی و نرم‌افزار.`;
+  const title = `${article.title} | تک یاد`;
+  const rawExcerpt = article.excerpt || article.content || "";
+  const cleanExcerpt = rawExcerpt.replace(/<[^>]*>/g, "").slice(0, 155);
+  const description =
+    cleanExcerpt.length > 50
+      ? `${cleanExcerpt}...`
+      : `مطالعه مقاله تخصصی ${article.title} در وبلاگ تک یاد (Tecyad) و ارتقای دانش مهندسی و نرم‌افزار.`;
 
   const imageUrl = article.thumbnail || `${baseUrl}/images/blog-default.jpg`;
-  const authorName = `${article.author?.firstName || 'تیم'} ${article.author?.lastName || 'تک‌یاد'}`.trim();
+  const authorName =
+    `${article.author?.firstName || "تیم"} ${article.author?.lastName || "تک یاد"}`.trim();
 
   return {
     title,
@@ -50,22 +56,22 @@ export async function generateMetadata({
     authors: [{ name: authorName }],
     keywords: [
       article.title,
-      article.category?.name || 'آموزش برنامه‌نویسی',
+      article.category?.name || "آموزش برنامه‌نویسی",
       ...(article.tags || []),
-      'وبلاگ آموزشی',
-      'تک‌یاد',
-      'Tecyad',
+      "وبلاگ آموزشی",
+      "تک یاد",
+      "Tecyad",
     ],
     alternates: {
       canonical: pageUrl,
     },
     openGraph: {
-      type: 'article',
-      locale: 'fa_IR',
+      type: "article",
+      locale: "fa_IR",
       url: pageUrl,
       title,
       description,
-      siteName: 'تک‌یاد | Tecyad',
+      siteName: "تک یاد | Tecyad",
       publishedTime: article.createdAt,
       modifiedTime: article.updatedAt || article.createdAt,
       authors: [authorName],
@@ -79,7 +85,7 @@ export async function generateMetadata({
       ],
     },
     twitter: {
-      card: 'summary_large_image',
+      card: "summary_large_image",
       title,
       description,
       images: [imageUrl],
@@ -87,43 +93,47 @@ export async function generateMetadata({
   };
 }
 
-export default async function BlogPostPage({ 
-  params 
-}: { 
-  params: Promise<{ slug: string }> 
+export default async function BlogPostPage({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
 }) {
   const resolvedParams = await params;
   const article = await fetchArticleData(resolvedParams.slug);
 
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://tecyad.ir';
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://tecyad.ir";
   const pageUrl = `${baseUrl}/blog/${encodeURIComponent(resolvedParams.slug)}`;
 
-  const blogJsonLd = article ? {
-    "@context": "https://schema.org",
-    "@type": "BlogPosting",
-    "headline": article.title,
-    "description": (article.excerpt || article.content || '').replace(/<[^>]*>/g, '').slice(0, 300),
-    "image": article.thumbnail || `${baseUrl}/images/blog-default.jpg`,
-    "datePublished": article.createdAt,
-    "dateModified": article.updatedAt || article.createdAt,
-    "mainEntityOfPage": {
-      "@type": "WebPage",
-      "@id": pageUrl
-    },
-    "author": {
-      "@type": "Person",
-      "name": `${article.author?.firstName || 'تیم'} ${article.author?.lastName || 'تک‌یاد'}`.trim()
-    },
-    "publisher": {
-      "@type": "EducationalOrganization",
-      "name": "تک‌یاد | Tecyad",
-      "url": "https://tecyad.ir",
-      "logo": {
-        "@type": "ImageObject",
-        "url": "https://tecyad.ir/logo.png"
+  const blogJsonLd = article
+    ? {
+        "@context": "https://schema.org",
+        "@type": "BlogPosting",
+        headline: article.title,
+        description: (article.excerpt || article.content || "")
+          .replace(/<[^>]*>/g, "")
+          .slice(0, 300),
+        image: article.thumbnail || `${baseUrl}/images/blog-default.jpg`,
+        datePublished: article.createdAt,
+        dateModified: article.updatedAt || article.createdAt,
+        mainEntityOfPage: {
+          "@type": "WebPage",
+          "@id": pageUrl,
+        },
+        author: {
+          "@type": "Person",
+          name: `${article.author?.firstName || "تیم"} ${article.author?.lastName || "تک یاد"}`.trim(),
+        },
+        publisher: {
+          "@type": "EducationalOrganization",
+          name: "تک یاد | Tecyad",
+          url: "https://tecyad.ir",
+          logo: {
+            "@type": "ImageObject",
+            url: "https://tecyad.ir/logo.png",
+          },
+        },
       }
-    }
-  } : null;
+    : null;
 
   return (
     <>
@@ -137,8 +147,15 @@ export default async function BlogPostPage({
         <div className="max-w-7xl mx-auto">
           <Breadcrumbs
             items={[
-              { label: 'وبلاگ و مقالات', href: '/blog' },
-              ...(article?.category?.name ? [{ label: article.category.name, href: `/blog?category=${article.category._id || article.category.slug}` }] : []),
+              { label: "وبلاگ و مقالات", href: "/blog" },
+              ...(article?.category?.name
+                ? [
+                    {
+                      label: article.category.name,
+                      href: `/blog?category=${article.category._id || article.category.slug}`,
+                    },
+                  ]
+                : []),
               { label: article?.title || resolvedParams.slug },
             ]}
           />

@@ -160,7 +160,7 @@ async function seedCategories() {
         icon: catDef.icon || '',
         sortOrder: catDef.sortOrder || 0,
         isActive: true,
-        seoTitle: `دوره‌ها و کلاس‌های ${catDef.name} | تک‌یاد`,
+        seoTitle: `دوره‌ها و کلاس‌های ${catDef.name} | تک یاد`,
         seoDescription: catDef.description || `فهرست جامع دوره‌ها و کارگاه‌های آنلاین ${catDef.name}`,
       });
       console.log(` Created category: ${cat.name} (level: ${level}, slug: ${cat.slug})`);
@@ -315,7 +315,7 @@ async function seedCategories() {
         registrationOpen: true,
         city: 'تهران',
         location: 'دانشکده فنی، سالن کارگاه‌های فناوری',
-        address: 'تهران، میدان ونک، خیابان ملاصدرا، پردیس نوآوری تک‌یاد',
+        address: 'تهران، میدان ونک، خیابان ملاصدرا، پردیس نوآوری تک یاد',
         createdBy: instructorUser._id,
         scheduleDays: ['پنج‌شنبه', 'جمعه'],
         scheduleTime: '۰۹:۰۰ الی ۱۷:۰۰',

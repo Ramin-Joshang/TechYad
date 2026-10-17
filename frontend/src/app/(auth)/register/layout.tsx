@@ -1,8 +1,9 @@
-import { Metadata } from 'next';
+import { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: 'ثبت‌نام و عضویت | تک‌یاد',
-  description: 'ایجاد حساب کاربری جدید و پیوستن به خانواده بزرگ دانشجویان و متخصصان تک‌یاد',
+  title: "ثبت‌نام و عضویت | تک یاد",
+  description:
+    "ایجاد حساب کاربری جدید و پیوستن به خانواده بزرگ دانشجویان و متخصصان تک یاد",
 };
 
 export default function RegisterLayout({

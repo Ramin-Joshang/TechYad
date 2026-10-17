@@ -112,7 +112,7 @@ export default function SuperAdminDashboard() {
             <div>
               <h1 className="text-3xl font-black text-[var(--neo-text-main)]">مرکز فرماندهی و داشبورد کلان</h1>
               <p className="text-[var(--neo-text-secondary)] text-sm mt-1">
-                درود {user?.firstName} عزیز؛ تمام سامانه‌های پلتفرم تک‌یاد فعال و در بالاترین سطح کارایی هستند.
+                درود {user?.firstName} عزیز؛ تمام سامانه‌های پلتفرم تک یاد فعال و در بالاترین سطح کارایی هستند.
               </p>
             </div>
           </div>
@@ -648,7 +648,7 @@ export default function SuperAdminDashboard() {
                     </span>
                     <span className="text-xs font-bold text-gray-800 truncate flex-1">{course.title}</span>
                   </div>
-                  <div className="text-[11px] text-gray-400 mb-3">{course.instructorName || 'استاد تک‌یاد'}</div>
+                  <div className="text-[11px] text-gray-400 mb-3">{course.instructorName || 'استاد تک یاد'}</div>
                 </div>
 
                 <div className="pt-2 border-t border-[var(--neo-border)] flex justify-between items-center text-xs">

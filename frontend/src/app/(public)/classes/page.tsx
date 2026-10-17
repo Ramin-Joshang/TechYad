@@ -1,19 +1,20 @@
-import { ClassesList } from '@/components/classes/ClassesList';
-import { fetchClasses } from '@/lib/server-api';
-import { Suspense } from 'react';
-import type { Metadata } from 'next';
+import { ClassesList } from "@/components/classes/ClassesList";
+import { fetchClasses } from "@/lib/server-api";
+import { Suspense } from "react";
+import type { Metadata } from "next";
 
-export const dynamic = 'force-dynamic';
+export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "کلاس‌های آنلاین، کارگاه‌های زنده و وبینارهای تخصصی | تک‌یاد",
-  description: "شرکت در کلاس‌های تعاملی آنلاین، کارگاه‌های پروژه‌محور و جلسات رفع اشکال با ظرفیت محدود و اساتید مجرب در آکادمی تک‌یاد.",
+  title: "کلاس‌های آنلاین، کارگاه‌های زنده و وبینارهای تخصصی | تک یاد",
+  description:
+    "شرکت در کلاس‌های تعاملی آنلاین، کارگاه‌های پروژه‌محور و جلسات رفع اشکال با ظرفیت محدود و اساتید مجرب در آکادمی تک یاد.",
   keywords: [
     "کلاس آنلاین",
     "وبینار تخصصی",
     "کارگاه آنلاین",
     "کلاس زنده برنامه‌نویسی",
-    "تک‌یاد",
+    "تک یاد",
     "آموزش تعاملی",
   ],
   alternates: {
@@ -23,22 +24,26 @@ export const metadata: Metadata = {
     type: "website",
     locale: "fa_IR",
     url: "https://tecyad.ir/classes",
-    siteName: "تک‌یاد | Tecyad",
-    title: "کلاس‌های آنلاین، کارگاه‌های زنده و وبینارهای تخصصی | تک‌یاد (Tecyad)",
-    description: "شرکت در کلاس‌های تعاملی آنلاین، کارگاه‌های پروژه‌محور و جلسات رفع اشکال با ظرفیت محدود در آکادمی تک‌یاد (Tecyad).",
+    siteName: "تک یاد | Tecyad",
+    title:
+      "کلاس‌های آنلاین، کارگاه‌های زنده و وبینارهای تخصصی | تک یاد (Tecyad)",
+    description:
+      "شرکت در کلاس‌های تعاملی آنلاین، کارگاه‌های پروژه‌محور و جلسات رفع اشکال با ظرفیت محدود در آکادمی تک یاد (Tecyad).",
     images: [
       {
         url: "https://tecyad.ir/hero-image.png",
         width: 1200,
         height: 630,
-        alt: "کلاس‌های آنلاین تک‌یاد Tecyad",
+        alt: "کلاس‌های آنلاین تک یاد Tecyad",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "کلاس‌های آنلاین، کارگاه‌های زنده و وبینارهای تخصصی | تک‌یاد (Tecyad)",
-    description: "شرکت در کلاس‌های تعاملی آنلاین و کارگاه‌های پروژه‌محور با ظرفیت محدود در تک‌یاد (Tecyad).",
+    title:
+      "کلاس‌های آنلاین، کارگاه‌های زنده و وبینارهای تخصصی | تک یاد (Tecyad)",
+    description:
+      "شرکت در کلاس‌های تعاملی آنلاین و کارگاه‌های پروژه‌محور با ظرفیت محدود در تک یاد (Tecyad).",
     images: ["https://tecyad.ir/hero-image.png"],
   },
 };
@@ -49,19 +54,20 @@ export default async function ClassesPage({
   searchParams?: Promise<{ [key: string]: string | undefined }>;
 }) {
   const resolvedParams = searchParams ? await searchParams : {};
-  const classesData = await fetchClasses({ ...resolvedParams, limit: '8' });
+  const classesData = await fetchClasses({ ...resolvedParams, limit: "8" });
 
   const classesJsonLd = {
     "@context": "https://schema.org",
     "@type": "CollectionPage",
-    "name": "کلاس‌های آنلاین و وبینارهای تک‌یاد | Tecyad",
-    "description": "فهرست کارگاه‌ها و کلاس‌های زنده تعاملی در پلتفرم تک‌یاد (Tecyad)",
-    "url": "https://tecyad.ir/classes",
-    "provider": {
+    name: "کلاس‌های آنلاین و وبینارهای تک یاد | Tecyad",
+    description:
+      "فهرست کارگاه‌ها و کلاس‌های زنده تعاملی در پلتفرم تک یاد (Tecyad)",
+    url: "https://tecyad.ir/classes",
+    provider: {
       "@type": "EducationalOrganization",
-      "name": "تک‌یاد | Tecyad",
-      "url": "https://tecyad.ir"
-    }
+      name: "تک یاد | Tecyad",
+      url: "https://tecyad.ir",
+    },
   };
 
   return (
@@ -70,7 +76,13 @@ export default async function ClassesPage({
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(classesJsonLd) }}
       />
-      <Suspense fallback={<div className="min-h-screen flex items-center justify-center text-slate-500 font-bold">درحال بارگذاری کلاس‌ها...</div>}>
+      <Suspense
+        fallback={
+          <div className="min-h-screen flex items-center justify-center text-slate-500 font-bold">
+            درحال بارگذاری کلاس‌ها...
+          </div>
+        }
+      >
         <ClassesList initialData={classesData} />
       </Suspense>
     </>

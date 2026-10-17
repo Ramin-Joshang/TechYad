@@ -1,58 +1,71 @@
-import { InstructorProfileContainer } from '@/components/instructors/InstructorProfileContainer';
-import { fetchInstructor } from '@/lib/server-api';
-import { Breadcrumbs } from '@/components/common/Breadcrumbs';
-import type { Metadata } from 'next';
+import { InstructorProfileContainer } from "@/components/instructors/InstructorProfileContainer";
+import { fetchInstructor } from "@/lib/server-api";
+import { Breadcrumbs } from "@/components/common/Breadcrumbs";
+import type { Metadata } from "next";
 
-export async function generateMetadata({ 
-  params 
-}: { 
-  params: Promise<{ slug?: string, id?: string }> 
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug?: string; id?: string }>;
 }): Promise<Metadata> {
   const resolvedParams = await params;
-  const identifier = resolvedParams.slug || resolvedParams.id || '';
+  const identifier = resolvedParams.slug || resolvedParams.id || "";
   const instructor = await fetchInstructor(identifier);
 
   const user = instructor?.userId || instructor;
   const officialSlug = instructor?.slug || user?.slug || identifier;
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://tecyad.ir';
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://tecyad.ir";
   const pageUrl = `${baseUrl}/instructors/${encodeURIComponent(officialSlug)}`;
 
   if (!instructor) {
     return {
-      title: 'پروفایل استاد | تک‌یاد',
-      description: 'رزومه، تخصص‌ها، دوره‌ها و کلاس‌های اساتید برجسته آموزشگاه آنلاین تک‌یاد.',
+      title: "پروفایل استاد | تک یاد",
+      description:
+        "رزومه، تخصص‌ها، دوره‌ها و کلاس‌های اساتید برجسته آموزشگاه آنلاین تک یاد.",
     };
   }
 
-  const fullName = `${user.firstName || ''} ${user.lastName || ''}`.trim() || 'استاد تک‌یاد';
-  const specialty = instructor.specialty || user.specialty || 'مدرس برنامه‌نویسی و فناوری اطلاعات';
-  const bio = instructor.bio || user.bio || `پروفایل و دوره‌های آموزشی استاد ${fullName} در پلتفرم تک‌یاد.`;
-  const cleanBio = bio.replace(/<[^>]*>/g, '').slice(0, 160);
-  const avatar = instructor.personnelPhoto || user.personnelPhoto || instructor.avatar || user.avatar || `${baseUrl}/logo.png`;
+  const fullName =
+    `${user.firstName || ""} ${user.lastName || ""}`.trim() || "استاد تک یاد";
+  const specialty =
+    instructor.specialty ||
+    user.specialty ||
+    "مدرس برنامه‌نویسی و فناوری اطلاعات";
+  const bio =
+    instructor.bio ||
+    user.bio ||
+    `پروفایل و دوره‌های آموزشی استاد ${fullName} در پلتفرم تک یاد.`;
+  const cleanBio = bio.replace(/<[^>]*>/g, "").slice(0, 160);
+  const avatar =
+    instructor.personnelPhoto ||
+    user.personnelPhoto ||
+    instructor.avatar ||
+    user.avatar ||
+    `${baseUrl}/logo.png`;
 
   return {
-    title: `استاد ${fullName} (${specialty}) | تک‌یاد`,
+    title: `استاد ${fullName} (${specialty}) | تک یاد`,
     description: cleanBio,
     keywords: [
       fullName,
       specialty,
-      'استاد تک‌یاد',
-      'مدرس آنلاین',
-      'رزومه استاد',
-      'دوره‌های استاد',
-      'تک‌یاد',
-      'Tecyad',
+      "استاد تک یاد",
+      "مدرس آنلاین",
+      "رزومه استاد",
+      "دوره‌های استاد",
+      "تک یاد",
+      "Tecyad",
     ],
     alternates: {
       canonical: pageUrl,
     },
     openGraph: {
-      type: 'profile',
-      locale: 'fa_IR',
+      type: "profile",
+      locale: "fa_IR",
       url: pageUrl,
-      title: `استاد ${fullName} | تک‌یاد`,
+      title: `استاد ${fullName} | تک یاد`,
       description: cleanBio,
-      siteName: 'تک‌یاد | Tecyad',
+      siteName: "تک یاد | Tecyad",
       images: [
         {
           url: avatar,
@@ -63,43 +76,55 @@ export async function generateMetadata({
       ],
     },
     twitter: {
-      card: 'summary',
-      title: `استاد ${fullName} | تک‌یاد`,
+      card: "summary",
+      title: `استاد ${fullName} | تک یاد`,
       description: cleanBio,
       images: [avatar],
     },
   };
 }
 
-export default async function InstructorProfilePage({ 
-  params 
-}: { 
-  params: Promise<{ id?: string, slug?: string }> 
+export default async function InstructorProfilePage({
+  params,
+}: {
+  params: Promise<{ id?: string; slug?: string }>;
 }) {
   const resolvedParams = await params;
-  const identifier = resolvedParams.id || resolvedParams.slug || '';
+  const identifier = resolvedParams.id || resolvedParams.slug || "";
   const instructor = await fetchInstructor(identifier);
 
   const user = instructor?.userId || instructor;
   const officialSlug = instructor?.slug || user?.slug || identifier;
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://tecyad.ir';
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://tecyad.ir";
   const pageUrl = `${baseUrl}/instructors/${encodeURIComponent(officialSlug)}`;
-  const fullName = user ? `${user.firstName || ''} ${user.lastName || ''}`.trim() : 'استاد تک‌یاد';
+  const fullName = user
+    ? `${user.firstName || ""} ${user.lastName || ""}`.trim()
+    : "استاد تک یاد";
 
-  const personJsonLd = instructor ? {
-    "@context": "https://schema.org",
-    "@type": "Person",
-    "name": fullName,
-    "jobTitle": instructor.specialty || user?.specialty || "مدرس و برنامه‌نویس",
-    "description": (instructor.bio || user?.bio || '').replace(/<[^>]*>/g, '').slice(0, 300),
-    "image": instructor.personnelPhoto || user?.personnelPhoto || instructor.avatar || user?.avatar || `${baseUrl}/logo.png`,
-    "url": pageUrl,
-    "worksFor": {
-      "@type": "EducationalOrganization",
-      "name": "تک‌یاد | Tecyad",
-      "url": "https://tecyad.ir"
-    }
-  } : null;
+  const personJsonLd = instructor
+    ? {
+        "@context": "https://schema.org",
+        "@type": "Person",
+        name: fullName,
+        jobTitle:
+          instructor.specialty || user?.specialty || "مدرس و برنامه‌نویس",
+        description: (instructor.bio || user?.bio || "")
+          .replace(/<[^>]*>/g, "")
+          .slice(0, 300),
+        image:
+          instructor.personnelPhoto ||
+          user?.personnelPhoto ||
+          instructor.avatar ||
+          user?.avatar ||
+          `${baseUrl}/logo.png`,
+        url: pageUrl,
+        worksFor: {
+          "@type": "EducationalOrganization",
+          name: "تک یاد | Tecyad",
+          url: "https://tecyad.ir",
+        },
+      }
+    : null;
 
   return (
     <>
@@ -113,7 +138,7 @@ export default async function InstructorProfilePage({
         <div className="max-w-7xl mx-auto">
           <Breadcrumbs
             items={[
-              { label: 'اساتید تک‌یاد', href: '/instructors' },
+              { label: "اساتید تک یاد", href: "/instructors" },
               { label: `استاد ${fullName}` },
             ]}
           />

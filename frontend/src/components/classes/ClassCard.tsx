@@ -32,7 +32,7 @@ export function ClassCard({ cls, variant = "standard" }: ClassCardProps) {
         instructor.name
       : typeof instructor === "string"
         ? instructor
-        : "استاد تک‌یاد";
+        : "استاد تک یاد";
   const instructorAvatar = instructor?.personnelPhoto || instructor?.avatar;
   const instructorId = instructor?.slug || instructor?._id;
 
@@ -49,7 +49,12 @@ export function ClassCard({ cls, variant = "standard" }: ClassCardProps) {
   const rating = cls.averageRating || cls.rating || 5.0;
   const sessions = cls.sessions || cls.totalSessions || 10;
   const isFree = cls.isFree === true;
-  const rawPrice = cls.price && cls.price > 0 ? cls.price : (cls.cashPrice && cls.cashPrice > 0 ? cls.cashPrice : 0);
+  const rawPrice =
+    cls.price && cls.price > 0
+      ? cls.price
+      : cls.cashPrice && cls.cashPrice > 0
+        ? cls.cashPrice
+        : 0;
   const discountPrice = cls.discountPrice;
   const hasDiscount =
     !isFree &&
@@ -57,7 +62,7 @@ export function ClassCard({ cls, variant = "standard" }: ClassCardProps) {
     discountPrice !== null &&
     discountPrice > 0 &&
     discountPrice < rawPrice;
-  const finalPrice = isFree ? 0 : (hasDiscount ? discountPrice : rawPrice);
+  const finalPrice = isFree ? 0 : hasDiscount ? discountPrice : rawPrice;
 
   // Status computation
   let statusBadge = {
@@ -108,7 +113,7 @@ export function ClassCard({ cls, variant = "standard" }: ClassCardProps) {
   const classImage = getImageUrl(
     cls.thumbnail || cls.coverImage || cls.banner,
     "class",
-    cls.title
+    cls.title,
   );
   const hasImage = Boolean(classImage && classImage.trim() !== "");
 

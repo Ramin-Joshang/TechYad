@@ -27,7 +27,7 @@ import { SmsService } from '../../common/services/sms.service.js';
 
 
 export class AdminService {
-  
+
   // --- Global Settings ---
   static async getSettings() {
     const settings = await Setting.find().lean();
@@ -37,8 +37,8 @@ export class AdminService {
       mockGatewayEnabled: false,
     };
     return settings.reduce((acc, curr) => {
-       acc[curr.key] = curr.value;
-       return acc;
+      acc[curr.key] = curr.value;
+      return acc;
     }, defaults);
   }
 
@@ -56,13 +56,13 @@ export class AdminService {
       group: { $ne: 'secret' }
     }).lean();
     const dbSettings = settings.reduce((acc, curr) => {
-       acc[curr.key] = curr.value;
-       return acc;
+      acc[curr.key] = curr.value;
+      return acc;
     }, {} as Record<string, any>);
 
     return {
-      siteName: 'آکادمی تک‌یاد',
-      siteDescription: 'سامانه جامع یادگیری آنلاین آکادمی تک‌یاد؛ مرجع تخصصی دوره‌ها و کلاس‌های برنامه‌نویسی و مهارت‌های دانشگاهی با اساتید برتر',
+      siteName: 'آکادمی تک یاد',
+      siteDescription: 'سامانه جامع یادگیری آنلاین آکادمی تک یاد؛ مرجع تخصصی دوره‌ها و کلاس‌های برنامه‌نویسی و مهارت‌های دانشگاهی با اساتید برتر',
       supportPhone: '09372731037',
       supportEmail: 'support@tecyad.ir',
       telegramUrl: 'https://t.me/tecyad_ir',
@@ -85,7 +85,7 @@ export class AdminService {
     }
     return this.getSettings();
   }
-  
+
   static async getDashboardStats() {
     const totalUsers = await User.countDocuments();
     const totalCourses = await Course.countDocuments();
@@ -94,7 +94,7 @@ export class AdminService {
     const draftCourses = await Course.countDocuments({ status: 'draft' });
     const activeOrders = await Order.countDocuments({ status: 'paid' });
     const totalOrders = await Order.countDocuments();
-    
+
     // Roles breakdown
     const studentRole = await Role.findOne({ slug: 'student' });
     const instructorRole = await Role.findOne({ slug: 'instructor' });
@@ -106,7 +106,7 @@ export class AdminService {
 
     const classes = await Class.countDocuments({ status: 'published' });
     const totalClasses = await Class.countDocuments();
-    
+
     // Tickets stats
     const openTickets = await Ticket.countDocuments({ status: 'open' });
     const inProgressTickets = await Ticket.countDocuments({ status: 'in_progress' });
@@ -117,11 +117,11 @@ export class AdminService {
     // Coupons
     const activeCoupons = await Coupon.countDocuments({ isActive: true });
     const totalCoupons = await Coupon.countDocuments();
-    
+
     // Revenue calculations
     const paidOrders = await Order.find({ status: 'paid' }).lean();
     const totalRevenue = paidOrders.reduce((acc, curr) => acc + (curr.totalAmount || 0), 0);
-    
+
     const now = new Date();
     const startOfThisMonth = new Date(now.getFullYear(), now.getMonth(), 1);
     const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
@@ -312,7 +312,7 @@ export class AdminService {
         await InstructorProfile.create({
           userId: newUser._id,
           slug: userSlug || `instructor-${newUser._id.toString().slice(-6)}`,
-          title: specialty || 'مدرس تک‌یاد',
+          title: specialty || 'مدرس تک یاد',
           bio: bio || `استاد ${newUser.firstName} ${newUser.lastName}`,
           isApproved: true,
           specialties: specialty ? [specialty] : [],
@@ -345,23 +345,23 @@ export class AdminService {
 
   static async getUsers() {
     const users = await User.find().populate('role', 'name slug').select('-passwordHash').sort({ createdAt: -1 }).lean();
-    
+
     // Enrich users with enrollment count, paid orders count, total spent, and instructor details
     const enrichedUsers = await Promise.all(users.map(async (u: any) => {
       const enrollmentsCount = await Enrollment.countDocuments({ userId: u._id });
       const userOrders = await Order.find({ userId: u._id, status: 'paid' }).select('totalAmount').lean();
       const totalSpent = userOrders.reduce((sum, ord) => sum + (ord.totalAmount || 0), 0);
       const ordersCount = userOrders.length;
-      
+
       let instructorProfile: any = null;
       let coursesCount = 0;
       let totalStudentsCount = 0;
-      
+
       const roleSlug = u.role?.slug || '';
       if (roleSlug === 'instructor') {
         instructorProfile = await InstructorProfile.findOne({ userId: u._id }).lean();
         coursesCount = await Course.countDocuments({ instructors: u._id });
-        
+
         // Count total unique students across this instructor's courses
         const instructorCourses = await Course.find({ instructors: u._id }).select('_id').lean();
         if (instructorCourses.length > 0) {
@@ -424,7 +424,7 @@ export class AdminService {
     if (isInstructor) {
       instructorCourses = await Course.find({ instructors: id }).sort({ createdAt: -1 }).lean();
       instructorClasses = await Class.find({ $or: [{ instructors: id }, { createdBy: id }] }).sort({ createdAt: -1 }).lean();
-      
+
       const courseIds = instructorCourses.map(c => c._id);
       if (courseIds.length > 0) {
         totalInstructorStudents = await Enrollment.countDocuments({ courseId: { $in: courseIds } });
@@ -433,7 +433,7 @@ export class AdminService {
           'items.itemType': 'course',
           'items.itemId': { $in: courseIds }
         }).lean();
-        
+
         paidOrders.forEach((o: any) => {
           o.items?.forEach((item: any) => {
             if (item.itemType === 'course' && courseIds.some((cid: any) => cid.toString() === item.itemId?.toString())) {
@@ -524,7 +524,7 @@ export class AdminService {
 
     // Extract instructor profile fields if provided
     const { title, specialties, education, socialLinks, ...userData } = data;
-    
+
     // Also sync bio & specialty directly to User if provided
     if (title && !userData.specialty) {
       userData.specialty = title;
@@ -537,9 +537,9 @@ export class AdminService {
     if (title !== undefined || data.bio !== undefined || specialties !== undefined || education !== undefined || socialLinks !== undefined) {
       await InstructorProfile.findOneAndUpdate(
         { userId: id },
-        { 
+        {
           $set: {
-            title: title || userToUpdate.specialty || 'مدرس تک‌یاد',
+            title: title || userToUpdate.specialty || 'مدرس تک یاد',
             bio: data.bio || userToUpdate.bio || '',
             ...(specialties ? { specialties: Array.isArray(specialties) ? specialties : [specialties] } : {}),
             ...(education ? { education } : {}),
@@ -608,7 +608,7 @@ export class AdminService {
         { userId: targetUser._id },
         {
           $setOnInsert: {
-            title: targetUser.specialty || 'مدرس و مدیر آموزشی تک‌یاد',
+            title: targetUser.specialty || 'مدرس و مدیر آموزشی تک یاد',
             bio: targetUser.bio || '',
             isApproved: true,
             rating: 5,
@@ -685,7 +685,7 @@ export class AdminService {
     };
   }
 
-  
+
   static async getOrders(query: any) {
     const page = Math.max(1, parseInt(query.page) || 1);
     const limit = Math.min(100, Math.max(1, parseInt(query.limit) || 20));
@@ -965,18 +965,18 @@ export class AdminService {
     const thisMonthRevenue = orders
       .filter(o => new Date((o as any).createdAt).getMonth() === new Date().getMonth())
       .reduce((acc, curr) => acc + curr.totalAmount, 0);
-      
+
     const monthNames = ['فروردین', 'اردیبهشت', 'خرداد', 'تیر', 'مرداد', 'شهریور', 'مهر', 'آبان', 'آذر', 'دی', 'بهمن', 'اسفند'];
     const monthlyData = monthNames.map(name => ({ name, revenue: 0 }));
-    
+
     const currentYear = new Date().getFullYear();
     orders.forEach(o => {
       const date = new Date((o as any).createdAt);
       if (date.getFullYear() === currentYear) {
-         const monthIndex = date.getMonth();
-         if (monthlyData[monthIndex]) {
-            monthlyData[monthIndex].revenue += o.totalAmount;
-         }
+        const monthIndex = date.getMonth();
+        if (monthlyData[monthIndex]) {
+          monthlyData[monthIndex].revenue += o.totalAmount;
+        }
       }
     });
 
@@ -990,7 +990,7 @@ export class AdminService {
     const now = new Date();
 
     const totalRevenue = paidOrders.reduce((acc, curr) => acc + (curr.totalAmount || 0), 0);
-    
+
     const startOfThisMonth = new Date(now.getFullYear(), now.getMonth(), 1);
     const startOfLastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
     const endOfLastMonth = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59);
@@ -1144,7 +1144,7 @@ export class AdminService {
     };
   }
 
-  
+
   // --- Super Admin ---
   static async getAdmins() {
     const adminRoles = await Role.find({ slug: { $in: ['admin', 'super-admin'] } });
@@ -1194,9 +1194,9 @@ export class AdminService {
     // Only super-admin or admin role should be assignable here
     const role = await Role.findById(data.role);
     if (!role || !['admin', 'super-admin'].includes(role.slug)) {
-       throw new AppError('نقش انتخاب شده برای ایجاد مدیر نامعتبر است', 400);
+      throw new AppError('نقش انتخاب شده برای ایجاد مدیر نامعتبر است', 400);
     }
-    
+
     // Hash password manually
     data.passwordHash = await argon2.hash(data.password);
     delete data.password;
@@ -1268,12 +1268,12 @@ export class AdminService {
   static async updateAdminStatus(adminId: string, status: string) {
     const userToUpdate = await User.findById(adminId).populate('role');
     if (!userToUpdate) throw new AppError('Admin not found', 404);
-    
+
     // Prevent blocking super-admin
     if ((userToUpdate.role as any)?.slug === 'super-admin' && status === 'blocked') {
       throw new AppError('Cannot block a super admin', 403);
     }
-    
+
     userToUpdate.status = status as 'active' | 'blocked';
     await userToUpdate.save();
     return userToUpdate;
@@ -1297,11 +1297,11 @@ export class AdminService {
 
   static async createRole(data: any) {
     if (['super-admin', 'admin', 'instructor', 'student', 'support'].includes(data.slug)) {
-       throw new AppError('Cannot create system reserved roles', 400);
+      throw new AppError('Cannot create system reserved roles', 400);
     }
-    
+
     if (data.permissions && data.permissions.includes('super_admin.access')) {
-        throw new AppError('Cannot grant super_admin access to new roles', 403);
+      throw new AppError('Cannot grant super_admin access to new roles', 403);
     }
     return await Role.create(data);
   }
@@ -1309,20 +1309,20 @@ export class AdminService {
   static async updateRole(id: string, data: any) {
     const role = await Role.findById(id);
     if (!role) throw new AppError('Role not found', 404);
-    
+
     // Protection
     if (['super-admin', 'admin', 'instructor', 'student'].includes(role.slug)) {
-       // Allow updating description and permissions (except super-admin which has all), but not slug/name
-       if (role.slug === 'super-admin') {
-           throw new AppError('Cannot modify super-admin role', 403);
-       }
-       delete data.slug; // prevent slug change
-       delete data.name; // prevent name change
+      // Allow updating description and permissions (except super-admin which has all), but not slug/name
+      if (role.slug === 'super-admin') {
+        throw new AppError('Cannot modify super-admin role', 403);
+      }
+      delete data.slug; // prevent slug change
+      delete data.name; // prevent name change
     }
-    
-    
+
+
     if (role.slug !== 'super-admin' && data.permissions && data.permissions.includes('super_admin.access')) {
-        throw new AppError('Cannot grant super_admin access to non-super-admin roles', 403);
+      throw new AppError('Cannot grant super_admin access to non-super-admin roles', 403);
     }
     Object.assign(role, data);
     await role.save();
@@ -1332,16 +1332,16 @@ export class AdminService {
   static async deleteRole(id: string) {
     const role = await Role.findById(id);
     if (!role) throw new AppError('Role not found', 404);
-    
+
     if (['super-admin', 'admin', 'instructor', 'student', 'support'].includes(role.slug)) {
-       throw new AppError('Cannot delete system roles', 403);
+      throw new AppError('Cannot delete system roles', 403);
     }
-    
+
     const usersWithRole = await User.countDocuments({ role: id });
     if (usersWithRole > 0) {
-       throw new AppError('Cannot delete role that is assigned to users', 400);
+      throw new AppError('Cannot delete role that is assigned to users', 400);
     }
-    
+
     await role.deleteOne();
     return { success: true };
   }
@@ -1597,8 +1597,8 @@ export class AdminService {
       const queryFilter: any = settlement.transactionId
         ? { _id: settlement.transactionId }
         : settlement.referenceId
-        ? { referenceId: settlement.referenceId }
-        : { userId: instructorId, type: 'withdraw', status: 'pending' };
+          ? { referenceId: settlement.referenceId }
+          : { userId: instructorId, type: 'withdraw', status: 'pending' };
 
       const matchingTx = await WalletTransaction.findOne(queryFilter);
 
@@ -1647,8 +1647,8 @@ export class AdminService {
     const msg = status === 'completed'
       ? `درخواست تسویه حساب شما به مبلغ ${settlement.amount.toLocaleString('fa-IR')} تومان واریز گردید. کد پیگیری: ${trackingCode || '-'}`
       : status === 'rejected'
-      ? `درخواست تسویه حساب شما رد شد. علت: ${rejectionReason || 'عدم تطابق اطلاعات'}`
-      : `وضعیت تسویه حساب شما به ${status} تغییر یافت.`;
+        ? `درخواست تسویه حساب شما رد شد. علت: ${rejectionReason || 'عدم تطابق اطلاعات'}`
+        : `وضعیت تسویه حساب شما به ${status} تغییر یافت.`;
 
     await Notification.create({
       userId: settlement.instructorId,
@@ -1833,12 +1833,12 @@ export class AdminService {
       } else {
         let roleDocs: any[] = [];
         if (targetRole === 'admin') {
-          roleDocs = await Role.find({ 
-            slug: { $in: ['admin', 'super-admin', 'manager', 'support', 'content-manager'] } 
+          roleDocs = await Role.find({
+            slug: { $in: ['admin', 'super-admin', 'manager', 'support', 'content-manager'] }
           }).select('_id');
         } else if (targetRole === 'student' || targetRole === 'students') {
-          roleDocs = await Role.find({ 
-            slug: { $in: ['student', 'students', 'learner'] } 
+          roleDocs = await Role.find({
+            slug: { $in: ['student', 'students', 'learner'] }
           }).select('_id');
           if (roleDocs.length === 0) {
             roleDocs = await Role.find({
@@ -1849,12 +1849,12 @@ export class AdminService {
           if (mongoose.Types.ObjectId.isValid(targetRole)) {
             roleDocs = [{ _id: new mongoose.Types.ObjectId(targetRole) }];
           } else {
-            roleDocs = await Role.find({ 
+            roleDocs = await Role.find({
               $or: [
-                { slug: targetRole }, 
+                { slug: targetRole },
                 { name: targetRole },
                 { slug: new RegExp(`^${targetRole}$`, 'i') }
-              ] 
+              ]
             }).select('_id');
           }
         }
@@ -1985,8 +1985,8 @@ export class AdminService {
     };
 
     // Recent critical security logs
-    const recentSecurityLogs = await AuditLog.find({ 
-      category: { $in: ['auth', 'security'] } 
+    const recentSecurityLogs = await AuditLog.find({
+      category: { $in: ['auth', 'security'] }
     }).sort({ createdAt: -1 }).limit(15).lean();
 
     // Query admin and super-admin role IDs

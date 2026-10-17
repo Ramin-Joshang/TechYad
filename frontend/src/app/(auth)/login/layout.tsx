@@ -1,8 +1,8 @@
-import { Metadata } from 'next';
+import { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: 'ورود به حساب کاربری | تک‌یاد',
-  description: 'ورود به پنل کاربری دانشجویان، اساتید و مدیران تک‌یاد',
+  title: "ورود به حساب کاربری | تک یاد",
+  description: "ورود به پنل کاربری دانشجویان، اساتید و مدیران تک یاد",
 };
 
 export default function LoginLayout({

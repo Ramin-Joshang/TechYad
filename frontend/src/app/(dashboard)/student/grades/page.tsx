@@ -404,7 +404,7 @@ export default function StudentGradesPage() {
                             </span>
                           </div>
                           <p className="text-xs text-[var(--neo-text-secondary)] line-clamp-1 mb-2">
-                            {cls.shortDescription || cls.description || 'کلاس تعاملی تک‌یاد'}
+                            {cls.shortDescription || cls.description || 'کلاس تعاملی تک یاد'}
                           </p>
 
                           {evaluationNote && (

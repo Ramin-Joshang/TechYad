@@ -1,13 +1,19 @@
 import { CourseListContainer } from "@/components/courses/CourseListContainer";
-import { fetchCourses, fetchCategories, fetchInstructors, fetchLevels } from "@/lib/server-api";
+import {
+  fetchCourses,
+  fetchCategories,
+  fetchInstructors,
+  fetchLevels,
+} from "@/lib/server-api";
 import { Suspense } from "react";
 import type { Metadata } from "next";
 
-export const dynamic = 'force-dynamic';
+export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "دوره‌های آموزشی برنامه‌نویسی و مهارت‌های تخصصی | تک‌یاد",
-  description: "کاتالوگ جامع دوره‌های آنلاین برنامه‌نویسی، طراحی وب، هوش مصنوعی و مهندسی نرم‌افزار با اساتید مطرح و گواهینامه معتبر در پلتفرم تک‌یاد.",
+  title: "دوره‌های آموزشی برنامه‌نویسی و مهارت‌های تخصصی | تک یاد",
+  description:
+    "کاتالوگ جامع دوره‌های آنلاین برنامه‌نویسی، طراحی وب، هوش مصنوعی و مهندسی نرم‌افزار با اساتید مطرح و گواهینامه معتبر در پلتفرم تک یاد.",
   keywords: [
     "دوره‌های برنامه‌نویسی",
     "آموزش پایتون",
@@ -15,7 +21,7 @@ export const metadata: Metadata = {
     "آموزش وب",
     "هوش مصنوعی",
     "دوره‌های تخصصی آنلاین",
-    "تک‌یاد",
+    "تک یاد",
     "Tecyad",
   ],
   alternates: {
@@ -25,22 +31,24 @@ export const metadata: Metadata = {
     type: "website",
     locale: "fa_IR",
     url: "https://tecyad.ir/courses",
-    siteName: "تک‌یاد | Tecyad",
-    title: "دوره‌های آموزشی برنامه‌نویسی و مهارت‌های تخصصی | تک‌یاد (Tecyad)",
-    description: "کاتالوگ جامع دوره‌های آنلاین برنامه‌نویسی، طراحی وب، هوش مصنوعی و مهندسی نرم‌افزار با اساتید مطرح و گواهینامه معتبر در پلتفرم تک‌یاد (Tecyad).",
+    siteName: "تک یاد | Tecyad",
+    title: "دوره‌های آموزشی برنامه‌نویسی و مهارت‌های تخصصی | تک یاد (Tecyad)",
+    description:
+      "کاتالوگ جامع دوره‌های آنلاین برنامه‌نویسی، طراحی وب، هوش مصنوعی و مهندسی نرم‌افزار با اساتید مطرح و گواهینامه معتبر در پلتفرم تک یاد (Tecyad).",
     images: [
       {
         url: "https://tecyad.ir/hero-image.png",
         width: 1200,
         height: 630,
-        alt: "دوره‌های آموزشی تک‌یاد Tecyad",
+        alt: "دوره‌های آموزشی تک یاد Tecyad",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "دوره‌های آموزشی برنامه‌نویسی و مهارت‌های تخصصی | تک‌یاد (Tecyad)",
-    description: "کاتالوگ جامع دوره‌های آنلاین برنامه‌نویسی، طراحی وب، هوش مصنوعی و مهندسی با اساتید مطرح.",
+    title: "دوره‌های آموزشی برنامه‌نویسی و مهارت‌های تخصصی | تک یاد (Tecyad)",
+    description:
+      "کاتالوگ جامع دوره‌های آنلاین برنامه‌نویسی، طراحی وب، هوش مصنوعی و مهندسی با اساتید مطرح.",
     images: ["https://tecyad.ir/hero-image.png"],
   },
 };
@@ -51,26 +59,27 @@ export default async function CoursesPage({
   searchParams?: Promise<{ [key: string]: string | undefined }>;
 }) {
   const resolvedParams = searchParams ? await searchParams : {};
-  
+
   // Parallel SSR fetching
-  const [coursesData, categoriesData, instructorsData, levelsData] = await Promise.all([
-    fetchCourses({ ...resolvedParams, limit: '9' }),
-    fetchCategories(),
-    fetchInstructors(),
-    fetchLevels(),
-  ]);
+  const [coursesData, categoriesData, instructorsData, levelsData] =
+    await Promise.all([
+      fetchCourses({ ...resolvedParams, limit: "9" }),
+      fetchCategories(),
+      fetchInstructors(),
+      fetchLevels(),
+    ]);
 
   const catalogJsonLd = {
     "@context": "https://schema.org",
     "@type": "CollectionPage",
-    "name": "دوره‌های آموزشی تک‌یاد | Tecyad",
-    "description": "فهرست دوره‌های آموزشی تخصصی آنلاین در پلتفرم تک‌یاد (Tecyad)",
-    "url": "https://tecyad.ir/courses",
-    "provider": {
+    name: "دوره‌های آموزشی تک یاد | Tecyad",
+    description: "فهرست دوره‌های آموزشی تخصصی آنلاین در پلتفرم تک یاد (Tecyad)",
+    url: "https://tecyad.ir/courses",
+    provider: {
       "@type": "EducationalOrganization",
-      "name": "تک‌یاد | Tecyad",
-      "url": "https://tecyad.ir"
-    }
+      name: "تک یاد | Tecyad",
+      url: "https://tecyad.ir",
+    },
   };
 
   return (
@@ -79,8 +88,14 @@ export default async function CoursesPage({
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(catalogJsonLd) }}
       />
-      <Suspense fallback={<div className="min-h-screen flex items-center justify-center font-bold text-slate-600">درحال بارگذاری دوره‌ها...</div>}>
-        <CourseListContainer 
+      <Suspense
+        fallback={
+          <div className="min-h-screen flex items-center justify-center font-bold text-slate-600">
+            درحال بارگذاری دوره‌ها...
+          </div>
+        }
+      >
+        <CourseListContainer
           initialData={coursesData}
           initialCategories={categoriesData || []}
           initialInstructors={instructorsData || []}

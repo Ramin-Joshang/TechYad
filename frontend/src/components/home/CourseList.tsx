@@ -1,17 +1,17 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import Link from 'next/link';
-import { Users, Star, ChevronRight, ChevronLeft } from 'lucide-react';
-import { getImageUrl, handleImageError } from '@/lib/utils';
-import { ClassCard } from '@/components/classes/ClassCard';
-import { Swiper, SwiperSlide } from 'swiper/react';
-import { Autoplay } from 'swiper/modules';
+import { useState } from "react";
+import Link from "next/link";
+import { Users, Star, ChevronRight, ChevronLeft } from "lucide-react";
+import { getImageUrl, handleImageError } from "@/lib/utils";
+import { ClassCard } from "@/components/classes/ClassCard";
+import { Swiper, SwiperSlide } from "swiper/react";
+import { Autoplay } from "swiper/modules";
 
 export function CourseList({
   title,
   data = [],
-  sectionName = 'Explore',
+  sectionName = "Explore",
   isLoading = false,
 }: {
   title: string;
@@ -26,9 +26,11 @@ export function CourseList({
   return (
     <section className="py-10 sm:py-16 bg-[var(--neo-bg)] border-b border-[var(--neo-border)] overflow-hidden">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        
         {/* Header with Title, View All, and Swiper Controls */}
-        <div dir="rtl" className="flex flex-row justify-between items-center sm:items-end mb-6 sm:mb-10 gap-3 text-right w-full">
+        <div
+          dir="rtl"
+          className="flex flex-row justify-between items-center sm:items-end mb-6 sm:mb-10 gap-3 text-right w-full"
+        >
           <div className="text-right flex-1 min-w-0">
             <div className="flex items-center gap-2 mb-1.5 sm:mb-2 justify-start">
               <span className="w-6 sm:w-8 h-1 bg-[var(--neo-primary)] rounded-full shrink-0"></span>
@@ -65,7 +67,7 @@ export function CourseList({
             )}
 
             <Link
-              href={title.includes('کلاس') ? '/classes' : '/courses'}
+              href={title.includes("کلاس") ? "/classes" : "/courses"}
               className="text-[var(--neo-text-secondary)] hover:text-[var(--neo-primary)] transition font-bold inline-flex items-center gap-1 text-xs sm:text-sm shrink-0 px-3 py-1.5 rounded-xl bg-white border border-[var(--neo-border)] hover:border-[var(--neo-primary)] shadow-2xs whitespace-nowrap"
             >
               <span>مشاهده همه</span>
@@ -78,7 +80,10 @@ export function CourseList({
         {isLoading ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
             {[...Array(4)].map((_, i) => (
-              <div key={i} className="flex flex-col bg-white border border-[var(--neo-border)] rounded-2xl animate-pulse overflow-hidden">
+              <div
+                key={i}
+                className="flex flex-col bg-white border border-[var(--neo-border)] rounded-2xl animate-pulse overflow-hidden"
+              >
                 <div className="aspect-[16/10] bg-gray-200 w-full" />
                 <div className="p-4 flex flex-col flex-grow">
                   <div className="h-4 bg-gray-200 rounded w-1/3 mb-2" />
@@ -122,16 +127,29 @@ export function CourseList({
               className="!overflow-visible"
             >
               {data.map((item: any) => {
-                const isClass = item.mode !== undefined || item.capacity !== undefined || item.scheduleDays !== undefined;
-                const linkHref = isClass ? `/classes/${item.slug || item._id}` : `/courses/${item.slug || item._id}`;
+                const isClass =
+                  item.mode !== undefined ||
+                  item.capacity !== undefined ||
+                  item.scheduleDays !== undefined;
+                const linkHref = isClass
+                  ? `/classes/${item.slug || item._id}`
+                  : `/courses/${item.slug || item._id}`;
                 const instructorObj = item.instructor || item.instructors?.[0];
-                const instructorName = typeof instructorObj === 'object' && instructorObj !== null
-                  ? `${instructorObj.firstName || ''} ${instructorObj.lastName || ''}`.trim() || instructorObj.name
-                  : (typeof item.instructor === 'string' ? item.instructor : 'استاد تک‌یاد');
-                const instructorAvatar = instructorObj?.personnelPhoto || instructorObj?.avatar;
+                const instructorName =
+                  typeof instructorObj === "object" && instructorObj !== null
+                    ? `${instructorObj.firstName || ""} ${instructorObj.lastName || ""}`.trim() ||
+                      instructorObj.name
+                    : typeof item.instructor === "string"
+                      ? item.instructor
+                      : "استاد تک یاد";
+                const instructorAvatar =
+                  instructorObj?.personnelPhoto || instructorObj?.avatar;
                 const isFree = item.price === 0;
-                const hasDiscount = item.discountPrice && item.discountPrice < item.price;
-                const displayPrice = hasDiscount ? item.discountPrice : item.price;
+                const hasDiscount =
+                  item.discountPrice && item.discountPrice < item.price;
+                const displayPrice = hasDiscount
+                  ? item.discountPrice
+                  : item.price;
 
                 if (isClass) {
                   return (
@@ -150,8 +168,14 @@ export function CourseList({
                       {/* Thumbnail Container */}
                       <div className="relative aspect-[16/10] overflow-hidden bg-[var(--neo-surface-2)]">
                         <img
-                          src={getImageUrl(item.thumbnail || item.coverImage, 'course', item.title)}
-                          onError={(e) => handleImageError(e, 'course', item.title)}
+                          src={getImageUrl(
+                            item.thumbnail || item.coverImage,
+                            "course",
+                            item.title,
+                          )}
+                          onError={(e) =>
+                            handleImageError(e, "course", item.title)
+                          }
                           alt={item.title}
                           className="w-full h-full object-fill group-hover:scale-105 transition duration-500 ease-out"
                         />
@@ -163,12 +187,13 @@ export function CourseList({
                               رایگان
                             </span>
                           )}
-                          {item.mode === 'online' && (
+                          {item.mode === "online" && (
                             <span className="bg-blue-600/90 backdrop-blur-xs text-white text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1 shadow-2xs">
-                              <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" /> آنلاین (Live)
+                              <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />{" "}
+                              آنلاین (Live)
                             </span>
                           )}
-                          {item.mode === 'in_person' && (
+                          {item.mode === "in_person" && (
                             <span className="bg-amber-600/90 backdrop-blur-xs text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-2xs">
                               حضوری
                             </span>
@@ -180,11 +205,19 @@ export function CourseList({
                       <div className="p-4 flex flex-col flex-grow text-right">
                         <div className="flex items-center justify-between mb-2">
                           <span className="text-[var(--neo-text-muted)] text-[10px] font-medium bg-[var(--neo-surface-2)] px-2 py-0.5 rounded-md">
-                            {item.categoryId?.name || item.category?.name || (isClass ? 'کلاس آنلاین' : 'دوره تخصصی')}
+                            {item.categoryId?.name ||
+                              item.category?.name ||
+                              (isClass ? "کلاس آنلاین" : "دوره تخصصی")}
                           </span>
                           <div className="flex items-center gap-1 text-amber-500 text-xs font-bold font-mono">
                             <Star className="w-3.5 h-3.5 fill-current" />
-                            <span>{item.averageRating || item.rating ? Number(item.averageRating || item.rating).toFixed(1) : '5.0'}</span>
+                            <span>
+                              {item.averageRating || item.rating
+                                ? Number(
+                                    item.averageRating || item.rating,
+                                  ).toFixed(1)
+                                : "5.0"}
+                            </span>
                           </div>
                         </div>
 
@@ -197,8 +230,14 @@ export function CourseList({
                           <div className="w-6 h-6 rounded-full bg-purple-50 flex items-center justify-center text-purple-600 overflow-hidden border border-purple-100 shrink-0">
                             {instructorAvatar ? (
                               <img
-                                src={getImageUrl(instructorAvatar, 'avatar', instructorName)}
-                                onError={(e) => handleImageError(e, 'avatar', instructorName)}
+                                src={getImageUrl(
+                                  instructorAvatar,
+                                  "avatar",
+                                  instructorName,
+                                )}
+                                onError={(e) =>
+                                  handleImageError(e, "avatar", instructorName)
+                                }
                                 className="w-full h-full object-cover"
                                 alt=""
                               />
@@ -214,7 +253,9 @@ export function CourseList({
                         {/* Price & Sessions Footer */}
                         <div className="pt-2.5 border-t border-[var(--neo-border)] flex items-center justify-between">
                           <span className="text-[11px] text-[var(--neo-text-muted)]">
-                            {isClass ? `${item.sessions || 10} جلسه` : `${item.totalLessons || 12} درس`}
+                            {isClass
+                              ? `${item.sessions || 10} جلسه`
+                              : `${item.totalLessons || 12} درس`}
                           </span>
 
                           <div className="font-bold text-xs sm:text-sm text-[var(--neo-primary)] font-mono text-left dir-ltr">
@@ -222,8 +263,10 @@ export function CourseList({
                               <span className="text-emerald-600">رایگان</span>
                             ) : (
                               <span>
-                                {displayPrice.toLocaleString('fa-IR')}{' '}
-                                <span className="text-[10px] text-gray-500 font-normal">تومان</span>
+                                {displayPrice.toLocaleString("fa-IR")}{" "}
+                                <span className="text-[10px] text-gray-500 font-normal">
+                                  تومان
+                                </span>
                               </span>
                             )}
                           </div>
@@ -236,7 +279,6 @@ export function CourseList({
             </Swiper>
           </div>
         )}
-
       </div>
     </section>
   );

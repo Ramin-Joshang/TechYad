@@ -1,29 +1,38 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { 
-  ShieldCheck, CreditCard, ArrowRight, Loader2, Tag, 
-  Wallet, CheckCircle2, AlertCircle, PlusCircle, Sparkles, Check
-} from 'lucide-react';
-import { useAuthStore } from '@/features/auth/stores/auth.store';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { commerceApi } from '@/features/commerce/api/commerce.api';
-import { walletApi } from '@/features/wallet/api/wallet.api';
-import toast from 'react-hot-toast';
-import Link from 'next/link';
-import { getImageUrl, handleImageError } from '@/lib/utils';
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import {
+  ShieldCheck,
+  CreditCard,
+  ArrowRight,
+  Loader2,
+  Tag,
+  Wallet,
+  CheckCircle2,
+  AlertCircle,
+  PlusCircle,
+  Sparkles,
+  Check,
+} from "lucide-react";
+import { useAuthStore } from "@/features/auth/stores/auth.store";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { commerceApi } from "@/features/commerce/api/commerce.api";
+import { walletApi } from "@/features/wallet/api/wallet.api";
+import toast from "react-hot-toast";
+import Link from "next/link";
+import { getImageUrl, handleImageError } from "@/lib/utils";
 
 export default function CheckoutPage() {
   const router = useRouter();
   const queryClient = useQueryClient();
   const { user, isAuthenticated, isInitializing } = useAuthStore();
-  
-  const [couponCode, setCouponCode] = useState('');
-  const [appliedCoupon, setAppliedCoupon] = useState('');
+
+  const [couponCode, setCouponCode] = useState("");
+  const [appliedCoupon, setAppliedCoupon] = useState("");
   const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [isApplyingCoupon, setIsApplyingCoupon] = useState(false);
-  
+
   // Hybrid Wallet State: user can choose to apply available wallet balance (unchecked by default per requirement)
   const [applyWalletBalance, setApplyWalletBalance] = useState(false);
 
@@ -34,8 +43,8 @@ export default function CheckoutPage() {
 
   // Fetch standard cart preview (always fresh, no stale cache)
   const { data: baseData, isLoading: isBaseLoading } = useQuery({
-    queryKey: ['checkoutPreviewBase'],
-    queryFn: () => commerceApi.checkoutPreview().then(res => res.data),
+    queryKey: ["checkoutPreviewBase"],
+    queryFn: () => commerceApi.checkoutPreview().then((res) => res.data),
     enabled: isAuthenticated && !isInitializing,
     staleTime: 0,
     refetchOnMount: true,
@@ -44,8 +53,8 @@ export default function CheckoutPage() {
 
   // Fetch live wallet balance (always fresh)
   const { data: walletData, refetch: refetchWallet } = useQuery({
-    queryKey: ['myWalletOverview'],
-    queryFn: () => walletApi.getOverview().then(res => res.data),
+    queryKey: ["myWalletOverview"],
+    queryFn: () => walletApi.getOverview().then((res) => res.data),
     enabled: isAuthenticated && !isInitializing,
     staleTime: 0,
     refetchOnMount: true,
@@ -56,15 +65,21 @@ export default function CheckoutPage() {
 
   // Synchronize base preview when loaded and no coupon is active
   const effectivePreview = previewData || baseData;
-  const currentWalletBalance = walletData?.balance ?? effectivePreview?.walletBalance ?? user?.walletBalance ?? 0;
+  const currentWalletBalance =
+    walletData?.balance ??
+    effectivePreview?.walletBalance ??
+    user?.walletBalance ??
+    0;
   const totalAmount = effectivePreview?.totalAmount ?? 0;
 
   // Calculation of Hybrid Payment:
-  const walletDeduction = (applyWalletBalance && currentWalletBalance > 0) 
-    ? Math.min(currentWalletBalance, totalAmount) 
-    : 0;
+  const walletDeduction =
+    applyWalletBalance && currentWalletBalance > 0
+      ? Math.min(currentWalletBalance, totalAmount)
+      : 0;
   const remainingToPay = Math.max(0, totalAmount - walletDeduction);
-  const isFullWalletPayment = walletDeduction === totalAmount && totalAmount > 0;
+  const isFullWalletPayment =
+    walletDeduction === totalAmount && totalAmount > 0;
   const isHybridPayment = walletDeduction > 0 && remainingToPay > 0;
 
   // Handle Coupon Submit
@@ -82,7 +97,8 @@ export default function CheckoutPage() {
         toast.success(`کد تخفیف ${cleanCode} با موفقیت اعمال شد`);
       }
     } catch (err: any) {
-      const msg = err.response?.data?.message || 'کد تخفیف نامعتبر یا منقضی شده است';
+      const msg =
+        err.response?.data?.message || "کد تخفیف نامعتبر یا منقضی شده است";
       toast.error(msg);
     } finally {
       setIsApplyingCoupon(false);
@@ -90,10 +106,10 @@ export default function CheckoutPage() {
   };
 
   const handleRemoveCoupon = () => {
-    setAppliedCoupon('');
-    setCouponCode('');
+    setAppliedCoupon("");
+    setCouponCode("");
     setPreviewData(null);
-    toast.success('کد تخفیف حذف شد');
+    toast.success("کد تخفیف حذف شد");
   };
 
   // Payment with Gateway (Supports pure gateway OR hybrid gateway)
@@ -107,14 +123,14 @@ export default function CheckoutPage() {
     onSuccess: (data: any) => {
       // Scenario A: Auto POST form submit to SEP (https://sep.shaparak.ir/OnlinePG/OnlinePG)
       if (data?.postActionUrl && data?.token) {
-        const form = document.createElement('form');
-        form.method = 'POST';
+        const form = document.createElement("form");
+        form.method = "POST";
         form.action = data.postActionUrl;
-        form.style.display = 'none';
+        form.style.display = "none";
 
-        const tokenInput = document.createElement('input');
-        tokenInput.type = 'hidden';
-        tokenInput.name = 'Token';
+        const tokenInput = document.createElement("input");
+        tokenInput.type = "hidden";
+        tokenInput.name = "Token";
         tokenInput.value = data.token;
         form.appendChild(tokenInput);
 
@@ -129,8 +145,8 @@ export default function CheckoutPage() {
       }
     },
     onError: (error: any) => {
-      toast.error(error.response?.data?.message || 'خطا در ایجاد تراکنش بانکی');
-    }
+      toast.error(error.response?.data?.message || "خطا در ایجاد تراکنش بانکی");
+    },
   });
 
   // 100% Payment with Wallet
@@ -142,26 +158,28 @@ export default function CheckoutPage() {
       return { ...walletRes.data, orderId };
     },
     onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ['myWalletOverview'] });
-      queryClient.invalidateQueries({ queryKey: ['cart'] });
-      toast.success('سفارش شما با موفقیت از طریق کیف پول پرداخت شد!');
+      queryClient.invalidateQueries({ queryKey: ["myWalletOverview"] });
+      queryClient.invalidateQueries({ queryKey: ["cart"] });
+      toast.success("سفارش شما با موفقیت از طریق کیف پول پرداخت شد!");
       router.push(`/payment/success?orderId=${data.orderId}&method=wallet`);
     },
     onError: (error: any) => {
-      toast.error(error.response?.data?.message || 'خطا در پرداخت با کیف پول');
-    }
+      toast.error(error.response?.data?.message || "خطا در پرداخت با کیف پول");
+    },
   });
 
   const handleFinalPayment = () => {
     if (!acceptedTerms) {
-      toast.error('لطفاً قوانین و مقررات را بپذیرید');
+      toast.error("لطفاً قوانین و مقررات را بپذیرید");
       return;
     }
 
     if (isFullWalletPayment) {
       walletPaymentMutation.mutate();
     } else {
-      gatewayMutation.mutate({ useWallet: applyWalletBalance && walletDeduction > 0 });
+      gatewayMutation.mutate({
+        useWallet: applyWalletBalance && walletDeduction > 0,
+      });
     }
   };
 
@@ -174,7 +192,9 @@ export default function CheckoutPage() {
         window.location.href = res.data.paymentUrl;
       }
     } catch (err: any) {
-      toast.error(err.response?.data?.message || 'خطا در اتصال به درگاه شارژ کیف پول');
+      toast.error(
+        err.response?.data?.message || "خطا در اتصال به درگاه شارژ کیف پول",
+      );
     } finally {
       setIsCharging(false);
     }
@@ -191,8 +211,13 @@ export default function CheckoutPage() {
   if (!isAuthenticated) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-[var(--neo-bg)] p-4">
-        <h2 className="text-2xl font-bold mb-4">لطفاً وارد حساب کاربری خود شوید</h2>
-        <button onClick={() => router.push('/login?redirect=/checkout')} className="bg-[var(--neo-primary)] text-white px-6 py-2 rounded-xl">
+        <h2 className="text-2xl font-bold mb-4">
+          لطفاً وارد حساب کاربری خود شوید
+        </h2>
+        <button
+          onClick={() => router.push("/login?redirect=/checkout")}
+          className="bg-[var(--neo-primary)] text-white px-6 py-2 rounded-xl"
+        >
           ورود به حساب
         </button>
       </div>
@@ -200,50 +225,61 @@ export default function CheckoutPage() {
   }
 
   const items = effectivePreview?.items || [];
-  
+
   if (items.length === 0) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-[var(--neo-bg)] p-4">
         <h2 className="text-2xl font-bold mb-4">سبد خرید شما خالی است</h2>
-        <button onClick={() => router.push('/cart')} className="bg-[var(--neo-primary)] text-white px-6 py-2 rounded-xl">
+        <button
+          onClick={() => router.push("/cart")}
+          className="bg-[var(--neo-primary)] text-white px-6 py-2 rounded-xl"
+        >
           بازگشت به سبد خرید
         </button>
       </div>
     );
   }
 
-  const isProcessingPayment = walletPaymentMutation.isPending || gatewayMutation.isPending;
+  const isProcessingPayment =
+    walletPaymentMutation.isPending || gatewayMutation.isPending;
 
   return (
     <main className="bg-[var(--neo-bg)] min-h-screen py-12">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <button onClick={() => router.back()} className="flex items-center gap-2 text-[var(--neo-text-muted)] hover:text-[var(--neo-text-main)] mb-8 transition">
+        <button
+          onClick={() => router.back()}
+          className="flex items-center gap-2 text-[var(--neo-text-muted)] hover:text-[var(--neo-text-main)] mb-8 transition"
+        >
           <ArrowRight className="w-5 h-5" />
           بازگشت به سبد خرید
         </button>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          
           {/* Right Column - User Info, Items & Payment Details */}
           <div className="lg:col-span-2 space-y-6">
-            
             {/* Step 1: User Info */}
             <div className="bg-white p-6 rounded-3xl border border-[var(--neo-border)] shadow-sm">
               <h2 className="text-xl font-bold text-[var(--neo-text-main)] mb-6 flex items-center gap-2">
-                <div className="w-8 h-8 rounded-full bg-[var(--neo-primary)]/10 text-[var(--neo-primary)] flex items-center justify-center font-bold">۱</div>
+                <div className="w-8 h-8 rounded-full bg-[var(--neo-primary)]/10 text-[var(--neo-primary)] flex items-center justify-center font-bold">
+                  ۱
+                </div>
                 اطلاعات خریدار
               </h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-[var(--neo-text-secondary)] mb-1">نام و نام خانوادگی</label>
+                  <label className="block text-sm font-medium text-[var(--neo-text-secondary)] mb-1">
+                    نام و نام خانوادگی
+                  </label>
                   <div className="w-full bg-[var(--neo-bg)] border border-[var(--neo-border)] rounded-xl px-4 py-3 text-[var(--neo-text-main)] font-semibold">
                     {user?.firstName} {user?.lastName}
                   </div>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-[var(--neo-text-secondary)] mb-1">شماره موبایل خریدار</label>
+                  <label className="block text-sm font-medium text-[var(--neo-text-secondary)] mb-1">
+                    شماره موبایل خریدار
+                  </label>
                   <div className="w-full bg-[var(--neo-bg)] border border-[var(--neo-border)] rounded-xl px-4 py-3 text-[var(--neo-text-main)] text-right font-mono text-sm font-bold dir-ltr">
-                    {user?.mobile || 'ثبت‌نشده'}
+                    {user?.mobile || "ثبت‌نشده"}
                   </div>
                 </div>
               </div>
@@ -252,40 +288,71 @@ export default function CheckoutPage() {
             {/* Step 2: Order Items */}
             <div className="bg-white p-6 rounded-3xl border border-[var(--neo-border)] shadow-sm">
               <h2 className="text-xl font-bold text-[var(--neo-text-main)] mb-6 flex items-center gap-2">
-                <div className="w-8 h-8 rounded-full bg-[var(--neo-primary)]/10 text-[var(--neo-primary)] flex items-center justify-center font-bold">۲</div>
+                <div className="w-8 h-8 rounded-full bg-[var(--neo-primary)]/10 text-[var(--neo-primary)] flex items-center justify-center font-bold">
+                  ۲
+                </div>
                 آیتم‌های سفارش ({items.length} مورد)
               </h2>
               <div className="space-y-4">
                 {items.map((item: any) => {
-                  const hasDiscount = item.price && item.finalPrice && item.price > item.finalPrice;
-                  const isInstallment = item.paymentPlan === 'installment';
+                  const hasDiscount =
+                    item.price &&
+                    item.finalPrice &&
+                    item.price > item.finalPrice;
+                  const isInstallment = item.paymentPlan === "installment";
 
                   return (
-                    <div key={item.itemId} className="flex flex-col sm:flex-row sm:items-center justify-between py-4 border-b border-gray-100 last:border-0 gap-3">
+                    <div
+                      key={item.itemId}
+                      className="flex flex-col sm:flex-row sm:items-center justify-between py-4 border-b border-gray-100 last:border-0 gap-3"
+                    >
                       <div className="flex items-center gap-3 sm:gap-4">
-                        <img 
-                          src={getImageUrl(item.thumbnail, item.itemType === 'course' ? 'course' : 'class', item.titleSnapshot)} 
-                          alt={item.titleSnapshot} 
-                          className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl object-fill border border-slate-100 shrink-0 bg-slate-900" 
-                          onError={(e) => handleImageError(e, item.itemType === 'course' ? 'course' : 'class', item.titleSnapshot)}
+                        <img
+                          src={getImageUrl(
+                            item.thumbnail,
+                            item.itemType === "course" ? "course" : "class",
+                            item.titleSnapshot,
+                          )}
+                          alt={item.titleSnapshot}
+                          className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl object-fill border border-slate-100 shrink-0 bg-slate-900"
+                          onError={(e) =>
+                            handleImageError(
+                              e,
+                              item.itemType === "course" ? "course" : "class",
+                              item.titleSnapshot,
+                            )
+                          }
                         />
                         <div className="space-y-1">
                           <div className="flex items-center gap-2 flex-wrap">
                             <span className="text-[11px] bg-blue-50 text-[var(--neo-primary)] font-bold px-2 py-0.5 rounded-md">
-                              {item.itemType === 'course' ? 'دوره آموزشی' : 'کلاس زنده'}
+                              {item.itemType === "course"
+                                ? "دوره آموزشی"
+                                : "کلاس زنده"}
                             </span>
-                            <span className={`text-[11px] font-bold px-2 py-0.5 rounded-md ${
-                              isInstallment ? 'bg-purple-100 text-purple-700' : 'bg-emerald-50 text-emerald-700'
-                            }`}>
-                              {isInstallment ? 'اقساط ۴ ماهه اسنپ‌پی' : 'پرداخت نقدی'}
+                            <span
+                              className={`text-[11px] font-bold px-2 py-0.5 rounded-md ${
+                                isInstallment
+                                  ? "bg-purple-100 text-purple-700"
+                                  : "bg-emerald-50 text-emerald-700"
+                              }`}
+                            >
+                              {isInstallment
+                                ? "اقساط ۴ ماهه اسنپ‌پی"
+                                : "پرداخت نقدی"}
                             </span>
                             {item.instructorName && (
                               <span className="text-xs text-[var(--neo-text-muted)]">
-                                استاد: <span className="text-slate-800 font-semibold">{item.instructorName}</span>
+                                استاد:{" "}
+                                <span className="text-slate-800 font-semibold">
+                                  {item.instructorName}
+                                </span>
                               </span>
                             )}
                           </div>
-                          <h4 className="font-bold text-[var(--neo-text-main)] text-sm sm:text-base leading-snug">{item.titleSnapshot}</h4>
+                          <h4 className="font-bold text-[var(--neo-text-main)] text-sm sm:text-base leading-snug">
+                            {item.titleSnapshot}
+                          </h4>
                         </div>
                       </div>
                       <div className="text-left self-end sm:self-auto shrink-0">
@@ -295,21 +362,29 @@ export default function CheckoutPage() {
                               پیش‌پرداخت امروز:
                             </div>
                             <div className="font-black text-purple-900 text-base font-mono">
-                              {item.downPayment?.toLocaleString('fa-IR')} <span className="text-xs font-normal text-slate-500 font-sans">تومان</span>
+                              {item.downPayment?.toLocaleString("fa-IR")}{" "}
+                              <span className="text-xs font-normal text-slate-500 font-sans">
+                                تومان
+                              </span>
                             </div>
                             <div className="text-[11px] text-purple-600">
-                              + ۳ قسط ماهانه هر قسط {item.monthlyInstallment?.toLocaleString('fa-IR')} تومان
+                              + ۳ قسط ماهانه هر قسط{" "}
+                              {item.monthlyInstallment?.toLocaleString("fa-IR")}{" "}
+                              تومان
                             </div>
                           </div>
                         ) : (
                           <>
                             {hasDiscount && (
                               <div className="text-xs text-gray-400 line-through font-mono">
-                                {item.price.toLocaleString('fa-IR')} تومان
+                                {item.price.toLocaleString("fa-IR")} تومان
                               </div>
                             )}
                             <div className="font-black text-[var(--neo-text-main)] text-base font-mono">
-                              {item.finalPrice.toLocaleString('fa-IR')} <span className="text-xs font-normal text-[var(--neo-text-muted)] font-sans">تومان</span>
+                              {item.finalPrice.toLocaleString("fa-IR")}{" "}
+                              <span className="text-xs font-normal text-[var(--neo-text-muted)] font-sans">
+                                تومان
+                              </span>
                             </div>
                           </>
                         )}
@@ -323,16 +398,20 @@ export default function CheckoutPage() {
             {/* Step 3: Payment Method & Wallet Hybrid Option */}
             <div className="bg-white p-6 rounded-3xl border border-[var(--neo-border)] shadow-sm space-y-4">
               <h2 className="text-xl font-bold text-[var(--neo-text-main)] flex items-center gap-2">
-                <div className="w-8 h-8 rounded-full bg-[var(--neo-primary)]/10 text-[var(--neo-primary)] flex items-center justify-center font-bold">۳</div>
+                <div className="w-8 h-8 rounded-full bg-[var(--neo-primary)]/10 text-[var(--neo-primary)] flex items-center justify-center font-bold">
+                  ۳
+                </div>
                 روش پرداخت و استفاده از اعتبار کیف پول
               </h2>
 
               {/* Wallet Usage Box */}
-              <div className={`p-5 rounded-2xl border-2 transition-all ${
-                applyWalletBalance && currentWalletBalance > 0
-                  ? 'border-indigo-600 bg-indigo-50/40 shadow-sm'
-                  : 'border-slate-200 bg-slate-50/50'
-              }`}>
+              <div
+                className={`p-5 rounded-2xl border-2 transition-all ${
+                  applyWalletBalance && currentWalletBalance > 0
+                    ? "border-indigo-600 bg-indigo-50/40 shadow-sm"
+                    : "border-slate-200 bg-slate-50/50"
+                }`}
+              >
                 <div className="flex items-start justify-between">
                   <label className="flex items-start gap-3.5 cursor-pointer select-none flex-1">
                     <input
@@ -344,25 +423,40 @@ export default function CheckoutPage() {
                     />
                     <div>
                       <div className="font-bold text-slate-900 flex items-center gap-2 text-sm sm:text-base">
-                        استفاده از موجودی کیف پول تک‌یاد
-                        <span className={`text-xs px-2.5 py-0.5 rounded-full font-bold ${
-                          currentWalletBalance > 0 ? 'bg-indigo-100 text-indigo-700' : 'bg-slate-200 text-slate-600'
-                        }`}>
-                          موجودی: {currentWalletBalance.toLocaleString('fa-IR')} تومان
+                        استفاده از موجودی کیف پول تک یاد
+                        <span
+                          className={`text-xs px-2.5 py-0.5 rounded-full font-bold ${
+                            currentWalletBalance > 0
+                              ? "bg-indigo-100 text-indigo-700"
+                              : "bg-slate-200 text-slate-600"
+                          }`}
+                        >
+                          موجودی: {currentWalletBalance.toLocaleString("fa-IR")}{" "}
+                          تومان
                         </span>
                       </div>
-                      
+
                       <p className="text-xs text-slate-600 mt-1.5 leading-relaxed">
                         {currentWalletBalance === 0 ? (
-                          'موجودی کیف پول شما صفر است. کل مبلغ از طریق درگاه پرداخت خواهد شد.'
+                          "موجودی کیف پول شما صفر است. کل مبلغ از طریق درگاه پرداخت خواهد شد."
                         ) : isFullWalletPayment ? (
                           <span className="text-emerald-700 font-bold flex items-center gap-1 mt-1">
                             <CheckCircle2 className="w-4 h-4 text-emerald-600 inline" />
-                            موجودی کیف پول شما برای پرداخت کامل سفارش کافی است (بدون نیاز به اتصال به درگاه بانکی).
+                            موجودی کیف پول شما برای پرداخت کامل سفارش کافی است
+                            (بدون نیاز به اتصال به درگاه بانکی).
                           </span>
                         ) : (
                           <span className="text-indigo-900 font-medium">
-                            کل موجودی کیف پول شما به مبلغ <strong className="text-indigo-700">{currentWalletBalance.toLocaleString('fa-IR')} تومان</strong> کسر خواهد شد و تنها مبلغ باقیمانده (<strong className="text-indigo-700">{remainingToPay.toLocaleString('fa-IR')} تومان</strong>) به درگاه پرداخت شتاب منتقل می‌شود.
+                            کل موجودی کیف پول شما به مبلغ{" "}
+                            <strong className="text-indigo-700">
+                              {currentWalletBalance.toLocaleString("fa-IR")}{" "}
+                              تومان
+                            </strong>{" "}
+                            کسر خواهد شد و تنها مبلغ باقیمانده (
+                            <strong className="text-indigo-700">
+                              {remainingToPay.toLocaleString("fa-IR")} تومان
+                            </strong>
+                            ) به درگاه پرداخت شتاب منتقل می‌شود.
                           </span>
                         )}
                       </p>
@@ -378,12 +472,20 @@ export default function CheckoutPage() {
                 {isHybridPayment && (
                   <div className="mt-4 pt-3 border-t border-indigo-200/70 grid grid-cols-2 gap-3 text-xs">
                     <div className="bg-white/80 p-2.5 rounded-xl border border-indigo-100">
-                      <span className="text-slate-500 block mb-0.5">کسر از کیف پول:</span>
-                      <span className="font-bold text-indigo-700 text-sm">{walletDeduction.toLocaleString('fa-IR')} تومان</span>
+                      <span className="text-slate-500 block mb-0.5">
+                        کسر از کیف پول:
+                      </span>
+                      <span className="font-bold text-indigo-700 text-sm">
+                        {walletDeduction.toLocaleString("fa-IR")} تومان
+                      </span>
                     </div>
                     <div className="bg-white/80 p-2.5 rounded-xl border border-indigo-100">
-                      <span className="text-slate-500 block mb-0.5">پرداخت در درگاه بانکی:</span>
-                      <span className="font-black text-emerald-600 text-sm">{remainingToPay.toLocaleString('fa-IR')} تومان</span>
+                      <span className="text-slate-500 block mb-0.5">
+                        پرداخت در درگاه بانکی:
+                      </span>
+                      <span className="font-black text-emerald-600 text-sm">
+                        {remainingToPay.toLocaleString("fa-IR")} تومان
+                      </span>
                     </div>
                   </div>
                 )}
@@ -404,32 +506,41 @@ export default function CheckoutPage() {
                         </span>
                       </div>
                       <div className="text-xs text-slate-600 mt-1">
-                        پرداخت مبلغ باقیمانده ({remainingToPay.toLocaleString('fa-IR')} تومان) با کلیه کارت‌های عضو شتاب از طریق درگاه پرداخت الکترونیک سامان (شاپرک)
+                        پرداخت مبلغ باقیمانده (
+                        {remainingToPay.toLocaleString("fa-IR")} تومان) با کلیه
+                        کارت‌های عضو شتاب از طریق درگاه پرداخت الکترونیک سامان
+                        (شاپرک)
                       </div>
                     </div>
                   </div>
                   <ShieldCheck className="w-6 h-6 text-emerald-600 shrink-0" />
                 </div>
               )}
-
             </div>
-
           </div>
 
           {/* Left Column - Summary & Payment Action */}
           <div className="lg:col-span-1">
             <div className="bg-white rounded-3xl p-6 shadow-sm border border-[var(--neo-border)] sticky top-24">
-              <h3 className="text-xl font-bold text-[var(--neo-text-main)] mb-6 border-b border-[var(--neo-border)] pb-4">خلاصه صورت‌حساب</h3>
-              
+              <h3 className="text-xl font-bold text-[var(--neo-text-main)] mb-6 border-b border-[var(--neo-border)] pb-4">
+                خلاصه صورت‌حساب
+              </h3>
+
               {/* Coupon Code Section */}
               <div className="mb-6 relative">
-                <label className="block text-sm font-medium text-[var(--neo-text-secondary)] mb-2">کد تخفیف</label>
+                <label className="block text-sm font-medium text-[var(--neo-text-secondary)] mb-2">
+                  کد تخفیف
+                </label>
                 {effectivePreview?.couponCode ? (
                   <div className="flex items-center justify-between p-3.5 bg-emerald-50 border border-emerald-200 rounded-xl text-emerald-800">
                     <div className="flex items-center gap-2">
                       <Tag className="w-4 h-4 text-emerald-600" />
-                      <span className="font-mono font-bold text-sm uppercase">{effectivePreview.couponCode}</span>
-                      <span className="text-xs bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-md">اعمال شده</span>
+                      <span className="font-mono font-bold text-sm uppercase">
+                        {effectivePreview.couponCode}
+                      </span>
+                      <span className="text-xs bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-md">
+                        اعمال شده
+                      </span>
                     </div>
                     <button
                       type="button"
@@ -443,21 +554,25 @@ export default function CheckoutPage() {
                   <form onSubmit={handleApplyCoupon} className="flex gap-2">
                     <div className="relative flex-1">
                       <Tag className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-[var(--neo-text-muted)]" />
-                      <input 
-                        type="text" 
+                      <input
+                        type="text"
                         value={couponCode}
                         onChange={(e) => setCouponCode(e.target.value)}
-                        placeholder="کد تخفیف دارید؟" 
+                        placeholder="کد تخفیف دارید؟"
                         disabled={isApplyingCoupon}
                         className="w-full bg-[var(--neo-bg)] border border-[var(--neo-border)] focus:border-[var(--neo-secondary)] focus:ring-2 focus:ring-blue-200 rounded-xl py-3 pr-10 pl-4 outline-none transition text-left dir-ltr uppercase text-sm"
                       />
                     </div>
-                    <button 
-                      type="submit" 
-                      disabled={isApplyingCoupon || !couponCode.trim()} 
+                    <button
+                      type="submit"
+                      disabled={isApplyingCoupon || !couponCode.trim()}
                       className="bg-[var(--neo-text-main)] text-white px-5 py-3 rounded-xl font-bold hover:bg-slate-800 transition disabled:opacity-50 shrink-0 text-sm flex items-center justify-center min-w-[70px]"
                     >
-                      {isApplyingCoupon ? <Loader2 className="w-4 h-4 animate-spin" /> : 'اعمال'}
+                      {isApplyingCoupon ? (
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                      ) : (
+                        "اعمال"
+                      )}
                     </button>
                   </form>
                 )}
@@ -467,15 +582,23 @@ export default function CheckoutPage() {
               <div className="space-y-3.5 mb-6 text-[var(--neo-text-secondary)]">
                 <div className="flex justify-between items-center text-sm">
                   <span>مجموع ارزش سفارش</span>
-                  <span className="font-bold text-slate-800">{effectivePreview?.subtotal?.toLocaleString('fa-IR')} تومان</span>
+                  <span className="font-bold text-slate-800">
+                    {effectivePreview?.subtotal?.toLocaleString("fa-IR")} تومان
+                  </span>
                 </div>
                 {effectivePreview?.discountAmount > 0 && (
                   <div className="flex justify-between items-center text-sm text-emerald-600">
                     <span>مبلغ تخفیف کوپن</span>
-                    <span className="font-bold">-{effectivePreview?.discountAmount?.toLocaleString('fa-IR')} تومان</span>
+                    <span className="font-bold">
+                      -
+                      {effectivePreview?.discountAmount?.toLocaleString(
+                        "fa-IR",
+                      )}{" "}
+                      تومان
+                    </span>
                   </div>
                 )}
-                
+
                 {/* Wallet Deduction Line */}
                 {walletDeduction > 0 && (
                   <div className="flex justify-between items-center text-sm text-indigo-700 bg-indigo-50/70 p-2.5 rounded-xl font-bold border border-indigo-100">
@@ -483,42 +606,56 @@ export default function CheckoutPage() {
                       <Wallet className="w-4 h-4" />
                       کسر از موجودی کیف پول
                     </span>
-                    <span>-{walletDeduction.toLocaleString('fa-IR')} تومان</span>
+                    <span>
+                      -{walletDeduction.toLocaleString("fa-IR")} تومان
+                    </span>
                   </div>
                 )}
 
                 <div className="pt-3 border-t border-[var(--neo-border)] flex justify-between items-center text-lg font-black text-[var(--neo-text-main)]">
                   <span>
-                    {remainingToPay > 0 ? 'مبلغ قابل پرداخت درگاه:' : 'مبلغ پرداختی:'}
+                    {remainingToPay > 0
+                      ? "مبلغ قابل پرداخت درگاه:"
+                      : "مبلغ پرداختی:"}
                   </span>
-                  <span className={remainingToPay > 0 ? 'text-emerald-600 text-xl' : 'text-indigo-600 text-xl'}>
-                    {remainingToPay > 0 
-                      ? `${remainingToPay.toLocaleString('fa-IR')} تومان`
-                      : 'رایگان (پرداخت با کیف پول)'
+                  <span
+                    className={
+                      remainingToPay > 0
+                        ? "text-emerald-600 text-xl"
+                        : "text-indigo-600 text-xl"
                     }
+                  >
+                    {remainingToPay > 0
+                      ? `${remainingToPay.toLocaleString("fa-IR")} تومان`
+                      : "رایگان (پرداخت با کیف پول)"}
                   </span>
                 </div>
               </div>
 
               {/* Terms Checkbox */}
               <label className="flex items-start gap-3 mb-6 cursor-pointer select-none">
-                <input 
-                  type="checkbox" 
+                <input
+                  type="checkbox"
                   checked={acceptedTerms}
                   onChange={(e) => setAcceptedTerms(e.target.checked)}
-                  className="mt-1 w-5 h-5 rounded border-[var(--neo-border)] text-indigo-600 focus:ring-indigo-500 cursor-pointer" 
+                  className="mt-1 w-5 h-5 rounded border-[var(--neo-border)] text-indigo-600 focus:ring-indigo-500 cursor-pointer"
                 />
                 <span className="text-xs text-[var(--neo-text-secondary)] leading-relaxed">
-                  <Link href="/terms" target="_blank" className="text-blue-600 font-bold hover:underline ml-1">
-                    قوانین، شرایط خرید و انصراف آکادمی تک‌یاد
+                  <Link
+                    href="/terms"
+                    target="_blank"
+                    className="text-blue-600 font-bold hover:underline ml-1"
+                  >
+                    قوانین، شرایط خرید و انصراف آکادمی تک یاد
                   </Link>
-                  و شرایط استفاده از خدمات آموزشی را مطالعه کرده‌ام و با آن‌ها موافقم.
+                  و شرایط استفاده از خدمات آموزشی را مطالعه کرده‌ام و با آن‌ها
+                  موافقم.
                 </span>
               </label>
 
               {/* Final Payment Button */}
               {isFullWalletPayment ? (
-                <button 
+                <button
                   onClick={handleFinalPayment}
                   disabled={!acceptedTerms || isProcessingPayment}
                   className="w-full flex items-center justify-center gap-2 bg-indigo-600 text-white px-6 py-4 rounded-xl font-bold hover:bg-indigo-700 transition shadow-lg shadow-indigo-600/30 disabled:opacity-50 disabled:cursor-not-allowed text-base"
@@ -528,12 +665,13 @@ export default function CheckoutPage() {
                   ) : (
                     <>
                       <Sparkles className="w-5 h-5" />
-                      پرداخت آنی با کیف پول ({totalAmount.toLocaleString('fa-IR')} تومان)
+                      پرداخت آنی با کیف پول (
+                      {totalAmount.toLocaleString("fa-IR")} تومان)
                     </>
                   )}
                 </button>
               ) : isHybridPayment ? (
-                <button 
+                <button
                   onClick={handleFinalPayment}
                   disabled={!acceptedTerms || isProcessingPayment}
                   className="w-full flex items-center justify-center gap-2 bg-emerald-600 text-white px-6 py-4 rounded-xl font-bold hover:bg-emerald-700 transition shadow-lg shadow-emerald-600/30 disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base"
@@ -543,12 +681,13 @@ export default function CheckoutPage() {
                   ) : (
                     <>
                       <CreditCard className="w-5 h-5" />
-                      پرداخت {remainingToPay.toLocaleString('fa-IR')} تومان در درگاه شتاب
+                      پرداخت {remainingToPay.toLocaleString("fa-IR")} تومان در
+                      درگاه شتاب
                     </>
                   )}
                 </button>
               ) : (
-                <button 
+                <button
                   onClick={handleFinalPayment}
                   disabled={!acceptedTerms || isProcessingPayment}
                   className="w-full flex items-center justify-center gap-2 bg-emerald-600 text-white px-6 py-4 rounded-xl font-bold hover:bg-emerald-700 transition shadow-lg shadow-emerald-600/30 disabled:opacity-50 disabled:cursor-not-allowed text-base"
@@ -558,12 +697,13 @@ export default function CheckoutPage() {
                   ) : (
                     <>
                       <CreditCard className="w-5 h-5" />
-                      اتصال به درگاه بانکی ({totalAmount.toLocaleString('fa-IR')} تومان)
+                      اتصال به درگاه بانکی (
+                      {totalAmount.toLocaleString("fa-IR")} تومان)
                     </>
                   )}
                 </button>
               )}
-              
+
               <div className="mt-6 flex items-center justify-center gap-2 text-xs text-[var(--neo-text-muted)] bg-[var(--neo-bg)] p-3 rounded-xl border border-slate-100">
                 <ShieldCheck className="w-4 h-4 text-emerald-500" />
                 تضمین بازگشت وجه و فعال‌سازی فوری محتوا

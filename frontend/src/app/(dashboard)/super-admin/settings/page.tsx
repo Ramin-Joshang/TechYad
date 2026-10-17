@@ -1,57 +1,87 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { superAdminApi } from '@/features/admin/api/super-admin.api';
-import { MediaUploader } from '@/components/common/MediaUploader';
-import { 
-  Settings, CreditCard, MessageSquare, Shield, Globe, 
-  Check, Loader2, Save, Image as ImageIcon, Award, 
-  ExternalLink, Sparkles, Building2, HelpCircle,
-  Send, Smartphone, CheckCircle2, AlertCircle, RefreshCw
-} from 'lucide-react';
-import toast from 'react-hot-toast';
-import { getImageUrl, handleImageError } from '@/lib/utils';
+import { useState } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { superAdminApi } from "@/features/admin/api/super-admin.api";
+import { MediaUploader } from "@/components/common/MediaUploader";
+import {
+  Settings,
+  CreditCard,
+  MessageSquare,
+  Shield,
+  Globe,
+  Check,
+  Loader2,
+  Save,
+  Image as ImageIcon,
+  Award,
+  ExternalLink,
+  Sparkles,
+  Building2,
+  HelpCircle,
+  Send,
+  Smartphone,
+  CheckCircle2,
+  AlertCircle,
+  RefreshCw,
+} from "lucide-react";
+import toast from "react-hot-toast";
+import { getImageUrl, handleImageError } from "@/lib/utils";
 
 export default function SettingsPage() {
   const queryClient = useQueryClient();
-  const [activeTab, setActiveTab] = useState<'general' | 'branding' | 'landing' | 'trust' | 'payments' | 'sms' | 'legal' | 'about'>('general');
+  const [activeTab, setActiveTab] = useState<
+    | "general"
+    | "branding"
+    | "landing"
+    | "trust"
+    | "payments"
+    | "sms"
+    | "legal"
+    | "about"
+  >("general");
   const [formData, setFormData] = useState<Record<string, any>>({});
-  const [testMobile, setTestMobile] = useState('');
+  const [testMobile, setTestMobile] = useState("");
   const [testingSms, setTestingSms] = useState(false);
   const [testResult, setTestResult] = useState<any>(null);
 
   const { isLoading } = useQuery({
-    queryKey: ['superAdminSettings'],
-    queryFn: () => superAdminApi.getSettings().then((res: any) => {
-      const data = res.data || {};
-      if (!data.smsOtpPattern) data.smsOtpPattern = 'TecyadOTP';
-      if (!data.samanTerminalId) data.samanTerminalId = '15859910';
-      if (data.samanGatewayEnabled === undefined) data.samanGatewayEnabled = true;
-      setFormData(data);
-      return data;
-    })
+    queryKey: ["superAdminSettings"],
+    queryFn: () =>
+      superAdminApi.getSettings().then((res: any) => {
+        const data = res.data || {};
+        if (!data.smsOtpPattern) data.smsOtpPattern = "TecyadOTP";
+        if (!data.samanTerminalId) data.samanTerminalId = "15859910";
+        if (data.samanGatewayEnabled === undefined)
+          data.samanGatewayEnabled = true;
+        setFormData(data);
+        return data;
+      }),
   });
 
-  const { data: smsCredit, refetch: refetchCredit, isLoading: loadingCredit } = useQuery({
-    queryKey: ['smsCredit'],
-    queryFn: () => superAdminApi.getSmsCredit().then((res: any) => res.data)
+  const {
+    data: smsCredit,
+    refetch: refetchCredit,
+    isLoading: loadingCredit,
+  } = useQuery({
+    queryKey: ["smsCredit"],
+    queryFn: () => superAdminApi.getSmsCredit().then((res: any) => res.data),
   });
 
   const saveMutation = useMutation({
     mutationFn: (data: any) => superAdminApi.updateSettings(data),
     onSuccess: () => {
-      toast.success('تنظیمات با موفقیت ذخیره شد و روی سراسر سایت اعمال گردید');
-      queryClient.invalidateQueries({ queryKey: ['superAdminSettings'] });
-      queryClient.invalidateQueries({ queryKey: ['publicSettings'] });
+      toast.success("تنظیمات با موفقیت ذخیره شد و روی سراسر سایت اعمال گردید");
+      queryClient.invalidateQueries({ queryKey: ["superAdminSettings"] });
+      queryClient.invalidateQueries({ queryKey: ["publicSettings"] });
     },
     onError: (err: any) => {
-      toast.error(err.response?.data?.message || 'خطا در ذخیره تنظیمات');
-    }
+      toast.error(err.response?.data?.message || "خطا در ذخیره تنظیمات");
+    },
   });
 
   const handleChange = (key: string, value: any) => {
-    setFormData(prev => ({ ...prev, [key]: value }));
+    setFormData((prev) => ({ ...prev, [key]: value }));
   };
 
   const handleSave = () => {
@@ -60,7 +90,7 @@ export default function SettingsPage() {
 
   const handleTestSms = async () => {
     if (!testMobile.trim()) {
-      toast.error('لطفاً شماره موبایل گیرنده را وارد نمایید');
+      toast.error("لطفاً شماره موبایل گیرنده را وارد نمایید");
       return;
     }
     setTestingSms(true);
@@ -68,15 +98,16 @@ export default function SettingsPage() {
     try {
       const res = await superAdminApi.testSms({
         mobile: testMobile.trim(),
-        pattern: formData.smsOtpPattern || 'TecyadOTP',
-        provider: formData.smsProvider || 'kavenegar',
+        pattern: formData.smsOtpPattern || "TecyadOTP",
+        provider: formData.smsProvider || "kavenegar",
         apiKey: formData.smsApiKey,
         sender: formData.smsSenderNumber,
       });
-      toast.success(res.data?.message || 'پیامک تست با موفقیت ارسال شد');
+      toast.success(res.data?.message || "پیامک تست با موفقیت ارسال شد");
       setTestResult(res.data);
     } catch (err: any) {
-      const msg = err.response?.data?.message || err.message || 'خطا در ارسال پیامک تست';
+      const msg =
+        err.response?.data?.message || err.message || "خطا در ارسال پیامک تست";
       toast.error(msg);
       setTestResult({ success: false, error: msg });
     } finally {
@@ -85,28 +116,29 @@ export default function SettingsPage() {
   };
 
   const tabs = [
-    { id: 'general', label: 'عمومی و سئو', icon: Globe },
-    { id: 'branding', label: 'لوگو و برندینگ', icon: ImageIcon },
-    { id: 'landing', label: 'صفحه اصلی و لندینگ', icon: Sparkles },
-    { id: 'trust', label: 'نمادهای اعتماد و مجوزها', icon: Award },
-    { id: 'payments', label: 'درگاه‌های پرداخت', icon: CreditCard },
-    { id: 'sms', label: 'پیامک و ارتباطات', icon: MessageSquare },
-    { id: 'legal', label: 'قوانین و مقررات', icon: Shield },
-    { id: 'about', label: 'درباره ما (/about)', icon: Building2 },
+    { id: "general", label: "عمومی و سئو", icon: Globe },
+    { id: "branding", label: "لوگو و برندینگ", icon: ImageIcon },
+    { id: "landing", label: "صفحه اصلی و لندینگ", icon: Sparkles },
+    { id: "trust", label: "نمادهای اعتماد و مجوزها", icon: Award },
+    { id: "payments", label: "درگاه‌های پرداخت", icon: CreditCard },
+    { id: "sms", label: "پیامک و ارتباطات", icon: MessageSquare },
+    { id: "legal", label: "قوانین و مقررات", icon: Shield },
+    { id: "about", label: "درباره ما (/about)", icon: Building2 },
   ];
 
   if (isLoading) {
     return (
       <div className="flex flex-col items-center justify-center p-24">
         <Loader2 className="w-10 h-10 animate-spin text-[var(--neo-primary)] mb-3" />
-        <span className="text-sm font-bold text-gray-600">در حال بارگذاری تنظیمات سامانه...</span>
+        <span className="text-sm font-bold text-gray-600">
+          در حال بارگذاری تنظیمات سامانه...
+        </span>
       </div>
     );
   }
 
   return (
     <div className="max-w-6xl mx-auto space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500 pb-16">
-      
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white p-6 rounded-3xl shadow-sm border border-[var(--neo-border)]">
         <div className="flex items-center gap-3">
@@ -114,28 +146,34 @@ export default function SettingsPage() {
             <Settings className="w-7 h-7" />
           </div>
           <div>
-            <h1 className="text-2xl font-black text-[var(--neo-text-main)]">تنظیمات کلان و هویت بصری سایت</h1>
+            <h1 className="text-2xl font-black text-[var(--neo-text-main)]">
+              تنظیمات کلان و هویت بصری سایت
+            </h1>
             <p className="text-[var(--neo-text-secondary)] text-xs mt-1">
-              مدیریت لوگو، نمادهای اعتماد، اطلاعات تماس، متاتگ‌های سئو، درگاه‌های پرداخت و قوانین
+              مدیریت لوگو، نمادهای اعتماد، اطلاعات تماس، متاتگ‌های سئو،
+              درگاه‌های پرداخت و قوانین
             </p>
           </div>
         </div>
-        
-        <button 
+
+        <button
           onClick={handleSave}
           disabled={saveMutation.isPending}
           className="flex items-center gap-2 px-6 py-3 bg-[var(--neo-primary)] hover:bg-blue-700 text-white font-bold rounded-2xl shadow-sm hover:shadow transition w-full sm:w-auto justify-center disabled:opacity-70 text-sm"
         >
-          {saveMutation.isPending ? <Loader2 className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />}
+          {saveMutation.isPending ? (
+            <Loader2 className="w-5 h-5 animate-spin" />
+          ) : (
+            <Save className="w-5 h-5" />
+          )}
           ذخیره تمام تنظیمات
         </button>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-        
         {/* Sidebar Tabs */}
         <div className="lg:col-span-1 space-y-2">
-          {tabs.map(tab => {
+          {tabs.map((tab) => {
             const Icon = tab.icon;
             const isActive = activeTab === tab.id;
             return (
@@ -143,12 +181,14 @@ export default function SettingsPage() {
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id as any)}
                 className={`w-full flex items-center gap-3 p-3.5 rounded-2xl transition-all text-xs font-bold ${
-                  isActive 
-                    ? 'bg-[var(--neo-primary)] text-white shadow-md shadow-blue-500/20' 
-                    : 'bg-white text-gray-600 hover:bg-gray-50 border border-gray-100 hover:border-gray-200'
+                  isActive
+                    ? "bg-[var(--neo-primary)] text-white shadow-md shadow-blue-500/20"
+                    : "bg-white text-gray-600 hover:bg-gray-50 border border-gray-100 hover:border-gray-200"
                 }`}
               >
-                <Icon className={`w-4 h-4 shrink-0 ${isActive ? 'text-white' : 'text-gray-400'}`} />
+                <Icon
+                  className={`w-4 h-4 shrink-0 ${isActive ? "text-white" : "text-gray-400"}`}
+                />
                 <span>{tab.label}</span>
               </button>
             );
@@ -157,86 +197,115 @@ export default function SettingsPage() {
 
         {/* Content Area */}
         <div className="lg:col-span-3 bg-white rounded-3xl shadow-sm border border-[var(--neo-border)] overflow-hidden">
-          
           {/* 1. General & SEO Settings */}
-          {activeTab === 'general' && (
+          {activeTab === "general" && (
             <div className="p-8 space-y-6 animate-in fade-in">
               <div className="border-b border-gray-100 pb-4">
-                <h2 className="text-lg font-black text-gray-900">تنظیمات عمومی و سئو (SEO)</h2>
-                <p className="text-xs text-gray-400 mt-1">اطلاعات پایه نمایش سایت در موتورهای جستجو و پیام‌رسان‌ها</p>
+                <h2 className="text-lg font-black text-gray-900">
+                  تنظیمات عمومی و سئو (SEO)
+                </h2>
+                <p className="text-xs text-gray-400 mt-1">
+                  اطلاعات پایه نمایش سایت در موتورهای جستجو و پیام‌رسان‌ها
+                </p>
               </div>
-              
+
               <div className="space-y-5">
                 <div className="space-y-2">
-                  <label className="text-xs font-bold text-gray-800">نام سایت (Title پیش‌فرض)</label>
+                  <label className="text-xs font-bold text-gray-800">
+                    نام سایت (Title پیش‌فرض)
+                  </label>
                   <input
                     type="text"
-                    value={formData.siteName || ''}
-                    onChange={e => handleChange('siteName', e.target.value)}
+                    value={formData.siteName || ""}
+                    onChange={(e) => handleChange("siteName", e.target.value)}
                     className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[var(--neo-primary)]/20 focus:border-[var(--neo-primary)] outline-none text-xs transition"
-                    placeholder="مثال: تک‌یاد | پلتفرم جامع آموزش آنلاین و مهارت‌های فنی"
+                    placeholder="مثال: تک یاد | پلتفرم جامع آموزش آنلاین و مهارت‌های فنی"
                   />
                 </div>
-                
+
                 <div className="space-y-2">
-                  <label className="text-xs font-bold text-gray-800">توضیحات سئو (Meta Description)</label>
+                  <label className="text-xs font-bold text-gray-800">
+                    توضیحات سئو (Meta Description)
+                  </label>
                   <textarea
                     rows={3}
-                    value={formData.seoDescription || ''}
-                    onChange={e => handleChange('seoDescription', e.target.value)}
+                    value={formData.seoDescription || ""}
+                    onChange={(e) =>
+                      handleChange("seoDescription", e.target.value)
+                    }
                     className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[var(--neo-primary)]/20 focus:border-[var(--neo-primary)] outline-none text-xs transition resize-none leading-relaxed"
                     placeholder="توضیحات کوتاه برای نمایش در نتایج جستجوی گوگل و پیش‌نمایش شبکه‌های اجتماعی..."
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-xs font-bold text-gray-800">کلمات کلیدی سئو (با کاما یا ویرگول جدا کنید)</label>
+                  <label className="text-xs font-bold text-gray-800">
+                    کلمات کلیدی سئو (با کاما یا ویرگول جدا کنید)
+                  </label>
                   <input
                     type="text"
-                    value={formData.seoKeywords || ''}
-                    onChange={e => handleChange('seoKeywords', e.target.value)}
+                    value={formData.seoKeywords || ""}
+                    onChange={(e) =>
+                      handleChange("seoKeywords", e.target.value)
+                    }
                     className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[var(--neo-primary)]/20 focus:border-[var(--neo-primary)] outline-none text-xs transition"
-                    placeholder="برنامه‌نویسی, هوش مصنوعی, طراحی وب, تک‌یاد, آموزش آنلاین"
+                    placeholder="برنامه‌نویسی, هوش مصنوعی, طراحی وب, تک یاد, آموزش آنلاین"
                   />
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
                   <div className="space-y-2">
-                    <label className="text-xs font-bold text-gray-800">ایمیل پشتیبانی رسمی</label>
+                    <label className="text-xs font-bold text-gray-800">
+                      ایمیل پشتیبانی رسمی
+                    </label>
                     <input
                       type="email"
-                      value={formData.supportEmail || ''}
-                      onChange={e => handleChange('supportEmail', e.target.value)}
+                      value={formData.supportEmail || ""}
+                      onChange={(e) =>
+                        handleChange("supportEmail", e.target.value)
+                      }
                       className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[var(--neo-primary)]/20 outline-none text-xs text-left dir-ltr"
                       placeholder="support@tecyad.ir"
                     />
                   </div>
                   <div className="space-y-2">
-                    <label className="text-xs font-bold text-gray-800">تلفن پشتیبانی و تماس / واتس‌اپ</label>
+                    <label className="text-xs font-bold text-gray-800">
+                      تلفن پشتیبانی و تماس / واتس‌اپ
+                    </label>
                     <input
                       type="tel"
-                      value={formData.supportPhone || ''}
-                      onChange={e => handleChange('supportPhone', e.target.value)}
+                      value={formData.supportPhone || ""}
+                      onChange={(e) =>
+                        handleChange("supportPhone", e.target.value)
+                      }
                       className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[var(--neo-primary)]/20 outline-none text-xs text-left dir-ltr"
                       placeholder="09372731037"
                     />
                   </div>
                   <div className="space-y-2">
-                    <label className="text-xs font-bold text-gray-800">لینک کانال تلگرام</label>
+                    <label className="text-xs font-bold text-gray-800">
+                      لینک کانال تلگرام
+                    </label>
                     <input
                       type="url"
-                      value={formData.telegramUrl || ''}
-                      onChange={e => handleChange('telegramUrl', e.target.value)}
+                      value={formData.telegramUrl || ""}
+                      onChange={(e) =>
+                        handleChange("telegramUrl", e.target.value)
+                      }
                       className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[var(--neo-primary)]/20 outline-none text-xs text-left dir-ltr"
                       placeholder="https://t.me/tecyad_ir"
                     />
                   </div>
                   <div className="space-y-2">
-                    <label className="text-xs font-bold text-gray-800">لینک صفحه اینستاگرام</label>
+                    <label className="text-xs font-bold text-gray-800">
+                      لینک صفحه اینستاگرام
+                    </label>
                     <input
                       type="url"
-                      value={formData.instagramUrl || ''}
-                      onChange={e => handleChange('instagramUrl', e.target.value)}
+                      value={formData.instagramUrl || ""}
+                      onChange={(e) =>
+                        handleChange("instagramUrl", e.target.value)
+                      }
                       className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[var(--neo-primary)]/20 outline-none text-xs text-left dir-ltr"
                       placeholder="https://instagram.com/tecyad.ir"
                     />
@@ -247,10 +316,12 @@ export default function SettingsPage() {
           )}
 
           {/* 2. Branding & Logo Settings */}
-          {activeTab === 'branding' && (
+          {activeTab === "branding" && (
             <div className="p-8 space-y-6 animate-in fade-in">
               <div className="border-b border-gray-100 pb-4">
-                <h2 className="text-lg font-black text-gray-900">لوگو و هویت بصری سایت</h2>
+                <h2 className="text-lg font-black text-gray-900">
+                  لوگو و هویت بصری سایت
+                </h2>
                 <p className="text-xs text-gray-400 mt-1">
                   آپلود لوگوی اصلی هدر، فاوآیکون مرورگر و تصویر فوتر
                 </p>
@@ -263,7 +334,7 @@ export default function SettingsPage() {
                     id="site-logo-uploader"
                     label="لوگوی اصلی هدر سایت (Header Logo)"
                     value={formData.siteLogo}
-                    onChange={(url) => handleChange('siteLogo', url)}
+                    onChange={(url) => handleChange("siteLogo", url)}
                     folder="general"
                     maxSizeMB={5}
                     accept="image/*"
@@ -272,12 +343,14 @@ export default function SettingsPage() {
                   />
                   {formData.siteLogo && (
                     <div className="p-3 bg-gray-50 rounded-xl border border-gray-100 flex items-center justify-between">
-                      <span className="text-[11px] text-gray-500 font-bold">پیش‌نمایش در هدر:</span>
-                      <img 
-                        src={getImageUrl(formData.siteLogo, 'general')} 
-                        onError={(e) => handleImageError(e, 'general')}
-                        alt="Logo Preview" 
-                        className="h-9 object-contain max-w-[160px]" 
+                      <span className="text-[11px] text-gray-500 font-bold">
+                        پیش‌نمایش در هدر:
+                      </span>
+                      <img
+                        src={getImageUrl(formData.siteLogo, "general")}
+                        onError={(e) => handleImageError(e, "general")}
+                        alt="Logo Preview"
+                        className="h-9 object-contain max-w-[160px]"
                       />
                     </div>
                   )}
@@ -289,7 +362,7 @@ export default function SettingsPage() {
                     id="site-favicon-uploader"
                     label="فاوآیکون مرورگر (Favicon)"
                     value={formData.siteFavicon}
-                    onChange={(url) => handleChange('siteFavicon', url)}
+                    onChange={(url) => handleChange("siteFavicon", url)}
                     folder="general"
                     maxSizeMB={2}
                     accept="image/*"
@@ -298,12 +371,14 @@ export default function SettingsPage() {
                   />
                   {formData.siteFavicon && (
                     <div className="p-3 bg-gray-50 rounded-xl border border-gray-100 flex items-center justify-between">
-                      <span className="text-[11px] text-gray-500 font-bold">پیش‌نمایش آیکون:</span>
-                      <img 
-                        src={getImageUrl(formData.siteFavicon, 'general')} 
-                        onError={(e) => handleImageError(e, 'general')}
-                        alt="Favicon Preview" 
-                        className="w-7 h-7 object-contain rounded" 
+                      <span className="text-[11px] text-gray-500 font-bold">
+                        پیش‌نمایش آیکون:
+                      </span>
+                      <img
+                        src={getImageUrl(formData.siteFavicon, "general")}
+                        onError={(e) => handleImageError(e, "general")}
+                        alt="Favicon Preview"
+                        className="w-7 h-7 object-contain rounded"
                       />
                     </div>
                   )}
@@ -315,7 +390,7 @@ export default function SettingsPage() {
                     id="site-footer-logo-uploader"
                     label="لوگوی اختصاصی فوتر (اختیاری)"
                     value={formData.siteFooterLogo}
-                    onChange={(url) => handleChange('siteFooterLogo', url)}
+                    onChange={(url) => handleChange("siteFooterLogo", url)}
                     folder="general"
                     maxSizeMB={5}
                     accept="image/*"
@@ -328,12 +403,15 @@ export default function SettingsPage() {
           )}
 
           {/* 3. Trust Badges & Licenses */}
-          {activeTab === 'trust' && (
+          {activeTab === "trust" && (
             <div className="p-8 space-y-6 animate-in fade-in">
               <div className="border-b border-gray-100 pb-4">
-                <h2 className="text-lg font-black text-gray-900">نمادهای اعتماد الکترونیکی و مجوزها</h2>
+                <h2 className="text-lg font-black text-gray-900">
+                  نمادهای اعتماد الکترونیکی و مجوزها
+                </h2>
                 <p className="text-xs text-gray-400 mt-1">
-                  پیکربندی اینماد (eNamad)، ساماندهی، نشان ملی ثبت و نمادهای اعتباری فوتر
+                  پیکربندی اینماد (eNamad)، ساماندهی، نشان ملی ثبت و نمادهای
+                  اعتباری فوتر
                 </p>
               </div>
 
@@ -346,27 +424,37 @@ export default function SettingsPage() {
                         اینماد
                       </div>
                       <div>
-                        <h3 className="text-sm font-bold text-gray-900">نماد اعتماد الکترونیکی (اینماد)</h3>
-                        <p className="text-xs text-gray-400">نمایش کد و لوگوی ستاره‌دار اینماد در انتهای سایت</p>
+                        <h3 className="text-sm font-bold text-gray-900">
+                          نماد اعتماد الکترونیکی (اینماد)
+                        </h3>
+                        <p className="text-xs text-gray-400">
+                          نمایش کد و لوگوی ستاره‌دار اینماد در انتهای سایت
+                        </p>
                       </div>
                     </div>
                     <label className="relative inline-flex items-center cursor-pointer">
-                      <input 
-                        type="checkbox" 
+                      <input
+                        type="checkbox"
                         className="sr-only peer"
                         checked={formData.enamadActive !== false}
-                        onChange={e => handleChange('enamadActive', e.target.checked)}
+                        onChange={(e) =>
+                          handleChange("enamadActive", e.target.checked)
+                        }
                       />
                       <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[var(--neo-primary)]"></div>
                     </label>
                   </div>
-                  
+
                   <div className="space-y-2">
-                    <label className="text-xs font-bold text-gray-700">کد HTML یا لینک اختصاصی اینماد</label>
+                    <label className="text-xs font-bold text-gray-700">
+                      کد HTML یا لینک اختصاصی اینماد
+                    </label>
                     <textarea
                       rows={2}
-                      value={formData.enamadCode || ''}
-                      onChange={e => handleChange('enamadCode', e.target.value)}
+                      value={formData.enamadCode || ""}
+                      onChange={(e) =>
+                        handleChange("enamadCode", e.target.value)
+                      }
                       placeholder='<a referrerpolicy="origin" target="_blank" href="https://trustseal.enamad.ir/...">...'
                       className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-xs font-mono text-left dir-ltr outline-none"
                     />
@@ -381,27 +469,37 @@ export default function SettingsPage() {
                         رسانه
                       </div>
                       <div>
-                        <h3 className="text-sm font-bold text-gray-900">نشان ساماندهی رسانه‌های دیجیتال</h3>
-                        <p className="text-xs text-gray-400">ثبت رسمی در وزارت فرهنگ و ارشاد اسلامی</p>
+                        <h3 className="text-sm font-bold text-gray-900">
+                          نشان ساماندهی رسانه‌های دیجیتال
+                        </h3>
+                        <p className="text-xs text-gray-400">
+                          ثبت رسمی در وزارت فرهنگ و ارشاد اسلامی
+                        </p>
                       </div>
                     </div>
                     <label className="relative inline-flex items-center cursor-pointer">
-                      <input 
-                        type="checkbox" 
+                      <input
+                        type="checkbox"
                         className="sr-only peer"
                         checked={formData.samandehiActive !== false}
-                        onChange={e => handleChange('samandehiActive', e.target.checked)}
+                        onChange={(e) =>
+                          handleChange("samandehiActive", e.target.checked)
+                        }
                       />
                       <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[var(--neo-primary)]"></div>
                     </label>
                   </div>
-                  
+
                   <div className="space-y-2">
-                    <label className="text-xs font-bold text-gray-700">کد HTML یا کد رهگیری ساماندهی</label>
+                    <label className="text-xs font-bold text-gray-700">
+                      کد HTML یا کد رهگیری ساماندهی
+                    </label>
                     <textarea
                       rows={2}
-                      value={formData.samandehiCode || ''}
-                      onChange={e => handleChange('samandehiCode', e.target.value)}
+                      value={formData.samandehiCode || ""}
+                      onChange={(e) =>
+                        handleChange("samandehiCode", e.target.value)
+                      }
                       placeholder='<img id="..." src="https://logo.samandehi.ir/..." ...>'
                       className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-xs font-mono text-left dir-ltr outline-none"
                     />
@@ -414,7 +512,7 @@ export default function SettingsPage() {
                     id="custom-trust-badge"
                     label="آپلود نشان اختصاصی نماد اعتماد یا گواهینامه بین‌المللی"
                     value={formData.customTrustBadgeUrl}
-                    onChange={(url) => handleChange('customTrustBadgeUrl', url)}
+                    onChange={(url) => handleChange("customTrustBadgeUrl", url)}
                     folder="general"
                     maxSizeMB={5}
                     accept="image/*"
@@ -427,28 +525,41 @@ export default function SettingsPage() {
           )}
 
           {/* 4. Payment Gateways */}
-          {activeTab === 'payments' && (
+          {activeTab === "payments" && (
             <div className="p-8 space-y-6 animate-in fade-in">
               <div className="border-b border-gray-100 pb-4">
-                <h2 className="text-lg font-black text-gray-900">پیکربندی درگاه‌های پرداخت اینترنتی</h2>
-                <p className="text-xs text-gray-400 mt-1">تنظیمات درگاه‌های شاپرک و درگاه تستی جهت ثبت‌نام و خرید دوره‌ها</p>
+                <h2 className="text-lg font-black text-gray-900">
+                  پیکربندی درگاه‌های پرداخت اینترنتی
+                </h2>
+                <p className="text-xs text-gray-400 mt-1">
+                  تنظیمات درگاه‌های شاپرک و درگاه تستی جهت ثبت‌نام و خرید
+                  دوره‌ها
+                </p>
               </div>
-              
+
               <div className="p-5 border-2 border-blue-100 bg-blue-50/40 rounded-2xl space-y-4">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-blue-600 text-white rounded-xl flex items-center justify-center font-bold">M</div>
+                    <div className="w-10 h-10 bg-blue-600 text-white rounded-xl flex items-center justify-center font-bold">
+                      M
+                    </div>
                     <div>
-                      <h3 className="font-bold text-sm text-gray-900">درگاه پرداخت آزمایشی (Mock Gateway)</h3>
-                      <p className="text-xs text-gray-500">محیط تست بدون نیاز به تراکنش بانکی واقعی</p>
+                      <h3 className="font-bold text-sm text-gray-900">
+                        درگاه پرداخت آزمایشی (Mock Gateway)
+                      </h3>
+                      <p className="text-xs text-gray-500">
+                        محیط تست بدون نیاز به تراکنش بانکی واقعی
+                      </p>
                     </div>
                   </div>
                   <label className="relative inline-flex items-center cursor-pointer">
-                    <input 
-                      type="checkbox" 
+                    <input
+                      type="checkbox"
                       className="sr-only peer"
                       checked={formData.mockGatewayEnabled !== false}
-                      onChange={e => handleChange('mockGatewayEnabled', e.target.checked)}
+                      onChange={(e) =>
+                        handleChange("mockGatewayEnabled", e.target.checked)
+                      }
                     />
                     <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[var(--neo-primary)]"></div>
                   </label>
@@ -458,19 +569,29 @@ export default function SettingsPage() {
               <div className="p-5 border border-gray-200 rounded-2xl space-y-4">
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-amber-500 text-white rounded-xl flex items-center justify-center font-bold">Z</div>
+                    <div className="w-10 h-10 bg-amber-500 text-white rounded-xl flex items-center justify-center font-bold">
+                      Z
+                    </div>
                     <div>
-                      <h3 className="font-bold text-sm text-gray-900">درگاه زرین‌پال (ZarinPal)</h3>
-                      <p className="text-xs text-gray-500">اتصال به درگاه پرداخت رسمی زرین‌پال</p>
+                      <h3 className="font-bold text-sm text-gray-900">
+                        درگاه زرین‌پال (ZarinPal)
+                      </h3>
+                      <p className="text-xs text-gray-500">
+                        اتصال به درگاه پرداخت رسمی زرین‌پال
+                      </p>
                     </div>
                   </div>
                 </div>
                 <div className="space-y-2">
-                  <label className="text-xs font-bold text-gray-700">کد مرچنت زرین‌پال (Merchant ID)</label>
+                  <label className="text-xs font-bold text-gray-700">
+                    کد مرچنت زرین‌پال (Merchant ID)
+                  </label>
                   <input
                     type="text"
-                    value={formData.zarinpalMerchantId || ''}
-                    onChange={e => handleChange('zarinpalMerchantId', e.target.value)}
+                    value={formData.zarinpalMerchantId || ""}
+                    onChange={(e) =>
+                      handleChange("zarinpalMerchantId", e.target.value)
+                    }
                     className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl outline-none text-left font-mono text-xs"
                     dir="ltr"
                     placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
@@ -482,69 +603,99 @@ export default function SettingsPage() {
               <div className="p-5 border border-gray-200 rounded-2xl space-y-4">
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-blue-700 text-white rounded-xl flex items-center justify-center font-bold">S</div>
+                    <div className="w-10 h-10 bg-blue-700 text-white rounded-xl flex items-center justify-center font-bold">
+                      S
+                    </div>
                     <div>
-                      <h3 className="font-bold text-sm text-gray-900">درگاه پرداخت سامان کیش (SEP / Saman)</h3>
-                      <p className="text-xs text-gray-500">اتصال رسمی به درگاه پرداخت شاپرک بانک سامان</p>
+                      <h3 className="font-bold text-sm text-gray-900">
+                        درگاه پرداخت سامان کیش (SEP / Saman)
+                      </h3>
+                      <p className="text-xs text-gray-500">
+                        اتصال رسمی به درگاه پرداخت شاپرک بانک سامان
+                      </p>
                     </div>
                   </div>
                   <label className="relative inline-flex items-center cursor-pointer">
-                    <input 
-                      type="checkbox" 
+                    <input
+                      type="checkbox"
                       className="sr-only peer"
                       checked={formData.samanGatewayEnabled === true}
-                      onChange={e => handleChange('samanGatewayEnabled', e.target.checked)}
+                      onChange={(e) =>
+                        handleChange("samanGatewayEnabled", e.target.checked)
+                      }
                     />
                     <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[var(--neo-primary)]"></div>
                   </label>
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <label className="text-xs font-bold text-gray-700">ترمینال آیدی سامان (Terminal ID)</label>
+                    <label className="text-xs font-bold text-gray-700">
+                      ترمینال آیدی سامان (Terminal ID)
+                    </label>
                     <input
                       type="text"
-                      value={formData.samanTerminalId || ''}
-                      onChange={e => handleChange('samanTerminalId', e.target.value)}
+                      value={formData.samanTerminalId || ""}
+                      onChange={(e) =>
+                        handleChange("samanTerminalId", e.target.value)
+                      }
                       className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl outline-none text-left font-mono text-xs"
                       dir="ltr"
                       placeholder="12345678"
                     />
                   </div>
                   <div className="space-y-2">
-                    <label className="text-xs font-bold text-gray-700">رمز عبور پذیرنده (Password / CellNumber)</label>
+                    <label className="text-xs font-bold text-gray-700">
+                      رمز عبور پذیرنده (Password / CellNumber)
+                    </label>
                     <input
                       type="password"
-                      value={formData.samanPassword || ''}
-                      onChange={e => handleChange('samanPassword', e.target.value)}
+                      value={formData.samanPassword || ""}
+                      onChange={(e) =>
+                        handleChange("samanPassword", e.target.value)
+                      }
                       className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl outline-none text-left font-mono text-xs"
                       dir="ltr"
                       placeholder="••••••••"
                     />
                   </div>
                   <div className="sm:col-span-2 space-y-2">
-                    <label className="text-xs font-bold text-gray-700">آدرس بازگشت تراکنش (Callback URL)</label>
+                    <label className="text-xs font-bold text-gray-700">
+                      آدرس بازگشت تراکنش (Callback URL)
+                    </label>
                     <input
                       type="text"
-                      value={formData.samanCallbackUrl || ''}
-                      onChange={e => handleChange('samanCallbackUrl', e.target.value)}
+                      value={formData.samanCallbackUrl || ""}
+                      onChange={(e) =>
+                        handleChange("samanCallbackUrl", e.target.value)
+                      }
                       className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl outline-none text-left font-mono text-xs"
                       dir="ltr"
                       placeholder="https://tecyad.ir/api/payments/callback/saman"
                     />
-                    <p className="text-[11px] text-gray-400">باید دقیقاً با آدرس بازگشت ثبت‌شده در پرتال سامان (my.sep.ir) برای ترمینال ۱۵۸۵۹۹۱۰ مطابقت داشته باشد.</p>
+                    <p className="text-[11px] text-gray-400">
+                      باید دقیقاً با آدرس بازگشت ثبت‌شده در پرتال سامان
+                      (my.sep.ir) برای ترمینال ۱۵۸۵۹۹۱۰ مطابقت داشته باشد.
+                    </p>
                   </div>
                 </div>
                 <div className="pt-2 border-t border-gray-100 flex items-center justify-between">
                   <div>
-                    <span className="text-xs font-bold text-gray-800">حالت شبیه‌ساز آزمایشی (Sandbox Simulator)</span>
-                    <p className="text-[11px] text-gray-400">در صورت فعال بودن، جهت تست توسعه‌دهنده به شبیه‌ساز امن هدایت می‌شود (پیش‌فرض: غیرفعال / اتصال زنده به شاپرک)</p>
+                    <span className="text-xs font-bold text-gray-800">
+                      حالت شبیه‌ساز آزمایشی (Sandbox Simulator)
+                    </span>
+                    <p className="text-[11px] text-gray-400">
+                      در صورت فعال بودن، جهت تست توسعه‌دهنده به شبیه‌ساز امن
+                      هدایت می‌شود (پیش‌فرض: غیرفعال / اتصال زنده به شاپرک)
+                    </p>
                   </div>
                   <label className="relative inline-flex items-center cursor-pointer">
-                    <input 
-                      type="checkbox" 
+                    <input
+                      type="checkbox"
                       className="sr-only peer"
                       checked={formData.samanSandboxMode === true}
-                      onChange={e => handleChange('samanSandboxMode', e.target.checked)}
+                      onChange={(e) =>
+                        handleChange("samanSandboxMode", e.target.checked)
+                      }
                     />
                     <div className="w-9 h-5 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-amber-500"></div>
                   </label>
@@ -555,40 +706,56 @@ export default function SettingsPage() {
               <div className="p-5 border border-gray-200 rounded-2xl space-y-4">
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-emerald-600 text-white rounded-xl flex items-center justify-center font-bold">SP</div>
+                    <div className="w-10 h-10 bg-emerald-600 text-white rounded-xl flex items-center justify-center font-bold">
+                      SP
+                    </div>
                     <div>
-                      <h3 className="font-bold text-sm text-gray-900">سرویس اقساطی اسنپ‌پی (SnappPay - BNPL)</h3>
-                      <p className="text-xs text-gray-500">امکان پرداخت اقساطی در ۴ قسط بدون کارمزد برای دانشجویان</p>
+                      <h3 className="font-bold text-sm text-gray-900">
+                        سرویس اقساطی اسنپ‌پی (SnappPay - BNPL)
+                      </h3>
+                      <p className="text-xs text-gray-500">
+                        امکان پرداخت اقساطی در ۴ قسط بدون کارمزد برای دانشجویان
+                      </p>
                     </div>
                   </div>
                   <label className="relative inline-flex items-center cursor-pointer">
-                    <input 
-                      type="checkbox" 
+                    <input
+                      type="checkbox"
                       className="sr-only peer"
                       checked={formData.snappPayEnabled === true}
-                      onChange={e => handleChange('snappPayEnabled', e.target.checked)}
+                      onChange={(e) =>
+                        handleChange("snappPayEnabled", e.target.checked)
+                      }
                     />
                     <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[var(--neo-primary)]"></div>
                   </label>
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <label className="text-xs font-bold text-gray-700">شناسه کلاینت (Client ID)</label>
+                    <label className="text-xs font-bold text-gray-700">
+                      شناسه کلاینت (Client ID)
+                    </label>
                     <input
                       type="text"
-                      value={formData.snappPayClientId || ''}
-                      onChange={e => handleChange('snappPayClientId', e.target.value)}
+                      value={formData.snappPayClientId || ""}
+                      onChange={(e) =>
+                        handleChange("snappPayClientId", e.target.value)
+                      }
                       className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl outline-none text-left font-mono text-xs"
                       dir="ltr"
                       placeholder="tecyad-snapppay-client"
                     />
                   </div>
                   <div className="space-y-2">
-                    <label className="text-xs font-bold text-gray-700">رمز کلاینت (Client Secret)</label>
+                    <label className="text-xs font-bold text-gray-700">
+                      رمز کلاینت (Client Secret)
+                    </label>
                     <input
                       type="password"
-                      value={formData.snappPayClientSecret || ''}
-                      onChange={e => handleChange('snappPayClientSecret', e.target.value)}
+                      value={formData.snappPayClientSecret || ""}
+                      onChange={(e) =>
+                        handleChange("snappPayClientSecret", e.target.value)
+                      }
                       className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl outline-none text-left font-mono text-xs"
                       dir="ltr"
                       placeholder="••••••••"
@@ -600,12 +767,17 @@ export default function SettingsPage() {
           )}
 
           {/* 5. SMS & OTP */}
-          {activeTab === 'sms' && (
+          {activeTab === "sms" && (
             <div className="p-8 space-y-6 animate-in fade-in">
               <div className="border-b border-gray-100 pb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                 <div>
-                  <h2 className="text-lg font-black text-gray-900">پیکربندی سامانه پیامکی و الگوی احراز هویت (OTP)</h2>
-                  <p className="text-xs text-gray-400 mt-1">تنظیمات ارسال پیامک‌های وب‌سرویس، الگوی اعتبارسنجی TecyadOTP و کدهای یکبارمصرف</p>
+                  <h2 className="text-lg font-black text-gray-900">
+                    پیکربندی سامانه پیامکی و الگوی احراز هویت (OTP)
+                  </h2>
+                  <p className="text-xs text-gray-400 mt-1">
+                    تنظیمات ارسال پیامک‌های وب‌سرویس، الگوی اعتبارسنجی TecyadOTP
+                    و کدهای یکبارمصرف
+                  </p>
                 </div>
                 <div className="flex flex-wrap items-center gap-2">
                   <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-cyan-50 text-cyan-800 text-xs font-bold border border-cyan-200">
@@ -613,8 +785,8 @@ export default function SettingsPage() {
                     <span>شارژ کاوه‌نگار: </span>
                     <span className="font-mono font-black text-cyan-900">
                       {smsCredit?.remainCreditToman !== undefined
-                        ? `${smsCredit.remainCreditToman.toLocaleString('fa-IR')} تومان`
-                        : 'در حال استعلام...'}
+                        ? `${smsCredit.remainCreditToman.toLocaleString("fa-IR")} تومان`
+                        : "در حال استعلام..."}
                     </span>
                     <button
                       type="button"
@@ -623,94 +795,130 @@ export default function SettingsPage() {
                       className="text-cyan-600 hover:text-cyan-900 mr-1 cursor-pointer"
                       title="استعلام مجدد شارژ"
                     >
-                      <RefreshCw className={`w-3 h-3 ${loadingCredit ? 'animate-spin' : ''}`} />
+                      <RefreshCw
+                        className={`w-3 h-3 ${loadingCredit ? "animate-spin" : ""}`}
+                      />
                     </button>
                   </div>
                   <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-50 text-[var(--neo-primary)] text-xs font-black border border-blue-100 font-mono">
                     <Smartphone className="w-3.5 h-3.5" />
-                    الگو: {formData.smsOtpPattern || 'TecyadOTP'}
+                    الگو: {formData.smsOtpPattern || "TecyadOTP"}
                   </span>
                 </div>
               </div>
-              
+
               <div className="space-y-5">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <label className="text-xs font-bold text-gray-800">ارائه‌دهنده پیامک</label>
+                    <label className="text-xs font-bold text-gray-800">
+                      ارائه‌دهنده پیامک
+                    </label>
                     <select
-                      value={formData.smsProvider || 'kavenegar'}
-                      onChange={e => handleChange('smsProvider', e.target.value)}
+                      value={formData.smsProvider || "kavenegar"}
+                      onChange={(e) =>
+                        handleChange("smsProvider", e.target.value)
+                      }
                       className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[var(--neo-primary)]/20 outline-none text-xs"
                     >
-                      <option value="kavenegar">کاوه نگار (Kavenegar - وب‌سرویس پترن Verify/Lookup)</option>
-                      <option value="farazsms">فراز اس‌ام‌اس (FarazSMS / IPPanel - وب‌سرویس الگو)</option>
-                      <option value="ghasedak">قاصدک (Ghasedak - وب‌سرویس اعتبارسنجی)</option>
-                      <option value="mock">آزمایشی و لاگ سرور (Mock Logger)</option>
+                      <option value="kavenegar">
+                        کاوه نگار (Kavenegar - وب‌سرویس پترن Verify/Lookup)
+                      </option>
+                      <option value="farazsms">
+                        فراز اس‌ام‌اس (FarazSMS / IPPanel - وب‌سرویس الگو)
+                      </option>
+                      <option value="ghasedak">
+                        قاصدک (Ghasedak - وب‌سرویس اعتبارسنجی)
+                      </option>
+                      <option value="mock">
+                        آزمایشی و لاگ سرور (Mock Logger)
+                      </option>
                     </select>
                   </div>
 
                   <div className="space-y-2">
                     <label className="text-xs font-bold text-gray-800 flex items-center justify-between">
                       <span>نام الگوی پیامک (Pattern / Template Name)</span>
-                      <span className="text-[10px] text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full font-bold">پیش‌فرض: TecyadOTP</span>
+                      <span className="text-[10px] text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full font-bold">
+                        پیش‌فرض: TecyadOTP
+                      </span>
                     </label>
                     <input
                       type="text"
-                      value={formData.smsOtpPattern || 'TecyadOTP'}
-                      onChange={e => handleChange('smsOtpPattern', e.target.value)}
+                      value={formData.smsOtpPattern || "TecyadOTP"}
+                      onChange={(e) =>
+                        handleChange("smsOtpPattern", e.target.value)
+                      }
                       className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[var(--neo-primary)]/20 outline-none text-xs text-left font-mono font-bold"
                       dir="ltr"
                       placeholder="TecyadOTP"
                     />
                     <p className="text-[11px] text-gray-400">
-                      نام الگوی تاییدشده در سامانه پیامکی جهت ارسال بدون تاخیر کد اعتبارسنجی ورود و ثبت‌نام
+                      نام الگوی تاییدشده در سامانه پیامکی جهت ارسال بدون تاخیر
+                      کد اعتبارسنجی ورود و ثبت‌نام
                     </p>
                   </div>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <label className="text-xs font-bold text-gray-800">API Key سامانه پیامکی</label>
+                    <label className="text-xs font-bold text-gray-800">
+                      API Key سامانه پیامکی
+                    </label>
                     <input
                       type="password"
-                      value={formData.smsApiKey || ''}
-                      onChange={e => handleChange('smsApiKey', e.target.value)}
+                      value={formData.smsApiKey || ""}
+                      onChange={(e) =>
+                        handleChange("smsApiKey", e.target.value)
+                      }
                       className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[var(--neo-primary)]/20 outline-none text-xs text-left font-mono"
                       dir="ltr"
                       placeholder="کلید وب‌سرویس پیامک (API Key)"
                     />
                     <p className="text-[11px] text-gray-400">
-                      در صورت خالی بودن کلید، سیستم در حالت شبیه‌سازی تستی (Mock) در کنسول و لاگ‌ها ثبت می‌کند.
+                      در صورت خالی بودن کلید، سیستم در حالت شبیه‌سازی تستی
+                      (Mock) در کنسول و لاگ‌ها ثبت می‌کند.
                     </p>
                   </div>
 
                   <div className="space-y-2">
-                    <label className="text-xs font-bold text-gray-800">شماره خط فرستنده یا خط خدماتی (اختیاری)</label>
+                    <label className="text-xs font-bold text-gray-800">
+                      شماره خط فرستنده یا خط خدماتی (اختیاری)
+                    </label>
                     <input
                       type="text"
-                      value={formData.smsSenderNumber || ''}
-                      onChange={e => handleChange('smsSenderNumber', e.target.value)}
+                      value={formData.smsSenderNumber || ""}
+                      onChange={(e) =>
+                        handleChange("smsSenderNumber", e.target.value)
+                      }
                       className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[var(--neo-primary)]/20 outline-none text-xs text-left font-mono"
                       dir="ltr"
                       placeholder="مثلاً +983000505 یا ۱۰۰۰..."
                     />
                     <p className="text-[11px] text-gray-400">
-                      برای ارسال‌های بر پایه الگوی کاوه‌نگار نیاز نیست؛ برای فراز اس‌ام‌اس خط خدماتی وارد شود.
+                      برای ارسال‌های بر پایه الگوی کاوه‌نگار نیاز نیست؛ برای
+                      فراز اس‌ام‌اس خط خدماتی وارد شود.
                     </p>
                   </div>
                 </div>
-                
+
                 <div className="p-4 bg-gray-50 border border-gray-200 rounded-2xl flex items-center justify-between">
                   <div>
-                    <div className="font-bold text-gray-900 text-xs">ارسال پیامک تایید ورود و ثبت‌نام (OTP)</div>
-                    <div className="text-[11px] text-gray-400 mt-0.5">ارسال کدهای تایید هویت کاربران با الگوی {formData.smsOtpPattern || 'TecyadOTP'}</div>
+                    <div className="font-bold text-gray-900 text-xs">
+                      ارسال پیامک تایید ورود و ثبت‌نام (OTP)
+                    </div>
+                    <div className="text-[11px] text-gray-400 mt-0.5">
+                      ارسال کدهای تایید هویت کاربران با الگوی{" "}
+                      {formData.smsOtpPattern || "TecyadOTP"}
+                    </div>
                   </div>
                   <label className="relative inline-flex items-center cursor-pointer">
-                    <input 
-                      type="checkbox" 
+                    <input
+                      type="checkbox"
                       className="sr-only peer"
                       checked={formData.requireOtp !== false}
-                      onChange={e => handleChange('requireOtp', e.target.checked)}
+                      onChange={(e) =>
+                        handleChange("requireOtp", e.target.checked)
+                      }
                     />
                     <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[var(--neo-primary)]"></div>
                   </label>
@@ -721,7 +929,10 @@ export default function SettingsPage() {
                   <div className="flex items-center justify-between flex-wrap gap-2">
                     <div className="flex items-center gap-2 text-slate-800 font-bold text-xs">
                       <Send className="w-4 h-4 text-[var(--neo-primary)]" />
-                      <span>تست زنده ارسال پیامک با الگوی {formData.smsOtpPattern || 'TecyadOTP'}</span>
+                      <span>
+                        تست زنده ارسال پیامک با الگوی{" "}
+                        {formData.smsOtpPattern || "TecyadOTP"}
+                      </span>
                     </div>
                     <a
                       href="/super-admin/sms-logs"
@@ -739,7 +950,7 @@ export default function SettingsPage() {
                       <input
                         type="text"
                         value={testMobile}
-                        onChange={e => setTestMobile(e.target.value)}
+                        onChange={(e) => setTestMobile(e.target.value)}
                         placeholder="شماره موبایل تست (مثلاً ۰۹۱۲۳۴۵۶۷۸۹)"
                         className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-[var(--neo-primary)]/20 outline-none text-xs text-left font-mono"
                         dir="ltr"
@@ -759,18 +970,23 @@ export default function SettingsPage() {
                       ) : (
                         <>
                           <Send className="w-3.5 h-3.5" />
-                          <span>ارسال تست با الگوی {formData.smsOtpPattern || 'TecyadOTP'}</span>
+                          <span>
+                            ارسال تست با الگوی{" "}
+                            {formData.smsOtpPattern || "TecyadOTP"}
+                          </span>
                         </>
                       )}
                     </button>
                   </div>
 
                   {testResult && (
-                    <div className={`p-4 rounded-xl text-xs border ${
-                      testResult.success 
-                        ? 'bg-emerald-50/80 border-emerald-200 text-emerald-900' 
-                        : 'bg-rose-50 border-rose-200 text-rose-900'
-                    } animate-in fade-in space-y-1`}>
+                    <div
+                      className={`p-4 rounded-xl text-xs border ${
+                        testResult.success
+                          ? "bg-emerald-50/80 border-emerald-200 text-emerald-900"
+                          : "bg-rose-50 border-rose-200 text-rose-900"
+                      } animate-in fade-in space-y-1`}
+                    >
                       <div className="flex items-center gap-2 font-bold">
                         {testResult.success ? (
                           <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
@@ -781,9 +997,24 @@ export default function SettingsPage() {
                       </div>
                       {testResult.testCode && (
                         <div className="text-[11px] text-gray-600 mt-1 flex items-center gap-4">
-                          <span>کد تولیدشده تست: <b className="font-mono text-gray-900">{testResult.testCode}</b></span>
-                          <span>الگو: <b className="font-mono text-gray-900">{testResult.pattern}</b></span>
-                          <span>ارائه‌دهنده: <b className="font-mono text-gray-900">{testResult.provider}</b></span>
+                          <span>
+                            کد تولیدشده تست:{" "}
+                            <b className="font-mono text-gray-900">
+                              {testResult.testCode}
+                            </b>
+                          </span>
+                          <span>
+                            الگو:{" "}
+                            <b className="font-mono text-gray-900">
+                              {testResult.pattern}
+                            </b>
+                          </span>
+                          <span>
+                            ارائه‌دهنده:{" "}
+                            <b className="font-mono text-gray-900">
+                              {testResult.provider}
+                            </b>
+                          </span>
                           {testResult.simulated && (
                             <span className="bg-amber-100 text-amber-800 px-2 py-0.5 rounded text-[10px] font-bold">
                               حالت شبیه‌سازی (Mock)
@@ -799,31 +1030,47 @@ export default function SettingsPage() {
           )}
 
           {/* 6. Legal / Privacy / Rules */}
-          {activeTab === 'legal' && (
+          {activeTab === "legal" && (
             <div className="p-8 space-y-6 animate-in fade-in flex flex-col h-full">
               <div className="border-b border-gray-100 pb-4">
-                <h2 className="text-lg font-black text-gray-900">قوانین، مقررات و حریم خصوصی</h2>
-                <p className="text-xs text-gray-400 mt-1">متن صفحات عمومی /rules و /privacy برای مطالعه کاربران</p>
+                <h2 className="text-lg font-black text-gray-900">
+                  قوانین، مقررات و حریم خصوصی
+                </h2>
+                <p className="text-xs text-gray-400 mt-1">
+                  متن صفحات عمومی /rules و /privacy برای مطالعه کاربران
+                </p>
               </div>
-              
+
               <div className="space-y-4">
                 <div className="space-y-2">
-                  <label className="text-xs font-bold text-gray-800">متن قوانین و مقررات آموزشی (صفحه /rules)</label>
+                  <label className="text-xs font-bold text-gray-800">
+                    متن قوانین و مقررات آموزشی (صفحه /rules)
+                  </label>
                   <textarea
                     rows={6}
-                    value={formData.termsOfService || formData.termsAndConditions || ''}
-                    onChange={e => handleChange('termsOfService', e.target.value)}
+                    value={
+                      formData.termsOfService ||
+                      formData.termsAndConditions ||
+                      ""
+                    }
+                    onChange={(e) =>
+                      handleChange("termsOfService", e.target.value)
+                    }
                     className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl outline-none text-xs leading-relaxed"
                     placeholder="قوانین استفاده از دوره‌ها، تعهدات دانشجویان و شرایط استرداد وجه..."
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-xs font-bold text-gray-800">سیاست حریم خصوصی (صفحه /privacy)</label>
+                  <label className="text-xs font-bold text-gray-800">
+                    سیاست حریم خصوصی (صفحه /privacy)
+                  </label>
                   <textarea
                     rows={6}
-                    value={formData.privacyPolicy || ''}
-                    onChange={e => handleChange('privacyPolicy', e.target.value)}
+                    value={formData.privacyPolicy || ""}
+                    onChange={(e) =>
+                      handleChange("privacyPolicy", e.target.value)
+                    }
                     className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl outline-none text-xs leading-relaxed"
                     placeholder="توضیحات مربوط به نگهداری اطلاعات هویتی و امنیت داده‌های کاربران..."
                   />
@@ -833,12 +1080,15 @@ export default function SettingsPage() {
           )}
 
           {/* TAB: Landing & Home Page */}
-          {activeTab === 'landing' && (
+          {activeTab === "landing" && (
             <div className="space-y-6">
               <div>
-                <h3 className="text-base font-black text-gray-900">مدیریت محتوای صفحه اصلی و لندینگ پیج</h3>
+                <h3 className="text-base font-black text-gray-900">
+                  مدیریت محتوای صفحه اصلی و لندینگ پیج
+                </h3>
                 <p className="text-xs text-gray-400 mt-1">
-                  تنظیم تیترها، زیرعنوان‌ها، شعارها، دکمه‌های اقدام به عمل و آمارهای کلیدی صفحه اصلی
+                  تنظیم تیترها، زیرعنوان‌ها، شعارها، دکمه‌های اقدام به عمل و
+                  آمارهای کلیدی صفحه اصلی
                 </p>
               </div>
 
@@ -850,33 +1100,43 @@ export default function SettingsPage() {
                 </h4>
 
                 <div className="space-y-2">
-                  <label className="text-xs font-bold text-gray-700">برچسب کوچک بالای تیتر (Badge)</label>
+                  <label className="text-xs font-bold text-gray-700">
+                    برچسب کوچک بالای تیتر (Badge)
+                  </label>
                   <input
                     type="text"
-                    value={formData.heroBadgeText || ''}
-                    onChange={e => handleChange('heroBadgeText', e.target.value)}
+                    value={formData.heroBadgeText || ""}
+                    onChange={(e) =>
+                      handleChange("heroBadgeText", e.target.value)
+                    }
                     placeholder="پلتفرم یکپارچه آموزش آکادمیک و تخصصی"
                     className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl outline-none text-xs"
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-xs font-bold text-gray-700">تیتر اصلی هیرو (Hero Title)</label>
+                  <label className="text-xs font-bold text-gray-700">
+                    تیتر اصلی هیرو (Hero Title)
+                  </label>
                   <input
                     type="text"
-                    value={formData.heroTitle || ''}
-                    onChange={e => handleChange('heroTitle', e.target.value)}
+                    value={formData.heroTitle || ""}
+                    onChange={(e) => handleChange("heroTitle", e.target.value)}
                     placeholder="یادگیری برای آینده‌ای که می‌سازی."
                     className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl outline-none text-xs font-bold"
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-xs font-bold text-gray-700">زیرعنوان و توضیحات هیرو (Hero Subtitle)</label>
+                  <label className="text-xs font-bold text-gray-700">
+                    زیرعنوان و توضیحات هیرو (Hero Subtitle)
+                  </label>
                   <textarea
                     rows={3}
-                    value={formData.heroSubtitle || ''}
-                    onChange={e => handleChange('heroSubtitle', e.target.value)}
+                    value={formData.heroSubtitle || ""}
+                    onChange={(e) =>
+                      handleChange("heroSubtitle", e.target.value)
+                    }
                     placeholder="دروس دانشگاهی، آموزش‌های تخصصی و کلاس‌های حضوری؛ با اساتیدی که واقعاً می‌دانند چه چیزی را باید آموزش دهند. مسیر یادگیری خودت را پیدا کن."
                     className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl outline-none text-xs leading-relaxed"
                   />
@@ -884,44 +1144,60 @@ export default function SettingsPage() {
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
                   <div className="space-y-2">
-                    <label className="text-xs font-bold text-gray-700">متن دکمه اصلی (Primary CTA)</label>
+                    <label className="text-xs font-bold text-gray-700">
+                      متن دکمه اصلی (Primary CTA)
+                    </label>
                     <input
                       type="text"
-                      value={formData.heroPrimaryCtaText || ''}
-                      onChange={e => handleChange('heroPrimaryCtaText', e.target.value)}
+                      value={formData.heroPrimaryCtaText || ""}
+                      onChange={(e) =>
+                        handleChange("heroPrimaryCtaText", e.target.value)
+                      }
                       placeholder="شروع یادگیری"
                       className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl outline-none text-xs"
                     />
                   </div>
 
                   <div className="space-y-2">
-                    <label className="text-xs font-bold text-gray-700">لینک دکمه اصلی</label>
+                    <label className="text-xs font-bold text-gray-700">
+                      لینک دکمه اصلی
+                    </label>
                     <input
                       type="text"
-                      value={formData.heroPrimaryCtaLink || ''}
-                      onChange={e => handleChange('heroPrimaryCtaLink', e.target.value)}
+                      value={formData.heroPrimaryCtaLink || ""}
+                      onChange={(e) =>
+                        handleChange("heroPrimaryCtaLink", e.target.value)
+                      }
                       placeholder="/courses"
                       className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl outline-none text-xs font-mono dir-ltr"
                     />
                   </div>
 
                   <div className="space-y-2">
-                    <label className="text-xs font-bold text-gray-700">متن دکمه دوم (Secondary CTA)</label>
+                    <label className="text-xs font-bold text-gray-700">
+                      متن دکمه دوم (Secondary CTA)
+                    </label>
                     <input
                       type="text"
-                      value={formData.heroSecondaryCtaText || ''}
-                      onChange={e => handleChange('heroSecondaryCtaText', e.target.value)}
+                      value={formData.heroSecondaryCtaText || ""}
+                      onChange={(e) =>
+                        handleChange("heroSecondaryCtaText", e.target.value)
+                      }
                       placeholder="دوره‌های رایگان"
                       className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl outline-none text-xs"
                     />
                   </div>
 
                   <div className="space-y-2">
-                    <label className="text-xs font-bold text-gray-700">لینک دکمه دوم</label>
+                    <label className="text-xs font-bold text-gray-700">
+                      لینک دکمه دوم
+                    </label>
                     <input
                       type="text"
-                      value={formData.heroSecondaryCtaLink || ''}
-                      onChange={e => handleChange('heroSecondaryCtaLink', e.target.value)}
+                      value={formData.heroSecondaryCtaLink || ""}
+                      onChange={(e) =>
+                        handleChange("heroSecondaryCtaLink", e.target.value)
+                      }
                       placeholder="/courses?free=true"
                       className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl outline-none text-xs font-mono dir-ltr"
                     />
@@ -937,41 +1213,57 @@ export default function SettingsPage() {
 
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                   <div className="space-y-1">
-                    <label className="text-[11px] font-bold text-gray-600">تعداد دانشجویان</label>
+                    <label className="text-[11px] font-bold text-gray-600">
+                      تعداد دانشجویان
+                    </label>
                     <input
                       type="text"
-                      value={formData.statsStudents || ''}
-                      onChange={e => handleChange('statsStudents', e.target.value)}
+                      value={formData.statsStudents || ""}
+                      onChange={(e) =>
+                        handleChange("statsStudents", e.target.value)
+                      }
                       placeholder="+۱۰,۰۰۰"
                       className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl outline-none text-xs font-mono text-center"
                     />
                   </div>
                   <div className="space-y-1">
-                    <label className="text-[11px] font-bold text-gray-600">درصد رضایت</label>
+                    <label className="text-[11px] font-bold text-gray-600">
+                      درصد رضایت
+                    </label>
                     <input
                       type="text"
-                      value={formData.statsSatisfaction || ''}
-                      onChange={e => handleChange('statsSatisfaction', e.target.value)}
+                      value={formData.statsSatisfaction || ""}
+                      onChange={(e) =>
+                        handleChange("statsSatisfaction", e.target.value)
+                      }
                       placeholder="۹۸٪"
                       className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl outline-none text-xs font-mono text-center"
                     />
                   </div>
                   <div className="space-y-1">
-                    <label className="text-[11px] font-bold text-gray-600">تعداد اساتید برتر</label>
+                    <label className="text-[11px] font-bold text-gray-600">
+                      تعداد اساتید برتر
+                    </label>
                     <input
                       type="text"
-                      value={formData.statsInstructors || ''}
-                      onChange={e => handleChange('statsInstructors', e.target.value)}
+                      value={formData.statsInstructors || ""}
+                      onChange={(e) =>
+                        handleChange("statsInstructors", e.target.value)
+                      }
                       placeholder="+۵۰"
                       className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl outline-none text-xs font-mono text-center"
                     />
                   </div>
                   <div className="space-y-1">
-                    <label className="text-[11px] font-bold text-gray-600">ساعات آموزش</label>
+                    <label className="text-[11px] font-bold text-gray-600">
+                      ساعات آموزش
+                    </label>
                     <input
                       type="text"
-                      value={formData.statsHours || ''}
-                      onChange={e => handleChange('statsHours', e.target.value)}
+                      value={formData.statsHours || ""}
+                      onChange={(e) =>
+                        handleChange("statsHours", e.target.value)
+                      }
                       placeholder="+۵۰۰"
                       className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl outline-none text-xs font-mono text-center"
                     />
@@ -986,34 +1278,42 @@ export default function SettingsPage() {
                 </h4>
 
                 <div className="space-y-2">
-                  <label className="text-xs font-bold text-gray-700">برچسب کوچک بالای تیتر</label>
+                  <label className="text-xs font-bold text-gray-700">
+                    برچسب کوچک بالای تیتر
+                  </label>
                   <input
                     type="text"
-                    value={formData.introBadge || ''}
-                    onChange={e => handleChange('introBadge', e.target.value)}
+                    value={formData.introBadge || ""}
+                    onChange={(e) => handleChange("introBadge", e.target.value)}
                     placeholder="درباره پلتفرم"
                     className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl outline-none text-xs"
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-xs font-bold text-gray-700">تیتر معرفی (Intro Title)</label>
+                  <label className="text-xs font-bold text-gray-700">
+                    تیتر معرفی (Intro Title)
+                  </label>
                   <input
                     type="text"
-                    value={formData.introTitle || ''}
-                    onChange={e => handleChange('introTitle', e.target.value)}
+                    value={formData.introTitle || ""}
+                    onChange={(e) => handleChange("introTitle", e.target.value)}
                     placeholder="تجربه یادگیری بهتر و متفاوت‌تر"
                     className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl outline-none text-xs font-bold"
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-xs font-bold text-gray-700">متن توضیحات معرفی (Intro Subtitle)</label>
+                  <label className="text-xs font-bold text-gray-700">
+                    متن توضیحات معرفی (Intro Subtitle)
+                  </label>
                   <textarea
                     rows={3}
-                    value={formData.introSubtitle || ''}
-                    onChange={e => handleChange('introSubtitle', e.target.value)}
-                    placeholder="تک‌یاد با هدف ارتقای سطح دانش و مهارت‌های تخصصی، پلتفرمی یکپارچه برای یادگیری فراهم کرده است..."
+                    value={formData.introSubtitle || ""}
+                    onChange={(e) =>
+                      handleChange("introSubtitle", e.target.value)
+                    }
+                    placeholder="تک یاد با هدف ارتقای سطح دانش و مهارت‌های تخصصی، پلتفرمی یکپارچه برای یادگیری فراهم کرده است..."
                     className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl outline-none text-xs leading-relaxed"
                   />
                 </div>
@@ -1022,77 +1322,101 @@ export default function SettingsPage() {
               {/* Advantages 4 Cards */}
               <div className="p-5 bg-white rounded-2xl border border-gray-200 space-y-4">
                 <h4 className="text-xs font-black text-purple-600 uppercase tracking-wider">
-                  کارت‌های چهارگانه مزایای تک‌یاد (Advantages)
+                  کارت‌های چهارگانه مزایای تک یاد (Advantages)
                 </h4>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="p-3 bg-gray-50 rounded-xl border border-gray-200 space-y-2">
-                    <label className="text-[11px] font-bold text-gray-700">کارت ۱ (تضمین کیفیت)</label>
+                    <label className="text-[11px] font-bold text-gray-700">
+                      کارت ۱ (تضمین کیفیت)
+                    </label>
                     <input
                       type="text"
-                      value={formData.advantage1Title || ''}
-                      onChange={e => handleChange('advantage1Title', e.target.value)}
+                      value={formData.advantage1Title || ""}
+                      onChange={(e) =>
+                        handleChange("advantage1Title", e.target.value)
+                      }
                       placeholder="عنوان: تضمین کیفیت"
                       className="w-full px-3 py-1.5 bg-white border border-gray-200 rounded-lg text-xs"
                     />
                     <input
                       type="text"
-                      value={formData.advantage1Desc || ''}
-                      onChange={e => handleChange('advantage1Desc', e.target.value)}
+                      value={formData.advantage1Desc || ""}
+                      onChange={(e) =>
+                        handleChange("advantage1Desc", e.target.value)
+                      }
                       placeholder="توضیح: بازگشت وجه در صورت عدم رضایت"
                       className="w-full px-3 py-1.5 bg-white border border-gray-200 rounded-lg text-xs"
                     />
                   </div>
 
                   <div className="p-3 bg-gray-50 rounded-xl border border-gray-200 space-y-2">
-                    <label className="text-[11px] font-bold text-gray-700">کارت ۲ (دسترسی مادام‌العمر)</label>
+                    <label className="text-[11px] font-bold text-gray-700">
+                      کارت ۲ (دسترسی مادام‌العمر)
+                    </label>
                     <input
                       type="text"
-                      value={formData.advantage2Title || ''}
-                      onChange={e => handleChange('advantage2Title', e.target.value)}
+                      value={formData.advantage2Title || ""}
+                      onChange={(e) =>
+                        handleChange("advantage2Title", e.target.value)
+                      }
                       placeholder="عنوان: دسترسی مادام‌العمر"
                       className="w-full px-3 py-1.5 bg-white border border-gray-200 rounded-lg text-xs"
                     />
                     <input
                       type="text"
-                      value={formData.advantage2Desc || ''}
-                      onChange={e => handleChange('advantage2Desc', e.target.value)}
+                      value={formData.advantage2Desc || ""}
+                      onChange={(e) =>
+                        handleChange("advantage2Desc", e.target.value)
+                      }
                       placeholder="توضیح: آپدیت رایگان دوره‌های خریداری شده"
                       className="w-full px-3 py-1.5 bg-white border border-gray-200 rounded-lg text-xs"
                     />
                   </div>
 
                   <div className="p-3 bg-gray-50 rounded-xl border border-gray-200 space-y-2">
-                    <label className="text-[11px] font-bold text-gray-700">کارت ۳ (پشتیبانی)</label>
+                    <label className="text-[11px] font-bold text-gray-700">
+                      کارت ۳ (پشتیبانی)
+                    </label>
                     <input
                       type="text"
-                      value={formData.advantage3Title || ''}
-                      onChange={e => handleChange('advantage3Title', e.target.value)}
+                      value={formData.advantage3Title || ""}
+                      onChange={(e) =>
+                        handleChange("advantage3Title", e.target.value)
+                      }
                       placeholder="عنوان: پشتیبانی ۲۴/۷"
                       className="w-full px-3 py-1.5 bg-white border border-gray-200 rounded-lg text-xs"
                     />
                     <input
                       type="text"
-                      value={formData.advantage3Desc || ''}
-                      onChange={e => handleChange('advantage3Desc', e.target.value)}
+                      value={formData.advantage3Desc || ""}
+                      onChange={(e) =>
+                        handleChange("advantage3Desc", e.target.value)
+                      }
                       placeholder="توضیح: رفع اشکال توسط اساتید و منتورها"
                       className="w-full px-3 py-1.5 bg-white border border-gray-200 rounded-lg text-xs"
                     />
                   </div>
 
                   <div className="p-3 bg-gray-50 rounded-xl border border-gray-200 space-y-2">
-                    <label className="text-[11px] font-bold text-gray-700">کارت ۴ (مدرک معتبر)</label>
+                    <label className="text-[11px] font-bold text-gray-700">
+                      کارت ۴ (مدرک معتبر)
+                    </label>
                     <input
                       type="text"
-                      value={formData.advantage4Title || ''}
-                      onChange={e => handleChange('advantage4Title', e.target.value)}
+                      value={formData.advantage4Title || ""}
+                      onChange={(e) =>
+                        handleChange("advantage4Title", e.target.value)
+                      }
                       placeholder="عنوان: مدرک معتبر"
                       className="w-full px-3 py-1.5 bg-white border border-gray-200 rounded-lg text-xs"
                     />
                     <input
                       type="text"
-                      value={formData.advantage4Desc || ''}
-                      onChange={e => handleChange('advantage4Desc', e.target.value)}
+                      value={formData.advantage4Desc || ""}
+                      onChange={(e) =>
+                        handleChange("advantage4Desc", e.target.value)
+                      }
                       placeholder="توضیح: ارائه گواهی پایان دوره دوزبانه"
                       className="w-full px-3 py-1.5 bg-white border border-gray-200 rounded-lg text-xs"
                     />
@@ -1107,44 +1431,58 @@ export default function SettingsPage() {
                 </h4>
 
                 <div className="space-y-2">
-                  <label className="text-xs font-bold text-gray-700">تیتر دعوت به اقدام</label>
+                  <label className="text-xs font-bold text-gray-700">
+                    تیتر دعوت به اقدام
+                  </label>
                   <input
                     type="text"
-                    value={formData.ctaTitle || ''}
-                    onChange={e => handleChange('ctaTitle', e.target.value)}
+                    value={formData.ctaTitle || ""}
+                    onChange={(e) => handleChange("ctaTitle", e.target.value)}
                     placeholder="آماده‌اید مسیر یادگیری خود را آغاز کنید؟"
                     className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl outline-none text-xs font-bold"
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-xs font-bold text-gray-700">توضیحات دعوت به اقدام</label>
+                  <label className="text-xs font-bold text-gray-700">
+                    توضیحات دعوت به اقدام
+                  </label>
                   <textarea
                     rows={2}
-                    value={formData.ctaSubtitle || ''}
-                    onChange={e => handleChange('ctaSubtitle', e.target.value)}
-                    placeholder="به هزاران دانشجوی تک‌یاد بپیوندید و مهارت‌های آینده شغلی خود را از همین امروز بسازید."
+                    value={formData.ctaSubtitle || ""}
+                    onChange={(e) =>
+                      handleChange("ctaSubtitle", e.target.value)
+                    }
+                    placeholder="به هزاران دانشجوی تک یاد بپیوندید و مهارت‌های آینده شغلی خود را از همین امروز بسازید."
                     className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl outline-none text-xs"
                   />
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-1">
-                    <label className="text-xs font-bold text-gray-700">متن دکمه ثبت‌نام</label>
+                    <label className="text-xs font-bold text-gray-700">
+                      متن دکمه ثبت‌نام
+                    </label>
                     <input
                       type="text"
-                      value={formData.ctaButtonText || ''}
-                      onChange={e => handleChange('ctaButtonText', e.target.value)}
+                      value={formData.ctaButtonText || ""}
+                      onChange={(e) =>
+                        handleChange("ctaButtonText", e.target.value)
+                      }
                       placeholder="عضویت و ثبت‌نام سریع"
                       className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-xl outline-none text-xs"
                     />
                   </div>
                   <div className="space-y-1">
-                    <label className="text-xs font-bold text-gray-700">لینک دکمه</label>
+                    <label className="text-xs font-bold text-gray-700">
+                      لینک دکمه
+                    </label>
                     <input
                       type="text"
-                      value={formData.ctaButtonLink || ''}
-                      onChange={e => handleChange('ctaButtonLink', e.target.value)}
+                      value={formData.ctaButtonLink || ""}
+                      onChange={(e) =>
+                        handleChange("ctaButtonLink", e.target.value)
+                      }
                       placeholder="/register"
                       className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-xl outline-none text-xs font-mono dir-ltr"
                     />
@@ -1155,65 +1493,85 @@ export default function SettingsPage() {
           )}
 
           {/* TAB: About Us Page */}
-          {activeTab === 'about' && (
+          {activeTab === "about" && (
             <div className="space-y-6">
               <div>
-                <h3 className="text-base font-black text-gray-900">مدیریت محتوای صفحه درباره ما (/about)</h3>
-                <p className="text-xs text-gray-400 mt-1">داستان شکل‌گیری، مأموریت، چشم‌انداز و پیام مدیریت آموزشگاه</p>
+                <h3 className="text-base font-black text-gray-900">
+                  مدیریت محتوای صفحه درباره ما (/about)
+                </h3>
+                <p className="text-xs text-gray-400 mt-1">
+                  داستان شکل‌گیری، مأموریت، چشم‌انداز و پیام مدیریت آموزشگاه
+                </p>
               </div>
 
               <div className="space-y-4">
                 <div className="space-y-2">
-                  <label className="text-xs font-bold text-gray-800">تیتر اصلی صفحه درباره ما</label>
+                  <label className="text-xs font-bold text-gray-800">
+                    تیتر اصلی صفحه درباره ما
+                  </label>
                   <input
                     type="text"
-                    value={formData.aboutTitle || ''}
-                    onChange={e => handleChange('aboutTitle', e.target.value)}
+                    value={formData.aboutTitle || ""}
+                    onChange={(e) => handleChange("aboutTitle", e.target.value)}
                     placeholder="یادگیری بهتر، آینده بهتر"
                     className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl outline-none text-xs font-bold"
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-xs font-bold text-gray-800">زیرعنوان اصلی</label>
+                  <label className="text-xs font-bold text-gray-800">
+                    زیرعنوان اصلی
+                  </label>
                   <input
                     type="text"
-                    value={formData.aboutSubtitle || ''}
-                    onChange={e => handleChange('aboutSubtitle', e.target.value)}
-                    placeholder="ما در تک‌یاد معتقدیم آموزش باکیفیت حق همه است. پلتفرمی برای ارتقای مهارت‌های شما با بهترین اساتید ایران."
+                    value={formData.aboutSubtitle || ""}
+                    onChange={(e) =>
+                      handleChange("aboutSubtitle", e.target.value)
+                    }
+                    placeholder="ما در تک یاد معتقدیم آموزش باکیفیت حق همه است. پلتفرمی برای ارتقای مهارت‌های شما با بهترین اساتید ایران."
                     className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl outline-none text-xs"
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-xs font-bold text-gray-800">داستان ما (Our Story)</label>
+                  <label className="text-xs font-bold text-gray-800">
+                    داستان ما (Our Story)
+                  </label>
                   <textarea
                     rows={5}
-                    value={formData.aboutStory || ''}
-                    onChange={e => handleChange('aboutStory', e.target.value)}
-                    placeholder="داستان پیدایش تک‌یاد، اهداف و فلسفه آموزشگاه..."
+                    value={formData.aboutStory || ""}
+                    onChange={(e) => handleChange("aboutStory", e.target.value)}
+                    placeholder="داستان پیدایش تک یاد، اهداف و فلسفه آموزشگاه..."
                     className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl outline-none text-xs leading-relaxed"
                   />
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <label className="text-xs font-bold text-gray-800">مأموریت ما (Mission)</label>
+                    <label className="text-xs font-bold text-gray-800">
+                      مأموریت ما (Mission)
+                    </label>
                     <textarea
                       rows={4}
-                      value={formData.aboutMission || ''}
-                      onChange={e => handleChange('aboutMission', e.target.value)}
+                      value={formData.aboutMission || ""}
+                      onChange={(e) =>
+                        handleChange("aboutMission", e.target.value)
+                      }
                       placeholder="ارائه آموزش‌های عملی، باکیفیت و مقرون‌به‌صرفه در حوزه‌های تکنولوژی و مهندسی برای توانمندسازی نیروی کار فردا..."
                       className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl outline-none text-xs leading-relaxed"
                     />
                   </div>
 
                   <div className="space-y-2">
-                    <label className="text-xs font-bold text-gray-800">چشم‌انداز ما (Vision)</label>
+                    <label className="text-xs font-bold text-gray-800">
+                      چشم‌انداز ما (Vision)
+                    </label>
                     <textarea
                       rows={4}
-                      value={formData.aboutVision || ''}
-                      onChange={e => handleChange('aboutVision', e.target.value)}
+                      value={formData.aboutVision || ""}
+                      onChange={(e) =>
+                        handleChange("aboutVision", e.target.value)
+                      }
                       placeholder="تبدیل شدن به بزرگترین مرجع آموزش آنلاین و تعاملی و پر کردن شکاف بین دانشگاه و بازار کار..."
                       className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl outline-none text-xs leading-relaxed"
                     />
@@ -1222,7 +1580,6 @@ export default function SettingsPage() {
               </div>
             </div>
           )}
-
         </div>
       </div>
     </div>

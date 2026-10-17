@@ -69,7 +69,7 @@ export class InstructorService {
           profile = await InstructorProfile.findOne({ userId: userBySlug._id })
             .populate('userId', 'firstName lastName avatar personnelPhoto email mobile specialty bio slug');
         }
-      } catch (e) {}
+      } catch (e) { }
     }
 
     if (!profile) {
@@ -90,7 +90,7 @@ export class InstructorService {
             userId: user._id,
             slug: generatedSlug || user._id.toString(),
             title: user.specialty || 'مدرس و متخصص آموزشی',
-            bio: user.bio || 'مدرس دوره‌ها و کارگاه‌های تخصصی در آکادمی تک‌یاد',
+            bio: user.bio || 'مدرس دوره‌ها و کارگاه‌های تخصصی در آکادمی تک یاد',
             avatar: user.avatar || '',
             specialties: user.specialty ? [user.specialty] : ['برنامه‌نویسی و وب'],
             education: [],
@@ -150,7 +150,7 @@ export class InstructorService {
       profile = await InstructorProfile.create({
         userId,
         title: user?.specialty || 'مدرس و متخصص آموزشی',
-        bio: user?.bio || 'مدرس آکادمی تک‌یاد',
+        bio: user?.bio || 'مدرس آکادمی تک یاد',
         avatar: user?.personnelPhoto || user?.avatar || '',
         specialties: [],
         education: [],
@@ -165,7 +165,7 @@ export class InstructorService {
 
   static async updateMyProfile(userId: string, data: any) {
     let profile = await InstructorProfile.findOne({ userId });
-    
+
     // Also sync bio/avatar/specialty with User document if provided
     if (data.bio !== undefined || data.avatar !== undefined || data.title !== undefined) {
       await User.findByIdAndUpdate(userId, {
@@ -176,10 +176,10 @@ export class InstructorService {
     }
 
     if (!profile) {
-      profile = await InstructorProfile.create({ 
-        userId, 
+      profile = await InstructorProfile.create({
+        userId,
         ...data,
-        isApproved: true 
+        isApproved: true
       });
     } else {
       profile = await InstructorProfile.findOneAndUpdate(
@@ -188,7 +188,7 @@ export class InstructorService {
         { new: true }
       ).populate('userId', 'firstName lastName avatar personnelPhoto email');
     }
-    
+
     return profile;
   }
 

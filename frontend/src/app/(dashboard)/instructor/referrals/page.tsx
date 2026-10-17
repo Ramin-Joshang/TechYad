@@ -153,7 +153,7 @@ export default function InstructorReferralPage() {
               کد معرف استادی شما: <span className="font-mono text-amber-300 font-black">{data.referralCode}</span>
             </h2>
             <p className="text-purple-100 text-xs sm:text-sm max-w-xl">
-              به عنوان مدرس تک‌یاد، هر کاربری که با کد یا لینک شما وارد سایت شود علاوه بر دریافت {stats.refereeDiscountPercent}٪ تخفیف هدیه، تا {stats.commissionPercent}٪ از کل مبالغ پرداختی او مستقیماً به موجودی کیف پول همکاری در فروش شما اضافه می‌شود.
+              به عنوان مدرس تک یاد، هر کاربری که با کد یا لینک شما وارد سایت شود علاوه بر دریافت {stats.refereeDiscountPercent}٪ تخفیف هدیه، تا {stats.commissionPercent}٪ از کل مبالغ پرداختی او مستقیماً به موجودی کیف پول همکاری در فروش شما اضافه می‌شود.
             </p>
           </div>
 

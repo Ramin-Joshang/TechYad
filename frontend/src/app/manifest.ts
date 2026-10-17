@@ -2,8 +2,8 @@ import { MetadataRoute } from 'next';
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: 'تک‌یاد | پلتفرم جامع آموزش آنلاین',
-    short_name: 'تک‌یاد',
+    name: 'تک یاد | پلتفرم جامع آموزش آنلاین',
+    short_name: 'تک یاد',
     description: 'مرجع تخصصی دوره‌ها و کلاس‌های آنلاین و مهارتی برنامه‌نویسی و هوش مصنوعی',
     start_url: '/',
     display: 'standalone',

@@ -2,16 +2,18 @@ import { HomeDataView } from "@/components/home/HomeDataView";
 import { fetchHomeData } from "@/lib/server-api";
 import type { Metadata } from "next";
 
-export const dynamic = 'force-dynamic';
+export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "آکادمی تک‌یاد | پلتفرم جامع آموزش آنلاین، دوره‌ها و کلاس‌های تخصصی برنامه‌نویسی",
-  description: "سامانه آموزش آنلاین آکادمی تک‌یاد (Tecyad)؛ مرجع تخصصی دوره‌های پروژه‌محور برنامه‌نویسی، طراحی وب، هوش مصنوعی، کلاس‌های زنده و کارگاه‌های مهارتی با برترین اساتید ایران.",
+  title:
+    "آکادمی تک یاد | پلتفرم جامع آموزش آنلاین، دوره‌ها و کلاس‌های تخصصی برنامه‌نویسی",
+  description:
+    "سامانه آموزش آنلاین آکادمی تک یاد (Tecyad)؛ مرجع تخصصی دوره‌های پروژه‌محور برنامه‌نویسی، طراحی وب، هوش مصنوعی، کلاس‌های زنده و کارگاه‌های مهارتی با برترین اساتید ایران.",
   keywords: [
-    "آکادمی تک‌یاد",
     "آکادمی تک یاد",
-    "تک‌یاد",
+    "آکادمی تک‌یاد",
     "تک یاد",
+    "تک‌یاد",
     "تکیاد",
     "Tecyad",
     "Tecyad Academy",
@@ -29,22 +31,24 @@ export const metadata: Metadata = {
     type: "website",
     locale: "fa_IR",
     url: "https://tecyad.ir",
-    siteName: "آکادمی تک‌یاد | Tecyad",
-    title: "آکادمی تک‌یاد | پلتفرم جامع آموزش آنلاین، دوره‌ها و کلاس‌های تخصصی",
-    description: "سامانه آموزش آنلاین آکادمی تک‌یاد؛ مرجع تخصصی دوره‌های پروژه‌محور برنامه‌نویسی، طراحی وب و هوش مصنوعی با برترین اساتید.",
+    siteName: "آکادمی تک یاد | Tecyad",
+    title: "آکادمی تک یاد | پلتفرم جامع آموزش آنلاین، دوره‌ها و کلاس‌های تخصصی",
+    description:
+      "سامانه آموزش آنلاین آکادمی تک یاد؛ مرجع تخصصی دوره‌های پروژه‌محور برنامه‌نویسی، طراحی وب و هوش مصنوعی با برترین اساتید.",
     images: [
       {
         url: "https://tecyad.ir/hero-image.png",
         width: 1200,
         height: 630,
-        alt: "آکادمی تک‌یاد Tecyad",
+        alt: "آکادمی تک یاد Tecyad",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "آکادمی تک‌یاد | پلتفرم جامع آموزش آنلاین، دوره‌ها و کلاس‌های تخصصی",
-    description: "مرجع تخصصی دوره‌های برنامه‌نویسی، کلاس‌های آنلاین و کارگاه‌های مهارتی در آکادمی تک‌یاد.",
+    title: "آکادمی تک یاد | پلتفرم جامع آموزش آنلاین، دوره‌ها و کلاس‌های تخصصی",
+    description:
+      "مرجع تخصصی دوره‌های برنامه‌نویسی، کلاس‌های آنلاین و کارگاه‌های مهارتی در آکادمی تک یاد.",
     images: ["https://tecyad.ir/hero-image.png"],
   },
 };
@@ -55,42 +59,34 @@ export default async function HomePage() {
   const websiteJsonLd = {
     "@context": "https://schema.org",
     "@type": "WebSite",
-    "name": "آکادمی تک‌یاد",
-    "alternateName": [
-      "آکادمی تک یاد",
-      "تک‌یاد",
-      "تک یاد",
-      "تکیاد",
-      "Tecyad"
-    ],
-    "url": "https://tecyad.ir",
-    "description": "پلتفرم جامع آموزش آنلاین، دوره‌ها و کلاس‌های تخصصی آکادمی تک‌یاد",
-    "potentialAction": {
+    name: "آکادمی تک یاد",
+    alternateName: ["آکادمی تک یاد", "تک یاد", "تک یاد", "تکیاد", "Tecyad"],
+    url: "https://tecyad.ir",
+    description:
+      "پلتفرم جامع آموزش آنلاین، دوره‌ها و کلاس‌های تخصصی آکادمی تک یاد",
+    potentialAction: {
       "@type": "SearchAction",
-      "target": "https://tecyad.ir/search?q={search_term_string}",
-      "query-input": "required name=search_term_string"
-    }
+      target: "https://tecyad.ir/search?q={search_term_string}",
+      "query-input": "required name=search_term_string",
+    },
   };
 
   const orgJsonLd = {
     "@context": "https://schema.org",
     "@type": "EducationalOrganization",
-    "name": "آکادمی تک‌یاد",
-    "alternateName": [
+    name: "آکادمی تک‌یاد",
+    alternateName: [
       "آکادمی تک یاد",
       "تک‌یاد",
       "تک یاد",
       "تکیاد",
       "Tecyad Academy",
-      "Tecyad"
+      "Tecyad",
     ],
-    "url": "https://tecyad.ir",
-    "logo": "https://tecyad.ir/logo.png",
-    "telephone": "09372731037",
-    "sameAs": [
-      "https://t.me/tecyad_ir",
-      "https://instagram.com/tecyad.ir"
-    ]
+    url: "https://tecyad.ir",
+    logo: "https://tecyad.ir/logo.png",
+    telephone: "09372731037",
+    sameAs: ["https://t.me/tecyad_ir", "https://instagram.com/tecyad.ir"],
   };
 
   return (

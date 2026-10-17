@@ -248,9 +248,8 @@ export class ReferralService {
       userId: referrer._id,
       type: "referral_joined",
       title: "🎉 کاربر جدید با کد معرفی شما ثبت‌نام کرد!",
-      message: `کاربر ${referee.firstName} ${referee.lastName.charAt(0)}... با استفاده از لینک یا کد شما به تک‌یاد پیوست.${
-        isImmediate ? ` پاداش نقدی ${rewardAmount.toLocaleString("fa-IR")} تومان به کیف پول شما افزوده شد.` : ""
-      }`,
+      message: `کاربر ${referee.firstName} ${referee.lastName.charAt(0)}... با استفاده از لینک یا کد شما به تک یاد پیوست.${isImmediate ? ` پاداش نقدی ${rewardAmount.toLocaleString("fa-IR")} تومان به کیف پول شما افزوده شد.` : ""
+        }`,
       data: { referralId: referral._id },
     });
 
@@ -380,7 +379,7 @@ export class ReferralService {
     const referralLink = `${baseUrl}/register?ref=${referralCode}`;
 
     // Share messages
-    const shareMessage = `سلام! به وبسایت آموزشی تک‌یاد بپیوند و با کد معرف من (${referralCode}) از تخفیف‌های ویژه دوره‌ها بهره‌مند شو:\n${referralLink}`;
+    const shareMessage = `سلام! به وبسایت آموزشی تک یاد بپیوند و با کد معرف من (${referralCode}) از تخفیف‌های ویژه دوره‌ها بهره‌مند شو:\n${referralLink}`;
     const encodedMsg = encodeURIComponent(shareMessage);
     const encodedUrl = encodeURIComponent(referralLink);
 
@@ -483,10 +482,10 @@ export class ReferralService {
         thumbnail: course.thumbnail,
         affiliateUrl: url,
         telegramShareUrl: `https://t.me/share/url?url=${encodeURIComponent(url)}&text=${encodeURIComponent(
-          `دوره ویژه «${course.title}» در آکادمی تک‌یاد با تخفیف اختصاصی:\n${url}`
+          `دوره ویژه «${course.title}» در آکادمی تک یاد با تخفیف اختصاصی:\n${url}`
         )}`,
         whatsappShareUrl: `https://api.whatsapp.com/send?text=${encodeURIComponent(
-          `سلام! دوره آموزشی «${course.title}» در تک‌یاد با تخفیف ویژه:\n${url}`
+          `سلام! دوره آموزشی «${course.title}» در تک یاد با تخفیف ویژه:\n${url}`
         )}`,
       };
     });
@@ -511,10 +510,10 @@ export class ReferralService {
         mode: c.mode,
         affiliateUrl: url,
         telegramShareUrl: `https://t.me/share/url?url=${encodeURIComponent(url)}&text=${encodeURIComponent(
-          `کلاس تخصصی و کارگاه «${c.title}» در آکادمی تک‌یاد با تخفیف اختصاصی:\n${url}`
+          `کلاس تخصصی و کارگاه «${c.title}» در آکادمی تک یاد با تخفیف اختصاصی:\n${url}`
         )}`,
         whatsappShareUrl: `https://api.whatsapp.com/send?text=${encodeURIComponent(
-          `سلام! در کارگاه و کلاس «${c.title}» در تک‌یاد ثبت‌نام کنید:\n${url}`
+          `سلام! در کارگاه و کلاس «${c.title}» در تک یاد ثبت‌نام کنید:\n${url}`
         )}`,
       };
     });
@@ -749,9 +748,8 @@ export class ReferralService {
       userId: payout.userId._id || payout.userId,
       type: "payout_status_updated",
       title: `وضعیت درخواست تسویه حساب: ${statusText}`,
-      message: `درخواست تسویه مبلغ ${payout.amount.toLocaleString("fa-IR")} تومان شما ${statusText}.${
-        data.adminNote ? ` توضیحات مدیر: ${data.adminNote}` : ""
-      }${data.transactionReference ? ` شماره پیگیری: ${data.transactionReference}` : ""}`,
+      message: `درخواست تسویه مبلغ ${payout.amount.toLocaleString("fa-IR")} تومان شما ${statusText}.${data.adminNote ? ` توضیحات مدیر: ${data.adminNote}` : ""
+        }${data.transactionReference ? ` شماره پیگیری: ${data.transactionReference}` : ""}`,
       data: { payoutId: payout._id, status: data.status },
     });
 

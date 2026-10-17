@@ -1,26 +1,31 @@
-import { notFound } from 'next/navigation';
-import type { Metadata } from 'next';
-import { fetchCategoryBySlug, fetchCategoryContent } from '@/lib/server-api';
-import { CategoryPageClient } from '@/components/categories/CategoryPageClient';
+import { notFound } from "next/navigation";
+import type { Metadata } from "next";
+import { fetchCategoryBySlug, fetchCategoryContent } from "@/lib/server-api";
+import { CategoryPageClient } from "@/components/categories/CategoryPageClient";
 
 interface CategoryPageProps {
   params: Promise<{ slug: string }>;
   searchParams?: Promise<{ [key: string]: string | undefined }>;
 }
 
-export async function generateMetadata({ params }: CategoryPageProps): Promise<Metadata> {
+export async function generateMetadata({
+  params,
+}: CategoryPageProps): Promise<Metadata> {
   const { slug } = await params;
   const decodedSlug = decodeURIComponent(slug);
   const data = await fetchCategoryBySlug(decodedSlug);
 
   if (!data) {
     return {
-      title: 'دسته‌بندی یافت نشد | تک‌یاد',
+      title: "دسته‌بندی یافت نشد | تک یاد",
     };
   }
 
-  const title = data.seoTitle || `دوره‌ها و کلاس‌های ${data.name} | تک‌یاد`;
-  const description = data.seoDescription || data.description || `مجموعه جامع دوره‌های ویدیویی و کلاس‌های آنلاین و حضوری ${data.name} با اساتید برتر در آکادمی آموزشی تک‌یاد`;
+  const title = data.seoTitle || `دوره‌ها و کلاس‌های ${data.name} | تک یاد`;
+  const description =
+    data.seoDescription ||
+    data.description ||
+    `مجموعه جامع دوره‌های ویدیویی و کلاس‌های آنلاین و حضوری ${data.name} با اساتید برتر در آکادمی آموزشی تک یاد`;
 
   return {
     title,
@@ -29,62 +34,76 @@ export async function generateMetadata({ params }: CategoryPageProps): Promise<M
       canonical: `/categories/${decodedSlug}`,
     },
     openGraph: {
-      type: 'website',
-      locale: 'fa_IR',
+      type: "website",
+      locale: "fa_IR",
       url: `https://tecyad.ir/categories/${decodedSlug}`,
-      siteName: 'تک‌یاد | Tecyad',
+      siteName: "تک یاد | Tecyad",
       title,
       description,
       images: [
         {
-          url: data.image || 'https://tecyad.ir/hero-image.png',
+          url: data.image || "https://tecyad.ir/hero-image.png",
           width: 1200,
           height: 630,
-          alt: `دسته‌بندی ${data.name} تک‌یاد`,
+          alt: `دسته‌بندی ${data.name} تک یاد`,
         },
       ],
     },
     twitter: {
-      card: 'summary_large_image',
+      card: "summary_large_image",
       title,
       description,
-      images: [data.image || 'https://tecyad.ir/hero-image.png'],
+      images: [data.image || "https://tecyad.ir/hero-image.png"],
     },
   };
 }
 
-export default async function CategoryPage({ params, searchParams }: CategoryPageProps) {
+export default async function CategoryPage({
+  params,
+  searchParams,
+}: CategoryPageProps) {
   const { slug } = await params;
   const decodedSlug = decodeURIComponent(slug);
   const resolvedSearchParams = searchParams ? await searchParams : {};
 
-  const contentData = await fetchCategoryContent(decodedSlug, resolvedSearchParams);
+  const contentData = await fetchCategoryContent(
+    decodedSlug,
+    resolvedSearchParams,
+  );
 
   if (!contentData || !contentData.category) {
     notFound();
   }
 
-  const { category, breadcrumbs, children, courses, classes, totalCourses, totalClasses } = contentData;
+  const {
+    category,
+    breadcrumbs,
+    children,
+    courses,
+    classes,
+    totalCourses,
+    totalClasses,
+  } = contentData;
 
   // JSON-LD Structured Data for BreadcrumbList
   const breadcrumbListJsonLd = {
-    '@context': 'https://schema.org',
-    '@type': 'BreadcrumbList',
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
     itemListElement: [
       {
-        '@type': 'ListItem',
+        "@type": "ListItem",
         position: 1,
-        name: 'خانه',
-        item: 'https://tecyad.ir',
+        name: "خانه",
+        item: "https://tecyad.ir",
       },
       {
-        '@type': 'ListItem',
+        "@type": "ListItem",
         position: 2,
-        name: 'دسته‌بندی‌ها',
-        item: 'https://tecyad.ir/categories',
+        name: "دسته‌بندی‌ها",
+        item: "https://tecyad.ir/categories",
       },
       ...(breadcrumbs || []).map((b: any, idx: number) => ({
-        '@type': 'ListItem',
+        "@type": "ListItem",
         position: 3 + idx,
         name: b.name,
         item: `https://tecyad.ir/categories/${b.slug}`,
@@ -96,7 +115,9 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
     <>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbListJsonLd) }}
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(breadcrumbListJsonLd),
+        }}
       />
       <CategoryPageClient
         category={category}

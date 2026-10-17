@@ -1,6 +1,6 @@
-'use client';
+"use client";
 
-import { useEffect, useRef, useState, useCallback } from 'react';
+import { useEffect, useRef, useState, useCallback } from "react";
 import {
   Play,
   Pause,
@@ -23,13 +23,17 @@ import {
   Sparkles,
   Layers,
   ChevronRight,
-  ChevronLeft
-} from 'lucide-react';
+  ChevronLeft,
+} from "lucide-react";
 
 interface VideoPlayerProps {
   secureLesson: any;
   initialProgress?: number;
-  onProgressUpdate?: (seconds: number, progressPercent: number, isCompleted: boolean) => void;
+  onProgressUpdate?: (
+    seconds: number,
+    progressPercent: number,
+    isCompleted: boolean,
+  ) => void;
   onNextLesson?: () => void;
   onPrevLesson?: () => void;
   hasNextLesson?: boolean;
@@ -47,7 +51,7 @@ export function VideoPlayer({
   onPrevLesson,
   hasNextLesson = false,
   hasPrevLesson = false,
-  courseTitle = '',
+  courseTitle = "",
   isTheaterMode = false,
   onToggleTheater,
 }: VideoPlayerProps) {
@@ -65,33 +69,45 @@ export function VideoPlayer({
   const [volume, setVolume] = useState(0.85);
   const [isMuted, setIsMuted] = useState(false);
   const [playbackSpeed, setPlaybackSpeed] = useState(1);
-  const [quality, setQuality] = useState('1080p');
+  const [quality, setQuality] = useState("1080p");
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [showControls, setShowControls] = useState(true);
   const [showSettingsMenu, setShowSettingsMenu] = useState(false);
   const [showShortcutsModal, setShowShortcutsModal] = useState(false);
   const [hoverTime, setHoverTime] = useState<number | null>(null);
   const [hoverPosition, setHoverPosition] = useState<number | null>(null);
-  const [centerAnimation, setCenterAnimation] = useState<'play' | 'pause' | 'seek-forward' | 'seek-backward' | null>(null);
-  const [autoPlayCountdown, setAutoPlayCountdown] = useState<number | null>(null);
-  const [resumePrompt, setResumePrompt] = useState<{ time: number; formatted: string } | null>(null);
+  const [centerAnimation, setCenterAnimation] = useState<
+    "play" | "pause" | "seek-forward" | "seek-backward" | null
+  >(null);
+  const [autoPlayCountdown, setAutoPlayCountdown] = useState<number | null>(
+    null,
+  );
+  const [resumePrompt, setResumePrompt] = useState<{
+    time: number;
+    formatted: string;
+  } | null>(null);
   const [hasCopiedLicense, setHasCopiedLicense] = useState(false);
 
   // SpotPlayer support
-  const isSpotPlayer = secureLesson?.video?.provider === 'spotplayer';
-  
+  const isSpotPlayer = secureLesson?.video?.provider === "spotplayer";
+
   // High reliability video source:
   // If no custom video URL is uploaded yet, provide an elegant high-definition developer tutorial video
-  const defaultVideoUrl = 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4';
-  const videoUrl = secureLesson?.video?.url || secureLesson?.video?.externalId || secureLesson?.videoUrl || defaultVideoUrl;
+  const defaultVideoUrl =
+    "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4";
+  const videoUrl =
+    secureLesson?.video?.url ||
+    secureLesson?.video?.externalId ||
+    secureLesson?.videoUrl ||
+    defaultVideoUrl;
 
   // Format seconds to mm:ss or hh:mm:ss
   const formatTime = (seconds: number) => {
-    if (isNaN(seconds) || seconds < 0) return '00:00';
+    if (isNaN(seconds) || seconds < 0) return "00:00";
     const hrs = Math.floor(seconds / 3600);
     const mins = Math.floor((seconds % 3600) / 60);
     const secs = Math.floor(seconds % 60);
-    const pad = (n: number) => n.toString().padStart(2, '0');
+    const pad = (n: number) => n.toString().padStart(2, "0");
     if (hrs > 0) {
       return `${hrs}:${pad(mins)}:${pad(secs)}`;
     }
@@ -100,15 +116,19 @@ export function VideoPlayer({
 
   // Convert digits to Persian / Farsi
   const toFaDigits = (str: string | number) => {
-    return str.toString().replace(/\d/g, (d) => '۰۱۲۳۴۵۶۷۸۹'[parseInt(d, 10)]);
+    return str.toString().replace(/\d/g, (d) => "۰۱۲۳۴۵۶۷۸۹"[parseInt(d, 10)]);
   };
 
   // Check saved timestamp for resume
   useEffect(() => {
-    if (secureLesson?._id && typeof window !== 'undefined') {
+    if (secureLesson?._id && typeof window !== "undefined") {
       const savedKey = `tecyad_playback_${secureLesson._id}`;
-      const savedSec = parseFloat(localStorage.getItem(savedKey) || '0');
-      if (savedSec > 15 && (!videoRef.current || Math.abs(videoRef.current.currentTime - savedSec) > 10)) {
+      const savedSec = parseFloat(localStorage.getItem(savedKey) || "0");
+      if (
+        savedSec > 15 &&
+        (!videoRef.current ||
+          Math.abs(videoRef.current.currentTime - savedSec) > 10)
+      ) {
         setResumePrompt({
           time: savedSec,
           formatted: formatTime(savedSec),
@@ -148,40 +168,50 @@ export function VideoPlayer({
     const onFullscreenChange = () => {
       setIsFullscreen(!!document.fullscreenElement);
     };
-    document.addEventListener('fullscreenchange', onFullscreenChange);
-    return () => document.removeEventListener('fullscreenchange', onFullscreenChange);
+    document.addEventListener("fullscreenchange", onFullscreenChange);
+    return () =>
+      document.removeEventListener("fullscreenchange", onFullscreenChange);
   }, []);
 
   // Center ripple animation trigger
-  const triggerCenterAnimation = useCallback((type: 'play' | 'pause' | 'seek-forward' | 'seek-backward') => {
-    setCenterAnimation(type);
-    setTimeout(() => {
-      setCenterAnimation(null);
-    }, 600);
-  }, []);
+  const triggerCenterAnimation = useCallback(
+    (type: "play" | "pause" | "seek-forward" | "seek-backward") => {
+      setCenterAnimation(type);
+      setTimeout(() => {
+        setCenterAnimation(null);
+      }, 600);
+    },
+    [],
+  );
 
   const togglePlay = useCallback(() => {
     if (!videoRef.current) return;
     if (videoRef.current.paused) {
       videoRef.current.play();
       setIsPlaying(true);
-      triggerCenterAnimation('play');
+      triggerCenterAnimation("play");
     } else {
       videoRef.current.pause();
       setIsPlaying(false);
-      triggerCenterAnimation('pause');
+      triggerCenterAnimation("pause");
       setShowControls(true);
     }
   }, [triggerCenterAnimation]);
 
-  const seekDelta = useCallback((seconds: number) => {
-    if (!videoRef.current) return;
-    const newTime = Math.max(0, Math.min(videoRef.current.currentTime + seconds, duration));
-    videoRef.current.currentTime = newTime;
-    setCurrentTime(newTime);
-    triggerCenterAnimation(seconds > 0 ? 'seek-forward' : 'seek-backward');
-    handleUserActivity();
-  }, [duration, handleUserActivity, triggerCenterAnimation]);
+  const seekDelta = useCallback(
+    (seconds: number) => {
+      if (!videoRef.current) return;
+      const newTime = Math.max(
+        0,
+        Math.min(videoRef.current.currentTime + seconds, duration),
+      );
+      videoRef.current.currentTime = newTime;
+      setCurrentTime(newTime);
+      triggerCenterAnimation(seconds > 0 ? "seek-forward" : "seek-backward");
+      handleUserActivity();
+    },
+    [duration, handleUserActivity, triggerCenterAnimation],
+  );
 
   const toggleMute = useCallback(() => {
     if (!videoRef.current) return;
@@ -195,19 +225,22 @@ export function VideoPlayer({
     }
   }, [isMuted, volume]);
 
-  const changeVolume = useCallback((newVolume: number) => {
-    if (!videoRef.current) return;
-    const clamped = Math.max(0, Math.min(1, newVolume));
-    setVolume(clamped);
-    videoRef.current.volume = clamped;
-    if (clamped === 0) {
-      setIsMuted(true);
-      videoRef.current.muted = true;
-    } else if (isMuted) {
-      setIsMuted(false);
-      videoRef.current.muted = false;
-    }
-  }, [isMuted]);
+  const changeVolume = useCallback(
+    (newVolume: number) => {
+      if (!videoRef.current) return;
+      const clamped = Math.max(0, Math.min(1, newVolume));
+      setVolume(clamped);
+      videoRef.current.volume = clamped;
+      if (clamped === 0) {
+        setIsMuted(true);
+        videoRef.current.muted = true;
+      } else if (isMuted) {
+        setIsMuted(false);
+        videoRef.current.muted = false;
+      }
+    },
+    [isMuted],
+  );
 
   const toggleFullscreen = useCallback(() => {
     if (!containerRef.current) return;
@@ -223,65 +256,69 @@ export function VideoPlayer({
     const handleKeyDown = (e: KeyboardEvent) => {
       // Don't intercept if user is typing in an input or textarea
       const target = e.target as HTMLElement;
-      if (target?.tagName === 'INPUT' || target?.tagName === 'TEXTAREA' || target?.isContentEditable) {
+      if (
+        target?.tagName === "INPUT" ||
+        target?.tagName === "TEXTAREA" ||
+        target?.isContentEditable
+      ) {
         return;
       }
 
       switch (e.code) {
-        case 'Space':
-        case 'KeyK':
+        case "Space":
+        case "KeyK":
           e.preventDefault();
           togglePlay();
           break;
-        case 'KeyF':
+        case "KeyF":
           e.preventDefault();
           toggleFullscreen();
           break;
-        case 'KeyT':
+        case "KeyT":
           e.preventDefault();
           if (onToggleTheater) onToggleTheater();
           break;
-        case 'KeyM':
+        case "KeyM":
           e.preventDefault();
           toggleMute();
           break;
-        case 'ArrowLeft':
+        case "ArrowLeft":
           e.preventDefault();
           seekDelta(-5);
           break;
-        case 'ArrowRight':
+        case "ArrowRight":
           e.preventDefault();
           seekDelta(5);
           break;
-        case 'KeyJ':
+        case "KeyJ":
           e.preventDefault();
           seekDelta(-10);
           break;
-        case 'KeyL':
+        case "KeyL":
           e.preventDefault();
           seekDelta(10);
           break;
-        case 'ArrowUp':
+        case "ArrowUp":
           e.preventDefault();
           changeVolume(Math.min(volume + 0.1, 1));
           break;
-        case 'ArrowDown':
+        case "ArrowDown":
           e.preventDefault();
           changeVolume(Math.max(volume - 0.1, 0));
           break;
-        case 'KeyP':
+        case "KeyP":
           if (hasPrevLesson && onPrevLesson) {
             e.preventDefault();
             onPrevLesson();
           }
           break;
-        case 'KeyN':
+        case "KeyN":
           if (hasNextLesson && onNextLesson) {
             e.preventDefault();
             onNextLesson();
           }
           break;
-        case 'Slash':
+        case "Slash":
           if (e.shiftKey) {
             e.preventDefault();
             setShowShortcutsModal((prev) => !prev);
@@ -290,8 +327,8 @@ export function VideoPlayer({
       }
     };
 
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
   }, [
     volume,
     hasNextLesson,
@@ -322,7 +359,7 @@ export function VideoPlayer({
         await videoRef.current.requestPictureInPicture();
       }
     } catch (e) {
-      console.warn('PiP not supported or failed', e);
+      console.warn("PiP not supported or failed", e);
     }
   };
 
@@ -336,13 +373,18 @@ export function VideoPlayer({
     // Save in localStorage for resume
     if (secureLesson?._id && cur > 5) {
       try {
-        localStorage.setItem(`tecyad_playback_${secureLesson._id}`, cur.toString());
+        localStorage.setItem(
+          `tecyad_playback_${secureLesson._id}`,
+          cur.toString(),
+        );
       } catch {}
     }
 
     // Buffer progress
     if (videoRef.current.buffered.length > 0) {
-      const bufferedEnd = videoRef.current.buffered.end(videoRef.current.buffered.length - 1);
+      const bufferedEnd = videoRef.current.buffered.end(
+        videoRef.current.buffered.length - 1,
+      );
       setBuffered((bufferedEnd / dur) * 100);
     }
 
@@ -351,7 +393,10 @@ export function VideoPlayer({
     const isCompleted = currentPercent >= 90;
 
     // Report progress to parent API every 10s or upon 90% completion
-    if (now - lastUpdateRef.current > 10000 || (isCompleted && lastUpdateRef.current !== -1)) {
+    if (
+      now - lastUpdateRef.current > 10000 ||
+      (isCompleted && lastUpdateRef.current !== -1)
+    ) {
       if (onProgressUpdate) {
         onProgressUpdate(cur, currentPercent, isCompleted);
       }
@@ -365,7 +410,8 @@ export function VideoPlayer({
 
     // Initial seek if initialProgress was provided
     if (initialProgress > 0 && initialProgress < 90) {
-      const targetSec = (initialProgress / 100) * (videoRef.current.duration || 0);
+      const targetSec =
+        (initialProgress / 100) * (videoRef.current.duration || 0);
       if (targetSec > 5) {
         videoRef.current.currentTime = targetSec;
         setCurrentTime(targetSec);
@@ -449,9 +495,12 @@ export function VideoPlayer({
           <Play className="w-10 h-10 ml-1 text-blue-400" />
         </div>
 
-        <h3 className="text-xl font-bold text-white mb-2">پخش تحت برنامه SpotPlayer</h3>
+        <h3 className="text-xl font-bold text-white mb-2">
+          پخش تحت برنامه SpotPlayer
+        </h3>
         <p className="text-slate-400 text-sm mb-6 max-w-lg leading-relaxed">
-          ویدیوهای این درس به صورت اختصاصی کدگذاری شده‌اند. لطفاً لایسنس فعال‌سازی زیر را کپی کرده و در برنامه اسپات‌پلیر باز فرمایید.
+          ویدیوهای این درس به صورت اختصاصی کدگذاری شده‌اند. لطفاً لایسنس
+          فعال‌سازی زیر را کپی کرده و در برنامه اسپات‌پلیر باز فرمایید.
         </p>
 
         <div className="bg-slate-900/90 p-3.5 rounded-xl flex items-center gap-3 w-full max-w-lg border border-slate-800 shadow-inner">
@@ -466,8 +515,12 @@ export function VideoPlayer({
             }}
             className="flex items-center gap-1.5 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-lg transition shrink-0"
           >
-            {hasCopiedLicense ? <CheckCircle2 className="w-4 h-4 text-white" /> : <Copy className="w-4 h-4" />}
-            {hasCopiedLicense ? 'کپی شد' : 'کپی لایسنس'}
+            {hasCopiedLicense ? (
+              <CheckCircle2 className="w-4 h-4 text-white" />
+            ) : (
+              <Copy className="w-4 h-4" />
+            )}
+            {hasCopiedLicense ? "کپی شد" : "کپی لایسنس"}
           </button>
         </div>
 
@@ -476,7 +529,7 @@ export function VideoPlayer({
           <span>•</span>
           <span>پخش بدون افت کیفیت</span>
           <span>•</span>
-          <span>محافظت از حق مؤلف تک‌یاد</span>
+          <span>محافظت از حق مؤلف تک یاد</span>
         </div>
       </div>
     );
@@ -490,7 +543,9 @@ export function VideoPlayer({
       onMouseMove={handleUserActivity}
       onMouseLeave={() => isPlaying && setShowControls(false)}
       className={`relative w-full aspect-video bg-black select-none overflow-hidden group font-sans transition-all duration-300 ${
-        isFullscreen ? 'fixed inset-0 z-50 h-screen w-screen rounded-none' : 'rounded-2xl border border-slate-800 shadow-2xl'
+        isFullscreen
+          ? "fixed inset-0 z-50 h-screen w-screen rounded-none"
+          : "rounded-2xl border border-slate-800 shadow-2xl"
       }`}
     >
       {/* Video Element */}
@@ -519,7 +574,11 @@ export function VideoPlayer({
         <div className="absolute bottom-20 left-6 z-30 bg-slate-900/95 backdrop-blur-md text-white border border-blue-500/40 px-4 py-2.5 rounded-xl shadow-xl flex items-center gap-3 animate-fade-in">
           <div className="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></div>
           <div className="text-xs">
-            ادامه پخش از دقیقه <span className="font-bold text-blue-400 font-mono">{toFaDigits(resumePrompt.formatted)}</span>؟
+            ادامه پخش از دقیقه{" "}
+            <span className="font-bold text-blue-400 font-mono">
+              {toFaDigits(resumePrompt.formatted)}
+            </span>
+            ؟
           </div>
           <button
             onClick={handleResumePlayback}
@@ -542,8 +601,12 @@ export function VideoPlayer({
           <div className="w-16 h-16 rounded-full border-4 border-blue-500/20 border-t-blue-500 animate-spin mb-4 flex items-center justify-center text-xl font-bold font-mono text-blue-400">
             {toFaDigits(autoPlayCountdown)}
           </div>
-          <h3 className="text-lg font-bold text-white mb-2">جلسه بعدی تا لحظاتی دیگر شروع می‌شود</h3>
-          <p className="text-slate-400 text-xs mb-6 max-w-sm">در حال انتقال خودکار به درس بعدی دوره آموزشی...</p>
+          <h3 className="text-lg font-bold text-white mb-2">
+            جلسه بعدی تا لحظاتی دیگر شروع می‌شود
+          </h3>
+          <p className="text-slate-400 text-xs mb-6 max-w-sm">
+            در حال انتقال خودکار به درس بعدی دوره آموزشی...
+          </p>
           <div className="flex items-center gap-3">
             <button
               onClick={() => {
@@ -568,10 +631,18 @@ export function VideoPlayer({
       {centerAnimation && (
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-20">
           <div className="w-20 h-20 rounded-full bg-slate-900/80 backdrop-blur-md border border-white/20 text-white flex items-center justify-center shadow-2xl scale-125 animate-ping opacity-75">
-            {centerAnimation === 'play' && <Play className="w-10 h-10 ml-1 text-white fill-white" />}
-            {centerAnimation === 'pause' && <Pause className="w-10 h-10 text-white fill-white" />}
-            {centerAnimation === 'seek-forward' && <RotateCw className="w-10 h-10 text-blue-400" />}
-            {centerAnimation === 'seek-backward' && <RotateCcw className="w-10 h-10 text-blue-400" />}
+            {centerAnimation === "play" && (
+              <Play className="w-10 h-10 ml-1 text-white fill-white" />
+            )}
+            {centerAnimation === "pause" && (
+              <Pause className="w-10 h-10 text-white fill-white" />
+            )}
+            {centerAnimation === "seek-forward" && (
+              <RotateCw className="w-10 h-10 text-blue-400" />
+            )}
+            {centerAnimation === "seek-backward" && (
+              <RotateCcw className="w-10 h-10 text-blue-400" />
+            )}
           </div>
         </div>
       )}
@@ -591,14 +662,14 @@ export function VideoPlayer({
       {/* Top Header Overlay Bar (Auto-hide) */}
       <div
         className={`absolute top-0 inset-x-0 p-4 bg-gradient-to-b from-black/80 via-black/40 to-transparent z-20 flex items-center justify-between transition-opacity duration-300 ${
-          showControls ? 'opacity-100' : 'opacity-0 pointer-events-none'
+          showControls ? "opacity-100" : "opacity-0 pointer-events-none"
         }`}
       >
         <div className="flex items-center gap-3">
           <span className="w-2.5 h-2.5 rounded-full bg-blue-500"></span>
           <div>
             <h2 className="text-white text-xs sm:text-sm font-bold line-clamp-1 drop-shadow-md">
-              {secureLesson?.title || 'عنوان جلسه'}
+              {secureLesson?.title || "عنوان جلسه"}
             </h2>
             {courseTitle && (
               <p className="text-[11px] text-slate-300 line-clamp-1 font-medium drop-shadow-sm opacity-80">
@@ -623,7 +694,7 @@ export function VideoPlayer({
       {/* Bottom Controls Bar (Auto-hide) */}
       <div
         className={`absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/95 via-black/70 to-transparent p-4 z-20 transition-opacity duration-300 flex flex-col justify-end ${
-          showControls ? 'opacity-100' : 'opacity-0 pointer-events-none'
+          showControls ? "opacity-100" : "opacity-0 pointer-events-none"
         }`}
       >
         {/* Timeline Scrubber */}
@@ -674,9 +745,13 @@ export function VideoPlayer({
             <button
               onClick={togglePlay}
               className="p-1.5 hover:text-blue-400 transition"
-              title={isPlaying ? 'توقف (Space / K)' : 'پخش (Space / K)'}
+              title={isPlaying ? "توقف (Space / K)" : "پخش (Space / K)"}
             >
-              {isPlaying ? <Pause className="w-5 h-5 fill-current" /> : <Play className="w-5 h-5 fill-current" />}
+              {isPlaying ? (
+                <Pause className="w-5 h-5 fill-current" />
+              ) : (
+                <Play className="w-5 h-5 fill-current" />
+              )}
             </button>
 
             {/* Prev / Next Lesson quick jumps */}
@@ -723,7 +798,7 @@ export function VideoPlayer({
               <button
                 onClick={toggleMute}
                 className="p-1.5 hover:text-blue-400 transition"
-                title={isMuted ? 'صدادار کردن (M)' : 'بی‌صدا کردن (M)'}
+                title={isMuted ? "صدادار کردن (M)" : "بی‌صدا کردن (M)"}
               >
                 {isMuted || volume === 0 ? (
                   <VolumeX className="w-5 h-5 text-red-400" />
@@ -747,7 +822,9 @@ export function VideoPlayer({
 
             {/* Time Stamp (Current / Total) */}
             <div className="text-[11px] font-mono text-slate-300 dir-ltr select-none mr-2">
-              <span className="text-white font-semibold">{toFaDigits(formatTime(currentTime))}</span>
+              <span className="text-white font-semibold">
+                {toFaDigits(formatTime(currentTime))}
+              </span>
               <span className="mx-1 text-slate-500">/</span>
               <span>{toFaDigits(formatTime(duration))}</span>
             </div>
@@ -777,7 +854,9 @@ export function VideoPlayer({
                       key={s}
                       onClick={() => handleSpeedChange(s)}
                       className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-right transition ${
-                        playbackSpeed === s ? 'bg-blue-600 text-white font-bold' : 'hover:bg-slate-800 text-slate-300'
+                        playbackSpeed === s
+                          ? "bg-blue-600 text-white font-bold"
+                          : "hover:bg-slate-800 text-slate-300"
                       }`}
                     >
                       <span className="font-mono">{s}x</span>
@@ -788,7 +867,7 @@ export function VideoPlayer({
                   <div className="px-2 py-1 text-[10px] text-slate-400 font-bold border-b border-slate-800 pt-2">
                     کیفیت ویدیو
                   </div>
-                  {['1080p', '720p', '480p'].map((q) => (
+                  {["1080p", "720p", "480p"].map((q) => (
                     <button
                       key={q}
                       onClick={() => {
@@ -796,7 +875,9 @@ export function VideoPlayer({
                         setShowSettingsMenu(false);
                       }}
                       className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-right transition ${
-                        quality === q ? 'bg-blue-600 text-white font-bold' : 'hover:bg-slate-800 text-slate-300'
+                        quality === q
+                          ? "bg-blue-600 text-white font-bold"
+                          : "hover:bg-slate-800 text-slate-300"
                       }`}
                     >
                       <span className="font-mono">{q}</span>
@@ -820,9 +901,11 @@ export function VideoPlayer({
             {onToggleTheater && (
               <button
                 onClick={onToggleTheater}
-                title={isTheaterMode ? 'حالت عادی (T)' : 'حالت سینمایی (T)'}
+                title={isTheaterMode ? "حالت عادی (T)" : "حالت سینمایی (T)"}
                 className={`p-1.5 rounded-md transition ${
-                  isTheaterMode ? 'text-blue-400 bg-blue-500/20' : 'text-slate-300 hover:text-white'
+                  isTheaterMode
+                    ? "text-blue-400 bg-blue-500/20"
+                    : "text-slate-300 hover:text-white"
                 }`}
               >
                 <Tv className="w-4 h-4" />
@@ -833,9 +916,13 @@ export function VideoPlayer({
             <button
               onClick={toggleFullscreen}
               className="p-1.5 hover:text-blue-400 transition"
-              title={isFullscreen ? 'خروج از تمام‌صفحه (F)' : 'تمام‌صفحه (F)'}
+              title={isFullscreen ? "خروج از تمام‌صفحه (F)" : "تمام‌صفحه (F)"}
             >
-              {isFullscreen ? <Minimize className="w-5 h-5" /> : <Maximize className="w-5 h-5" />}
+              {isFullscreen ? (
+                <Minimize className="w-5 h-5" />
+              ) : (
+                <Maximize className="w-5 h-5" />
+              )}
             </button>
           </div>
         </div>
@@ -848,7 +935,7 @@ export function VideoPlayer({
             <div className="flex items-center justify-between pb-3 border-b border-slate-800 mb-4">
               <h3 className="font-bold text-white text-base flex items-center gap-2">
                 <HelpCircle className="w-5 h-5 text-blue-400" />
-                کلیدهای میانبر پلیر تک‌یاد
+                کلیدهای میانبر پلیر تک یاد
               </h3>
               <button
                 onClick={() => setShowShortcutsModal(false)}
@@ -860,35 +947,51 @@ export function VideoPlayer({
 
             <div className="space-y-2.5 text-xs text-slate-300">
               <div className="flex items-center justify-between py-1 border-b border-slate-800/60">
-                <span className="font-mono bg-slate-800 px-2 py-0.5 rounded text-blue-400 border border-slate-700">Space / K</span>
+                <span className="font-mono bg-slate-800 px-2 py-0.5 rounded text-blue-400 border border-slate-700">
+                  Space / K
+                </span>
                 <span>پخش / توقف ویدیو</span>
               </div>
               <div className="flex items-center justify-between py-1 border-b border-slate-800/60">
-                <span className="font-mono bg-slate-800 px-2 py-0.5 rounded text-blue-400 border border-slate-700">F</span>
+                <span className="font-mono bg-slate-800 px-2 py-0.5 rounded text-blue-400 border border-slate-700">
+                  F
+                </span>
                 <span>حالت تمام‌صفحه</span>
               </div>
               <div className="flex items-center justify-between py-1 border-b border-slate-800/60">
-                <span className="font-mono bg-slate-800 px-2 py-0.5 rounded text-blue-400 border border-slate-700">T</span>
+                <span className="font-mono bg-slate-800 px-2 py-0.5 rounded text-blue-400 border border-slate-700">
+                  T
+                </span>
                 <span>حالت سینمایی (Theater)</span>
               </div>
               <div className="flex items-center justify-between py-1 border-b border-slate-800/60">
-                <span className="font-mono bg-slate-800 px-2 py-0.5 rounded text-blue-400 border border-slate-700">M</span>
+                <span className="font-mono bg-slate-800 px-2 py-0.5 rounded text-blue-400 border border-slate-700">
+                  M
+                </span>
                 <span>بی‌صدا / باصدا</span>
               </div>
               <div className="flex items-center justify-between py-1 border-b border-slate-800/60">
-                <span className="font-mono bg-slate-800 px-2 py-0.5 rounded text-blue-400 border border-slate-700">J / L</span>
+                <span className="font-mono bg-slate-800 px-2 py-0.5 rounded text-blue-400 border border-slate-700">
+                  J / L
+                </span>
                 <span>۱۰ ثانیه عقب / جلو</span>
               </div>
               <div className="flex items-center justify-between py-1 border-b border-slate-800/60">
-                <span className="font-mono bg-slate-800 px-2 py-0.5 rounded text-blue-400 border border-slate-700">Arrow Left / Right</span>
+                <span className="font-mono bg-slate-800 px-2 py-0.5 rounded text-blue-400 border border-slate-700">
+                  Arrow Left / Right
+                </span>
                 <span>۵ ثانیه عقب / جلو</span>
               </div>
               <div className="flex items-center justify-between py-1 border-b border-slate-800/60">
-                <span className="font-mono bg-slate-800 px-2 py-0.5 rounded text-blue-400 border border-slate-700">Arrow Up / Down</span>
+                <span className="font-mono bg-slate-800 px-2 py-0.5 rounded text-blue-400 border border-slate-700">
+                  Arrow Up / Down
+                </span>
                 <span>افزایش / کاهش صدا</span>
               </div>
               <div className="flex items-center justify-between py-1 border-b border-slate-800/60">
-                <span className="font-mono bg-slate-800 px-2 py-0.5 rounded text-blue-400 border border-slate-700">P / N</span>
+                <span className="font-mono bg-slate-800 px-2 py-0.5 rounded text-blue-400 border border-slate-700">
+                  P / N
+                </span>
                 <span>جلسه قبل / بعد</span>
               </div>
             </div>

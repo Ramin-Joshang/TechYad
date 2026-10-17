@@ -1,39 +1,42 @@
-import type { Metadata } from 'next';
+import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: 'درباره ما | پلتفرم آموزش تخصصی و آنلاین تک‌یاد',
-  description: 'آشنایی با آکادمی آنلاین تک‌یاد (Tecyad)؛ تاریخچه، اهداف، چشم‌انداز آموزشی و تعهد ما به توانمندسازی دانشجویان با برترین اساتید و آموزش‌های مهارتی.',
+  title: "درباره ما | پلتفرم آموزش تخصصی و آنلاین تک یاد",
+  description:
+    "آشنایی با آکادمی آنلاین تک یاد (Tecyad)؛ تاریخچه، اهداف، چشم‌انداز آموزشی و تعهد ما به توانمندسازی دانشجویان با برترین اساتید و آموزش‌های مهارتی.",
   keywords: [
-    'درباره تک‌یاد',
-    'آکادمی تک‌یاد',
-    'آموزشگاه آنلاین',
-    'یادگیری مهارت',
-    'Tecyad',
-    'تیم آموزشی تک‌یاد',
+    "درباره تک یاد",
+    "آکادمی تک یاد",
+    "آموزشگاه آنلاین",
+    "یادگیری مهارت",
+    "Tecyad",
+    "تیم آموزشی تک یاد",
   ],
   alternates: {
-    canonical: '/about',
+    canonical: "/about",
   },
   openGraph: {
-    type: 'website',
-    locale: 'fa_IR',
-    url: 'https://tecyad.ir/about',
-    title: 'درباره ما | پلتفرم آموزش تخصصی تک‌یاد (Tecyad)',
-    description: 'آشنایی با آکادمی آنلاین تک‌یاد؛ تاریخچه، اهداف و تعهد به توانمندسازی مهارتی دانشجویان.',
+    type: "website",
+    locale: "fa_IR",
+    url: "https://tecyad.ir/about",
+    title: "درباره ما | پلتفرم آموزش تخصصی تک یاد (Tecyad)",
+    description:
+      "آشنایی با آکادمی آنلاین تک یاد؛ تاریخچه، اهداف و تعهد به توانمندسازی مهارتی دانشجویان.",
     images: [
       {
-        url: 'https://tecyad.ir/hero-image.png',
+        url: "https://tecyad.ir/hero-image.png",
         width: 1200,
         height: 630,
-        alt: 'درباره تک‌یاد',
+        alt: "درباره تک یاد",
       },
     ],
   },
   twitter: {
-    card: 'summary_large_image',
-    title: 'درباره ما | پلتفرم آموزش تخصصی تک‌یاد',
-    description: 'آشنایی با آکادمی آنلاین تک‌یاد و چشم‌انداز آموزش مهارتی در ایران.',
-    images: ['https://tecyad.ir/hero-image.png'],
+    card: "summary_large_image",
+    title: "درباره ما | پلتفرم آموزش تخصصی تک یاد",
+    description:
+      "آشنایی با آکادمی آنلاین تک یاد و چشم‌انداز آموزش مهارتی در ایران.",
+    images: ["https://tecyad.ir/hero-image.png"],
   },
 };
 

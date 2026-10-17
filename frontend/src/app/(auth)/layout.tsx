@@ -1,7 +1,7 @@
-import type { Metadata } from 'next';
+import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: 'ورود و عضویت در تک‌یاد',
+  title: "ورود و عضویت در تک یاد",
   robots: {
     index: false,
     follow: false,

@@ -1,27 +1,34 @@
-import Link from 'next/link';
-import type { Metadata } from 'next';
-import { fetchCategories } from '@/lib/server-api';
-import { FolderTree, Sparkles, BookOpen, GraduationCap, ChevronLeft } from 'lucide-react';
-export const dynamic = 'force-dynamic';
+import Link from "next/link";
+import type { Metadata } from "next";
+import { fetchCategories } from "@/lib/server-api";
+import {
+  FolderTree,
+  Sparkles,
+  BookOpen,
+  GraduationCap,
+  ChevronLeft,
+} from "lucide-react";
+export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: 'دسته‌بندی جامع دوره‌ها و کلاس‌های آموزشی | تک‌یاد',
-  description: 'مسیرهای یادگیری تخصصی برنامه‌نویسی، طراحی وب، هوش مصنوعی، علوم داده، شبکه و امنیت در تک‌یاد. انتخاب دسته‌بندی و شروع یادگیری مهارت‌های بازار کار.',
+  title: "دسته‌بندی جامع دوره‌ها و کلاس‌های آموزشی | تک یاد",
+  description:
+    "مسیرهای یادگیری تخصصی برنامه‌نویسی، طراحی وب، هوش مصنوعی، علوم داده، شبکه و امنیت در تک یاد. انتخاب دسته‌بندی و شروع یادگیری مهارت‌های بازار کار.",
   alternates: {
-    canonical: '/categories',
+    canonical: "/categories",
   },
   openGraph: {
-    type: 'website',
-    locale: 'fa_IR',
-    url: 'https://tecyad.ir/categories',
-    siteName: 'تک‌یاد | Tecyad',
-    title: 'دسته‌بندی دوره‌ها و کلاس‌های آموزشی | تک‌یاد (Tecyad)',
-    description: 'مسیرهای یادگیری تخصصی برنامه‌نویسی، طراحی وب و هوش مصنوعی.',
+    type: "website",
+    locale: "fa_IR",
+    url: "https://tecyad.ir/categories",
+    siteName: "تک یاد | Tecyad",
+    title: "دسته‌بندی دوره‌ها و کلاس‌های آموزشی | تک یاد (Tecyad)",
+    description: "مسیرهای یادگیری تخصصی برنامه‌نویسی، طراحی وب و هوش مصنوعی.",
   },
 };
 
 export default async function CategoriesIndexPage() {
-  const treeCategories = await fetchCategories({ tree: true }) || [];
+  const treeCategories = (await fetchCategories({ tree: true })) || [];
 
   return (
     <div dir="rtl" className="min-h-screen bg-[var(--neo-bg)] text-right pb-24">
@@ -36,7 +43,8 @@ export default async function CategoriesIndexPage() {
             دسته‌بندی دوره‌ها و کلاس‌های آموزشی
           </h1>
           <p className="text-sm sm:text-base text-[var(--neo-text-secondary)] max-w-3xl leading-relaxed">
-            شاخه مورد علاقه خود را انتخاب کنید و به جدیدترین دوره‌های ویدیویی و کلاس‌های آنلاین و حضوری دسترسی پیدا کنید.
+            شاخه مورد علاقه خود را انتخاب کنید و به جدیدترین دوره‌های ویدیویی و
+            کلاس‌های آنلاین و حضوری دسترسی پیدا کنید.
           </p>
         </div>
       </section>
@@ -44,7 +52,8 @@ export default async function CategoriesIndexPage() {
       {/* Categories Tree Grid */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-10 space-y-12">
         {treeCategories.map((rootCat: any) => {
-          const totalContent = (rootCat.courseCount || 0) + (rootCat.classCount || 0);
+          const totalContent =
+            (rootCat.courseCount || 0) + (rootCat.classCount || 0);
           return (
             <div
               key={rootCat._id}
@@ -107,7 +116,9 @@ export default async function CategoriesIndexPage() {
                             {subCat.name}
                           </Link>
                           <span className="text-[11px] px-2 py-0.5 rounded-full bg-white text-[var(--neo-text-muted)] border border-[var(--neo-border)]">
-                            {(subCat.courseCount || 0) + (subCat.classCount || 0)} عنوان
+                            {(subCat.courseCount || 0) +
+                              (subCat.classCount || 0)}{" "}
+                            عنوان
                           </span>
                         </div>
 

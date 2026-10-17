@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import Link from 'next/link';
-import { AlertTriangle, RefreshCw, Home } from 'lucide-react';
+import Link from "next/link";
+import { AlertTriangle, RefreshCw, Home } from "lucide-react";
 
 export default function GlobalError({
   error,
@@ -15,9 +15,9 @@ export default function GlobalError({
       <body className="min-h-screen bg-slate-50 flex items-center justify-center p-4 font-sans text-right">
         <main className="max-w-md w-full bg-white rounded-3xl p-8 border border-slate-200 shadow-xl text-center space-y-6">
           <div className="flex justify-center">
-            <img 
-              src="/logo.png" 
-              alt="لوگو تک‌یاد" 
+            <img
+              src="/logo.png"
+              alt="لوگو تک یاد"
               className="h-12 w-auto object-contain rounded-xl"
             />
           </div>
@@ -31,7 +31,8 @@ export default function GlobalError({
               خطای سراسری در بارگذاری سامانه
             </h1>
             <p className="text-xs text-slate-500 leading-relaxed">
-              متأسفانه خطایی در لایه اصلی برنامه رخ داده است. لطفاً صفحه را بارگذاری مجدد فرمایید.
+              متأسفانه خطایی در لایه اصلی برنامه رخ داده است. لطفاً صفحه را
+              بارگذاری مجدد فرمایید.
             </p>
           </div>
 

@@ -36,7 +36,7 @@ export const generalPaths = {
       description: 'واکشی بنرهای اسلایدر، دوره‌های ویژه، پرفروش‌ترین‌ها، وبینارهای فعال، اساتید برتر و آمار کلان سایت.',
       responses: {
         '200': {
-          description: 'داده‌های صفحه نخست پلتفرم تک‌یاد',
+          description: 'داده‌های صفحه نخست پلتفرم تک یاد',
           content: {
             'application/json': {
               schema: {
@@ -137,7 +137,7 @@ export const generalPaths = {
     post: {
       tags: ['System & General (سیستم و عمومی)'],
       summary: 'ارسال رزومه و درخواست تدریس / استخدام',
-      description: 'ثبت اطلاعات متقاضی تدریس یا همکاری در تیم فنی و محتوای تک‌یاد.',
+      description: 'ثبت اطلاعات متقاضی تدریس یا همکاری در تیم فنی و محتوای تک یاد.',
       requestBody: {
         required: true,
         content: {

@@ -1,14 +1,14 @@
-'use client';
+"use client";
 
-import { useState, useEffect, useMemo, useRef } from 'react';
-import { useRouter, useParams } from 'next/navigation';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { coursesApi } from '@/features/courses/api/courses.api';
-import { learningApi } from '@/features/learning/api/learning.api';
-import { VideoPlayer } from '@/features/learning/components/VideoPlayer';
-import { LessonComments } from '@/features/learning/components/LessonComments';
-import { useAuthStore } from '@/features/auth/stores/auth.store';
-import { getImageUrl, handleImageError } from '@/lib/utils';
+import { useState, useEffect, useMemo, useRef } from "react";
+import { useRouter, useParams } from "next/navigation";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { coursesApi } from "@/features/courses/api/courses.api";
+import { learningApi } from "@/features/learning/api/learning.api";
+import { VideoPlayer } from "@/features/learning/components/VideoPlayer";
+import { LessonComments } from "@/features/learning/components/LessonComments";
+import { useAuthStore } from "@/features/auth/stores/auth.store";
+import { getImageUrl, handleImageError } from "@/lib/utils";
 import {
   Menu,
   X,
@@ -36,9 +36,9 @@ import {
   Plus,
   Trash2,
   Tv,
-  CheckSquare
-} from 'lucide-react';
-import Link from 'next/link';
+  CheckSquare,
+} from "lucide-react";
+import Link from "next/link";
 
 interface NoteItem {
   id: string;
@@ -58,26 +58,30 @@ interface LessonProgressData {
 export default function LearnCoursePage() {
   const router = useRouter();
   const params = useParams();
-  const slug = (params?.slug as string) || '';
+  const slug = (params?.slug as string) || "";
   const { user } = useAuthStore();
   const queryClient = useQueryClient();
 
   const [activeLessonId, setActiveLessonId] = useState<string | null>(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isTheaterMode, setIsTheaterMode] = useState(false);
-  const [activeTab, setActiveTab] = useState<'info' | 'notes' | 'files' | 'comments' | 'shortcuts'>('info');
-  const [searchCurriculum, setSearchCurriculum] = useState('');
-  const [collapsedChapters, setCollapsedChapters] = useState<Record<string, boolean>>({});
+  const [activeTab, setActiveTab] = useState<
+    "info" | "notes" | "files" | "comments" | "shortcuts"
+  >("info");
+  const [searchCurriculum, setSearchCurriculum] = useState("");
+  const [collapsedChapters, setCollapsedChapters] = useState<
+    Record<string, boolean>
+  >({});
   const [isBookmarked, setIsBookmarked] = useState(false);
   const [copiedLink, setCopiedLink] = useState(false);
 
   // Smart Notes
   const [notes, setNotes] = useState<NoteItem[]>([]);
-  const [newNoteText, setNewNoteText] = useState('');
+  const [newNoteText, setNewNoteText] = useState("");
 
   // Fetch Course by slug (or ID)
   const { data: courseData, isLoading: courseLoading } = useQuery({
-    queryKey: ['course', slug],
+    queryKey: ["course", slug],
     queryFn: () => coursesApi.getCourseBySlug(slug).then((res) => res.data),
     enabled: !!slug,
   });
@@ -85,28 +89,40 @@ export default function LearnCoursePage() {
 
   // Check enrollment
   const { data: enrollmentData, isLoading: enrollmentLoading } = useQuery({
-    queryKey: ['enrollment', course?._id],
-    queryFn: () => learningApi.getMyEnrollmentDetails(course!._id).then((res) => res.data),
+    queryKey: ["enrollment", course?._id],
+    queryFn: () =>
+      learningApi.getMyEnrollmentDetails(course!._id).then((res) => res.data),
     enabled: !!course?._id && !!user,
     retry: false,
   });
   const enrollment = enrollmentData;
-  const isEnrolled = !!enrollment || user?.role === 'admin' || user?.role === 'super-admin' || (course && user && course.instructors?.some((i: any) => i._id === (user as any)._id || i._id === (user as any).id));
+  const isEnrolled =
+    !!enrollment ||
+    user?.role === "admin" ||
+    user?.role === "super-admin" ||
+    (course &&
+      user &&
+      course.instructors?.some(
+        (i: any) => i._id === (user as any)._id || i._id === (user as any).id,
+      ));
 
   // Fetch Chapters
   const { data: chaptersData, isLoading: chaptersLoading } = useQuery({
-    queryKey: ['chapters', course?._id],
-    queryFn: () => coursesApi.getCourseChapters(course!._id).then((res) => res.data),
+    queryKey: ["chapters", course?._id],
+    queryFn: () =>
+      coursesApi.getCourseChapters(course!._id).then((res) => res.data),
     enabled: !!course?._id,
   });
   const chapters = chaptersData || [];
 
   // Fetch Lessons for all chapters
   const { data: allLessonsData, isLoading: lessonsLoading } = useQuery({
-    queryKey: ['lessons', chapters.map((c) => c._id).join(',')],
+    queryKey: ["lessons", chapters.map((c) => c._id).join(",")],
     queryFn: async () => {
       if (chapters.length === 0) return [];
-      const promises = chapters.map((c) => coursesApi.getChapterLessons(c._id).then((res) => res.data));
+      const promises = chapters.map((c) =>
+        coursesApi.getChapterLessons(c._id).then((res) => res.data),
+      );
       const results = await Promise.all(promises);
       return results.flat();
     },
@@ -120,8 +136,9 @@ export default function LearnCoursePage() {
     isLoading: lessonLoading,
     isError: lessonAccessError,
   } = useQuery({
-    queryKey: ['secureLesson', activeLessonId],
-    queryFn: () => learningApi.getSecureLesson(activeLessonId!).then((res) => res.data),
+    queryKey: ["secureLesson", activeLessonId],
+    queryFn: () =>
+      learningApi.getSecureLesson(activeLessonId!).then((res) => res.data),
     enabled: !!activeLessonId,
     retry: false,
   });
@@ -129,19 +146,29 @@ export default function LearnCoursePage() {
 
   // Fetch Progress for the active lesson
   const { data: lessonProgressData } = useQuery({
-    queryKey: ['lessonProgress', activeLessonId],
-    queryFn: () => learningApi.getLessonProgress(activeLessonId!).then((res) => (res.data as any) as LessonProgressData),
+    queryKey: ["lessonProgress", activeLessonId],
+    queryFn: () =>
+      learningApi
+        .getLessonProgress(activeLessonId!)
+        .then((res) => res.data as any as LessonProgressData),
     enabled: Boolean(activeLessonId && isEnrolled),
   });
-  const lessonProgress = (lessonProgressData || null) as LessonProgressData | null;
+  const lessonProgress = (lessonProgressData ||
+    null) as LessonProgressData | null;
 
   // Update Progress Mutation
   const updateProgressMutation = useMutation({
-    mutationFn: (data: { lessonId: string; watchedSeconds: number; progress: number; completed: boolean }) =>
-      learningApi.updateLessonProgress(data.lessonId, data),
+    mutationFn: (data: {
+      lessonId: string;
+      watchedSeconds: number;
+      progress: number;
+      completed: boolean;
+    }) => learningApi.updateLessonProgress(data.lessonId, data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['enrollment', course?._id] });
-      queryClient.invalidateQueries({ queryKey: ['lessonProgress', activeLessonId] });
+      queryClient.invalidateQueries({ queryKey: ["enrollment", course?._id] });
+      queryClient.invalidateQueries({
+        queryKey: ["lessonProgress", activeLessonId],
+      });
     },
   });
 
@@ -160,7 +187,7 @@ export default function LearnCoursePage() {
 
   // Load Notes from LocalStorage
   useEffect(() => {
-    if (activeLessonId && typeof window !== 'undefined') {
+    if (activeLessonId && typeof window !== "undefined") {
       try {
         const saved = localStorage.getItem(`tecyad_notes_${activeLessonId}`);
         if (saved) {
@@ -177,9 +204,12 @@ export default function LearnCoursePage() {
   // Save Notes to LocalStorage
   const saveNotes = (updated: NoteItem[]) => {
     setNotes(updated);
-    if (activeLessonId && typeof window !== 'undefined') {
+    if (activeLessonId && typeof window !== "undefined") {
       try {
-        localStorage.setItem(`tecyad_notes_${activeLessonId}`, JSON.stringify(updated));
+        localStorage.setItem(
+          `tecyad_notes_${activeLessonId}`,
+          JSON.stringify(updated),
+        );
       } catch {}
     }
   };
@@ -187,31 +217,33 @@ export default function LearnCoursePage() {
   const handleAddNote = () => {
     if (!newNoteText.trim() || !activeLessonId) return;
     const now = new Date();
-    const formattedDate = new Intl.DateTimeFormat('fa-IR', {
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
+    const formattedDate = new Intl.DateTimeFormat("fa-IR", {
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
     }).format(now);
 
     const newNote: NoteItem = {
       id: Date.now().toString(),
       time: 0,
-      formattedTime: 'یادداشت متنی',
+      formattedTime: "یادداشت متنی",
       text: newNoteText.trim(),
       createdAt: formattedDate,
     };
 
     saveNotes([newNote, ...notes]);
-    setNewNoteText('');
+    setNewNoteText("");
   };
 
   const handleDeleteNote = (id: string) => {
     saveNotes(notes.filter((n) => n.id !== id));
   };
 
-  const activeLessonIndex = allLessons?.findIndex((l) => l._id === activeLessonId) ?? -1;
-  const activeLessonMeta = activeLessonIndex >= 0 ? allLessons[activeLessonIndex] : null;
+  const activeLessonIndex =
+    allLessons?.findIndex((l) => l._id === activeLessonId) ?? -1;
+  const activeLessonMeta =
+    activeLessonIndex >= 0 ? allLessons[activeLessonIndex] : null;
 
   const handleNext = () => {
     if (allLessons && activeLessonIndex < allLessons.length - 1) {
@@ -225,7 +257,11 @@ export default function LearnCoursePage() {
     }
   };
 
-  const handleProgressUpdate = (seconds: number, progressPercent: number, isCompleted: boolean) => {
+  const handleProgressUpdate = (
+    seconds: number,
+    progressPercent: number,
+    isCompleted: boolean,
+  ) => {
     if (activeLessonId && isEnrolled) {
       updateProgressMutation.mutate({
         lessonId: activeLessonId,
@@ -241,14 +277,16 @@ export default function LearnCoursePage() {
     const isCompleted = !lessonProgress?.completed;
     updateProgressMutation.mutate({
       lessonId: activeLessonId,
-      watchedSeconds: activeLessonMeta?.duration ? activeLessonMeta.duration * 60 : 300,
+      watchedSeconds: activeLessonMeta?.duration
+        ? activeLessonMeta.duration * 60
+        : 300,
       progress: isCompleted ? 100 : 0,
       completed: isCompleted,
     });
   };
 
   const handleShareLink = () => {
-    if (typeof window !== 'undefined') {
+    if (typeof window !== "undefined") {
       navigator.clipboard.writeText(window.location.href);
       setCopiedLink(true);
       setTimeout(() => setCopiedLink(false), 2000);
@@ -264,7 +302,7 @@ export default function LearnCoursePage() {
 
   // Convert digits to Persian / Farsi
   const toFaDigits = (str: string | number) => {
-    return str.toString().replace(/\d/g, (d) => '۰۱۲۳۴۵۶۷۸۹'[parseInt(d, 10)]);
+    return str.toString().replace(/\d/g, (d) => "۰۱۲۳۴۵۶۷۸۹"[parseInt(d, 10)]);
   };
 
   // Filter lessons in sidebar
@@ -273,7 +311,9 @@ export default function LearnCoursePage() {
     return chapters
       .map((c) => {
         const chapterLessons = allLessons.filter(
-          (l) => l.chapterId === c._id && l.title.toLowerCase().includes(searchCurriculum.toLowerCase())
+          (l) =>
+            l.chapterId === c._id &&
+            l.title.toLowerCase().includes(searchCurriculum.toLowerCase()),
         );
         return {
           ...c,
@@ -284,11 +324,13 @@ export default function LearnCoursePage() {
   }, [chapters, allLessons, searchCurriculum]);
 
   // Overall course progress
-  const completedLessonsCount = enrollment?.completedLessons || (lessonProgress?.completed ? 1 : 0);
+  const completedLessonsCount =
+    enrollment?.completedLessons || (lessonProgress?.completed ? 1 : 0);
   const totalLessonsCount = allLessons.length || course?.totalLessons || 1;
   const overallProgressPercent = Math.min(
     100,
-    enrollment?.progress || Math.round((completedLessonsCount / totalLessonsCount) * 100)
+    enrollment?.progress ||
+      Math.round((completedLessonsCount / totalLessonsCount) * 100),
   );
 
   // Loading State
@@ -297,7 +339,9 @@ export default function LearnCoursePage() {
       <div className="flex h-screen items-center justify-center text-white bg-slate-950 font-sans">
         <div className="flex flex-col items-center gap-4">
           <div className="w-12 h-12 rounded-full border-4 border-blue-500/20 border-t-blue-500 animate-spin"></div>
-          <p className="text-slate-400 text-sm font-medium">در حال بارگذاری میز یادگیری تک‌یاد...</p>
+          <p className="text-slate-400 text-sm font-medium">
+            در حال بارگذاری میز یادگیری تک یاد...
+          </p>
         </div>
       </div>
     );
@@ -311,7 +355,9 @@ export default function LearnCoursePage() {
           <div className="w-16 h-16 bg-red-500/10 text-red-400 rounded-2xl flex items-center justify-center mx-auto mb-4">
             <BookOpen className="w-8 h-8" />
           </div>
-          <h2 className="text-xl font-bold text-white mb-2">دوره مورد نظر یافت نشد</h2>
+          <h2 className="text-xl font-bold text-white mb-2">
+            دوره مورد نظر یافت نشد
+          </h2>
           <p className="text-slate-400 text-xs leading-relaxed mb-6">
             ممکن است آدرس دوره تغییر کرده باشد یا هنوز منتشر نشده باشد.
           </p>
@@ -319,7 +365,7 @@ export default function LearnCoursePage() {
             href="/courses"
             className="inline-flex items-center gap-2 px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl text-xs transition"
           >
-            مشاهده همه دوره‌های تک‌یاد
+            مشاهده همه دوره‌های تک یاد
           </Link>
         </div>
       </div>
@@ -364,7 +410,8 @@ export default function LearnCoursePage() {
                 {toFaDigits(overallProgressPercent)}٪
               </span>
               <span className="text-[10px] text-slate-500 hidden md:inline">
-                ({toFaDigits(completedLessonsCount)} از {toFaDigits(totalLessonsCount)} جلسه)
+                ({toFaDigits(completedLessonsCount)} از{" "}
+                {toFaDigits(totalLessonsCount)} جلسه)
               </span>
             </div>
           </div>
@@ -375,12 +422,16 @@ export default function LearnCoursePage() {
           {/* Bookmark Toggle */}
           <button
             onClick={() => setIsBookmarked((prev) => !prev)}
-            title={isBookmarked ? 'نشانه‌گذاری شده' : 'نشانه‌گذاری این جلسه'}
+            title={isBookmarked ? "نشانه‌گذاری شده" : "نشانه‌گذاری این جلسه"}
             className={`p-2 rounded-xl transition ${
-              isBookmarked ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30' : 'text-slate-400 hover:text-white hover:bg-slate-800'
+              isBookmarked
+                ? "bg-amber-500/20 text-amber-400 border border-amber-500/30"
+                : "text-slate-400 hover:text-white hover:bg-slate-800"
             }`}
           >
-            <Bookmark className={`w-4 h-4 ${isBookmarked ? 'fill-current' : ''}`} />
+            <Bookmark
+              className={`w-4 h-4 ${isBookmarked ? "fill-current" : ""}`}
+            />
           </button>
 
           {/* Mark Complete Button */}
@@ -389,13 +440,15 @@ export default function LearnCoursePage() {
               onClick={handleManualMarkCompleted}
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition ${
                 lessonProgress?.completed
-                  ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 hover:bg-emerald-500/20'
-                  : 'bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white border border-slate-700'
+                  ? "bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 hover:bg-emerald-500/20"
+                  : "bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white border border-slate-700"
               }`}
             >
-              <CheckCircle2 className={`w-4 h-4 ${lessonProgress?.completed ? 'text-emerald-400' : 'text-slate-500'}`} />
+              <CheckCircle2
+                className={`w-4 h-4 ${lessonProgress?.completed ? "text-emerald-400" : "text-slate-500"}`}
+              />
               <span className="hidden sm:inline">
-                {lessonProgress?.completed ? 'تکمیل شد' : 'اتمام جلسه'}
+                {lessonProgress?.completed ? "تکمیل شد" : "اتمام جلسه"}
               </span>
             </button>
           )}
@@ -403,9 +456,11 @@ export default function LearnCoursePage() {
           {/* Theater Mode Button */}
           <button
             onClick={() => setIsTheaterMode((prev) => !prev)}
-            title={isTheaterMode ? 'حالت دو ستونه' : 'حالت سینمایی عریض'}
+            title={isTheaterMode ? "حالت دو ستونه" : "حالت سینمایی عریض"}
             className={`p-2 rounded-xl transition hidden lg:block ${
-              isTheaterMode ? 'bg-blue-600/20 text-blue-400 border border-blue-500/30' : 'text-slate-400 hover:text-white hover:bg-slate-800'
+              isTheaterMode
+                ? "bg-blue-600/20 text-blue-400 border border-blue-500/30"
+                : "text-slate-400 hover:text-white hover:bg-slate-800"
             }`}
           >
             <Tv className="w-4 h-4" />
@@ -417,7 +472,11 @@ export default function LearnCoursePage() {
             title="کپی لینک جلسه"
             className="p-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-xl transition relative"
           >
-            {copiedLink ? <Check className="w-4 h-4 text-emerald-400" /> : <Share2 className="w-4 h-4" />}
+            {copiedLink ? (
+              <Check className="w-4 h-4 text-emerald-400" />
+            ) : (
+              <Share2 className="w-4 h-4" />
+            )}
           </button>
 
           {/* Sidebar Toggle Button */}
@@ -435,7 +494,9 @@ export default function LearnCoursePage() {
       <div className="flex-1 flex overflow-hidden relative">
         {/* MAIN STAGE (Player + Controls + Tabs) */}
         <main className="flex-1 flex flex-col h-full overflow-y-auto bg-slate-950 hide-scrollbar transition-all">
-          <div className={`w-full mx-auto p-4 sm:p-6 transition-all ${isTheaterMode ? 'max-w-7xl' : 'max-w-5xl'}`}>
+          <div
+            className={`w-full mx-auto p-4 sm:p-6 transition-all ${isTheaterMode ? "max-w-7xl" : "max-w-5xl"}`}
+          >
             {/* VIDEO PLAYER CONTAINER */}
             <div className="w-full mb-4">
               {lessonAccessError ? (
@@ -449,9 +510,13 @@ export default function LearnCoursePage() {
                     <Lock className="w-8 h-8" />
                   </div>
 
-                  <h3 className="text-xl font-bold text-white mb-2">{activeLessonMeta?.title || 'جلسه غیررایگان'}</h3>
+                  <h3 className="text-xl font-bold text-white mb-2">
+                    {activeLessonMeta?.title || "جلسه غیررایگان"}
+                  </h3>
                   <p className="text-slate-400 text-xs sm:text-sm max-w-md leading-relaxed mb-6">
-                    این جلسه به همراه فایل‌ها و کدهای ضمیمه برای دانشجویان ثبت‌نام شده دوره فعال است. با ثبت‌نام در دوره به تمام ویدیوها و گواهی رسمی دسترسی خواهید داشت.
+                    این جلسه به همراه فایل‌ها و کدهای ضمیمه برای دانشجویان
+                    ثبت‌نام شده دوره فعال است. با ثبت‌نام در دوره به تمام
+                    ویدیوها و گواهی رسمی دسترسی خواهید داشت.
                   </p>
 
                   <div className="flex flex-col sm:flex-row items-center gap-3">
@@ -459,7 +524,9 @@ export default function LearnCoursePage() {
                       href={`/courses/${course.slug}`}
                       className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl text-xs transition shadow-lg shadow-blue-500/20 flex items-center gap-2"
                     >
-                      <Sparkles className="w-4 h-4" /> مشاهده و خرید دوره ({toFaDigits(course.price?.toLocaleString('fa-IR') || 0)} تومان)
+                      <Sparkles className="w-4 h-4" /> مشاهده و خرید دوره (
+                      {toFaDigits(course.price?.toLocaleString("fa-IR") || 0)}{" "}
+                      تومان)
                     </Link>
 
                     {allLessons.some((l) => l.isFree) && (
@@ -506,8 +573,14 @@ export default function LearnCoursePage() {
               </button>
 
               <div className="text-xs text-slate-400 font-medium">
-                جلسه <span className="font-bold text-white font-mono">{toFaDigits(activeLessonIndex + 1)}</span> از{' '}
-                <span className="font-bold text-white font-mono">{toFaDigits(allLessons.length)}</span>
+                جلسه{" "}
+                <span className="font-bold text-white font-mono">
+                  {toFaDigits(activeLessonIndex + 1)}
+                </span>{" "}
+                از{" "}
+                <span className="font-bold text-white font-mono">
+                  {toFaDigits(allLessons.length)}
+                </span>
               </div>
 
               <button
@@ -524,19 +597,31 @@ export default function LearnCoursePage() {
               {/* Tab Headers */}
               <div className="flex items-center border-b border-slate-800 px-4 pt-2 gap-2 overflow-x-auto hide-scrollbar">
                 {[
-                  { id: 'info', label: 'توضیحات و سرفصل', icon: BookOpen },
-                  { id: 'notes', label: `یادداشت‌های من (${toFaDigits(notes.length)})`, icon: Bookmark },
-                  { id: 'files', label: `فایل‌ها و کدهای ضمیمه (${toFaDigits(secureLesson?.files?.length || 0)})`, icon: Download },
-                  { id: 'comments', label: 'پرسش و پاسخ', icon: MessageSquare },
-                  { id: 'shortcuts', label: 'کلیدهای میانبر', icon: HelpCircle },
+                  { id: "info", label: "توضیحات و سرفصل", icon: BookOpen },
+                  {
+                    id: "notes",
+                    label: `یادداشت‌های من (${toFaDigits(notes.length)})`,
+                    icon: Bookmark,
+                  },
+                  {
+                    id: "files",
+                    label: `فایل‌ها و کدهای ضمیمه (${toFaDigits(secureLesson?.files?.length || 0)})`,
+                    icon: Download,
+                  },
+                  { id: "comments", label: "پرسش و پاسخ", icon: MessageSquare },
+                  {
+                    id: "shortcuts",
+                    label: "کلیدهای میانبر",
+                    icon: HelpCircle,
+                  },
                 ].map((t) => (
                   <button
                     key={t.id}
                     onClick={() => setActiveTab(t.id as any)}
                     className={`flex items-center gap-2 px-4 py-3 text-xs font-bold border-b-2 transition whitespace-nowrap ${
                       activeTab === t.id
-                        ? 'text-blue-400 border-blue-500 bg-blue-500/5'
-                        : 'text-slate-400 border-transparent hover:text-slate-200 hover:bg-slate-800/50'
+                        ? "text-blue-400 border-blue-500 bg-blue-500/5"
+                        : "text-slate-400 border-transparent hover:text-slate-200 hover:bg-slate-800/50"
                     }`}
                   >
                     <t.icon className="w-4 h-4" />
@@ -548,11 +633,13 @@ export default function LearnCoursePage() {
               {/* Tab Contents */}
               <div className="p-6">
                 {/* TAB 1: OVERVIEW */}
-                {activeTab === 'info' && (
+                {activeTab === "info" && (
                   <div className="space-y-6">
                     <div>
                       <h2 className="text-xl font-bold text-white mb-3">
-                        {secureLesson?.title || activeLessonMeta?.title || 'عنوان جلسه'}
+                        {secureLesson?.title ||
+                          activeLessonMeta?.title ||
+                          "عنوان جلسه"}
                       </h2>
                       <div
                         className="text-slate-300 text-sm leading-relaxed prose prose-invert max-w-none"
@@ -560,7 +647,7 @@ export default function LearnCoursePage() {
                           __html:
                             secureLesson?.description ||
                             activeLessonMeta?.description ||
-                            'توضیحات تکمیلی برای این جلسه ثبت نشده است.',
+                            "توضیحات تکمیلی برای این جلسه ثبت نشده است.",
                         }}
                       />
                     </div>
@@ -568,15 +655,31 @@ export default function LearnCoursePage() {
                     {/* Instructor Info Card */}
                     {course.instructors && course.instructors.length > 0 && (
                       <div className="pt-6 border-t border-slate-800">
-                        <div className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">مدرس دوره</div>
+                        <div className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">
+                          مدرس دوره
+                        </div>
                         {course.instructors.map((instructor: any) => (
-                          <div key={instructor._id} className="flex items-center gap-4 bg-slate-950/60 p-4 rounded-xl border border-slate-800/80">
+                          <div
+                            key={instructor._id}
+                            className="flex items-center gap-4 bg-slate-950/60 p-4 rounded-xl border border-slate-800/80"
+                          >
                             <div className="w-12 h-12 rounded-full overflow-hidden bg-slate-800 shrink-0 border border-slate-700">
-                              <img 
-                                src={getImageUrl(instructor.personnelPhoto || instructor.avatar, 'avatar', `${instructor.firstName || ''} ${instructor.lastName || ''}`)} 
-                                alt={instructor.firstName} 
-                                className="w-full h-full object-cover" 
-                                onError={(e) => handleImageError(e, 'avatar', `${instructor.firstName || ''} ${instructor.lastName || ''}`)}
+                              <img
+                                src={getImageUrl(
+                                  instructor.personnelPhoto ||
+                                    instructor.avatar,
+                                  "avatar",
+                                  `${instructor.firstName || ""} ${instructor.lastName || ""}`,
+                                )}
+                                alt={instructor.firstName}
+                                className="w-full h-full object-cover"
+                                onError={(e) =>
+                                  handleImageError(
+                                    e,
+                                    "avatar",
+                                    `${instructor.firstName || ""} ${instructor.lastName || ""}`,
+                                  )
+                                }
                               />
                             </div>
                             <div className="flex-1 min-w-0">
@@ -584,7 +687,8 @@ export default function LearnCoursePage() {
                                 {instructor.firstName} {instructor.lastName}
                               </h4>
                               <p className="text-xs text-slate-400 line-clamp-1 mt-0.5">
-                                {instructor.bio || 'مدرس ارشد در پلتفرم آموزشی تک‌یاد'}
+                                {instructor.bio ||
+                                  "مدرس ارشد در پلتفرم آموزشی تک یاد"}
                               </p>
                             </div>
                           </div>
@@ -595,10 +699,12 @@ export default function LearnCoursePage() {
                 )}
 
                 {/* TAB 2: SMART NOTES */}
-                {activeTab === 'notes' && (
+                {activeTab === "notes" && (
                   <div className="space-y-6">
                     <div className="bg-slate-950 p-4 rounded-xl border border-slate-800">
-                      <h3 className="text-xs font-bold text-slate-300 mb-2">ثبت یادداشت جدید برای این درس</h3>
+                      <h3 className="text-xs font-bold text-slate-300 mb-2">
+                        ثبت یادداشت جدید برای این درس
+                      </h3>
                       <textarea
                         value={newNoteText}
                         onChange={(e) => setNewNoteText(e.target.value)}
@@ -620,7 +726,8 @@ export default function LearnCoursePage() {
                     <div className="space-y-3">
                       {notes.length === 0 ? (
                         <div className="text-center py-8 text-slate-500 text-xs">
-                          هنوز یادداشتی برای این درس ثبت نکرده‌اید. با افزودن یادداشت‌ها، مرور مطالب بسیار ساده‌تر خواهد بود!
+                          هنوز یادداشتی برای این درس ثبت نکرده‌اید. با افزودن
+                          یادداشت‌ها، مرور مطالب بسیار ساده‌تر خواهد بود!
                         </div>
                       ) : (
                         notes.map((note) => (
@@ -629,8 +736,12 @@ export default function LearnCoursePage() {
                             className="bg-slate-950/80 p-4 rounded-xl border border-slate-800 flex items-start justify-between gap-4"
                           >
                             <div className="space-y-1 flex-1">
-                              <p className="text-xs text-slate-200 leading-relaxed whitespace-pre-wrap">{note.text}</p>
-                              <div className="text-[10px] text-slate-500">{note.createdAt}</div>
+                              <p className="text-xs text-slate-200 leading-relaxed whitespace-pre-wrap">
+                                {note.text}
+                              </p>
+                              <div className="text-[10px] text-slate-500">
+                                {note.createdAt}
+                              </div>
                             </div>
                             <button
                               onClick={() => handleDeleteNote(note.id)}
@@ -647,7 +758,7 @@ export default function LearnCoursePage() {
                 )}
 
                 {/* TAB 3: FILES & RESOURCES */}
-                {activeTab === 'files' && (
+                {activeTab === "files" && (
                   <div className="space-y-3">
                     {!secureLesson?.files || secureLesson.files.length === 0 ? (
                       <div className="text-center py-10 text-slate-500 text-xs">
@@ -664,14 +775,17 @@ export default function LearnCoursePage() {
                               <Download className="w-5 h-5" />
                             </div>
                             <div>
-                              <h4 className="font-bold text-white text-xs sm:text-sm">{file.name || `فایل ضمیمه ${i + 1}`}</h4>
+                              <h4 className="font-bold text-white text-xs sm:text-sm">
+                                {file.name || `فایل ضمیمه ${i + 1}`}
+                              </h4>
                               <p className="text-[10px] text-slate-400 mt-0.5">
-                                {file.size || 'نامشخص'} • {file.type || 'فایل پروژه'}
+                                {file.size || "نامشخص"} •{" "}
+                                {file.type || "فایل پروژه"}
                               </p>
                             </div>
                           </div>
                           <a
-                            href={file.url || '#'}
+                            href={file.url || "#"}
                             target="_blank"
                             rel="noopener noreferrer"
                             download
@@ -686,28 +800,36 @@ export default function LearnCoursePage() {
                 )}
 
                 {/* TAB 4: COMMENTS & Q&A */}
-                {activeTab === 'comments' && (
+                {activeTab === "comments" && (
                   <div>
                     {secureLesson?._id ? (
                       <LessonComments lessonId={secureLesson._id} />
                     ) : (
-                      <div className="text-center py-8 text-slate-500 text-xs">در حال آماده‌سازی بخش دیدگاه‌ها...</div>
+                      <div className="text-center py-8 text-slate-500 text-xs">
+                        در حال آماده‌سازی بخش دیدگاه‌ها...
+                      </div>
                     )}
                   </div>
                 )}
 
                 {/* TAB 5: KEYBOARD SHORTCUTS */}
-                {activeTab === 'shortcuts' && (
+                {activeTab === "shortcuts" && (
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
                     {[
-                      { key: 'Space / K', desc: 'توقف / ادامه پخش ویدیو' },
-                      { key: 'F', desc: 'ورود یا خروج از تمام‌صفحه' },
-                      { key: 'T', desc: 'حالت سینمایی (Theater Mode)' },
-                      { key: 'M', desc: 'قطع / وصل صدا' },
-                      { key: 'J / L', desc: '۱۰ ثانیه پرش به عقب / جلو' },
-                      { key: 'جهت‌نما چپ / راست', desc: '۵ ثانیه حرکت در ویدیو' },
-                      { key: 'جهت‌نما بالا / پایین', desc: 'تنظیم میزان صدا (۱۰٪)' },
-                      { key: 'P / N', desc: 'رفتن به جلسه قبلی / بعدی' },
+                      { key: "Space / K", desc: "توقف / ادامه پخش ویدیو" },
+                      { key: "F", desc: "ورود یا خروج از تمام‌صفحه" },
+                      { key: "T", desc: "حالت سینمایی (Theater Mode)" },
+                      { key: "M", desc: "قطع / وصل صدا" },
+                      { key: "J / L", desc: "۱۰ ثانیه پرش به عقب / جلو" },
+                      {
+                        key: "جهت‌نما چپ / راست",
+                        desc: "۵ ثانیه حرکت در ویدیو",
+                      },
+                      {
+                        key: "جهت‌نما بالا / پایین",
+                        desc: "تنظیم میزان صدا (۱۰٪)",
+                      },
+                      { key: "P / N", desc: "رفتن به جلسه قبلی / بعدی" },
                     ].map((s, idx) => (
                       <div
                         key={idx}
@@ -716,7 +838,9 @@ export default function LearnCoursePage() {
                         <span className="font-mono text-blue-400 bg-slate-900 border border-slate-700 px-2 py-1 rounded">
                           {s.key}
                         </span>
-                        <span className="text-slate-300 font-medium">{s.desc}</span>
+                        <span className="text-slate-300 font-medium">
+                          {s.desc}
+                        </span>
                       </div>
                     ))}
                   </div>
@@ -737,7 +861,7 @@ export default function LearnCoursePage() {
         <aside
           className={`
             fixed lg:static inset-y-0 left-0 lg:left-auto lg:right-0 z-50 w-80 sm:w-96 bg-slate-900 border-r lg:border-r-0 lg:border-l border-slate-800 flex flex-col h-full transform transition-transform duration-300 ease-in-out shrink-0
-            ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
+            ${isSidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}
           `}
         >
           {/* Sidebar Header */}
@@ -745,7 +869,8 @@ export default function LearnCoursePage() {
             <div>
               <h2 className="font-bold text-white text-sm">سرفصل‌های دوره</h2>
               <p className="text-[11px] text-slate-400 mt-0.5">
-                {toFaDigits(completedLessonsCount)} از {toFaDigits(totalLessonsCount)} جلسه تکمیل شده
+                {toFaDigits(completedLessonsCount)} از{" "}
+                {toFaDigits(totalLessonsCount)} جلسه تکمیل شده
               </p>
             </div>
             <button
@@ -773,14 +898,21 @@ export default function LearnCoursePage() {
           {/* Chapters & Lessons List */}
           <div className="flex-1 overflow-y-auto hide-scrollbar p-3 space-y-4">
             {filteredChapters.length === 0 ? (
-              <div className="text-center py-10 text-slate-500 text-xs">درسی با این عنوان یافت نشد.</div>
+              <div className="text-center py-10 text-slate-500 text-xs">
+                درسی با این عنوان یافت نشد.
+              </div>
             ) : (
               filteredChapters.map((chapter: any, cIndex: number) => {
-                const chapterLessons = chapter.matchingLessons || allLessons.filter((l) => l.chapterId === chapter._id);
+                const chapterLessons =
+                  chapter.matchingLessons ||
+                  allLessons.filter((l) => l.chapterId === chapter._id);
                 const isCollapsed = collapsedChapters[chapter._id];
 
                 return (
-                  <div key={chapter._id} className="bg-slate-950/70 border border-slate-800/80 rounded-xl overflow-hidden">
+                  <div
+                    key={chapter._id}
+                    className="bg-slate-950/70 border border-slate-800/80 rounded-xl overflow-hidden"
+                  >
                     {/* Chapter Header Accordion */}
                     <button
                       onClick={() => toggleChapterCollapse(chapter._id)}
@@ -790,13 +922,19 @@ export default function LearnCoursePage() {
                         <div className="text-[10px] text-blue-400 font-bold uppercase tracking-wider">
                           فصل {toFaDigits(cIndex + 1)}
                         </div>
-                        <div className="text-xs font-bold text-white truncate mt-0.5">{chapter.title}</div>
+                        <div className="text-xs font-bold text-white truncate mt-0.5">
+                          {chapter.title}
+                        </div>
                       </div>
                       <div className="flex items-center gap-2 text-slate-400 shrink-0">
                         <span className="text-[10px] text-slate-500 font-mono">
                           {toFaDigits(chapterLessons.length)} درس
                         </span>
-                        {isCollapsed ? <ChevronDown className="w-4 h-4" /> : <ChevronUp className="w-4 h-4" />}
+                        {isCollapsed ? (
+                          <ChevronDown className="w-4 h-4" />
+                        ) : (
+                          <ChevronUp className="w-4 h-4" />
+                        )}
                       </div>
                     </button>
 
@@ -806,7 +944,10 @@ export default function LearnCoursePage() {
                         {chapterLessons.map((lesson: any, lIndex: number) => {
                           const isActive = lesson._id === activeLessonId;
                           const isLocked = !isEnrolled && !lesson.isFree;
-                          const isCompleted = lessonProgress?.lessonId === lesson._id ? Boolean(lessonProgress?.completed) : false;
+                          const isCompleted =
+                            lessonProgress?.lessonId === lesson._id
+                              ? Boolean(lessonProgress?.completed)
+                              : false;
 
                           return (
                             <button
@@ -817,10 +958,10 @@ export default function LearnCoursePage() {
                               }}
                               className={`w-full flex items-start gap-3 p-2.5 rounded-lg text-right transition-all ${
                                 isActive
-                                  ? 'bg-blue-600/15 border border-blue-500/30 text-blue-400'
+                                  ? "bg-blue-600/15 border border-blue-500/30 text-blue-400"
                                   : isLocked
-                                  ? 'opacity-60 hover:bg-slate-900 text-slate-400'
-                                  : 'hover:bg-slate-900 text-slate-300'
+                                    ? "opacity-60 hover:bg-slate-900 text-slate-400"
+                                    : "hover:bg-slate-900 text-slate-300"
                               }`}
                             >
                               <div className="mt-0.5 shrink-0">
@@ -840,7 +981,11 @@ export default function LearnCoursePage() {
                               <div className="flex-1 min-w-0">
                                 <div
                                   className={`text-xs font-medium line-clamp-2 ${
-                                    isActive ? 'text-blue-300 font-bold' : isLocked ? 'text-slate-500' : 'text-slate-200'
+                                    isActive
+                                      ? "text-blue-300 font-bold"
+                                      : isLocked
+                                        ? "text-slate-500"
+                                        : "text-slate-200"
                                   }`}
                                 >
                                   {lesson.title}
@@ -851,7 +996,9 @@ export default function LearnCoursePage() {
                                       رایگان
                                     </span>
                                   )}
-                                  <span>{toFaDigits(lesson.duration || 5)} دقیقه</span>
+                                  <span>
+                                    {toFaDigits(lesson.duration || 5)} دقیقه
+                                  </span>
                                 </div>
                               </div>
                             </button>
@@ -870,8 +1017,12 @@ export default function LearnCoursePage() {
                 <div className="w-10 h-10 rounded-full bg-amber-500/20 text-amber-400 mx-auto flex items-center justify-center">
                   <Award className="w-5 h-5" />
                 </div>
-                <h4 className="text-xs font-bold text-white">تبریک! دوره تکمیل شد</h4>
-                <p className="text-[10px] text-slate-400">شما تمامی مباحث این دوره را با موفقیت پشت سر گذاشتید.</p>
+                <h4 className="text-xs font-bold text-white">
+                  تبریک! دوره تکمیل شد
+                </h4>
+                <p className="text-[10px] text-slate-400">
+                  شما تمامی مباحث این دوره را با موفقیت پشت سر گذاشتید.
+                </p>
                 <Link
                   href="/student"
                   className="inline-block w-full py-1.5 bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold rounded-lg text-xs transition"

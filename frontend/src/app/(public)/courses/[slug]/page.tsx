@@ -4,31 +4,33 @@ import { Breadcrumbs } from "@/components/common/Breadcrumbs";
 import { Suspense } from "react";
 import type { Metadata } from "next";
 
-export async function generateMetadata({ 
-  params 
-}: { 
-  params: Promise<{ slug?: string, id?: string }> 
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug?: string; id?: string }>;
 }): Promise<Metadata> {
   const resolvedParams = await params;
-  const identifier = resolvedParams.slug || resolvedParams.id || '';
+  const identifier = resolvedParams.slug || resolvedParams.id || "";
   const course = await fetchCourse(identifier);
 
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://tecyad.ir';
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://tecyad.ir";
   const pageUrl = `${baseUrl}/courses/${encodeURIComponent(identifier)}`;
 
   if (!course) {
     return {
-      title: 'دوره آموزشی | تک‌یاد',
-      description: 'مشاهده سرفصل‌ها، ویدیوهای پیش‌نمایش و ثبت‌نام در دوره‌های تخصصی آموزشگاه آنلاین تک‌یاد.',
+      title: "دوره آموزشی | تک یاد",
+      description:
+        "مشاهده سرفصل‌ها، ویدیوهای پیش‌نمایش و ثبت‌نام در دوره‌های تخصصی آموزشگاه آنلاین تک یاد.",
     };
   }
 
-  const title = `${course.title} | تک‌یاد`;
-  const rawDescription = course.description || course.shortDescription || '';
-  const cleanDescription = rawDescription.replace(/<[^>]*>/g, '').slice(0, 155);
-  const description = cleanDescription.length > 50 
-    ? `${cleanDescription}...`
-    : `ثبت‌نام در دوره آموزشی ${course.title} در تک‌یاد (Tecyad) با تدریس برترین اساتید و دریافت مدرک معتبر مهارت.`;
+  const title = `${course.title} | تک یاد`;
+  const rawDescription = course.description || course.shortDescription || "";
+  const cleanDescription = rawDescription.replace(/<[^>]*>/g, "").slice(0, 155);
+  const description =
+    cleanDescription.length > 50
+      ? `${cleanDescription}...`
+      : `ثبت‌نام در دوره آموزشی ${course.title} در تک یاد (Tecyad) با تدریس برترین اساتید و دریافت مدرک معتبر مهارت.`;
 
   const imageUrl = course.thumbnail || `${baseUrl}/images/course-default.jpg`;
 
@@ -37,23 +39,23 @@ export async function generateMetadata({
     description,
     keywords: [
       course.title,
-      course.category?.name || 'آموزش برنامه‌نویسی',
-      'دوره آنلاین',
-      'یادگیری مهارت',
-      'تک‌یاد',
-      'Tecyad',
-      'آموزش تخصصی',
+      course.category?.name || "آموزش برنامه‌نویسی",
+      "دوره آنلاین",
+      "یادگیری مهارت",
+      "تک یاد",
+      "Tecyad",
+      "آموزش تخصصی",
     ],
     alternates: {
       canonical: pageUrl,
     },
     openGraph: {
-      type: 'article',
-      locale: 'fa_IR',
+      type: "article",
+      locale: "fa_IR",
       url: pageUrl,
       title,
       description,
-      siteName: 'تک‌یاد | Tecyad',
+      siteName: "تک یاد | Tecyad",
       images: [
         {
           url: imageUrl,
@@ -64,7 +66,7 @@ export async function generateMetadata({
       ],
     },
     twitter: {
-      card: 'summary_large_image',
+      card: "summary_large_image",
       title,
       description,
       images: [imageUrl],
@@ -72,49 +74,60 @@ export async function generateMetadata({
   };
 }
 
-export default async function CoursePage({ 
-  params 
-}: { 
-  params: Promise<{ slug: string }> 
+export default async function CoursePage({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
 }) {
   const resolvedParams = await params;
   const course = await fetchCourse(resolvedParams.slug);
 
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://tecyad.ir';
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://tecyad.ir";
   const pageUrl = `${baseUrl}/courses/${encodeURIComponent(resolvedParams.slug)}`;
 
-  const courseJsonLd = course ? {
-    "@context": "https://schema.org",
-    "@type": "Course",
-    "name": course.title,
-    "description": (course.description || course.shortDescription || '').replace(/<[^>]*>/g, '').slice(0, 300),
-    "url": pageUrl,
-    "image": course.thumbnail || `${baseUrl}/images/course-default.jpg`,
-    "provider": {
-      "@type": "EducationalOrganization",
-      "name": "تک‌یاد | Tecyad",
-      "sameAs": "https://tecyad.ir"
-    },
-    "instructor": course.instructor ? {
-      "@type": "Person",
-      "name": `${course.instructor.firstName || ''} ${course.instructor.lastName || ''}`.trim() || 'استاد تک‌یاد',
-      "image": course.instructor.avatar || undefined
-    } : undefined,
-    "offers": {
-      "@type": "Offer",
-      "price": course.price || 0,
-      "priceCurrency": "IRR",
-      "availability": "https://schema.org/InStock",
-      "category": "Education"
-    },
-    "aggregateRating": course.ratingCount && course.ratingCount > 0 ? {
-      "@type": "AggregateRating",
-      "ratingValue": course.averageRating || 5,
-      "reviewCount": course.ratingCount,
-      "bestRating": 5,
-      "worstRating": 1
-    } : undefined
-  } : null;
+  const courseJsonLd = course
+    ? {
+        "@context": "https://schema.org",
+        "@type": "Course",
+        name: course.title,
+        description: (course.description || course.shortDescription || "")
+          .replace(/<[^>]*>/g, "")
+          .slice(0, 300),
+        url: pageUrl,
+        image: course.thumbnail || `${baseUrl}/images/course-default.jpg`,
+        provider: {
+          "@type": "EducationalOrganization",
+          name: "تک یاد | Tecyad",
+          sameAs: "https://tecyad.ir",
+        },
+        instructor: course.instructor
+          ? {
+              "@type": "Person",
+              name:
+                `${course.instructor.firstName || ""} ${course.instructor.lastName || ""}`.trim() ||
+                "استاد تک یاد",
+              image: course.instructor.avatar || undefined,
+            }
+          : undefined,
+        offers: {
+          "@type": "Offer",
+          price: course.price || 0,
+          priceCurrency: "IRR",
+          availability: "https://schema.org/InStock",
+          category: "Education",
+        },
+        aggregateRating:
+          course.ratingCount && course.ratingCount > 0
+            ? {
+                "@type": "AggregateRating",
+                ratingValue: course.averageRating || 5,
+                reviewCount: course.ratingCount,
+                bestRating: 5,
+                worstRating: 1,
+              }
+            : undefined,
+      }
+    : null;
 
   return (
     <>
@@ -128,15 +141,31 @@ export default async function CoursePage({
         <div className="max-w-7xl mx-auto">
           <Breadcrumbs
             items={[
-              { label: 'دوره‌های آموزشی', href: '/courses' },
-              ...(course?.category?.name ? [{ label: course.category.name, href: `/courses?category=${course.category._id || course.category.slug}` }] : []),
+              { label: "دوره‌های آموزشی", href: "/courses" },
+              ...(course?.category?.name
+                ? [
+                    {
+                      label: course.category.name,
+                      href: `/courses?category=${course.category._id || course.category.slug}`,
+                    },
+                  ]
+                : []),
               { label: course?.title || resolvedParams.slug },
             ]}
           />
         </div>
       </div>
-      <Suspense fallback={<div className="min-h-screen flex items-center justify-center font-bold text-slate-600">درحال بارگذاری دوره...</div>}>
-        <CourseDetailsContainer slug={resolvedParams.slug} initialData={course} />
+      <Suspense
+        fallback={
+          <div className="min-h-screen flex items-center justify-center font-bold text-slate-600">
+            درحال بارگذاری دوره...
+          </div>
+        }
+      >
+        <CourseDetailsContainer
+          slug={resolvedParams.slug}
+          initialData={course}
+        />
       </Suspense>
     </>
   );

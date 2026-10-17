@@ -1,12 +1,18 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { Star, Quote, ChevronRight, ChevronLeft } from 'lucide-react';
-import { getImageUrl, handleImageError } from '@/lib/utils';
-import { Swiper, SwiperSlide } from 'swiper/react';
-import { Autoplay } from 'swiper/modules';
+import { useState } from "react";
+import { Star, Quote, ChevronRight, ChevronLeft } from "lucide-react";
+import { getImageUrl, handleImageError } from "@/lib/utils";
+import { Swiper, SwiperSlide } from "swiper/react";
+import { Autoplay } from "swiper/modules";
 
-export function Testimonials({ data = [], isLoading = false }: { data?: any[], isLoading?: boolean }) {
+export function Testimonials({
+  data = [],
+  isLoading = false,
+}: {
+  data?: any[];
+  isLoading?: boolean;
+}) {
   const [swiper, setSwiper] = useState<any>(null);
 
   if (!isLoading && !data?.length) return null;
@@ -14,9 +20,11 @@ export function Testimonials({ data = [], isLoading = false }: { data?: any[], i
   return (
     <section className="py-14 sm:py-20 bg-white border-b border-[var(--neo-border)] overflow-hidden">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        
         {/* Header with Title and Swiper Controls */}
-        <div dir="rtl" className="flex flex-row justify-between items-center sm:items-end mb-8 sm:mb-12 gap-3 text-right w-full">
+        <div
+          dir="rtl"
+          className="flex flex-row justify-between items-center sm:items-end mb-8 sm:mb-12 gap-3 text-right w-full"
+        >
           <div className="text-right flex-1 min-w-0">
             <div className="flex items-center gap-2 mb-1.5 sm:mb-2 justify-start">
               <span className="w-6 sm:w-8 h-1 bg-[var(--neo-primary)] rounded-full shrink-0"></span>
@@ -25,7 +33,7 @@ export function Testimonials({ data = [], isLoading = false }: { data?: any[], i
               </span>
             </div>
             <h2 className="text-xl sm:text-2xl md:text-3xl font-black text-[var(--neo-text-main)] text-right truncate">
-              نظرات دانشجویان تک‌یاد
+              نظرات دانشجویان تک یاد
             </h2>
           </div>
 
@@ -55,7 +63,10 @@ export function Testimonials({ data = [], isLoading = false }: { data?: any[], i
         {isLoading ? (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {[...Array(3)].map((_, idx) => (
-              <div key={idx} className="bg-[var(--neo-surface)] border border-[var(--neo-border)] p-6 rounded-2xl animate-pulse">
+              <div
+                key={idx}
+                className="bg-[var(--neo-surface)] border border-[var(--neo-border)] p-6 rounded-2xl animate-pulse"
+              >
                 <div className="flex gap-1 mb-4">
                   {[...Array(5)].map((_, i) => (
                     <div key={i} className="w-4 h-4 bg-gray-200 rounded" />
@@ -97,8 +108,12 @@ export function Testimonials({ data = [], isLoading = false }: { data?: any[], i
               {data.map((item: any, idx: number) => {
                 const studentName = item.user?.firstName
                   ? `${item.user.firstName} ${item.user.lastName}`
-                  : item.studentName || 'دانشجوی تک‌یاد';
-                const avatarUrl = getImageUrl(item.user?.avatar || item.avatar, 'avatar', studentName);
+                  : item.studentName || "دانشجوی تک یاد";
+                const avatarUrl = getImageUrl(
+                  item.user?.avatar || item.avatar,
+                  "avatar",
+                  studentName,
+                );
 
                 return (
                   <SwiperSlide key={item._id || idx} className="h-auto">
@@ -111,7 +126,7 @@ export function Testimonials({ data = [], isLoading = false }: { data?: any[], i
                           {[...Array(5)].map((_, i) => (
                             <Star
                               key={i}
-                              className={`w-4 h-4 ${i < (item.rating || 5) ? 'fill-current' : 'text-gray-200'}`}
+                              className={`w-4 h-4 ${i < (item.rating || 5) ? "fill-current" : "text-gray-200"}`}
                             />
                           ))}
                         </div>
@@ -129,7 +144,9 @@ export function Testimonials({ data = [], isLoading = false }: { data?: any[], i
                             src={avatarUrl}
                             alt={studentName}
                             className="w-full h-full object-cover"
-                            onError={(e) => handleImageError(e, 'avatar', studentName)}
+                            onError={(e) =>
+                              handleImageError(e, "avatar", studentName)
+                            }
                           />
                         </div>
                         <div className="min-w-0">
@@ -137,7 +154,9 @@ export function Testimonials({ data = [], isLoading = false }: { data?: any[], i
                             {studentName}
                           </div>
                           <div className="text-[11px] text-[var(--neo-text-secondary)] mt-0.5 truncate">
-                            {item.course?.title || item.courseName || 'دانشجوی دوره‌های تخصصی'}
+                            {item.course?.title ||
+                              item.courseName ||
+                              "دانشجوی دوره‌های تخصصی"}
                           </div>
                         </div>
                       </div>
@@ -148,7 +167,6 @@ export function Testimonials({ data = [], isLoading = false }: { data?: any[], i
             </Swiper>
           </div>
         )}
-
       </div>
     </section>
   );

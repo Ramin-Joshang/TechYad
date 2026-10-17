@@ -1,11 +1,22 @@
-'use client';
+"use client";
 
-import { useState, useMemo } from 'react';
-import Link from 'next/link';
-import { 
-  Code2, Cpu, GraduationCap, Binary, Zap, Atom, BookOpen, 
-  Calculator, ChevronDown, ChevronUp, Layers, FolderTree, ArrowLeft
-} from 'lucide-react';
+import { useState, useMemo } from "react";
+import Link from "next/link";
+import {
+  Code2,
+  Cpu,
+  GraduationCap,
+  Binary,
+  Zap,
+  Atom,
+  BookOpen,
+  Calculator,
+  ChevronDown,
+  ChevronUp,
+  Layers,
+  FolderTree,
+  ArrowLeft,
+} from "lucide-react";
 
 export interface CategoryItem {
   _id: string;
@@ -21,92 +32,107 @@ export interface CategoryItem {
   children?: CategoryItem[];
 }
 
-const CATEGORY_META: Record<string, {
-  icon: any;
-  bgLight: string;
-  borderColor: string;
-  textColor: string;
-}> = {
-  'programming': {
+const CATEGORY_META: Record<
+  string,
+  {
+    icon: any;
+    bgLight: string;
+    borderColor: string;
+    textColor: string;
+  }
+> = {
+  programming: {
     icon: Code2,
-    bgLight: 'bg-violet-50 text-violet-600',
-    borderColor: 'hover:border-violet-400',
-    textColor: 'text-violet-600',
+    bgLight: "bg-violet-50 text-violet-600",
+    borderColor: "hover:border-violet-400",
+    textColor: "text-violet-600",
   },
-  'computer-engineering': {
+  "computer-engineering": {
     icon: Cpu,
-    bgLight: 'bg-sky-50 text-sky-600',
-    borderColor: 'hover:border-sky-400',
-    textColor: 'text-sky-600',
+    bgLight: "bg-sky-50 text-sky-600",
+    borderColor: "hover:border-sky-400",
+    textColor: "text-sky-600",
   },
-  'university-courses': {
+  "university-courses": {
     icon: GraduationCap,
-    bgLight: 'bg-emerald-50 text-emerald-600',
-    borderColor: 'hover:border-emerald-400',
-    textColor: 'text-emerald-600',
+    bgLight: "bg-emerald-50 text-emerald-600",
+    borderColor: "hover:border-emerald-400",
+    textColor: "text-emerald-600",
   },
-  'mathematics-statistics': {
+  "mathematics-statistics": {
     icon: Binary,
-    bgLight: 'bg-amber-50 text-amber-600',
-    borderColor: 'hover:border-amber-400',
-    textColor: 'text-amber-600',
+    bgLight: "bg-amber-50 text-amber-600",
+    borderColor: "hover:border-amber-400",
+    textColor: "text-amber-600",
   },
-  'electrical-engineering': {
+  "electrical-engineering": {
     icon: Zap,
-    bgLight: 'bg-yellow-50 text-amber-600',
-    borderColor: 'hover:border-yellow-400',
-    textColor: 'text-amber-600',
+    bgLight: "bg-yellow-50 text-amber-600",
+    borderColor: "hover:border-yellow-400",
+    textColor: "text-amber-600",
   },
-  'basic-sciences': {
+  "basic-sciences": {
     icon: Atom,
-    bgLight: 'bg-teal-50 text-teal-600',
-    borderColor: 'hover:border-teal-400',
-    textColor: 'text-teal-600',
+    bgLight: "bg-teal-50 text-teal-600",
+    borderColor: "hover:border-teal-400",
+    textColor: "text-teal-600",
   },
-  'school-subjects': {
+  "school-subjects": {
     icon: BookOpen,
-    bgLight: 'bg-rose-50 text-rose-600',
-    borderColor: 'hover:border-rose-400',
-    textColor: 'text-rose-600',
+    bgLight: "bg-rose-50 text-rose-600",
+    borderColor: "hover:border-rose-400",
+    textColor: "text-rose-600",
   },
-  'pre-university-math': {
+  "pre-university-math": {
     icon: Calculator,
-    bgLight: 'bg-cyan-50 text-cyan-600',
-    borderColor: 'hover:border-cyan-400',
-    textColor: 'text-cyan-600',
+    bgLight: "bg-cyan-50 text-cyan-600",
+    borderColor: "hover:border-cyan-400",
+    textColor: "text-cyan-600",
   },
 };
 
 const DEFAULT_META = {
   icon: Layers,
-  bgLight: 'bg-blue-50 text-blue-600',
-  borderColor: 'hover:border-blue-400',
-  textColor: 'text-blue-600',
+  bgLight: "bg-blue-50 text-blue-600",
+  borderColor: "hover:border-blue-400",
+  textColor: "text-blue-600",
 };
 
-export function Categories({ data = [], isLoading = false }: { data?: CategoryItem[], isLoading?: boolean }) {
+export function Categories({
+  data = [],
+  isLoading = false,
+}: {
+  data?: CategoryItem[];
+  isLoading?: boolean;
+}) {
   const [isExpanded, setIsExpanded] = useState(false);
 
   // Build hierarchical roots and children
   const { rootCategories, totalCount } = useMemo(() => {
-    if (!data || data.length === 0) return { rootCategories: [], totalCount: 0 };
+    if (!data || data.length === 0)
+      return { rootCategories: [], totalCount: 0 };
 
-    const idMap = new Map<string, CategoryItem & { subcategories: CategoryItem[] }>();
+    const idMap = new Map<
+      string,
+      CategoryItem & { subcategories: CategoryItem[] }
+    >();
     const roots: (CategoryItem & { subcategories: CategoryItem[] })[] = [];
 
     // First pass: index all items
-    data.forEach(item => {
+    data.forEach((item) => {
       idMap.set(String(item._id), {
         ...item,
-        subcategories: Array.isArray(item.children) ? [...item.children] : []
+        subcategories: Array.isArray(item.children) ? [...item.children] : [],
       });
     });
 
     // Second pass: group subcategories under roots
-    data.forEach(item => {
+    data.forEach((item) => {
       const parentIdRaw = item.parentId;
-      const parentIdStr = parentIdRaw 
-        ? (typeof parentIdRaw === 'object' && parentIdRaw !== null ? String(parentIdRaw._id) : String(parentIdRaw))
+      const parentIdStr = parentIdRaw
+        ? typeof parentIdRaw === "object" && parentIdRaw !== null
+          ? String(parentIdRaw._id)
+          : String(parentIdRaw)
         : null;
 
       const current = idMap.get(String(item._id))!;
@@ -114,12 +140,16 @@ export function Categories({ data = [], isLoading = false }: { data?: CategoryIt
       if (parentIdStr && idMap.has(parentIdStr)) {
         // This is a child: append to its parent's subcategories if not already there
         const parent = idMap.get(parentIdStr)!;
-        if (!parent.subcategories.some(sub => String(sub._id) === String(current._id))) {
+        if (
+          !parent.subcategories.some(
+            (sub) => String(sub._id) === String(current._id),
+          )
+        ) {
           parent.subcategories.push(current);
         }
       } else if (!parentIdStr || item.level === 0) {
         // This is a root category
-        if (!roots.some(r => String(r._id) === String(current._id))) {
+        if (!roots.some((r) => String(r._id) === String(current._id))) {
           roots.push(current);
         }
       }
@@ -129,25 +159,31 @@ export function Categories({ data = [], isLoading = false }: { data?: CategoryIt
     roots.sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0));
 
     // Sort subcategories under each root by sortOrder
-    roots.forEach(root => {
-      root.subcategories.sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0));
+    roots.forEach((root) => {
+      root.subcategories.sort(
+        (a, b) => (a.sortOrder || 0) - (b.sortOrder || 0),
+      );
     });
 
     // If no roots identified due to missing parent references, treat all level 0 as roots
-    const finalRoots = roots.length > 0 ? roots : data.map(item => ({ ...item, subcategories: [] }));
+    const finalRoots =
+      roots.length > 0
+        ? roots
+        : data.map((item) => ({ ...item, subcategories: [] }));
 
     return { rootCategories: finalRoots, totalCount: finalRoots.length };
   }, [data]);
 
   if (!isLoading && rootCategories.length === 0) return null;
 
-  const displayedRoots = isExpanded ? rootCategories : rootCategories.slice(0, 4);
+  const displayedRoots = isExpanded
+    ? rootCategories
+    : rootCategories.slice(0, 4);
   const remainingCount = Math.max(0, rootCategories.length - 4);
 
   return (
     <section className="py-12 sm:py-16 bg-[var(--neo-surface-2)] relative border-b border-[var(--neo-border)]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8" dir="rtl">
-        
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-8 sm:mb-10 gap-4 text-right w-full">
           <div>
@@ -158,7 +194,7 @@ export function Categories({ data = [], isLoading = false }: { data?: CategoryIt
               </span>
             </div>
             <h2 className="text-xl sm:text-2xl md:text-3xl font-black text-[var(--neo-text-main)]">
-              گسترش مرزهای دانش در تک‌یاد
+              گسترش مرزهای دانش در تک یاد
             </h2>
           </div>
 
@@ -169,8 +205,16 @@ export function Categories({ data = [], isLoading = false }: { data?: CategoryIt
                 onClick={() => setIsExpanded(!isExpanded)}
                 className="px-3.5 py-1.5 rounded-xl bg-white border border-[var(--neo-border)] hover:border-[var(--neo-primary)] text-[var(--neo-text-main)] text-xs font-bold transition flex items-center gap-1.5 shadow-2xs cursor-pointer"
               >
-                <span>{isExpanded ? 'نمایش کمتر' : `مشاهده ${remainingCount} شاخه اصلی دیگر`}</span>
-                {isExpanded ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+                <span>
+                  {isExpanded
+                    ? "نمایش کمتر"
+                    : `مشاهده ${remainingCount} شاخه اصلی دیگر`}
+                </span>
+                {isExpanded ? (
+                  <ChevronUp className="w-3.5 h-3.5" />
+                ) : (
+                  <ChevronDown className="w-3.5 h-3.5" />
+                )}
               </button>
             )}
 
@@ -188,7 +232,10 @@ export function Categories({ data = [], isLoading = false }: { data?: CategoryIt
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
           {isLoading
             ? [...Array(4)].map((_, i) => (
-                <div key={i} className="bg-white p-6 rounded-3xl border border-[var(--neo-border)] animate-pulse space-y-4">
+                <div
+                  key={i}
+                  className="bg-white p-6 rounded-3xl border border-[var(--neo-border)] animate-pulse space-y-4"
+                >
                   <div className="w-12 h-12 rounded-2xl bg-gray-200" />
                   <div className="h-5 bg-gray-200 rounded w-2/3" />
                   <div className="h-3 bg-gray-100 rounded w-full" />
@@ -201,7 +248,8 @@ export function Categories({ data = [], isLoading = false }: { data?: CategoryIt
             : displayedRoots.map((root, idx) => {
                 const meta = CATEGORY_META[root.slug] || DEFAULT_META;
                 const IconComponent = meta.icon;
-                const totalContentCount = (root.coursesCount || 0) + (root.classCount || 0);
+                const totalContentCount =
+                  (root.coursesCount || 0) + (root.classCount || 0);
 
                 return (
                   <div
@@ -224,13 +272,16 @@ export function Categories({ data = [], isLoading = false }: { data?: CategoryIt
                           </span>
                         )}
                         <span className="text-xs font-black text-gray-300 group-hover:text-[var(--neo-primary)] font-mono">
-                          {(idx + 1).toString().padStart(2, '0')}
+                          {(idx + 1).toString().padStart(2, "0")}
                         </span>
                       </div>
                     </div>
 
                     {/* Root Category Name */}
-                    <Link href={`/categories/${root.slug}`} className="block mb-2">
+                    <Link
+                      href={`/categories/${root.slug}`}
+                      className="block mb-2"
+                    >
                       <h3 className="font-black text-[var(--neo-text-main)] text-lg group-hover:text-[var(--neo-primary)] transition-colors">
                         {root.name}
                       </h3>
@@ -238,7 +289,8 @@ export function Categories({ data = [], isLoading = false }: { data?: CategoryIt
 
                     {/* Root Description */}
                     <p className="text-xs text-[var(--neo-text-secondary)] line-clamp-2 leading-relaxed mb-4">
-                      {root.description || 'آموزش‌های تخصصی، مباحث پایه تا پیشرفته و مهارت‌های بازار کار.'}
+                      {root.description ||
+                        "آموزش‌های تخصصی، مباحث پایه تا پیشرفته و مهارت‌های بازار کار."}
                     </p>
 
                     {/* Subcategories: Hierarchical Children under Parent */}
@@ -250,7 +302,7 @@ export function Categories({ data = [], isLoading = false }: { data?: CategoryIt
 
                       {root.subcategories && root.subcategories.length > 0 ? (
                         <div className="flex flex-wrap gap-1.5 mb-3">
-                          {root.subcategories.slice(0, 4).map(sub => (
+                          {root.subcategories.slice(0, 4).map((sub) => (
                             <Link
                               key={sub._id}
                               href={`/categories/${sub.slug}`}

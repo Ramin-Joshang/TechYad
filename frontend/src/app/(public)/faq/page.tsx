@@ -1,32 +1,38 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { Search, ChevronDown, MessageSquare, PhoneCall, Loader2 } from 'lucide-react';
-import Link from 'next/link';
-import { useQuery } from '@tanstack/react-query';
-import { generalApi } from '@/features/general/api/general.api';
+import { useState } from "react";
+import {
+  Search,
+  ChevronDown,
+  MessageSquare,
+  PhoneCall,
+  Loader2,
+} from "lucide-react";
+import Link from "next/link";
+import { useQuery } from "@tanstack/react-query";
+import { generalApi } from "@/features/general/api/general.api";
 
 const FAQ_CATEGORIES = [
-  { id: 'all', label: 'همه سوالات' },
-  { id: 'register', label: 'ثبت‌نام' },
-  { id: 'courses', label: 'دوره‌ها' },
-  { id: 'payment', label: 'پرداخت' },
-  { id: 'online', label: 'کلاس‌های آنلاین' },
-  { id: 'offline', label: 'کلاس‌های حضوری' },
-  { id: 'support', label: 'پشتیبانی' }
+  { id: "all", label: "همه سوالات" },
+  { id: "register", label: "ثبت‌نام" },
+  { id: "courses", label: "دوره‌ها" },
+  { id: "payment", label: "پرداخت" },
+  { id: "online", label: "کلاس‌های آنلاین" },
+  { id: "offline", label: "کلاس‌های حضوری" },
+  { id: "support", label: "پشتیبانی" },
 ];
 
 export default function FAQPage() {
-  const [searchTerm, setSearchTerm] = useState('');
-  const [activeCategory, setActiveCategory] = useState('all');
+  const [searchTerm, setSearchTerm] = useState("");
+  const [activeCategory, setActiveCategory] = useState("all");
   const [openItem, setOpenItem] = useState<string | null>(null);
 
   const { data: faqs, isLoading } = useQuery({
-    queryKey: ['faqs'],
+    queryKey: ["faqs"],
     queryFn: async () => {
       const res = await generalApi.getFaqs();
       return res.data || res.data; // Mongoose models have _id
-    }
+    },
   });
 
   const toggleItem = (id: string) => {
@@ -34,8 +40,10 @@ export default function FAQPage() {
   };
 
   const filteredFaqs = (faqs || []).filter((faq: any) => {
-    const matchesSearch = faq.question?.includes(searchTerm) || faq.answer?.includes(searchTerm);
-    const matchesCategory = activeCategory === 'all' || faq.category === activeCategory;
+    const matchesSearch =
+      faq.question?.includes(searchTerm) || faq.answer?.includes(searchTerm);
+    const matchesCategory =
+      activeCategory === "all" || faq.category === activeCategory;
     return matchesSearch && matchesCategory;
   });
 
@@ -45,17 +53,17 @@ export default function FAQPage() {
       <div className="bg-slate-900 pt-24 pb-32 text-center text-white px-4">
         <h1 className="text-3xl md:text-5xl font-bold mb-6">سوالات متداول</h1>
         <p className="text-lg text-gray-300 max-w-2xl mx-auto mb-10">
-          پاسخ پرتکرارترین سوالات دانشجویان تک‌یاد را در اینجا بخوانید.
+          پاسخ پرتکرارترین سوالات دانشجویان تک یاد را در اینجا بخوانید.
         </p>
-        
+
         {/* Search */}
         <div className="max-w-2xl mx-auto relative px-2 sm:px-0">
           <Search className="absolute right-6 sm:right-4 top-1/2 -translate-y-1/2 text-[var(--neo-text-muted)] w-5 h-5 sm:w-6 sm:h-6" />
-          <input 
-            type="text" 
-            placeholder="سوال خود را جستجو کنید..." 
+          <input
+            type="text"
+            placeholder="سوال خود را جستجو کنید..."
             value={searchTerm}
-            onChange={e => setSearchTerm(e.target.value)}
+            onChange={(e) => setSearchTerm(e.target.value)}
             className="w-full bg-white text-[var(--neo-text-main)] rounded-2xl pl-4 sm:pl-6 pr-12 sm:pr-14 py-3 sm:py-4 text-sm sm:text-lg focus:outline-none focus:ring-4 focus:ring-blue-500/50 shadow-xl"
           />
         </div>
@@ -65,14 +73,14 @@ export default function FAQPage() {
         <div className="bg-white rounded-3xl shadow-xl border border-[var(--neo-border)] overflow-hidden">
           {/* Categories */}
           <div className="flex overflow-x-auto border-b border-[var(--neo-border)] p-2 hide-scrollbar">
-            {FAQ_CATEGORIES.map(cat => (
+            {FAQ_CATEGORIES.map((cat) => (
               <button
                 key={cat.id}
                 onClick={() => setActiveCategory(cat.id)}
                 className={`whitespace-nowrap px-6 py-4 font-bold text-sm transition-colors border-b-2 ${
-                  activeCategory === cat.id 
-                    ? 'border-[var(--neo-primary)] text-[var(--neo-primary)]' 
-                    : 'border-transparent text-[var(--neo-text-muted)] hover:text-[var(--neo-text-main)]'
+                  activeCategory === cat.id
+                    ? "border-[var(--neo-primary)] text-[var(--neo-primary)]"
+                    : "border-transparent text-[var(--neo-text-muted)] hover:text-[var(--neo-text-main)]"
                 }`}
               >
                 {cat.label}
@@ -94,24 +102,32 @@ export default function FAQPage() {
             ) : (
               <div className="space-y-4">
                 {filteredFaqs.map((faq: any) => (
-                  <div 
-                    key={faq._id} 
+                  <div
+                    key={faq._id}
                     className={`border rounded-2xl transition-all duration-300 overflow-hidden ${
-                      openItem === faq._id ? 'border-blue-200 bg-[var(--neo-primary)]/5/30' : 'border-[var(--neo-border)] bg-white hover:border-blue-200'
+                      openItem === faq._id
+                        ? "border-blue-200 bg-[var(--neo-primary)]/5/30"
+                        : "border-[var(--neo-border)] bg-white hover:border-blue-200"
                     }`}
                   >
-                    <button 
+                    <button
                       onClick={() => toggleItem(faq._id)}
                       className="w-full flex items-center justify-between p-5 text-right focus:outline-none"
                     >
-                      <span className={`font-bold pr-2 ${openItem === faq._id ? 'text-blue-700' : 'text-[var(--neo-text-main)]'}`}>
+                      <span
+                        className={`font-bold pr-2 ${openItem === faq._id ? "text-blue-700" : "text-[var(--neo-text-main)]"}`}
+                      >
                         {faq.question}
                       </span>
-                      <ChevronDown className={`w-5 h-5 transition-transform duration-300 shrink-0 ${openItem === faq._id ? 'rotate-180 text-[var(--neo-primary)]' : 'text-[var(--neo-text-muted)]'}`} />
+                      <ChevronDown
+                        className={`w-5 h-5 transition-transform duration-300 shrink-0 ${openItem === faq._id ? "rotate-180 text-[var(--neo-primary)]" : "text-[var(--neo-text-muted)]"}`}
+                      />
                     </button>
-                    <div 
+                    <div
                       className={`overflow-hidden transition-all duration-300 ease-in-out ${
-                        openItem === faq._id ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
+                        openItem === faq._id
+                          ? "max-h-96 opacity-100"
+                          : "max-h-0 opacity-0"
                       }`}
                     >
                       <div className="p-5 pt-0 text-[var(--neo-text-secondary)] leading-relaxed border-t border-transparent">
@@ -136,12 +152,18 @@ export default function FAQPage() {
             <div className="w-16 h-16 bg-white/10 rounded-full flex items-center justify-center mb-6">
               <MessageSquare className="w-8 h-8 text-white" />
             </div>
-            <h2 className="text-2xl font-bold mb-4">جواب سؤال خود را پیدا نکردید؟</h2>
+            <h2 className="text-2xl font-bold mb-4">
+              جواب سؤال خود را پیدا نکردید؟
+            </h2>
             <p className="text-[var(--neo-primary)]/10 mb-8 max-w-lg leading-relaxed">
-              تیم پشتیبانی تک‌یاد آماده پاسخگویی به تمامی سوالات شماست. با ما تماس بگیرید یا تیکت ارسال کنید.
+              تیم پشتیبانی تک یاد آماده پاسخگویی به تمامی سوالات شماست. با ما
+              تماس بگیرید یا تیکت ارسال کنید.
             </p>
             <div className="flex flex-col sm:flex-row gap-4">
-              <Link href="/contact" className="bg-white text-[var(--neo-primary)] font-bold px-8 py-3 rounded-xl hover:bg-[var(--neo-bg)] transition shadow-md flex items-center justify-center gap-2">
+              <Link
+                href="/contact"
+                className="bg-white text-[var(--neo-primary)] font-bold px-8 py-3 rounded-xl hover:bg-[var(--neo-bg)] transition shadow-md flex items-center justify-center gap-2"
+              >
                 <PhoneCall className="w-5 h-5" /> تماس با پشتیبانی
               </Link>
             </div>

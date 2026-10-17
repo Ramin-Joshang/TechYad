@@ -1,18 +1,29 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { instructorsApi } from '@/features/instructors/api/instructors.api';
-import { useAuthStore } from '@/features/auth/stores/auth.store';
-import { 
-  User, Award, GraduationCap, Briefcase, Plus, Trash2, 
-  Save, Loader2, CheckCircle2, Globe, 
-  ExternalLink, Sparkles, BookOpen, Layers
-} from 'lucide-react';
-import Link from 'next/link';
-import toast from 'react-hot-toast';
-import { MediaUploader } from '@/components/common/MediaUploader';
-import { toEnDigits } from '@/lib/utils';
+import { useState, useEffect } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { instructorsApi } from "@/features/instructors/api/instructors.api";
+import { useAuthStore } from "@/features/auth/stores/auth.store";
+import {
+  User,
+  Award,
+  GraduationCap,
+  Briefcase,
+  Plus,
+  Trash2,
+  Save,
+  Loader2,
+  CheckCircle2,
+  Globe,
+  ExternalLink,
+  Sparkles,
+  BookOpen,
+  Layers,
+} from "lucide-react";
+import Link from "next/link";
+import toast from "react-hot-toast";
+import { MediaUploader } from "@/components/common/MediaUploader";
+import { toEnDigits } from "@/lib/utils";
 
 function LinkedinIcon({ className }: { className?: string }) {
   return (
@@ -34,56 +45,58 @@ export default function InstructorResumePage() {
   const queryClient = useQueryClient();
   const { user, setUser } = useAuthStore();
 
-  const [activeTab, setActiveTab] = useState<'info' | 'education' | 'experience' | 'specialties' | 'social'>('info');
+  const [activeTab, setActiveTab] = useState<
+    "info" | "education" | "experience" | "specialties" | "social"
+  >("info");
 
   const { data: profileData, isLoading } = useQuery({
-    queryKey: ['myInstructorProfile'],
-    queryFn: () => instructorsApi.getMyProfile().then(res => res.data)
+    queryKey: ["myInstructorProfile"],
+    queryFn: () => instructorsApi.getMyProfile().then((res) => res.data),
   });
 
   const [formData, setFormData] = useState({
-    title: '',
-    bio: '',
-    avatar: '',
+    title: "",
+    bio: "",
+    avatar: "",
     specialties: [] as string[],
     education: [] as {
       degree: string;
       field: string;
       university: string;
-      startYear?: number | '';
-      endYear?: number | '';
+      startYear?: number | "";
+      endYear?: number | "";
     }[],
     experience: [] as {
       position: string;
       company: string;
-      startYear?: number | '';
-      endYear?: number | '';
+      startYear?: number | "";
+      endYear?: number | "";
       current?: boolean;
       description?: string;
     }[],
     socialLinks: {
-      linkedin: '',
-      website: '',
-      instagram: ''
-    }
+      linkedin: "",
+      website: "",
+      instagram: "",
+    },
   });
 
-  const [newSpecialty, setNewSpecialty] = useState('');
+  const [newSpecialty, setNewSpecialty] = useState("");
 
   useEffect(() => {
     if (profileData) {
       setFormData({
-        title: profileData.title || user?.specialty || '',
-        bio: profileData.bio || user?.bio || '',
-        avatar: profileData.avatar || user?.avatar || '',
+        title: profileData.title || user?.specialty || "",
+        bio: profileData.bio || user?.bio || "",
+        avatar: profileData.avatar || user?.avatar || "",
         specialties: profileData.specialties || [],
         education: profileData.education || [],
         experience: profileData.experience || [],
         socialLinks: {
-          linkedin: profileData.socialLinks?.linkedin || '',
-          website: profileData.socialLinks?.website || '',
-          instagram: profileData.socialLinks?.instagram || ''
-        }
+          linkedin: profileData.socialLinks?.linkedin || "",
+          website: profileData.socialLinks?.website || "",
+          instagram: profileData.socialLinks?.instagram || "",
+        },
       });
     }
   }, [profileData, user]);
@@ -91,15 +104,21 @@ export default function InstructorResumePage() {
   const updateMutation = useMutation({
     mutationFn: (data: any) => instructorsApi.updateMyProfile(data),
     onSuccess: (res) => {
-      toast.success('رزومه و اطلاعات پروفایل استاد با موفقیت ذخیره شد');
-      queryClient.invalidateQueries({ queryKey: ['myInstructorProfile'] });
+      toast.success("رزومه و اطلاعات پروفایل استاد با موفقیت ذخیره شد");
+      queryClient.invalidateQueries({ queryKey: ["myInstructorProfile"] });
       if (res?.data?.avatar && user) {
-        setUser({ ...user, avatar: res.data.avatar, specialty: res.data.title });
+        setUser({
+          ...user,
+          avatar: res.data.avatar,
+          specialty: res.data.title,
+        });
       }
     },
     onError: (err: any) => {
-      toast.error(err?.response?.data?.message || 'خطا در ذخیره‌سازی اطلاعات رزومه');
-    }
+      toast.error(
+        err?.response?.data?.message || "خطا در ذخیره‌سازی اطلاعات رزومه",
+      );
+    },
   });
 
   const handleSave = (e: React.FormEvent) => {
@@ -111,36 +130,42 @@ export default function InstructorResumePage() {
   const handleAddSpecialty = () => {
     if (!newSpecialty.trim()) return;
     if (formData.specialties.includes(newSpecialty.trim())) {
-      toast.error('این مهارت قبلاً اضافه شده است');
+      toast.error("این مهارت قبلاً اضافه شده است");
       return;
     }
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      specialties: [...prev.specialties, newSpecialty.trim()]
+      specialties: [...prev.specialties, newSpecialty.trim()],
     }));
-    setNewSpecialty('');
+    setNewSpecialty("");
   };
 
   const handleRemoveSpecialty = (index: number) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      specialties: prev.specialties.filter((_, i) => i !== index)
+      specialties: prev.specialties.filter((_, i) => i !== index),
     }));
   };
 
   // Education
   const handleAddEducation = () => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
       education: [
         ...prev.education,
-        { degree: 'کارشناسی', field: '', university: '', startYear: '', endYear: '' }
-      ]
+        {
+          degree: "کارشناسی",
+          field: "",
+          university: "",
+          startYear: "",
+          endYear: "",
+        },
+      ],
     }));
   };
 
   const handleUpdateEducation = (index: number, field: string, value: any) => {
-    setFormData(prev => {
+    setFormData((prev) => {
       const list = [...prev.education];
       list[index] = { ...list[index], [field]: value };
       return { ...prev, education: list };
@@ -148,25 +173,32 @@ export default function InstructorResumePage() {
   };
 
   const handleRemoveEducation = (index: number) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      education: prev.education.filter((_, i) => i !== index)
+      education: prev.education.filter((_, i) => i !== index),
     }));
   };
 
   // Experience
   const handleAddExperience = () => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
       experience: [
         ...prev.experience,
-        { position: '', company: '', startYear: '', endYear: '', current: false, description: '' }
-      ]
+        {
+          position: "",
+          company: "",
+          startYear: "",
+          endYear: "",
+          current: false,
+          description: "",
+        },
+      ],
     }));
   };
 
   const handleUpdateExperience = (index: number, field: string, value: any) => {
-    setFormData(prev => {
+    setFormData((prev) => {
       const list = [...prev.experience];
       list[index] = { ...list[index], [field]: value };
       return { ...prev, experience: list };
@@ -174,9 +206,9 @@ export default function InstructorResumePage() {
   };
 
   const handleRemoveExperience = (index: number) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      experience: prev.experience.filter((_, i) => i !== index)
+      experience: prev.experience.filter((_, i) => i !== index),
     }));
   };
 
@@ -186,7 +218,9 @@ export default function InstructorResumePage() {
     return (
       <div className="flex flex-col items-center justify-center min-h-[50vh] gap-3">
         <Loader2 className="w-10 h-10 text-[var(--neo-primary)] animate-spin" />
-        <p className="text-sm font-medium text-[var(--neo-text-muted)]">در حال دریافت اطلاعات رزومه استاد...</p>
+        <p className="text-sm font-medium text-[var(--neo-text-muted)]">
+          در حال دریافت اطلاعات رزومه استاد...
+        </p>
       </div>
     );
   }
@@ -204,7 +238,8 @@ export default function InstructorResumePage() {
             رزومه و پروفایل عمومی استاد
           </h1>
           <p className="text-xs sm:text-sm text-blue-100 leading-relaxed max-w-2xl font-medium">
-            اطلاعات، سوابق تحصیلی، تجربیات کاری و تخصص‌های شما در صفحه اختصاصی استاد برای عموم دانشجویان نمایش داده می‌شود.
+            اطلاعات، سوابق تحصیلی، تجربیات کاری و تخصص‌های شما در صفحه اختصاصی
+            استاد برای عموم دانشجویان نمایش داده می‌شود.
           </p>
         </div>
 
@@ -223,11 +258,11 @@ export default function InstructorResumePage() {
       {/* Tabs */}
       <div className="flex gap-2 p-1.5 bg-[var(--neo-surface-2)] rounded-2xl border border-[var(--neo-border)] overflow-x-auto hide-scrollbar">
         {[
-          { id: 'info', label: 'اطلاعات اصلی و بیوگرافی', icon: User },
-          { id: 'specialties', label: 'تخصص‌ها و مهارت‌ها', icon: Award },
-          { id: 'education', label: 'سوابق تحصیلی', icon: GraduationCap },
-          { id: 'experience', label: 'سوابق کاری و شغلی', icon: Briefcase },
-          { id: 'social', label: 'شبکه‌های اجتماعی و وب‌سایت', icon: Globe },
+          { id: "info", label: "اطلاعات اصلی و بیوگرافی", icon: User },
+          { id: "specialties", label: "تخصص‌ها و مهارت‌ها", icon: Award },
+          { id: "education", label: "سوابق تحصیلی", icon: GraduationCap },
+          { id: "experience", label: "سوابق کاری و شغلی", icon: Briefcase },
+          { id: "social", label: "شبکه‌های اجتماعی و وب‌سایت", icon: Globe },
         ].map((tab) => {
           const Icon = tab.icon;
           const isActive = activeTab === tab.id;
@@ -238,8 +273,8 @@ export default function InstructorResumePage() {
               onClick={() => setActiveTab(tab.id as any)}
               className={`px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition flex items-center gap-2 whitespace-nowrap ${
                 isActive
-                  ? 'bg-[var(--neo-surface)] text-[var(--neo-primary)] shadow-sm'
-                  : 'text-[var(--neo-text-secondary)] hover:text-[var(--neo-text-main)]'
+                  ? "bg-[var(--neo-surface)] text-[var(--neo-primary)] shadow-sm"
+                  : "text-[var(--neo-text-secondary)] hover:text-[var(--neo-text-main)]"
               }`}
             >
               <Icon className="w-4 h-4" />
@@ -251,7 +286,7 @@ export default function InstructorResumePage() {
 
       <form onSubmit={handleSave} className="space-y-6">
         {/* TAB 1: BASIC INFO */}
-        {activeTab === 'info' && (
+        {activeTab === "info" && (
           <div className="bg-[var(--neo-surface)] p-6 sm:p-8 rounded-3xl border border-[var(--neo-border)] shadow-sm space-y-6 animate-in fade-in">
             <h2 className="text-lg font-bold text-[var(--neo-text-main)] flex items-center gap-2">
               <User className="w-5 h-5 text-[var(--neo-primary)]" />
@@ -260,17 +295,22 @@ export default function InstructorResumePage() {
 
             {/* Avatar Uploader */}
             <div className="space-y-2">
-              <label className="block text-xs font-bold text-[var(--neo-text-secondary)]">تصویر پروفایل استاد</label>
+              <label className="block text-xs font-bold text-[var(--neo-text-secondary)]">
+                تصویر پروفایل استاد
+              </label>
               <MediaUploader
                 value={formData.avatar}
-                onChange={(url) => setFormData(prev => ({ ...prev, avatar: url }))}
+                onChange={(url) =>
+                  setFormData((prev) => ({ ...prev, avatar: url }))
+                }
                 folder="personnel"
                 maxSizeMB={5}
                 accept="image/*"
                 label="آپلود تصویر پرسنلی / آواتار رسمی"
               />
               <p className="text-[11px] text-[var(--neo-text-muted)]">
-                توصیه می‌شود تصویری با وضوح بالا، پس‌زمینه مناسب و کادربندی مربعی انتخاب کنید.
+                توصیه می‌شود تصویری با وضوح بالا، پس‌زمینه مناسب و کادربندی
+                مربعی انتخاب کنید.
               </p>
             </div>
 
@@ -282,7 +322,9 @@ export default function InstructorResumePage() {
                 <input
                   type="text"
                   value={formData.title}
-                  onChange={e => setFormData({ ...formData, title: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, title: e.target.value })
+                  }
                   placeholder="مثال: مدرس ارشد فرانت‌اند و مهندس سیستم‌های توزیع‌شده"
                   required
                   className="w-full px-4 py-2.5 rounded-xl border border-[var(--neo-border)] bg-[var(--neo-surface-2)] text-sm focus:outline-none focus:ring-2 focus:ring-[var(--neo-primary)]"
@@ -296,7 +338,7 @@ export default function InstructorResumePage() {
                 <input
                   type="text"
                   disabled
-                  value={`${user?.firstName || ''} ${user?.lastName || ''}`}
+                  value={`${user?.firstName || ""} ${user?.lastName || ""}`}
                   className="w-full px-4 py-2.5 rounded-xl border border-[var(--neo-border)] bg-[var(--neo-surface-2)]/60 text-sm text-[var(--neo-text-muted)] cursor-not-allowed"
                 />
                 <span className="text-[10px] text-[var(--neo-text-muted)] mt-1 block">
@@ -312,7 +354,9 @@ export default function InstructorResumePage() {
               <textarea
                 rows={6}
                 value={formData.bio}
-                onChange={e => setFormData({ ...formData, bio: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, bio: e.target.value })
+                }
                 placeholder="سوابق، رویکرد آموزشی، دستاوردها و نحوه تعامل خود را با دانشجویان بنویسید..."
                 required
                 className="w-full p-4 rounded-xl border border-[var(--neo-border)] bg-[var(--neo-surface-2)] text-sm leading-relaxed focus:outline-none focus:ring-2 focus:ring-[var(--neo-primary)]"
@@ -322,7 +366,7 @@ export default function InstructorResumePage() {
         )}
 
         {/* TAB 2: SPECIALTIES */}
-        {activeTab === 'specialties' && (
+        {activeTab === "specialties" && (
           <div className="bg-[var(--neo-surface)] p-6 sm:p-8 rounded-3xl border border-[var(--neo-border)] shadow-sm space-y-6 animate-in fade-in">
             <div>
               <h2 className="text-lg font-bold text-[var(--neo-text-main)] flex items-center gap-2">
@@ -330,7 +374,8 @@ export default function InstructorResumePage() {
                 تخصص‌ها و مهارت‌های کلیدی
               </h2>
               <p className="text-xs text-[var(--neo-text-secondary)] mt-1">
-                مهارت‌ها، فریم‌ورک‌ها و حوزه‌های تدریس خود را وارد نمایید. این مهارت‌ها به صورت برچسب در صفحه شما نمایش داده می‌شوند.
+                مهارت‌ها، فریم‌ورک‌ها و حوزه‌های تدریس خود را وارد نمایید. این
+                مهارت‌ها به صورت برچسب در صفحه شما نمایش داده می‌شوند.
               </p>
             </div>
 
@@ -338,9 +383,9 @@ export default function InstructorResumePage() {
               <input
                 type="text"
                 value={newSpecialty}
-                onChange={e => setNewSpecialty(e.target.value)}
-                onKeyDown={e => {
-                  if (e.key === 'Enter') {
+                onChange={(e) => setNewSpecialty(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
                     e.preventDefault();
                     handleAddSpecialty();
                   }
@@ -379,7 +424,8 @@ export default function InstructorResumePage() {
                 </div>
               ) : (
                 <div className="p-8 text-center border border-dashed border-[var(--neo-border)] rounded-2xl text-xs text-[var(--neo-text-muted)]">
-                  هنوز تخصصی ثبت نشده است. از فیلد بالا مهارت‌های خود را وارد کنید.
+                  هنوز تخصصی ثبت نشده است. از فیلد بالا مهارت‌های خود را وارد
+                  کنید.
                 </div>
               )}
             </div>
@@ -387,7 +433,7 @@ export default function InstructorResumePage() {
         )}
 
         {/* TAB 3: EDUCATION */}
-        {activeTab === 'education' && (
+        {activeTab === "education" && (
           <div className="bg-[var(--neo-surface)] p-6 sm:p-8 rounded-3xl border border-[var(--neo-border)] shadow-sm space-y-6 animate-in fade-in">
             <div className="flex justify-between items-center">
               <div>
@@ -396,7 +442,8 @@ export default function InstructorResumePage() {
                   سوابق تحصیلی و دانشگاهی
                 </h2>
                 <p className="text-xs text-[var(--neo-text-secondary)] mt-1">
-                  مدارک دانشگاهی، رشته‌های تحصیلی و دانشگاه‌های محل تحصیل خود را ثبت نمایید.
+                  مدارک دانشگاهی، رشته‌های تحصیلی و دانشگاه‌های محل تحصیل خود را
+                  ثبت نمایید.
                 </p>
               </div>
 
@@ -413,7 +460,10 @@ export default function InstructorResumePage() {
             <div className="space-y-4">
               {formData.education.length > 0 ? (
                 formData.education.map((edu, idx) => (
-                  <div key={idx} className="p-5 rounded-2xl border border-[var(--neo-border)] bg-[var(--neo-surface-2)] space-y-4 relative">
+                  <div
+                    key={idx}
+                    className="p-5 rounded-2xl border border-[var(--neo-border)] bg-[var(--neo-surface-2)] space-y-4 relative"
+                  >
                     <div className="flex justify-between items-center">
                       <span className="text-xs font-bold text-slate-700 flex items-center gap-1.5">
                         <GraduationCap className="w-4 h-4 text-blue-600" />
@@ -431,10 +481,14 @@ export default function InstructorResumePage() {
 
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                       <div>
-                        <label className="block text-[11px] font-bold text-[var(--neo-text-secondary)] mb-1">مقطع تحصیلی</label>
+                        <label className="block text-[11px] font-bold text-[var(--neo-text-secondary)] mb-1">
+                          مقطع تحصیلی
+                        </label>
                         <select
                           value={edu.degree}
-                          onChange={e => handleUpdateEducation(idx, 'degree', e.target.value)}
+                          onChange={(e) =>
+                            handleUpdateEducation(idx, "degree", e.target.value)
+                          }
                           className="w-full px-3 py-2 rounded-xl border border-[var(--neo-border)] bg-[var(--neo-surface)] text-xs font-bold outline-none"
                         >
                           <option value="دیپلم">دیپلم</option>
@@ -447,22 +501,34 @@ export default function InstructorResumePage() {
                       </div>
 
                       <div>
-                        <label className="block text-[11px] font-bold text-[var(--neo-text-secondary)] mb-1">رشته تحصیلی *</label>
+                        <label className="block text-[11px] font-bold text-[var(--neo-text-secondary)] mb-1">
+                          رشته تحصیلی *
+                        </label>
                         <input
                           type="text"
                           value={edu.field}
-                          onChange={e => handleUpdateEducation(idx, 'field', e.target.value)}
+                          onChange={(e) =>
+                            handleUpdateEducation(idx, "field", e.target.value)
+                          }
                           placeholder="مهندسی کامپیوتر / نرم‌افزار"
                           className="w-full px-3 py-2 rounded-xl border border-[var(--neo-border)] bg-[var(--neo-surface)] text-xs outline-none"
                         />
                       </div>
 
                       <div>
-                        <label className="block text-[11px] font-bold text-[var(--neo-text-secondary)] mb-1">دانشگاه / موسسه *</label>
+                        <label className="block text-[11px] font-bold text-[var(--neo-text-secondary)] mb-1">
+                          دانشگاه / موسسه *
+                        </label>
                         <input
                           type="text"
                           value={edu.university}
-                          onChange={e => handleUpdateEducation(idx, 'university', e.target.value)}
+                          onChange={(e) =>
+                            handleUpdateEducation(
+                              idx,
+                              "university",
+                              e.target.value,
+                            )
+                          }
                           placeholder="دانشگاه صنعتی شریف"
                           className="w-full px-3 py-2 rounded-xl border border-[var(--neo-border)] bg-[var(--neo-surface)] text-xs outline-none"
                         />
@@ -471,14 +537,23 @@ export default function InstructorResumePage() {
 
                     <div className="grid grid-cols-2 gap-3 max-w-sm">
                       <div>
-                        <label className="block text-[11px] font-bold text-[var(--neo-text-secondary)] mb-1">سال شروع</label>
+                        <label className="block text-[11px] font-bold text-[var(--neo-text-secondary)] mb-1">
+                          سال شروع
+                        </label>
                         <input
                           type="text"
                           inputMode="numeric"
-                          value={edu.startYear || ''}
-                          onChange={e => {
-                            const val = toEnDigits(e.target.value).replace(/[^0-9]/g, '');
-                            handleUpdateEducation(idx, 'startYear', val ? Number(val) : '');
+                          value={edu.startYear || ""}
+                          onChange={(e) => {
+                            const val = toEnDigits(e.target.value).replace(
+                              /[^0-9]/g,
+                              "",
+                            );
+                            handleUpdateEducation(
+                              idx,
+                              "startYear",
+                              val ? Number(val) : "",
+                            );
                           }}
                           placeholder="۱۳۹۵"
                           className="w-full px-3 py-2 rounded-xl border border-[var(--neo-border)] bg-[var(--neo-surface)] text-xs font-mono outline-none dir-ltr text-left"
@@ -486,14 +561,23 @@ export default function InstructorResumePage() {
                       </div>
 
                       <div>
-                        <label className="block text-[11px] font-bold text-[var(--neo-text-secondary)] mb-1">سال فراغت / پایان</label>
+                        <label className="block text-[11px] font-bold text-[var(--neo-text-secondary)] mb-1">
+                          سال فراغت / پایان
+                        </label>
                         <input
                           type="text"
                           inputMode="numeric"
-                          value={edu.endYear || ''}
-                          onChange={e => {
-                            const val = toEnDigits(e.target.value).replace(/[^0-9]/g, '');
-                            handleUpdateEducation(idx, 'endYear', val ? Number(val) : '');
+                          value={edu.endYear || ""}
+                          onChange={(e) => {
+                            const val = toEnDigits(e.target.value).replace(
+                              /[^0-9]/g,
+                              "",
+                            );
+                            handleUpdateEducation(
+                              idx,
+                              "endYear",
+                              val ? Number(val) : "",
+                            );
                           }}
                           placeholder="۱۳۹۹ (یا خالی برای اکنون)"
                           className="w-full px-3 py-2 rounded-xl border border-[var(--neo-border)] bg-[var(--neo-surface)] text-xs font-mono outline-none dir-ltr text-left"
@@ -504,7 +588,8 @@ export default function InstructorResumePage() {
                 ))
               ) : (
                 <div className="p-8 text-center border border-dashed border-[var(--neo-border)] rounded-2xl text-xs text-[var(--neo-text-muted)]">
-                  هیچ سابقه تحصیلی ثبت نشده است. با کلیک بر روی دکمه بالا، سوابق تحصیلی خود را اضافه کنید.
+                  هیچ سابقه تحصیلی ثبت نشده است. با کلیک بر روی دکمه بالا، سوابق
+                  تحصیلی خود را اضافه کنید.
                 </div>
               )}
             </div>
@@ -512,7 +597,7 @@ export default function InstructorResumePage() {
         )}
 
         {/* TAB 4: EXPERIENCE */}
-        {activeTab === 'experience' && (
+        {activeTab === "experience" && (
           <div className="bg-[var(--neo-surface)] p-6 sm:p-8 rounded-3xl border border-[var(--neo-border)] shadow-sm space-y-6 animate-in fade-in">
             <div className="flex justify-between items-center">
               <div>
@@ -521,7 +606,8 @@ export default function InstructorResumePage() {
                   سوابق کاری و حرفه‌ای
                 </h2>
                 <p className="text-xs text-[var(--neo-text-secondary)] mt-1">
-                  پست‌های شغلی، تجربیات تدریس، فعالیت در پروژه‌ها و شرکت‌های همکار را ثبت کنید.
+                  پست‌های شغلی، تجربیات تدریس، فعالیت در پروژه‌ها و شرکت‌های
+                  همکار را ثبت کنید.
                 </p>
               </div>
 
@@ -538,7 +624,10 @@ export default function InstructorResumePage() {
             <div className="space-y-4">
               {formData.experience.length > 0 ? (
                 formData.experience.map((exp, idx) => (
-                  <div key={idx} className="p-5 rounded-2xl border border-[var(--neo-border)] bg-[var(--neo-surface-2)] space-y-4 relative">
+                  <div
+                    key={idx}
+                    className="p-5 rounded-2xl border border-[var(--neo-border)] bg-[var(--neo-surface-2)] space-y-4 relative"
+                  >
                     <div className="flex justify-between items-center">
                       <span className="text-xs font-bold text-slate-700 flex items-center gap-1.5">
                         <Briefcase className="w-4 h-4 text-purple-600" />
@@ -556,23 +645,39 @@ export default function InstructorResumePage() {
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       <div>
-                        <label className="block text-[11px] font-bold text-[var(--neo-text-secondary)] mb-1">سمت یا عنوان شغلی *</label>
+                        <label className="block text-[11px] font-bold text-[var(--neo-text-secondary)] mb-1">
+                          سمت یا عنوان شغلی *
+                        </label>
                         <input
                           type="text"
                           value={exp.position}
-                          onChange={e => handleUpdateExperience(idx, 'position', e.target.value)}
+                          onChange={(e) =>
+                            handleUpdateExperience(
+                              idx,
+                              "position",
+                              e.target.value,
+                            )
+                          }
                           placeholder="مدرس ارشد / مهندس ارشد سیستم"
                           className="w-full px-3 py-2 rounded-xl border border-[var(--neo-border)] bg-[var(--neo-surface)] text-xs outline-none"
                         />
                       </div>
 
                       <div>
-                        <label className="block text-[11px] font-bold text-[var(--neo-text-secondary)] mb-1">نام سازمان / شرکت / آکادمی *</label>
+                        <label className="block text-[11px] font-bold text-[var(--neo-text-secondary)] mb-1">
+                          نام سازمان / شرکت / آکادمی *
+                        </label>
                         <input
                           type="text"
                           value={exp.company}
-                          onChange={e => handleUpdateExperience(idx, 'company', e.target.value)}
-                          placeholder="آکادمی تک‌یاد / شرکت‌های فناور"
+                          onChange={(e) =>
+                            handleUpdateExperience(
+                              idx,
+                              "company",
+                              e.target.value,
+                            )
+                          }
+                          placeholder="آکادمی تک یاد / شرکت‌های فناور"
                           className="w-full px-3 py-2 rounded-xl border border-[var(--neo-border)] bg-[var(--neo-surface)] text-xs outline-none"
                         />
                       </div>
@@ -580,14 +685,23 @@ export default function InstructorResumePage() {
 
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 items-center">
                       <div>
-                        <label className="block text-[11px] font-bold text-[var(--neo-text-secondary)] mb-1">سال شروع</label>
+                        <label className="block text-[11px] font-bold text-[var(--neo-text-secondary)] mb-1">
+                          سال شروع
+                        </label>
                         <input
                           type="text"
                           inputMode="numeric"
-                          value={exp.startYear || ''}
-                          onChange={e => {
-                            const val = toEnDigits(e.target.value).replace(/[^0-9]/g, '');
-                            handleUpdateExperience(idx, 'startYear', val ? Number(val) : '');
+                          value={exp.startYear || ""}
+                          onChange={(e) => {
+                            const val = toEnDigits(e.target.value).replace(
+                              /[^0-9]/g,
+                              "",
+                            );
+                            handleUpdateExperience(
+                              idx,
+                              "startYear",
+                              val ? Number(val) : "",
+                            );
                           }}
                           placeholder="۱۳۹۸"
                           className="w-full px-3 py-2 rounded-xl border border-[var(--neo-border)] bg-[var(--neo-surface)] text-xs font-mono outline-none dir-ltr text-left"
@@ -595,17 +709,26 @@ export default function InstructorResumePage() {
                       </div>
 
                       <div>
-                        <label className="block text-[11px] font-bold text-[var(--neo-text-secondary)] mb-1">سال پایان</label>
+                        <label className="block text-[11px] font-bold text-[var(--neo-text-secondary)] mb-1">
+                          سال پایان
+                        </label>
                         <input
                           type="text"
                           inputMode="numeric"
                           disabled={exp.current}
-                          value={exp.endYear || ''}
-                          onChange={e => {
-                            const val = toEnDigits(e.target.value).replace(/[^0-9]/g, '');
-                            handleUpdateExperience(idx, 'endYear', val ? Number(val) : '');
+                          value={exp.endYear || ""}
+                          onChange={(e) => {
+                            const val = toEnDigits(e.target.value).replace(
+                              /[^0-9]/g,
+                              "",
+                            );
+                            handleUpdateExperience(
+                              idx,
+                              "endYear",
+                              val ? Number(val) : "",
+                            );
                           }}
-                          placeholder={exp.current ? 'مشغول به کار' : '۱۴۰۲'}
+                          placeholder={exp.current ? "مشغول به کار" : "۱۴۰۲"}
                           className="w-full px-3 py-2 rounded-xl border border-[var(--neo-border)] bg-[var(--neo-surface)] text-xs font-mono outline-none dir-ltr text-left disabled:opacity-50"
                         />
                       </div>
@@ -615,7 +738,13 @@ export default function InstructorResumePage() {
                           <input
                             type="checkbox"
                             checked={!!exp.current}
-                            onChange={e => handleUpdateExperience(idx, 'current', e.target.checked)}
+                            onChange={(e) =>
+                              handleUpdateExperience(
+                                idx,
+                                "current",
+                                e.target.checked,
+                              )
+                            }
                             className="w-4 h-4 rounded text-blue-600"
                           />
                           <span>هم‌اکنون مشغول به فعالیت هستم</span>
@@ -624,11 +753,19 @@ export default function InstructorResumePage() {
                     </div>
 
                     <div>
-                      <label className="block text-[11px] font-bold text-[var(--neo-text-secondary)] mb-1">توضیحات دستاوردها یا وظایف (اختیاری)</label>
+                      <label className="block text-[11px] font-bold text-[var(--neo-text-secondary)] mb-1">
+                        توضیحات دستاوردها یا وظایف (اختیاری)
+                      </label>
                       <input
                         type="text"
-                        value={exp.description || ''}
-                        onChange={e => handleUpdateExperience(idx, 'description', e.target.value)}
+                        value={exp.description || ""}
+                        onChange={(e) =>
+                          handleUpdateExperience(
+                            idx,
+                            "description",
+                            e.target.value,
+                          )
+                        }
                         placeholder="تدریس بیش از ۲۰۰۰ ساعت دوره تخصصی و راهبری تیم توسعه..."
                         className="w-full px-3 py-2 rounded-xl border border-[var(--neo-border)] bg-[var(--neo-surface)] text-xs outline-none"
                       />
@@ -637,7 +774,8 @@ export default function InstructorResumePage() {
                 ))
               ) : (
                 <div className="p-8 text-center border border-dashed border-[var(--neo-border)] rounded-2xl text-xs text-[var(--neo-text-muted)]">
-                  هیچ سابقه کاری ثبت نشده است. با کلیک بر روی دکمه بالا، سوابق حرفه‌ای خود را ثبت کنید.
+                  هیچ سابقه کاری ثبت نشده است. با کلیک بر روی دکمه بالا، سوابق
+                  حرفه‌ای خود را ثبت کنید.
                 </div>
               )}
             </div>
@@ -645,7 +783,7 @@ export default function InstructorResumePage() {
         )}
 
         {/* TAB 5: SOCIAL LINKS */}
-        {activeTab === 'social' && (
+        {activeTab === "social" && (
           <div className="bg-[var(--neo-surface)] p-6 sm:p-8 rounded-3xl border border-[var(--neo-border)] shadow-sm space-y-6 animate-in fade-in">
             <div>
               <h2 className="text-lg font-bold text-[var(--neo-text-main)] flex items-center gap-2">
@@ -653,7 +791,8 @@ export default function InstructorResumePage() {
                 شبکه‌های حرفه‌ای و وب‌سایت
               </h2>
               <p className="text-xs text-[var(--neo-text-secondary)] mt-1">
-                لینک‌های ارتباطی و شبکه‌های شغلی خود را جهت دسترسی دانشجویان وارد نمایید.
+                لینک‌های ارتباطی و شبکه‌های شغلی خود را جهت دسترسی دانشجویان
+                وارد نمایید.
               </p>
             </div>
 
@@ -666,10 +805,15 @@ export default function InstructorResumePage() {
                 <input
                   type="url"
                   value={formData.socialLinks.linkedin}
-                  onChange={e => setFormData({
-                    ...formData,
-                    socialLinks: { ...formData.socialLinks, linkedin: e.target.value }
-                  })}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      socialLinks: {
+                        ...formData.socialLinks,
+                        linkedin: e.target.value,
+                      },
+                    })
+                  }
                   placeholder="https://linkedin.com/in/username"
                   className="w-full px-4 py-2.5 rounded-xl border border-[var(--neo-border)] bg-[var(--neo-surface-2)] text-sm dir-ltr text-left font-mono focus:outline-none focus:ring-2 focus:ring-[var(--neo-primary)]"
                 />
@@ -683,10 +827,15 @@ export default function InstructorResumePage() {
                 <input
                   type="url"
                   value={formData.socialLinks.website}
-                  onChange={e => setFormData({
-                    ...formData,
-                    socialLinks: { ...formData.socialLinks, website: e.target.value }
-                  })}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      socialLinks: {
+                        ...formData.socialLinks,
+                        website: e.target.value,
+                      },
+                    })
+                  }
                   placeholder="https://mywebsite.com"
                   className="w-full px-4 py-2.5 rounded-xl border border-[var(--neo-border)] bg-[var(--neo-surface-2)] text-sm dir-ltr text-left font-mono focus:outline-none focus:ring-2 focus:ring-[var(--neo-primary)]"
                 />
@@ -700,10 +849,15 @@ export default function InstructorResumePage() {
                 <input
                   type="text"
                   value={formData.socialLinks.instagram}
-                  onChange={e => setFormData({
-                    ...formData,
-                    socialLinks: { ...formData.socialLinks, instagram: e.target.value }
-                  })}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      socialLinks: {
+                        ...formData.socialLinks,
+                        instagram: e.target.value,
+                      },
+                    })
+                  }
                   placeholder="https://instagram.com/username یا @username"
                   className="w-full px-4 py-2.5 rounded-xl border border-[var(--neo-border)] bg-[var(--neo-surface-2)] text-sm dir-ltr text-left font-mono focus:outline-none focus:ring-2 focus:ring-[var(--neo-primary)]"
                 />

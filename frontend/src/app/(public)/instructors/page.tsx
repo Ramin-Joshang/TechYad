@@ -1,18 +1,19 @@
-import { InstructorsList } from '@/components/instructors/InstructorsList';
-import { fetchInstructors } from '@/lib/server-api';
-import type { Metadata } from 'next';
-export const dynamic = 'force-dynamic';
+import { InstructorsList } from "@/components/instructors/InstructorsList";
+import { fetchInstructors } from "@/lib/server-api";
+import type { Metadata } from "next";
+export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "اساتید و مدرسان برجسته | تک‌یاد",
-  description: "آشنایی با اساتید متخصص و حرفه‌ای تک‌یاد در حوزه‌های برنامه‌نویسی، طراحی محصول، هوش مصنوعی، داده و مهندسی نرم‌افزار.",
+  title: "اساتید و مدرسان برجسته | تک یاد",
+  description:
+    "آشنایی با اساتید متخصص و حرفه‌ای تک یاد در حوزه‌های برنامه‌نویسی، طراحی محصول، هوش مصنوعی، داده و مهندسی نرم‌افزار.",
   keywords: [
-    "اساتید تک‌یاد",
+    "اساتید تک یاد",
     "مدرسان برنامه‌نویسی",
     "اساتید هوش مصنوعی",
     "آموزشگاه آنلاین",
     "اساتید مجرب",
-    "تک‌یاد",
+    "تک یاد",
     "Tecyad",
   ],
   alternates: {
@@ -22,22 +23,24 @@ export const metadata: Metadata = {
     type: "website",
     locale: "fa_IR",
     url: "https://tecyad.ir/instructors",
-    siteName: "تک‌یاد | Tecyad",
-    title: "اساتید و مدرسان برجسته | تک‌یاد (Tecyad)",
-    description: "آشنایی با اساتید متخصص و حرفه‌ای تک‌یاد (Tecyad) در حوزه‌های برنامه‌نویسی، طراحی محصول و هوش مصنوعی.",
+    siteName: "تک یاد | Tecyad",
+    title: "اساتید و مدرسان برجسته | تک یاد (Tecyad)",
+    description:
+      "آشنایی با اساتید متخصص و حرفه‌ای تک یاد (Tecyad) در حوزه‌های برنامه‌نویسی، طراحی محصول و هوش مصنوعی.",
     images: [
       {
         url: "https://tecyad.ir/hero-image.png",
         width: 1200,
         height: 630,
-        alt: "اساتید تک‌یاد Tecyad",
+        alt: "اساتید تک یاد Tecyad",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "اساتید و مدرسان برجسته | تک‌یاد (Tecyad)",
-    description: "آشنایی با اساتید متخصص و حرفه‌ای تک‌یاد (Tecyad) در حوزه‌های تخصصی نرم‌افزار.",
+    title: "اساتید و مدرسان برجسته | تک یاد (Tecyad)",
+    description:
+      "آشنایی با اساتید متخصص و حرفه‌ای تک یاد (Tecyad) در حوزه‌های تخصصی نرم‌افزار.",
     images: ["https://tecyad.ir/hero-image.png"],
   },
 };
@@ -48,14 +51,15 @@ export default async function InstructorsPage() {
   const collectionJsonLd = {
     "@context": "https://schema.org",
     "@type": "CollectionPage",
-    "name": "اساتید و مدرسان تک‌یاد | Tecyad",
-    "description": "فهرست اساتید متخصص و حرفه‌ای تک‌یاد در حوزه‌های برنامه‌نویسی و مهندسی نرم‌افزار",
-    "url": "https://tecyad.ir/instructors",
-    "provider": {
+    name: "اساتید و مدرسان تک یاد | Tecyad",
+    description:
+      "فهرست اساتید متخصص و حرفه‌ای تک یاد در حوزه‌های برنامه‌نویسی و مهندسی نرم‌افزار",
+    url: "https://tecyad.ir/instructors",
+    provider: {
       "@type": "EducationalOrganization",
-      "name": "تک‌یاد | Tecyad",
-      "url": "https://tecyad.ir"
-    }
+      name: "تک یاد | Tecyad",
+      url: "https://tecyad.ir",
+    },
   };
 
   return (

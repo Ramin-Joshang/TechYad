@@ -1,14 +1,29 @@
-'use client';
+"use client";
 
-import { useState, useMemo } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { catalogApi, CategoryItem } from '@/features/catalog/api/catalog.api';
-import { 
-  FolderTree, Plus, Edit, Trash2, ChevronRight, ChevronDown, 
-  BookOpen, GraduationCap, Eye, EyeOff, Sparkles, AlertTriangle, 
-  CheckCircle2, X, RefreshCw, Layers, ShieldAlert, ArrowUpDown
-} from 'lucide-react';
-import toast from 'react-hot-toast';
+import { useState, useMemo } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { catalogApi, CategoryItem } from "@/features/catalog/api/catalog.api";
+import {
+  FolderTree,
+  Plus,
+  Edit,
+  Trash2,
+  ChevronRight,
+  ChevronDown,
+  BookOpen,
+  GraduationCap,
+  Eye,
+  EyeOff,
+  Sparkles,
+  AlertTriangle,
+  CheckCircle2,
+  X,
+  RefreshCw,
+  Layers,
+  ShieldAlert,
+  ArrowUpDown,
+} from "lucide-react";
+import toast from "react-hot-toast";
 
 interface TreeNode extends CategoryItem {
   children?: TreeNode[];
@@ -19,29 +34,41 @@ export default function AdminCategoriesPage() {
 
   // Dialog & Form State
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingCategory, setEditingCategory] = useState<CategoryItem | null>(null);
-  const [deleteWarningCategory, setDeleteWarningCategory] = useState<CategoryItem | null>(null);
-  
+  const [editingCategory, setEditingCategory] = useState<CategoryItem | null>(
+    null,
+  );
+  const [deleteWarningCategory, setDeleteWarningCategory] =
+    useState<CategoryItem | null>(null);
+
   // Expanded tree nodes
-  const [expandedNodeIds, setExpandedNodeIds] = useState<Set<string>>(new Set());
+  const [expandedNodeIds, setExpandedNodeIds] = useState<Set<string>>(
+    new Set(),
+  );
 
   // Form Fields
   const [formData, setFormData] = useState({
-    name: '',
-    slug: '',
-    parentId: '',
-    description: '',
+    name: "",
+    slug: "",
+    parentId: "",
+    description: "",
     sortOrder: 0,
     isActive: true,
-    icon: '',
-    seoTitle: '',
-    seoDescription: '',
+    icon: "",
+    seoTitle: "",
+    seoDescription: "",
   });
 
   // Query: Flat Categories (with courseCount & classCount)
-  const { data: categoriesData, isLoading, refetch } = useQuery({
-    queryKey: ['admin-categories'],
-    queryFn: () => catalogApi.getCategories({ includeInactive: true }).then((res: any) => res?.data || res || []),
+  const {
+    data: categoriesData,
+    isLoading,
+    refetch,
+  } = useQuery({
+    queryKey: ["admin-categories"],
+    queryFn: () =>
+      catalogApi
+        .getCategories({ includeInactive: true })
+        .then((res: any) => res?.data || res || []),
   });
 
   const flatCategories: CategoryItem[] = useMemo(() => {
@@ -58,7 +85,11 @@ export default function AdminCategoriesPage() {
     });
 
     flatCategories.forEach((cat) => {
-      const parentIdStr = cat.parentId ? (typeof cat.parentId === 'object' ? cat.parentId._id : cat.parentId) : null;
+      const parentIdStr = cat.parentId
+        ? typeof cat.parentId === "object"
+          ? cat.parentId._id
+          : cat.parentId
+        : null;
       if (parentIdStr && map.has(parentIdStr)) {
         map.get(parentIdStr)!.children!.push(map.get(cat._id)!);
       } else {
@@ -69,7 +100,7 @@ export default function AdminCategoriesPage() {
     // Auto expand roots on initial load
     if (roots.length > 0 && expandedNodeIds.size === 0) {
       const initialExpanded = new Set<string>();
-      roots.forEach(r => initialExpanded.add(r._id));
+      roots.forEach((r) => initialExpanded.add(r._id));
       setExpandedNodeIds(initialExpanded);
     }
 
@@ -79,9 +110,15 @@ export default function AdminCategoriesPage() {
   // Total summary stats
   const stats = useMemo(() => {
     const total = flatCategories.length;
-    const active = flatCategories.filter(c => c.isActive).length;
-    const totalCourses = flatCategories.reduce((sum, c) => sum + (c.courseCount || 0), 0);
-    const totalClasses = flatCategories.reduce((sum, c) => sum + (c.classCount || 0), 0);
+    const active = flatCategories.filter((c) => c.isActive).length;
+    const totalCourses = flatCategories.reduce(
+      (sum, c) => sum + (c.courseCount || 0),
+      0,
+    );
+    const totalClasses = flatCategories.reduce(
+      (sum, c) => sum + (c.classCount || 0),
+      0,
+    );
     return { total, active, totalCourses, totalClasses };
   }, [flatCategories]);
 
@@ -89,74 +126,75 @@ export default function AdminCategoriesPage() {
   const createMutation = useMutation({
     mutationFn: (data: any) => catalogApi.createCategory(data),
     onSuccess: () => {
-      toast.success('دسته‌بندی جدید با موفقیت ایجاد شد');
-      queryClient.invalidateQueries({ queryKey: ['admin-categories'] });
-      queryClient.invalidateQueries({ queryKey: ['categories-flat'] });
+      toast.success("دسته‌بندی جدید با موفقیت ایجاد شد");
+      queryClient.invalidateQueries({ queryKey: ["admin-categories"] });
+      queryClient.invalidateQueries({ queryKey: ["categories-flat"] });
       setIsModalOpen(false);
       resetForm();
     },
     onError: (err: any) => {
-      toast.error(err.response?.data?.message || 'خطا در ایجاد دسته‌بندی');
-    }
+      toast.error(err.response?.data?.message || "خطا در ایجاد دسته‌بندی");
+    },
   });
 
   const updateMutation = useMutation({
-    mutationFn: ({ id, data }: { id: string; data: any }) => catalogApi.updateCategory(id, data),
+    mutationFn: ({ id, data }: { id: string; data: any }) =>
+      catalogApi.updateCategory(id, data),
     onSuccess: () => {
-      toast.success('دسته‌بندی با موفقیت بروزرسانی شد');
-      queryClient.invalidateQueries({ queryKey: ['admin-categories'] });
-      queryClient.invalidateQueries({ queryKey: ['categories-flat'] });
+      toast.success("دسته‌بندی با موفقیت بروزرسانی شد");
+      queryClient.invalidateQueries({ queryKey: ["admin-categories"] });
+      queryClient.invalidateQueries({ queryKey: ["categories-flat"] });
       setIsModalOpen(false);
       resetForm();
     },
     onError: (err: any) => {
-      toast.error(err.response?.data?.message || 'خطا در ویرایش دسته‌بندی');
-    }
+      toast.error(err.response?.data?.message || "خطا در ویرایش دسته‌بندی");
+    },
   });
 
   const deleteMutation = useMutation({
     mutationFn: (id: string) => catalogApi.deleteCategory(id),
     onSuccess: () => {
-      toast.success('دسته‌بندی با موفقیت حذف شد');
-      queryClient.invalidateQueries({ queryKey: ['admin-categories'] });
-      queryClient.invalidateQueries({ queryKey: ['categories-flat'] });
+      toast.success("دسته‌بندی با موفقیت حذف شد");
+      queryClient.invalidateQueries({ queryKey: ["admin-categories"] });
+      queryClient.invalidateQueries({ queryKey: ["categories-flat"] });
       setDeleteWarningCategory(null);
     },
     onError: (err: any) => {
-      toast.error(err.response?.data?.message || 'خطا در حذف دسته‌بندی');
-    }
+      toast.error(err.response?.data?.message || "خطا در حذف دسته‌بندی");
+    },
   });
 
   const toggleStatusMutation = useMutation({
-    mutationFn: ({ id, isActive }: { id: string; isActive: boolean }) => 
+    mutationFn: ({ id, isActive }: { id: string; isActive: boolean }) =>
       catalogApi.updateCategory(id, { isActive }),
     onSuccess: () => {
-      toast.success('وضعیت دسته‌بندی تغییر یافت');
-      queryClient.invalidateQueries({ queryKey: ['admin-categories'] });
-      queryClient.invalidateQueries({ queryKey: ['categories-flat'] });
+      toast.success("وضعیت دسته‌بندی تغییر یافت");
+      queryClient.invalidateQueries({ queryKey: ["admin-categories"] });
+      queryClient.invalidateQueries({ queryKey: ["categories-flat"] });
     },
-    onError: () => toast.error('خطا در تغییر وضعیت دسته‌بندی')
+    onError: () => toast.error("خطا در تغییر وضعیت دسته‌بندی"),
   });
 
   const resetForm = () => {
     setEditingCategory(null);
     setFormData({
-      name: '',
-      slug: '',
-      parentId: '',
-      description: '',
+      name: "",
+      slug: "",
+      parentId: "",
+      description: "",
       sortOrder: 0,
       isActive: true,
-      icon: '',
-      seoTitle: '',
-      seoDescription: '',
+      icon: "",
+      seoTitle: "",
+      seoDescription: "",
     });
   };
 
   const openCreateModal = (parent?: CategoryItem) => {
     resetForm();
     if (parent) {
-      setFormData(prev => ({
+      setFormData((prev) => ({
         ...prev,
         parentId: parent._id,
       }));
@@ -166,17 +204,21 @@ export default function AdminCategoriesPage() {
 
   const openEditModal = (cat: CategoryItem) => {
     setEditingCategory(cat);
-    const parentIdStr = cat.parentId ? (typeof cat.parentId === 'object' ? cat.parentId._id : cat.parentId) : '';
+    const parentIdStr = cat.parentId
+      ? typeof cat.parentId === "object"
+        ? cat.parentId._id
+        : cat.parentId
+      : "";
     setFormData({
       name: cat.name,
       slug: cat.slug,
-      parentId: parentIdStr || '',
-      description: cat.description || '',
+      parentId: parentIdStr || "",
+      description: cat.description || "",
       sortOrder: cat.sortOrder || 0,
       isActive: cat.isActive !== undefined ? cat.isActive : true,
-      icon: cat.icon || '',
-      seoTitle: cat.seoTitle || '',
-      seoDescription: cat.seoDescription || '',
+      icon: cat.icon || "",
+      seoTitle: cat.seoTitle || "",
+      seoDescription: cat.seoDescription || "",
     });
     setIsModalOpen(true);
   };
@@ -197,7 +239,7 @@ export default function AdminCategoriesPage() {
   };
 
   const toggleNodeExpanded = (nodeId: string) => {
-    setExpandedNodeIds(prev => {
+    setExpandedNodeIds((prev) => {
       const next = new Set(prev);
       if (next.has(nodeId)) {
         next.delete(nodeId);
@@ -210,7 +252,7 @@ export default function AdminCategoriesPage() {
 
   const expandAll = () => {
     const allIds = new Set<string>();
-    flatCategories.forEach(c => allIds.add(c._id));
+    flatCategories.forEach((c) => allIds.add(c._id));
     setExpandedNodeIds(allIds);
   };
 
@@ -232,8 +274,12 @@ export default function AdminCategoriesPage() {
     let added = true;
     while (added) {
       added = false;
-      flatCategories.forEach(c => {
-        const pId = c.parentId ? (typeof c.parentId === 'object' ? c.parentId._id : c.parentId) : null;
+      flatCategories.forEach((c) => {
+        const pId = c.parentId
+          ? typeof c.parentId === "object"
+            ? c.parentId._id
+            : c.parentId
+          : null;
         if (pId && descendantIds.has(pId) && !descendantIds.has(c._id)) {
           descendantIds.add(c._id);
           added = true;
@@ -241,7 +287,7 @@ export default function AdminCategoriesPage() {
       });
     }
 
-    return flatCategories.filter(c => !descendantIds.has(c._id));
+    return flatCategories.filter((c) => !descendantIds.has(c._id));
   }, [flatCategories, editingCategory]);
 
   // Recursive Tree Node Renderer
@@ -252,13 +298,13 @@ export default function AdminCategoriesPage() {
 
     return (
       <div key={node._id} className="select-none">
-        <div 
+        <div
           className={`flex items-center justify-between p-3.5 sm:p-4 rounded-2xl transition-all border my-1.5 ${
-            depth === 0 
-              ? 'bg-white border-[var(--neo-border)] shadow-xs hover:border-[var(--neo-primary)]/40' 
+            depth === 0
+              ? "bg-white border-[var(--neo-border)] shadow-xs hover:border-[var(--neo-primary)]/40"
               : depth === 1
-              ? 'bg-[var(--neo-surface-2)]/60 border-[var(--neo-border)]/70 hover:bg-white hover:border-[var(--neo-primary)]/40'
-              : 'bg-white/80 border-dashed border-[var(--neo-border)] hover:border-[var(--neo-primary)]/40'
+                ? "bg-[var(--neo-surface-2)]/60 border-[var(--neo-border)]/70 hover:bg-white hover:border-[var(--neo-primary)]/40"
+                : "bg-white/80 border-dashed border-[var(--neo-border)] hover:border-[var(--neo-primary)]/40"
           }`}
           style={{ marginRight: `${depth * 24}px` }}
         >
@@ -270,14 +316,20 @@ export default function AdminCategoriesPage() {
                 onClick={() => toggleNodeExpanded(node._id)}
                 className="p-1 rounded-lg text-[var(--neo-text-muted)] hover:text-[var(--neo-primary)] hover:bg-[var(--neo-surface-2)] transition cursor-pointer shrink-0"
               >
-                {isExpanded ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
+                {isExpanded ? (
+                  <ChevronDown className="w-4 h-4" />
+                ) : (
+                  <ChevronRight className="w-4 h-4" />
+                )}
               </button>
             ) : (
-              <span className="w-6 shrink-0 flex items-center justify-center text-[var(--neo-border)]">•</span>
+              <span className="w-6 shrink-0 flex items-center justify-center text-[var(--neo-border)]">
+                •
+              </span>
             )}
 
             <div className="w-8 h-8 rounded-xl flex items-center justify-center shrink-0 text-xs font-bold bg-[var(--neo-surface-2)] text-[var(--neo-primary)] border border-[var(--neo-border)]">
-              {depth === 0 ? '📁' : depth === 1 ? '📂' : '🏷️'}
+              {depth === 0 ? "📁" : depth === 1 ? "📂" : "🏷️"}
             </div>
 
             <div className="min-w-0 flex-1">
@@ -311,11 +363,11 @@ export default function AdminCategoriesPage() {
           <div className="flex items-center gap-2 sm:gap-4 shrink-0">
             {/* Counts Badges */}
             <div className="hidden md:flex items-center gap-2 text-xs">
-              <span 
+              <span
                 className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-xl font-medium border ${
-                  (node.courseCount || 0) > 0 
-                    ? 'bg-blue-50 text-blue-700 border-blue-200' 
-                    : 'bg-slate-50 text-slate-400 border-slate-200'
+                  (node.courseCount || 0) > 0
+                    ? "bg-blue-50 text-blue-700 border-blue-200"
+                    : "bg-slate-50 text-slate-400 border-slate-200"
                 }`}
                 title="تعداد دوره‌های فعال در این دسته"
               >
@@ -323,11 +375,11 @@ export default function AdminCategoriesPage() {
                 <span>{node.courseCount || 0} دوره</span>
               </span>
 
-              <span 
+              <span
                 className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-xl font-medium border ${
-                  (node.classCount || 0) > 0 
-                    ? 'bg-emerald-50 text-emerald-700 border-emerald-200' 
-                    : 'bg-slate-50 text-slate-400 border-slate-200'
+                  (node.classCount || 0) > 0
+                    ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                    : "bg-slate-50 text-slate-400 border-slate-200"
                 }`}
                 title="تعداد کلاس‌های فعال در این دسته"
               >
@@ -349,13 +401,24 @@ export default function AdminCategoriesPage() {
 
               <button
                 type="button"
-                onClick={() => toggleStatusMutation.mutate({ id: node._id, isActive: !node.isActive })}
+                onClick={() =>
+                  toggleStatusMutation.mutate({
+                    id: node._id,
+                    isActive: !node.isActive,
+                  })
+                }
                 className={`p-1.5 sm:p-2 rounded-xl transition cursor-pointer ${
-                  node.isActive ? 'text-slate-500 hover:bg-slate-100' : 'text-amber-600 hover:bg-amber-50'
+                  node.isActive
+                    ? "text-slate-500 hover:bg-slate-100"
+                    : "text-amber-600 hover:bg-amber-50"
                 }`}
-                title={node.isActive ? 'غیرفعال کردن' : 'فعال‌سازی'}
+                title={node.isActive ? "غیرفعال کردن" : "فعال‌سازی"}
               >
-                {node.isActive ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
+                {node.isActive ? (
+                  <Eye className="w-4 h-4" />
+                ) : (
+                  <EyeOff className="w-4 h-4" />
+                )}
               </button>
 
               <button
@@ -390,7 +453,10 @@ export default function AdminCategoriesPage() {
   };
 
   return (
-    <div dir="rtl" className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500 text-right">
+    <div
+      dir="rtl"
+      className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500 text-right"
+    >
       {/* Header Banner */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-3xl border border-[var(--neo-border)] shadow-xs">
         <div className="flex items-center gap-4">
@@ -402,7 +468,8 @@ export default function AdminCategoriesPage() {
               مدیریت دسته‌بندی‌های سلسله‌مراتبی
             </h1>
             <p className="text-xs sm:text-sm text-[var(--neo-text-secondary)] mt-1">
-              تعریف ساختار درختی و دسته‌بندی‌های تخصصی برای دوره‌ها، کلاس‌ها و کارگاه‌های آنلاین
+              تعریف ساختار درختی و دسته‌بندی‌های تخصصی برای دوره‌ها، کلاس‌ها و
+              کارگاه‌های آنلاین
             </p>
           </div>
         </div>
@@ -436,27 +503,45 @@ export default function AdminCategoriesPage() {
       {/* Stats Cards */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
         <div className="p-4 bg-white rounded-2xl border border-[var(--neo-border)] shadow-xs">
-          <div className="text-xs text-[var(--neo-text-muted)] font-medium">کل دسته‌بندی‌ها</div>
-          <div className="text-xl font-black text-[var(--neo-text-main)] mt-1">{stats.total}</div>
+          <div className="text-xs text-[var(--neo-text-muted)] font-medium">
+            کل دسته‌بندی‌ها
+          </div>
+          <div className="text-xl font-black text-[var(--neo-text-main)] mt-1">
+            {stats.total}
+          </div>
         </div>
         <div className="p-4 bg-white rounded-2xl border border-[var(--neo-border)] shadow-xs">
-          <div className="text-xs text-[var(--neo-text-muted)] font-medium">دسته‌های فعال</div>
-          <div className="text-xl font-black text-emerald-600 mt-1">{stats.active}</div>
+          <div className="text-xs text-[var(--neo-text-muted)] font-medium">
+            دسته‌های فعال
+          </div>
+          <div className="text-xl font-black text-emerald-600 mt-1">
+            {stats.active}
+          </div>
         </div>
         <div className="p-4 bg-white rounded-2xl border border-[var(--neo-border)] shadow-xs">
-          <div className="text-xs text-[var(--neo-text-muted)] font-medium">دوره‌های متصل</div>
-          <div className="text-xl font-black text-blue-600 mt-1">{stats.totalCourses}</div>
+          <div className="text-xs text-[var(--neo-text-muted)] font-medium">
+            دوره‌های متصل
+          </div>
+          <div className="text-xl font-black text-blue-600 mt-1">
+            {stats.totalCourses}
+          </div>
         </div>
         <div className="p-4 bg-white rounded-2xl border border-[var(--neo-border)] shadow-xs">
-          <div className="text-xs text-[var(--neo-text-muted)] font-medium">کلاس‌های متصل</div>
-          <div className="text-xl font-black text-purple-600 mt-1">{stats.totalClasses}</div>
+          <div className="text-xs text-[var(--neo-text-muted)] font-medium">
+            کلاس‌های متصل
+          </div>
+          <div className="text-xl font-black text-purple-600 mt-1">
+            {stats.totalClasses}
+          </div>
         </div>
       </div>
 
       {/* Hierarchical Tree Container */}
       <div className="bg-white rounded-3xl border border-[var(--neo-border)] p-6 shadow-xs space-y-4">
         <div className="flex items-center justify-between pb-3 border-b border-[var(--neo-border)] text-xs text-[var(--neo-text-muted)]">
-          <div className="font-bold text-[var(--neo-text-main)]">درخت دسته‌بندی‌ها (Hierarchical Category Tree)</div>
+          <div className="font-bold text-[var(--neo-text-main)]">
+            درخت دسته‌بندی‌ها (Hierarchical Category Tree)
+          </div>
           <div>برای باز کردن زیرشاخه‌ها روی فلش کلیک کنید</div>
         </div>
 
@@ -468,8 +553,12 @@ export default function AdminCategoriesPage() {
         ) : categoryTree.length === 0 ? (
           <div className="p-16 text-center space-y-3">
             <FolderTree className="w-12 h-12 mx-auto text-[var(--neo-text-muted)]" />
-            <h3 className="font-bold text-[var(--neo-text-main)] text-sm">هیچ دسته‌بندی‌ای یافت نشد</h3>
-            <p className="text-xs text-[var(--neo-text-secondary)]">با کلیک بر روی دکمه بالا اولین دسته را تعریف کنید.</p>
+            <h3 className="font-bold text-[var(--neo-text-main)] text-sm">
+              هیچ دسته‌بندی‌ای یافت نشد
+            </h3>
+            <p className="text-xs text-[var(--neo-text-secondary)]">
+              با کلیک بر روی دکمه بالا اولین دسته را تعریف کنید.
+            </p>
           </div>
         ) : (
           <div className="space-y-2">
@@ -488,7 +577,9 @@ export default function AdminCategoriesPage() {
                   <FolderTree className="w-5 h-5" />
                 </div>
                 <h2 className="text-lg font-black text-[var(--neo-text-main)]">
-                  {editingCategory ? `ویرایش دسته‌بندی «${editingCategory.name}»` : 'ایجاد دسته‌بندی جدید'}
+                  {editingCategory
+                    ? `ویرایش دسته‌بندی «${editingCategory.name}»`
+                    : "ایجاد دسته‌بندی جدید"}
                 </h2>
               </div>
               <button
@@ -504,13 +595,16 @@ export default function AdminCategoriesPage() {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs font-bold text-[var(--neo-text-main)] mb-1">
-                    نام دسته‌بندی (فارسی) <span className="text-red-500">*</span>
+                    نام دسته‌بندی (فارسی){" "}
+                    <span className="text-red-500">*</span>
                   </label>
                   <input
                     required
                     type="text"
                     value={formData.name}
-                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({ ...formData, name: e.target.value })
+                    }
                     placeholder="مثال: هوش مصنوعی"
                     className="w-full px-3.5 py-2.5 rounded-xl border border-[var(--neo-border)] bg-[var(--neo-surface-2)] text-xs font-bold text-[var(--neo-text-main)] focus:outline-none focus:ring-2 focus:ring-[var(--neo-primary)]"
                   />
@@ -518,13 +612,16 @@ export default function AdminCategoriesPage() {
 
                 <div>
                   <label className="block text-xs font-bold text-[var(--neo-text-main)] mb-1">
-                    شناسه انگلیسی یکتا (Slug) <span className="text-red-500">*</span>
+                    شناسه انگلیسی یکتا (Slug){" "}
+                    <span className="text-red-500">*</span>
                   </label>
                   <input
                     required
                     type="text"
                     value={formData.slug}
-                    onChange={(e) => setFormData({ ...formData, slug: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({ ...formData, slug: e.target.value })
+                    }
                     placeholder="artificial-intelligence"
                     className="w-full px-3.5 py-2.5 rounded-xl border border-[var(--neo-border)] bg-[var(--neo-surface-2)] text-xs font-mono dir-ltr text-left text-[var(--neo-text-main)] focus:outline-none focus:ring-2 focus:ring-[var(--neo-primary)]"
                   />
@@ -538,19 +635,26 @@ export default function AdminCategoriesPage() {
                 </label>
                 <select
                   value={formData.parentId}
-                  onChange={(e) => setFormData({ ...formData, parentId: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, parentId: e.target.value })
+                  }
                   className="w-full px-3.5 py-2.5 rounded-xl border border-[var(--neo-border)] bg-[var(--neo-surface-2)] text-xs text-[var(--neo-text-main)] focus:outline-none focus:ring-2 focus:ring-[var(--neo-primary)]"
                 >
                   <option value="">-- دسته اصلی (بدون والد - ریشه) --</option>
                   {availableParents.map((cat) => (
                     <option key={cat._id} value={cat._id}>
-                      {cat.level === 0 ? '📁 ' : cat.level === 1 ? '  📂 ' : '    🏷️ '}
+                      {cat.level === 0
+                        ? "📁 "
+                        : cat.level === 1
+                          ? "  📂 "
+                          : "    🏷️ "}
                       {cat.name} ({cat.slug})
                     </option>
                   ))}
                 </select>
                 <p className="text-[11px] text-[var(--neo-text-muted)] mt-1">
-                  در صورت انتخاب نکردن والد، این دسته به عنوان یک دسته اصلی در سطح ریشه قرار می‌گیرد.
+                  در صورت انتخاب نکردن والد، این دسته به عنوان یک دسته اصلی در
+                  سطح ریشه قرار می‌گیرد.
                 </p>
               </div>
 
@@ -562,7 +666,12 @@ export default function AdminCategoriesPage() {
                   <input
                     type="number"
                     value={formData.sortOrder}
-                    onChange={(e) => setFormData({ ...formData, sortOrder: Number(e.target.value) })}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        sortOrder: Number(e.target.value),
+                      })
+                    }
                     className="w-full px-3.5 py-2.5 rounded-xl border border-[var(--neo-border)] bg-[var(--neo-surface-2)] text-xs dir-ltr text-left"
                   />
                 </div>
@@ -572,12 +681,19 @@ export default function AdminCategoriesPage() {
                     وضعیت دسته‌بندی
                   </label>
                   <select
-                    value={formData.isActive ? 'active' : 'inactive'}
-                    onChange={(e) => setFormData({ ...formData, isActive: e.target.value === 'active' })}
+                    value={formData.isActive ? "active" : "inactive"}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        isActive: e.target.value === "active",
+                      })
+                    }
                     className="w-full px-3.5 py-2.5 rounded-xl border border-[var(--neo-border)] bg-[var(--neo-surface-2)] text-xs"
                   >
                     <option value="active">فعال (نمایش عمومی در سایت)</option>
-                    <option value="inactive">غیرفعال (مخفی از نمایش عمومی)</option>
+                    <option value="inactive">
+                      غیرفعال (مخفی از نمایش عمومی)
+                    </option>
                   </select>
                 </div>
               </div>
@@ -589,14 +705,18 @@ export default function AdminCategoriesPage() {
                 <textarea
                   rows={2}
                   value={formData.description}
-                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, description: e.target.value })
+                  }
                   placeholder="توضیحاتی برای معرفی این شاخه در صفحات عمومی و راهنمای کاربران..."
                   className="w-full px-3.5 py-2.5 rounded-xl border border-[var(--neo-border)] bg-[var(--neo-surface-2)] text-xs resize-none"
                 />
               </div>
 
               <div className="space-y-3 pt-2 border-t border-[var(--neo-border)]">
-                <span className="text-xs font-bold text-[var(--neo-primary)]">تنظیمات بهینه‌سازی موتورهای جستجو (SEO)</span>
+                <span className="text-xs font-bold text-[var(--neo-primary)]">
+                  تنظیمات بهینه‌سازی موتورهای جستجو (SEO)
+                </span>
                 <div>
                   <label className="block text-[11px] font-medium text-[var(--neo-text-secondary)] mb-1">
                     عنوان سئو (SEO Title)
@@ -604,8 +724,10 @@ export default function AdminCategoriesPage() {
                   <input
                     type="text"
                     value={formData.seoTitle}
-                    onChange={(e) => setFormData({ ...formData, seoTitle: e.target.value })}
-                    placeholder="مثال: دوره‌ها و کلاس‌های آموزش هوش مصنوعی | تک‌یاد"
+                    onChange={(e) =>
+                      setFormData({ ...formData, seoTitle: e.target.value })
+                    }
+                    placeholder="مثال: دوره‌ها و کلاس‌های آموزش هوش مصنوعی | تک یاد"
                     className="w-full px-3.5 py-2 rounded-xl border border-[var(--neo-border)] bg-[var(--neo-surface-2)] text-xs"
                   />
                 </div>
@@ -616,7 +738,12 @@ export default function AdminCategoriesPage() {
                   <textarea
                     rows={2}
                     value={formData.seoDescription}
-                    onChange={(e) => setFormData({ ...formData, seoDescription: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        seoDescription: e.target.value,
+                      })
+                    }
                     placeholder="توضیحات متای صفحه دسته‌بندی در گوگل..."
                     className="w-full px-3.5 py-2 rounded-xl border border-[var(--neo-border)] bg-[var(--neo-surface-2)] text-xs resize-none"
                   />
@@ -626,13 +753,17 @@ export default function AdminCategoriesPage() {
               <div className="flex items-center gap-3 pt-4 border-t border-[var(--neo-border)]">
                 <button
                   type="submit"
-                  disabled={createMutation.isPending || updateMutation.isPending}
+                  disabled={
+                    createMutation.isPending || updateMutation.isPending
+                  }
                   className="flex-1 py-2.5 rounded-xl bg-[var(--neo-primary)] text-white text-xs sm:text-sm font-bold hover:opacity-95 transition flex items-center justify-center gap-2 cursor-pointer"
                 >
                   {(createMutation.isPending || updateMutation.isPending) && (
                     <RefreshCw className="w-4 h-4 animate-spin" />
                   )}
-                  <span>{editingCategory ? 'ذخیره تغییرات' : 'ثبت دسته‌بندی'}</span>
+                  <span>
+                    {editingCategory ? "ذخیره تغییرات" : "ثبت دسته‌بندی"}
+                  </span>
                 </button>
                 <button
                   type="button"
@@ -652,11 +783,14 @@ export default function AdminCategoriesPage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs animate-in fade-in duration-200">
           <div className="bg-white rounded-3xl border border-[var(--neo-border)] shadow-2xl max-w-md w-full p-6 space-y-5 text-center">
             {/* Warning icon */}
-            <div className={`w-14 h-14 rounded-2xl mx-auto flex items-center justify-center ${
-              ((deleteWarningCategory.courseCount || 0) > 0 || (deleteWarningCategory.classCount || 0) > 0)
-                ? 'bg-rose-100 text-rose-600'
-                : 'bg-amber-100 text-amber-600'
-            }`}>
+            <div
+              className={`w-14 h-14 rounded-2xl mx-auto flex items-center justify-center ${
+                (deleteWarningCategory.courseCount || 0) > 0 ||
+                (deleteWarningCategory.classCount || 0) > 0
+                  ? "bg-rose-100 text-rose-600"
+                  : "bg-amber-100 text-amber-600"
+              }`}
+            >
               <ShieldAlert className="w-7 h-7" />
             </div>
 
@@ -665,31 +799,41 @@ export default function AdminCategoriesPage() {
                 حذف دسته‌بندی «{deleteWarningCategory.name}»
               </h3>
 
-              {((deleteWarningCategory.courseCount || 0) > 0 || (deleteWarningCategory.classCount || 0) > 0) ? (
+              {(deleteWarningCategory.courseCount || 0) > 0 ||
+              (deleteWarningCategory.classCount || 0) > 0 ? (
                 <div className="p-3.5 rounded-2xl bg-rose-50 border border-rose-200 text-xs text-rose-800 leading-relaxed text-right space-y-1.5">
                   <div className="font-bold flex items-center gap-1.5">
                     <AlertTriangle className="w-4 h-4 text-rose-600 shrink-0" />
                     <span>امکان حذف مستقیم این دسته‌بندی وجود ندارد!</span>
                   </div>
                   <p>
-                    این دسته‌بندی در حال حاضر دارای{' '}
-                    <span className="font-bold underline">{deleteWarningCategory.courseCount || 0} دوره آموزشی</span>{' '}
-                    و{' '}
-                    <span className="font-bold underline">{deleteWarningCategory.classCount || 0} کلاس</span> است.
+                    این دسته‌بندی در حال حاضر دارای{" "}
+                    <span className="font-bold underline">
+                      {deleteWarningCategory.courseCount || 0} دوره آموزشی
+                    </span>{" "}
+                    و{" "}
+                    <span className="font-bold underline">
+                      {deleteWarningCategory.classCount || 0} کلاس
+                    </span>{" "}
+                    است.
                   </p>
                   <p className="text-[11px] text-rose-700">
-                    برای جلوگیری از مفقود شدن داده‌ها و اختلال در دسترسی کاربران، ابتدا محتواهای متصل را به دسته‌بندی دیگری منتقل کنید.
+                    برای جلوگیری از مفقود شدن داده‌ها و اختلال در دسترسی
+                    کاربران، ابتدا محتواهای متصل را به دسته‌بندی دیگری منتقل
+                    کنید.
                   </p>
                 </div>
               ) : (
                 <p className="text-xs text-[var(--neo-text-secondary)] leading-relaxed">
-                  آیا از حذف این دسته‌بندی اطمینان دارید؟ این عملیات قابل بازگشت نیست.
+                  آیا از حذف این دسته‌بندی اطمینان دارید؟ این عملیات قابل بازگشت
+                  نیست.
                 </p>
               )}
             </div>
 
             <div className="flex items-center gap-3 pt-2">
-              {((deleteWarningCategory.courseCount || 0) > 0 || (deleteWarningCategory.classCount || 0) > 0) ? (
+              {(deleteWarningCategory.courseCount || 0) > 0 ||
+              (deleteWarningCategory.classCount || 0) > 0 ? (
                 <button
                   type="button"
                   onClick={() => setDeleteWarningCategory(null)}
@@ -701,11 +845,15 @@ export default function AdminCategoriesPage() {
                 <>
                   <button
                     type="button"
-                    onClick={() => deleteMutation.mutate(deleteWarningCategory._id)}
+                    onClick={() =>
+                      deleteMutation.mutate(deleteWarningCategory._id)
+                    }
                     disabled={deleteMutation.isPending}
                     className="flex-1 py-2.5 rounded-xl bg-rose-600 text-white text-xs font-bold hover:bg-rose-700 transition flex items-center justify-center gap-2"
                   >
-                    {deleteMutation.isPending && <RefreshCw className="w-4 h-4 animate-spin" />}
+                    {deleteMutation.isPending && (
+                      <RefreshCw className="w-4 h-4 animate-spin" />
+                    )}
                     <span>بله، حذف شود</span>
                   </button>
                   <button

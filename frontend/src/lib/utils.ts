@@ -66,7 +66,7 @@ export function isValidIranianNationalCode(code: string | null | undefined): boo
   if (!code) return false;
   const clean = toEnDigits(code).trim();
   if (!/^\d{10}$/.test(clean)) return false;
-  
+
   // Check for repeated identical digits like 1111111111
   if (/^(\d)\1{9}$/.test(clean)) return false;
 
@@ -133,7 +133,7 @@ export function getDefaultFallbackImage(type: FallbackImageType = 'general', tit
       
       <!-- Branding & Title -->
       <text x="60" y="320" font-family="system-ui, sans-serif" font-weight="900" font-size="32" fill="#ffffff">${safeText || 'دوره آموزشی تخصصی'}</text>
-      <text x="60" y="365" font-family="system-ui, sans-serif" font-weight="600" font-size="18" fill="#94a3b8">آکادمی آموزش آنلاین تک‌یاد • TechYad</text>
+      <text x="60" y="365" font-family="system-ui, sans-serif" font-weight="600" font-size="18" fill="#94a3b8">آکادمی آموزش آنلاین تک یاد • TechYad</text>
       <rect x="60" y="390" width="120" height="6" rx="3" fill="#2563eb" />
     </svg>`;
     return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
@@ -153,15 +153,15 @@ export function getDefaultFallbackImage(type: FallbackImageType = 'general', tit
         </linearGradient>
       </defs>
       <rect width="800" height="450" fill="url(#blgGrad)" />
-      <text x="60" y="330" font-family="system-ui, sans-serif" font-weight="bold" font-size="30" fill="#ffffff">${safeText || 'مقاله تخصصی تک‌یاد'}</text>
-      <text x="60" y="375" font-family="system-ui, sans-serif" font-weight="500" font-size="16" fill="#94a3b8">مجله علمی و تخصصی آموزشگاه آنلاین تک‌یاد</text>
+      <text x="60" y="330" font-family="system-ui, sans-serif" font-weight="bold" font-size="30" fill="#ffffff">${safeText || 'مقاله تخصصی تک یاد'}</text>
+      <text x="60" y="375" font-family="system-ui, sans-serif" font-weight="500" font-size="16" fill="#94a3b8">مجله علمی و تخصصی آموزشگاه آنلاین تک یاد</text>
     </svg>`;
     return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
   }
 
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="600" height="400" viewBox="0 0 600 400">
     <rect width="600" height="400" fill="#1e293b" />
-    <text x="50%" y="50%" font-family="system-ui, sans-serif" font-weight="bold" font-size="20" fill="#94a3b8" text-anchor="middle" dominant-baseline="middle">تک‌یاد | TechYad</text>
+    <text x="50%" y="50%" font-family="system-ui, sans-serif" font-weight="bold" font-size="20" fill="#94a3b8" text-anchor="middle" dominant-baseline="middle">تک یاد | TechYad</text>
   </svg>`;
   return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
 }

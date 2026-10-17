@@ -20,10 +20,10 @@ import { generalPaths } from './paths/general.paths.js';
 export const swaggerDocument = {
   openapi: '3.0.0',
   info: {
-    title: 'Tecyad API — سامانه جامع آموزش و مدیریت یادگیری تک‌یاد',
+    title: 'Tecyad API — سامانه جامع آموزش و مدیریت یادگیری تک یاد',
     version: '1.0.0',
     description: `
-مستندات کامل و یکپارچه تمامی وب‌سرویس‌های پلتفرم آموزشی تک‌یاد (Tecyad).
+مستندات کامل و یکپارچه تمامی وب‌سرویس‌های پلتفرم آموزشی تک یاد (Tecyad).
 
 ### ویژگی‌ها و بخش‌های کلیدی:
 - **احراز هویت و کاربران (Auth):** ثبت‌نام، ورود، رفرش توکن، بازنشانی رمز و مدیریت نشست‌ها.
@@ -37,13 +37,13 @@ export const swaggerDocument = {
 - **مدیریت کلان (Admin & Super Admin):** کنترل کاربران، نقش‌ها (RBAC)، درآمدها، گزارش‌های تحلیلی و تنظیمات.
     `,
     contact: {
-      name: 'تیم فنی و توسعه تک‌یاد',
+      name: 'تیم فنی و توسعه تک یاد',
       url: 'https://tecyad.ir',
       email: 'support@tecyad.ir'
     }
   },
   servers: [
-    { url: '/api', description: 'سرور رسمی پروداکشن تک‌یاد (/api)' },
+    { url: '/api', description: 'سرور رسمی پروداکشن تک یاد (/api)' },
     { url: '/api/v1', description: 'سرور سازگاری نسخه ۱ (/api/v1 - منسوخ شده)' }
   ],
   tags: [

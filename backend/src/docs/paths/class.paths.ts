@@ -46,7 +46,7 @@ export const classPaths = {
     get: {
       tags: ['Classes (کلاس‌ها و کارگاه‌های آنلاین/حضوری)'],
       summary: 'دریافت لینک ورود مستقیم به اتاق وبینار و جلسه آنلاین',
-      description: 'بررسی صحت ثبت‌نام و تولید پیوند هدایت به اسکای‌روم یا سرور وبینار اختصاصی تک‌یاد.',
+      description: 'بررسی صحت ثبت‌نام و تولید پیوند هدایت به اسکای‌روم یا سرور وبینار اختصاصی تک یاد.',
       security: [{ bearerAuth: [] }],
       parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' } }],
       responses: {

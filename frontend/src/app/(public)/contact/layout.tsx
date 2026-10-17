@@ -1,39 +1,41 @@
-import type { Metadata } from 'next';
+import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: 'تماس با ما و ارتباط مستقیم | تک‌یاد',
-  description: 'راه‌های ارتباطی با پشتیبانی تک‌یاد؛ شماره تلفن مستقیم، پیام در تلگرام، واتس‌اپ، اینستاگرام، آدرس دفتر مرکزی و فرم ارسال پیام آنلاین.',
+  title: "تماس با ما و ارتباط مستقیم | تک یاد",
+  description:
+    "راه‌های ارتباطی با پشتیبانی تک یاد؛ شماره تلفن مستقیم، پیام در تلگرام، واتس‌اپ، اینستاگرام، آدرس دفتر مرکزی و فرم ارسال پیام آنلاین.",
   keywords: [
-    'تماس با تک‌یاد',
-    'پشتیبانی تک‌یاد',
-    'شماره تماس آموزشگاه آنلاین',
-    'مشاوره رایگان تک‌یاد',
-    'آدرس تک‌یاد',
-    'Tecyad Contact',
+    "تماس با تک یاد",
+    "پشتیبانی تک یاد",
+    "شماره تماس آموزشگاه آنلاین",
+    "مشاوره رایگان تک یاد",
+    "آدرس تک یاد",
+    "Tecyad Contact",
   ],
   alternates: {
-    canonical: '/contact',
+    canonical: "/contact",
   },
   openGraph: {
-    type: 'website',
-    locale: 'fa_IR',
-    url: 'https://tecyad.ir/contact',
-    title: 'تماس با ما | پلتفرم آموزش آنلاین تک‌یاد (Tecyad)',
-    description: 'راه‌های ارتباطی مستقیم، پشتیبانی تلفنی، تلگرام و واتس‌اپ با کارشناسان تک‌یاد.',
+    type: "website",
+    locale: "fa_IR",
+    url: "https://tecyad.ir/contact",
+    title: "تماس با ما | پلتفرم آموزش آنلاین تک یاد (Tecyad)",
+    description:
+      "راه‌های ارتباطی مستقیم، پشتیبانی تلفنی، تلگرام و واتس‌اپ با کارشناسان تک یاد.",
     images: [
       {
-        url: 'https://tecyad.ir/hero-image.png',
+        url: "https://tecyad.ir/hero-image.png",
         width: 1200,
         height: 630,
-        alt: 'تماس با تک‌یاد',
+        alt: "تماس با تک یاد",
       },
     ],
   },
   twitter: {
-    card: 'summary_large_image',
-    title: 'تماس با ما | تک‌یاد',
-    description: 'راه‌های ارتباطی مستقیم و پشتیبانی آنلاین در تک‌یاد.',
-    images: ['https://tecyad.ir/hero-image.png'],
+    card: "summary_large_image",
+    title: "تماس با ما | تک یاد",
+    description: "راه‌های ارتباطی مستقیم و پشتیبانی آنلاین در تک یاد.",
+    images: ["https://tecyad.ir/hero-image.png"],
   },
 };
 

@@ -1,14 +1,14 @@
-'use client';
+"use client";
 
-import { useQuery } from '@tanstack/react-query';
-import { superAdminApi } from '@/features/admin/api/super-admin.api';
-import Link from 'next/link';
-import { Shield, Eye, Lock, FileText, Database } from 'lucide-react';
+import { useQuery } from "@tanstack/react-query";
+import { superAdminApi } from "@/features/admin/api/super-admin.api";
+import Link from "next/link";
+import { Shield, Eye, Lock, FileText, Database } from "lucide-react";
 
 export default function PrivacyPage() {
   const { data: publicSettings } = useQuery({
-    queryKey: ['publicSettings'],
-    queryFn: () => superAdminApi.getPublicSettings().then(res => res.data),
+    queryKey: ["publicSettings"],
+    queryFn: () => superAdminApi.getPublicSettings().then((res) => res.data),
     staleTime: 1000 * 60 * 5,
   });
 
@@ -21,9 +21,11 @@ export default function PrivacyPage() {
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-[var(--neo-primary)]/10 text-[var(--neo-primary)] mb-6">
             <Shield className="w-8 h-8" />
           </div>
-          <h1 className="text-3xl md:text-4xl font-bold text-[var(--neo-text-main)] mb-4">حریم خصوصی کاربران</h1>
+          <h1 className="text-3xl md:text-4xl font-bold text-[var(--neo-text-main)] mb-4">
+            حریم خصوصی کاربران
+          </h1>
           <p className="text-lg text-[var(--neo-text-secondary)]">
-            حفظ امنیت و حریم خصوصی شما اولویت اصلی ما در تک‌یاد است.
+            حفظ امنیت و حریم خصوصی شما اولویت اصلی ما در تک یاد است.
           </p>
         </div>
 
@@ -52,12 +54,22 @@ export default function PrivacyPage() {
                   چه اطلاعاتی از شما دریافت می‌شود؟
                 </h2>
                 <p>
-                  هنگام ثبت‌نام و استفاده از پلتفرم تک‌یاد، اطلاعات زیر از شما دریافت می‌گردد:
+                  هنگام ثبت‌نام و استفاده از پلتفرم تک یاد، اطلاعات زیر از شما
+                  دریافت می‌گردد:
                 </p>
                 <ul>
-                  <li>اطلاعات هویتی پایه: نام، نام خانوادگی، شماره موبایل و آدرس ایمیل.</li>
-                  <li>اطلاعات آموزشی: سوابق تحصیلی، دوره‌های خریداری شده، نمرات و پیشرفت تحصیلی.</li>
-                  <li>اطلاعات فنی: آدرس IP، نوع مرورگر، سیستم عامل و لاگ‌های دسترسی به منظور بهبود امنیت.</li>
+                  <li>
+                    اطلاعات هویتی پایه: نام، نام خانوادگی، شماره موبایل و آدرس
+                    ایمیل.
+                  </li>
+                  <li>
+                    اطلاعات آموزشی: سوابق تحصیلی، دوره‌های خریداری شده، نمرات و
+                    پیشرفت تحصیلی.
+                  </li>
+                  <li>
+                    اطلاعات فنی: آدرس IP، نوع مرورگر، سیستم عامل و لاگ‌های
+                    دسترسی به منظور بهبود امنیت.
+                  </li>
                 </ul>
               </section>
 
@@ -67,13 +79,17 @@ export default function PrivacyPage() {
                   نحوه استفاده از اطلاعات
                 </h2>
                 <p>
-                  اطلاعات شما صرفاً جهت بهبود کیفیت خدمات، ارائه پشتیبانی بهتر و شخصی‌سازی تجربه کاربری استفاده می‌شود:
+                  اطلاعات شما صرفاً جهت بهبود کیفیت خدمات، ارائه پشتیبانی بهتر و
+                  شخصی‌سازی تجربه کاربری استفاده می‌شود:
                 </p>
                 <ul>
                   <li>ایجاد حساب کاربری و احراز هویت امن.</li>
                   <li>ارسال اطلاع‌رسانی‌های مهم مربوط به کلاس‌ها و دوره‌ها.</li>
                   <li>پاسخگویی به درخواست‌های پشتیبانی و رفع اشکال.</li>
-                  <li>جلوگیری از تقلب و سوءاستفاده از سیستم (مانند اشتراک‌گذاری اکانت).</li>
+                  <li>
+                    جلوگیری از تقلب و سوءاستفاده از سیستم (مانند اشتراک‌گذاری
+                    اکانت).
+                  </li>
                 </ul>
               </section>
 
@@ -83,7 +99,10 @@ export default function PrivacyPage() {
                   امنیت داده‌ها
                 </h2>
                 <p>
-                  تمامی گذرواژه‌ها به صورت یک‌طرفه و رمزنگاری‌شده (Hash) در دیتابیس ذخیره می‌شوند و حتی پرسنل تک‌یاد به رمز عبور شما دسترسی ندارند. همچنین کلیه تراکنش‌های بانکی در محیط امن شاپرک انجام می‌شود.
+                  تمامی گذرواژه‌ها به صورت یک‌طرفه و رمزنگاری‌شده (Hash) در
+                  دیتابیس ذخیره می‌شوند و حتی پرسنل تک یاد به رمز عبور شما
+                  دسترسی ندارند. همچنین کلیه تراکنش‌های بانکی در محیط امن شاپرک
+                  انجام می‌شود.
                 </p>
               </section>
             </div>

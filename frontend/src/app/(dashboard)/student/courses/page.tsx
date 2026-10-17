@@ -1,31 +1,50 @@
-'use client';
+"use client";
 
-import { useQuery } from '@tanstack/react-query';
-import { learningApi } from '@/features/learning/api/learning.api';
-import { 
-  BookOpen, Search, PlayCircle, Loader2, Award, CheckCircle2, 
-  Clock, Sparkles, Filter, ChevronLeft, ArrowRight, User, 
-  FileText, Download, X, Star, ExternalLink
-} from 'lucide-react';
-import Link from 'next/link';
-import { useState, useMemo } from 'react';
-import { useAuthStore } from '@/features/auth/stores/auth.store';
-import toast from 'react-hot-toast';
-import { getImageUrl, handleImageError } from '@/lib/utils';
+import { useQuery } from "@tanstack/react-query";
+import { learningApi } from "@/features/learning/api/learning.api";
+import {
+  BookOpen,
+  Search,
+  PlayCircle,
+  Loader2,
+  Award,
+  CheckCircle2,
+  Clock,
+  Sparkles,
+  Filter,
+  ChevronLeft,
+  ArrowRight,
+  User,
+  FileText,
+  Download,
+  X,
+  Star,
+  ExternalLink,
+} from "lucide-react";
+import Link from "next/link";
+import { useState, useMemo } from "react";
+import { useAuthStore } from "@/features/auth/stores/auth.store";
+import toast from "react-hot-toast";
+import { getImageUrl, handleImageError } from "@/lib/utils";
 
 export default function MyCoursesPage() {
   const { user } = useAuthStore();
-  const [search, setSearch] = useState('');
-  const [activeTab, setActiveTab] = useState<'all' | 'in_progress' | 'completed' | 'free' | 'purchase'>('all');
-  const [sortBy, setSortBy] = useState<'recent' | 'progress_desc' | 'title'>('recent');
+  const [search, setSearch] = useState("");
+  const [activeTab, setActiveTab] = useState<
+    "all" | "in_progress" | "completed" | "free" | "purchase"
+  >("all");
+  const [sortBy, setSortBy] = useState<"recent" | "progress_desc" | "title">(
+    "recent",
+  );
 
   // Modal States
-  const [selectedCourseForSyllabus, setSelectedCourseForSyllabus] = useState<any>(null);
+  const [selectedCourseForSyllabus, setSelectedCourseForSyllabus] =
+    useState<any>(null);
   const [selectedCertificate, setSelectedCertificate] = useState<any>(null);
 
   const { data: enrollmentsData, isLoading } = useQuery({
-    queryKey: ['myEnrollments'],
-    queryFn: () => learningApi.getMyEnrollments().then(res => res.data)
+    queryKey: ["myEnrollments"],
+    queryFn: () => learningApi.getMyEnrollments().then((res) => res.data),
   });
 
   const enrollments: any[] = enrollmentsData || [];
@@ -33,10 +52,19 @@ export default function MyCoursesPage() {
   // Metrics
   const stats = useMemo(() => {
     const total = enrollments.length;
-    const completed = enrollments.filter(e => (e.progress || 0) >= 100 || e.status === 'completed').length;
-    const inProgress = enrollments.filter(e => (e.progress || 0) > 0 && (e.progress || 0) < 100).length;
-    const notStarted = enrollments.filter(e => !e.progress || e.progress === 0).length;
-    const totalCompletedLessons = enrollments.reduce((acc, curr) => acc + (curr.completedLessons || 0), 0);
+    const completed = enrollments.filter(
+      (e) => (e.progress || 0) >= 100 || e.status === "completed",
+    ).length;
+    const inProgress = enrollments.filter(
+      (e) => (e.progress || 0) > 0 && (e.progress || 0) < 100,
+    ).length;
+    const notStarted = enrollments.filter(
+      (e) => !e.progress || e.progress === 0,
+    ).length;
+    const totalCompletedLessons = enrollments.reduce(
+      (acc, curr) => acc + (curr.completedLessons || 0),
+      0,
+    );
 
     return { total, completed, inProgress, notStarted, totalCompletedLessons };
   }, [enrollments]);
@@ -47,30 +75,39 @@ export default function MyCoursesPage() {
       .filter((e: any) => {
         const course = e.courseId;
         if (!course) return false;
-        
+
         // Search Filter
-        const matchesSearch = 
+        const matchesSearch =
           course.title?.toLowerCase().includes(search.toLowerCase()) ||
           course.category?.name?.toLowerCase().includes(search.toLowerCase()) ||
-          course.instructors?.[0]?.firstName?.toLowerCase().includes(search.toLowerCase()) ||
-          course.instructors?.[0]?.lastName?.toLowerCase().includes(search.toLowerCase());
+          course.instructors?.[0]?.firstName
+            ?.toLowerCase()
+            .includes(search.toLowerCase()) ||
+          course.instructors?.[0]?.lastName
+            ?.toLowerCase()
+            .includes(search.toLowerCase());
 
         if (!matchesSearch) return false;
 
         // Tab Filter
         const progress = e.progress || 0;
-        if (activeTab === 'in_progress') return progress < 100;
-        if (activeTab === 'completed') return progress >= 100 || e.status === 'completed';
-        if (activeTab === 'free') return e.source === 'free' || course.price === 0;
-        if (activeTab === 'purchase') return e.source === 'purchase' || course.price > 0;
+        if (activeTab === "in_progress") return progress < 100;
+        if (activeTab === "completed")
+          return progress >= 100 || e.status === "completed";
+        if (activeTab === "free")
+          return e.source === "free" || course.price === 0;
+        if (activeTab === "purchase")
+          return e.source === "purchase" || course.price > 0;
         return true;
       })
       .sort((a, b) => {
-        if (sortBy === 'progress_desc') {
+        if (sortBy === "progress_desc") {
           return (b.progress || 0) - (a.progress || 0);
         }
-        if (sortBy === 'title') {
-          return (a.courseId?.title || '').localeCompare(b.courseId?.title || '');
+        if (sortBy === "title") {
+          return (a.courseId?.title || "").localeCompare(
+            b.courseId?.title || "",
+          );
         }
         // Default: recent
         const dateA = new Date(a.lastAccessedAt || a.enrolledAt || 0).getTime();
@@ -81,7 +118,6 @@ export default function MyCoursesPage() {
 
   return (
     <div className="space-y-8 pb-16 animate-in fade-in duration-300">
-      
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-200 pb-6">
         <div>
@@ -95,7 +131,8 @@ export default function MyCoursesPage() {
             دوره‌های آموزشی من
           </h1>
           <p className="text-sm sm:text-base text-slate-600 mt-1">
-            به یادگیری مداوم ادامه دهید؛ هر گام شما را به تخصص و موقعیت‌های شغلی برتر نزدیک‌تر می‌کند.
+            به یادگیری مداوم ادامه دهید؛ هر گام شما را به تخصص و موقعیت‌های شغلی
+            برتر نزدیک‌تر می‌کند.
           </p>
         </div>
 
@@ -116,7 +153,9 @@ export default function MyCoursesPage() {
             <BookOpen className="w-5 h-5 text-indigo-500" />
           </div>
           <div className="flex items-baseline gap-2">
-            <span className="text-2xl sm:text-3xl font-black text-slate-900">{stats.total.toLocaleString('fa-IR')}</span>
+            <span className="text-2xl sm:text-3xl font-black text-slate-900">
+              {stats.total.toLocaleString("fa-IR")}
+            </span>
             <span className="text-xs text-slate-500">دوره</span>
           </div>
         </div>
@@ -127,7 +166,9 @@ export default function MyCoursesPage() {
             <Clock className="w-5 h-5 text-amber-500" />
           </div>
           <div className="flex items-baseline gap-2">
-            <span className="text-2xl sm:text-3xl font-black text-amber-600">{stats.inProgress.toLocaleString('fa-IR')}</span>
+            <span className="text-2xl sm:text-3xl font-black text-amber-600">
+              {stats.inProgress.toLocaleString("fa-IR")}
+            </span>
             <span className="text-xs text-slate-500">فعال</span>
           </div>
         </div>
@@ -138,7 +179,9 @@ export default function MyCoursesPage() {
             <CheckCircle2 className="w-5 h-5 text-emerald-500" />
           </div>
           <div className="flex items-baseline gap-2">
-            <span className="text-2xl sm:text-3xl font-black text-emerald-600">{stats.completed.toLocaleString('fa-IR')}</span>
+            <span className="text-2xl sm:text-3xl font-black text-emerald-600">
+              {stats.completed.toLocaleString("fa-IR")}
+            </span>
             <span className="text-xs text-slate-500">موفق</span>
           </div>
         </div>
@@ -149,7 +192,9 @@ export default function MyCoursesPage() {
             <Award className="w-5 h-5 text-purple-500" />
           </div>
           <div className="flex items-baseline gap-2">
-            <span className="text-2xl sm:text-3xl font-black text-purple-600">{stats.totalCompletedLessons.toLocaleString('fa-IR')}</span>
+            <span className="text-2xl sm:text-3xl font-black text-purple-600">
+              {stats.totalCompletedLessons.toLocaleString("fa-IR")}
+            </span>
             <span className="text-xs text-slate-500">جلسه</span>
           </div>
         </div>
@@ -157,48 +202,47 @@ export default function MyCoursesPage() {
 
       {/* Filter Tabs & Search Bar */}
       <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-col md:flex-row items-center justify-between gap-4">
-        
         {/* Interactive Segmented Tabs */}
         <div className="flex items-center gap-1.5 overflow-x-auto w-full md:w-auto pb-1 md:pb-0 scrollbar-none">
           <button
-            onClick={() => setActiveTab('all')}
+            onClick={() => setActiveTab("all")}
             className={`px-3.5 py-2 text-xs sm:text-sm font-bold rounded-xl transition ${
-              activeTab === 'all'
-                ? 'bg-indigo-600 text-white shadow-sm'
-                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+              activeTab === "all"
+                ? "bg-indigo-600 text-white shadow-sm"
+                : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
             }`}
           >
-            همه دوره‌ها ({stats.total.toLocaleString('fa-IR')})
+            همه دوره‌ها ({stats.total.toLocaleString("fa-IR")})
           </button>
 
           <button
-            onClick={() => setActiveTab('in_progress')}
+            onClick={() => setActiveTab("in_progress")}
             className={`px-3.5 py-2 text-xs sm:text-sm font-bold rounded-xl transition ${
-              activeTab === 'in_progress'
-                ? 'bg-indigo-600 text-white shadow-sm'
-                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+              activeTab === "in_progress"
+                ? "bg-indigo-600 text-white shadow-sm"
+                : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
             }`}
           >
-            در حال مشاهده ({stats.inProgress.toLocaleString('fa-IR')})
+            در حال مشاهده ({stats.inProgress.toLocaleString("fa-IR")})
           </button>
 
           <button
-            onClick={() => setActiveTab('completed')}
+            onClick={() => setActiveTab("completed")}
             className={`px-3.5 py-2 text-xs sm:text-sm font-bold rounded-xl transition ${
-              activeTab === 'completed'
-                ? 'bg-indigo-600 text-white shadow-sm'
-                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+              activeTab === "completed"
+                ? "bg-indigo-600 text-white shadow-sm"
+                : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
             }`}
           >
-            تکمیل شده ({stats.completed.toLocaleString('fa-IR')})
+            تکمیل شده ({stats.completed.toLocaleString("fa-IR")})
           </button>
 
           <button
-            onClick={() => setActiveTab('purchase')}
+            onClick={() => setActiveTab("purchase")}
             className={`px-3.5 py-2 text-xs sm:text-sm font-bold rounded-xl transition ${
-              activeTab === 'purchase'
-                ? 'bg-indigo-600 text-white shadow-sm'
-                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+              activeTab === "purchase"
+                ? "bg-indigo-600 text-white shadow-sm"
+                : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
             }`}
           >
             خریداری شده
@@ -217,8 +261,8 @@ export default function MyCoursesPage() {
               className="w-full pl-3 pr-9 py-2 text-xs sm:text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition"
             />
             {search && (
-              <button 
-                onClick={() => setSearch('')} 
+              <button
+                onClick={() => setSearch("")}
                 className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 text-xs"
               >
                 ✕
@@ -236,14 +280,15 @@ export default function MyCoursesPage() {
             <option value="title">عنوان دوره</option>
           </select>
         </div>
-
       </div>
 
       {/* Content State */}
       {isLoading ? (
         <div className="flex flex-col items-center justify-center py-24 bg-white rounded-3xl border border-slate-200 shadow-sm">
           <Loader2 className="w-10 h-10 text-indigo-600 animate-spin mb-4" />
-          <p className="text-slate-600 text-sm font-medium">در حال بارگذاری دوره‌های شما...</p>
+          <p className="text-slate-600 text-sm font-medium">
+            در حال بارگذاری دوره‌های شما...
+          </p>
         </div>
       ) : filteredCourses.length === 0 ? (
         <div className="bg-white rounded-3xl p-16 text-center border border-slate-200 shadow-sm flex flex-col items-center justify-center max-w-xl mx-auto">
@@ -251,12 +296,14 @@ export default function MyCoursesPage() {
             <BookOpen className="w-10 h-10" />
           </div>
           <h3 className="text-xl font-bold text-slate-900 mb-2">
-            {search ? 'نتیجه‌ای برای جستجوی شما پیدا نشد' : 'دوره‌ای در این بخش موجود نیست'}
+            {search
+              ? "نتیجه‌ای برای جستجوی شما پیدا نشد"
+              : "دوره‌ای در این بخش موجود نیست"}
           </h3>
           <p className="text-slate-600 text-sm mb-8 leading-relaxed">
             {search
-              ? 'لطفاً کلمات کلیدی دیگری را جستجو کنید یا فیلتر تب‌ها را تغییر دهید.'
-              : 'شما در این دسته‌بندی دوره‌ای ندارید. می‌توانید از کاتالوگ دوره‌های سایت، دوره مورد نظر خود را انتخاب و یادگیری را شروع کنید.'}
+              ? "لطفاً کلمات کلیدی دیگری را جستجو کنید یا فیلتر تب‌ها را تغییر دهید."
+              : "شما در این دسته‌بندی دوره‌ای ندارید. می‌توانید از کاتالوگ دوره‌های سایت، دوره مورد نظر خود را انتخاب و یادگیری را شروع کنید."}
           </p>
           <Link
             href="/courses"
@@ -272,32 +319,35 @@ export default function MyCoursesPage() {
             if (!course) return null;
 
             const progress = enrollment.progress || 0;
-            const isCompleted = progress >= 100 || enrollment.status === 'completed';
+            const isCompleted =
+              progress >= 100 || enrollment.status === "completed";
             const totalLessons = course.totalLessons || 1;
-            const completedCount = enrollment.completedLessons || Math.round((progress * totalLessons) / 100);
+            const completedCount =
+              enrollment.completedLessons ||
+              Math.round((progress * totalLessons) / 100);
             const instructor = course.instructors?.[0];
-            const instructorName = instructor 
-              ? `${instructor.firstName} ${instructor.lastName}` 
-              : 'استاد تک‌یاد';
+            const instructorName = instructor
+              ? `${instructor.firstName} ${instructor.lastName}`
+              : "استاد تک یاد";
 
             return (
-              <div 
-                key={enrollment._id} 
+              <div
+                key={enrollment._id}
                 className="bg-white rounded-3xl overflow-hidden border border-slate-200 shadow-sm hover:shadow-md transition-all flex flex-col group"
               >
                 {/* Thumbnail with overlay duration & category */}
                 <div className="relative aspect-video bg-slate-100 overflow-hidden">
-                  <img 
-                    src={getImageUrl(course.thumbnail, 'course', course.title)} 
-                    onError={(e) => handleImageError(e, 'course', course.title)}
-                    alt={course.title} 
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
+                  <img
+                    src={getImageUrl(course.thumbnail, "course", course.title)}
+                    onError={(e) => handleImageError(e, "course", course.title)}
+                    alt={course.title}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20" />
-                  
+
                   {/* Category unboxed tag */}
                   <div className="absolute top-3 right-3 text-xs text-white font-bold bg-black/40 backdrop-blur-md px-3 py-1 rounded-lg">
-                    {course.category?.name || 'آموزش تخصصی'}
+                    {course.category?.name || "آموزش تخصصی"}
                   </div>
 
                   {/* Completed Badge */}
@@ -322,15 +372,28 @@ export default function MyCoursesPage() {
                   <div>
                     {/* Instructor unboxed metadata */}
                     <div className="flex items-center gap-2 text-xs text-slate-500 mb-2">
-                      <img 
-                        src={getImageUrl(instructor?.personnelPhoto || instructor?.avatar, 'avatar', instructorName)} 
-                        onError={(e) => handleImageError(e, 'avatar', instructorName)}
+                      <img
+                        src={getImageUrl(
+                          instructor?.personnelPhoto || instructor?.avatar,
+                          "avatar",
+                          instructorName,
+                        )}
+                        onError={(e) =>
+                          handleImageError(e, "avatar", instructorName)
+                        }
                         alt={instructorName}
                         className="w-5 h-5 rounded-full object-cover"
                       />
                       <span>{instructorName}</span>
                       <span aria-hidden="true">·</span>
-                      <span>سطح {course.level === 'beginner' ? 'مقدماتی' : course.level === 'advanced' ? 'پیشرفته' : 'متوسط'}</span>
+                      <span>
+                        سطح{" "}
+                        {course.level === "beginner"
+                          ? "مقدماتی"
+                          : course.level === "advanced"
+                            ? "پیشرفته"
+                            : "متوسط"}
+                      </span>
                     </div>
 
                     <h3 className="font-bold text-base sm:text-lg text-slate-900 group-hover:text-indigo-600 transition line-clamp-2 leading-snug">
@@ -346,24 +409,33 @@ export default function MyCoursesPage() {
                       <span className="text-slate-600">
                         {completedCount} از {totalLessons} جلسه تکمیل شده
                       </span>
-                      <span className={isCompleted ? 'text-emerald-600' : 'text-indigo-600'}>
+                      <span
+                        className={
+                          isCompleted ? "text-emerald-600" : "text-indigo-600"
+                        }
+                      >
                         {progress}٪
                       </span>
                     </div>
 
                     <div className="w-full bg-slate-100 rounded-full h-2 overflow-hidden">
-                      <div 
+                      <div
                         className={`h-2 rounded-full transition-all duration-700 ${
-                          isCompleted ? 'bg-emerald-500' : 'bg-indigo-600'
-                        }`} 
-                        style={{ width: `${Math.min(100, Math.max(0, progress))}%` }}
+                          isCompleted ? "bg-emerald-500" : "bg-indigo-600"
+                        }`}
+                        style={{
+                          width: `${Math.min(100, Math.max(0, progress))}%`,
+                        }}
                       />
                     </div>
 
                     {/* Last active lesson banner */}
                     {enrollment.lastLessonId && (
                       <p className="text-[11px] text-slate-500 truncate pt-1">
-                        آخرین جلسه: <strong className="text-slate-700">{enrollment.lastLessonId.title}</strong>
+                        آخرین جلسه:{" "}
+                        <strong className="text-slate-700">
+                          {enrollment.lastLessonId.title}
+                        </strong>
                       </p>
                     )}
                   </div>
@@ -375,7 +447,7 @@ export default function MyCoursesPage() {
                       className="w-full flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white py-2.5 rounded-xl font-bold text-xs sm:text-sm transition shadow-sm"
                     >
                       <PlayCircle className="w-4 h-4" />
-                      {progress === 0 ? 'شروع مشاهده دوره' : 'ادامه یادگیری'}
+                      {progress === 0 ? "شروع مشاهده دوره" : "ادامه یادگیری"}
                     </Link>
 
                     <div className="grid grid-cols-2 gap-2 text-xs">
@@ -389,7 +461,9 @@ export default function MyCoursesPage() {
 
                       {isCompleted ? (
                         <button
-                          onClick={() => setSelectedCertificate({ enrollment, course })}
+                          onClick={() =>
+                            setSelectedCertificate({ enrollment, course })
+                          }
                           className="flex items-center justify-center gap-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 py-2 rounded-lg font-bold transition border border-emerald-200"
                         >
                           <Award className="w-3.5 h-3.5 text-emerald-600" />
@@ -406,7 +480,6 @@ export default function MyCoursesPage() {
                       )}
                     </div>
                   </div>
-
                 </div>
               </div>
             );
@@ -420,8 +493,12 @@ export default function MyCoursesPage() {
           <div className="bg-white rounded-3xl max-w-2xl w-full max-h-[85vh] overflow-hidden flex flex-col shadow-2xl animate-in zoom-in-95 duration-200">
             <div className="p-6 border-b border-slate-200 flex items-center justify-between">
               <div>
-                <h3 className="font-bold text-lg text-slate-900">سرفصل‌ها و جلسات دوره</h3>
-                <p className="text-xs text-slate-500 mt-0.5">{selectedCourseForSyllabus.title}</p>
+                <h3 className="font-bold text-lg text-slate-900">
+                  سرفصل‌ها و جلسات دوره
+                </h3>
+                <p className="text-xs text-slate-500 mt-0.5">
+                  {selectedCourseForSyllabus.title}
+                </p>
               </div>
               <button
                 onClick={() => setSelectedCourseForSyllabus(null)}
@@ -433,27 +510,44 @@ export default function MyCoursesPage() {
 
             <div className="p-6 overflow-y-auto space-y-4">
               <div className="flex items-center justify-between text-xs text-slate-500 pb-2 border-b border-slate-100">
-                <span>تعداد کل جلسات: {selectedCourseForSyllabus.totalLessons || 0} جلسه</span>
-                <span>مدت زمان کل: {selectedCourseForSyllabus.totalDuration || 'مشخص نشده'}</span>
+                <span>
+                  تعداد کل جلسات: {selectedCourseForSyllabus.totalLessons || 0}{" "}
+                  جلسه
+                </span>
+                <span>
+                  مدت زمان کل:{" "}
+                  {selectedCourseForSyllabus.totalDuration || "مشخص نشده"}
+                </span>
               </div>
 
-              {selectedCourseForSyllabus.syllabus && selectedCourseForSyllabus.syllabus.length > 0 ? (
+              {selectedCourseForSyllabus.syllabus &&
+              selectedCourseForSyllabus.syllabus.length > 0 ? (
                 <div className="space-y-3">
-                  {selectedCourseForSyllabus.syllabus.map((item: any, idx: number) => (
-                    <div key={idx} className="p-3.5 bg-slate-50 rounded-xl border border-slate-200 flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <span className="w-6 h-6 rounded-full bg-indigo-100 text-indigo-700 text-xs font-bold flex items-center justify-center">
-                          {idx + 1}
+                  {selectedCourseForSyllabus.syllabus.map(
+                    (item: any, idx: number) => (
+                      <div
+                        key={idx}
+                        className="p-3.5 bg-slate-50 rounded-xl border border-slate-200 flex items-center justify-between"
+                      >
+                        <div className="flex items-center gap-3">
+                          <span className="w-6 h-6 rounded-full bg-indigo-100 text-indigo-700 text-xs font-bold flex items-center justify-center">
+                            {idx + 1}
+                          </span>
+                          <span className="text-sm font-semibold text-slate-800">
+                            {item.title || item.name}
+                          </span>
+                        </div>
+                        <span className="text-xs text-slate-500">
+                          {item.duration || ""}
                         </span>
-                        <span className="text-sm font-semibold text-slate-800">{item.title || item.name}</span>
                       </div>
-                      <span className="text-xs text-slate-500">{item.duration || ''}</span>
-                    </div>
-                  ))}
+                    ),
+                  )}
                 </div>
               ) : (
                 <div className="text-center py-10 text-slate-500 text-sm">
-                  جلسات در حال تدوین و به‌روزرسانی هستند یا از طریق پلیر قابل مشاهده‌اند.
+                  جلسات در حال تدوین و به‌روزرسانی هستند یا از طریق پلیر قابل
+                  مشاهده‌اند.
                 </div>
               )}
             </div>
@@ -489,13 +583,19 @@ export default function MyCoursesPage() {
 
               <div>
                 <span className="text-xs font-bold text-amber-700 uppercase tracking-widest block mb-1">
-                  سامانه مدیریت آموزش و مهارت تک‌یاد
+                  سامانه مدیریت آموزش و مهارت تک یاد
                 </span>
-                <h2 className="text-2xl font-black text-slate-900">گواهینامه پایان دوره آموزشی</h2>
+                <h2 className="text-2xl font-black text-slate-900">
+                  گواهینامه پایان دوره آموزشی
+                </h2>
               </div>
 
               <p className="text-sm text-slate-600 leading-relaxed max-w-md mx-auto">
-                بدین‌وسیله گواهی می‌شود که دانشجو <strong className="text-slate-900 font-bold">{user?.firstName} {user?.lastName}</strong> سرفصل‌های دوره تخصصی:
+                بدین‌وسیله گواهی می‌شود که دانشجو{" "}
+                <strong className="text-slate-900 font-bold">
+                  {user?.firstName} {user?.lastName}
+                </strong>{" "}
+                سرفصل‌های دوره تخصصی:
               </p>
 
               <div className="text-xl font-black text-indigo-700 py-2 border-y border-amber-200">
@@ -503,12 +603,18 @@ export default function MyCoursesPage() {
               </div>
 
               <p className="text-xs text-slate-500">
-                را با موفقیت ۱۰۰٪ و کسب مهارت‌های عملی مورد نیاز به پایان رسانده است.
+                را با موفقیت ۱۰۰٪ و کسب مهارت‌های عملی مورد نیاز به پایان رسانده
+                است.
               </p>
 
               <div className="pt-4 flex justify-between items-center text-[11px] text-slate-400 border-t border-slate-100 font-mono">
-                <span>کد اصالت: TY-CERT-{selectedCertificate.enrollment._id.slice(-8).toUpperCase()}</span>
-                <span>تاریخ صدور: {new Date().toLocaleDateString('fa-IR')}</span>
+                <span>
+                  کد اصالت: TY-CERT-
+                  {selectedCertificate.enrollment._id.slice(-8).toUpperCase()}
+                </span>
+                <span>
+                  تاریخ صدور: {new Date().toLocaleDateString("fa-IR")}
+                </span>
               </div>
             </div>
 
@@ -526,7 +632,6 @@ export default function MyCoursesPage() {
           </div>
         </div>
       )}
-
     </div>
   );
 }

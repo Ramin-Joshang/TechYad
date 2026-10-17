@@ -1,7 +1,7 @@
-import type { Metadata } from 'next';
+import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: 'تکمیل سفارش و درگاه پرداخت | تک‌یاد',
+  title: "تکمیل سفارش و درگاه پرداخت | تک یاد",
   robots: {
     index: false,
     follow: false,

@@ -109,7 +109,10 @@ export default function DashboardLayout({
 
   const closeMenu = () => setMobileMenuOpen(false);
 
-  const userCanTeach = user?.role === "instructor" || user?.role === "super-admin" || (user?.role === "admin" && !!user?.canTeach);
+  const userCanTeach =
+    user?.role === "instructor" ||
+    user?.role === "super-admin" ||
+    (user?.role === "admin" && !!user?.canTeach);
   const userCanAdmin = user?.role === "admin" || user?.role === "super-admin";
   const userCanSuperAdmin = user?.role === "super-admin";
 
@@ -126,7 +129,13 @@ export default function DashboardLayout({
     const isAdminPath = pathname?.startsWith("/admin") && !isSuperAdminPath;
 
     // 1. Student Learning Area
-    if (isStudentPath || (!isInstructorPath && !isAdminPath && !isSuperAdminPath && user?.role === "student")) {
+    if (
+      isStudentPath ||
+      (!isInstructorPath &&
+        !isAdminPath &&
+        !isSuperAdminPath &&
+        user?.role === "student")
+    ) {
       return [
         { name: "داشبورد یادگیری", href: "/student", icon: LayoutDashboard },
         { name: "دوره‌های من", href: "/student/courses", icon: BookOpen },
@@ -150,10 +159,17 @@ export default function DashboardLayout({
     }
 
     // 2. Instructor Teaching Area
-    if (isInstructorPath || (!isAdminPath && !isSuperAdminPath && user?.role === "instructor")) {
+    if (
+      isInstructorPath ||
+      (!isAdminPath && !isSuperAdminPath && user?.role === "instructor")
+    ) {
       return [
         { name: "داشبورد تدریس", href: "/instructor", icon: LayoutDashboard },
-        { name: "مدیریت دوره‌های من", href: "/instructor/courses", icon: BookOpen },
+        {
+          name: "مدیریت دوره‌های من",
+          href: "/instructor/courses",
+          icon: BookOpen,
+        },
         {
           name: "آزمون‌ها و کوییزها",
           href: "/instructor/quizzes",
@@ -441,7 +457,7 @@ export default function DashboardLayout({
                 <span className="font-bold text-xl text-[var(--neo-text-main)] tracking-tight truncate">
                   {publicSettings?.siteName
                     ? publicSettings.siteName.split("|")[0].trim()
-                    : "تک‌یاد"}
+                    : "تک یاد"}
                 </span>
               )}
             </Link>
@@ -449,7 +465,9 @@ export default function DashboardLayout({
               <button
                 onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
                 className="hidden lg:block text-[var(--neo-text-muted)] hover:text-[var(--neo-primary)] p-1.5 rounded-lg hover:bg-[var(--neo-surface-2)] transition"
-                title={isSidebarCollapsed ? "باز کردن سایدبار" : "جمع کردن سایدبار"}
+                title={
+                  isSidebarCollapsed ? "باز کردن سایدبار" : "جمع کردن سایدبار"
+                }
               >
                 {isSidebarCollapsed ? (
                   <ChevronLeft className="w-5 h-5" />
@@ -471,7 +489,9 @@ export default function DashboardLayout({
             <div className="mx-3 my-2 p-2.5 bg-slate-50 border border-slate-200/80 rounded-2xl space-y-1.5">
               <div className="text-[10px] font-black text-slate-500 px-1 uppercase tracking-wider flex items-center justify-between">
                 <span>تغییر فضای کاری</span>
-                <span className="text-[9px] bg-slate-200/80 text-slate-700 px-1.5 py-0.5 rounded-full font-bold">چندنقشی</span>
+                <span className="text-[9px] bg-slate-200/80 text-slate-700 px-1.5 py-0.5 rounded-full font-bold">
+                  چندنقشی
+                </span>
               </div>
               <div className="grid grid-cols-1 gap-1">
                 {/* Student Learning Workspace */}
@@ -489,7 +509,9 @@ export default function DashboardLayout({
                     <GraduationCap className="w-3.5 h-3.5 shrink-0" />
                     <span>فضای یادگیری من</span>
                   </div>
-                  {pathname?.startsWith("/student") && <span className="w-1.5 h-1.5 rounded-full bg-white" />}
+                  {pathname?.startsWith("/student") && (
+                    <span className="w-1.5 h-1.5 rounded-full bg-white" />
+                  )}
                 </Link>
 
                 {/* Teaching Workspace */}
@@ -508,7 +530,9 @@ export default function DashboardLayout({
                       <Briefcase className="w-3.5 h-3.5 shrink-0" />
                       <span>فضای تدریس (مدرس)</span>
                     </div>
-                    {pathname?.startsWith("/instructor") && <span className="w-1.5 h-1.5 rounded-full bg-white" />}
+                    {pathname?.startsWith("/instructor") && (
+                      <span className="w-1.5 h-1.5 rounded-full bg-white" />
+                    )}
                   </Link>
                 )}
 
@@ -518,7 +542,8 @@ export default function DashboardLayout({
                     href="/admin"
                     onClick={closeMenu}
                     className={`flex items-center justify-between px-2.5 py-1.5 rounded-xl text-xs font-bold transition ${
-                      pathname?.startsWith("/admin") && !pathname?.startsWith("/super-admin")
+                      pathname?.startsWith("/admin") &&
+                      !pathname?.startsWith("/super-admin")
                         ? "bg-indigo-600 text-white shadow-xs"
                         : "text-slate-700 hover:bg-slate-200/60"
                     }`}
@@ -528,9 +553,10 @@ export default function DashboardLayout({
                       <Shield className="w-3.5 h-3.5 shrink-0" />
                       <span>پنل مدیریت</span>
                     </div>
-                    {pathname?.startsWith("/admin") && !pathname?.startsWith("/super-admin") && (
-                      <span className="w-1.5 h-1.5 rounded-full bg-white" />
-                    )}
+                    {pathname?.startsWith("/admin") &&
+                      !pathname?.startsWith("/super-admin") && (
+                        <span className="w-1.5 h-1.5 rounded-full bg-white" />
+                      )}
                   </Link>
                 )}
 
@@ -597,7 +623,7 @@ export default function DashboardLayout({
               href="/"
               onClick={closeMenu}
               className={`flex items-center ${isSidebarCollapsed ? "justify-center px-0" : "gap-3 px-3.5"} py-2.5 w-full rounded-xl font-bold text-xs text-slate-700 hover:bg-white hover:text-blue-600 border border-transparent hover:border-slate-200 transition-all`}
-              title="مشاهده صفحه اصلی وب‌سایت تک‌یاد"
+              title="مشاهده صفحه اصلی وب‌سایت تک یاد"
             >
               <Home className="w-4 h-4 text-blue-600 shrink-0" />
               {!isSidebarCollapsed && <span>مشاهده وب‌سایت</span>}
@@ -642,7 +668,7 @@ export default function DashboardLayout({
               <Link
                 href="/"
                 className="inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-xl bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200/80 text-xs font-bold transition shadow-2xs hover:border-blue-300 shrink-0"
-                title="بازگشت به صفحه اصلی وب‌سایت تک‌یاد"
+                title="بازگشت به صفحه اصلی وب‌سایت تک یاد"
               >
                 <Home className="w-3.5 h-3.5 text-blue-600 shrink-0" />
                 <span className="hidden xs:inline">صفحه اصلی سایت</span>
@@ -685,39 +711,43 @@ export default function DashboardLayout({
                   </Link>
                 )}
 
-                {userCanAdmin && (pathname?.startsWith("/student") || pathname?.startsWith("/instructor")) && (
-                  <Link
-                    href={userCanSuperAdmin ? "/super-admin" : "/admin"}
-                    className="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-xs font-bold border border-indigo-200 transition"
-                    title="بازگشت به پنل مدیریت"
-                  >
-                    <Shield className="w-3.5 h-3.5" />
-                    <span>پنل مدیریت</span>
-                  </Link>
-                )}
-
-                {userCanAdmin && (pathname?.startsWith("/admin") || pathname?.startsWith("/super-admin")) && (
-                  <div className="flex items-center gap-1">
+                {userCanAdmin &&
+                  (pathname?.startsWith("/student") ||
+                    pathname?.startsWith("/instructor")) && (
                     <Link
-                      href="/student"
-                      className="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold border border-slate-200 transition"
-                      title="فضای یادگیری من (دوره‌های خریداری‌شده)"
+                      href={userCanSuperAdmin ? "/super-admin" : "/admin"}
+                      className="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-xs font-bold border border-indigo-200 transition"
+                      title="بازگشت به پنل مدیریت"
                     >
-                      <GraduationCap className="w-3.5 h-3.5 text-blue-600" />
-                      <span>یادگیری من</span>
+                      <Shield className="w-3.5 h-3.5" />
+                      <span>پنل مدیریت</span>
                     </Link>
-                    {userCanTeach && (
+                  )}
+
+                {userCanAdmin &&
+                  (pathname?.startsWith("/admin") ||
+                    pathname?.startsWith("/super-admin")) && (
+                    <div className="flex items-center gap-1">
                       <Link
-                        href="/instructor"
-                        className="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-purple-50 hover:bg-purple-100 text-purple-700 text-xs font-bold border border-purple-200 transition"
-                        title="فضای تدریس و ساخت دوره‌ها"
+                        href="/student"
+                        className="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold border border-slate-200 transition"
+                        title="فضای یادگیری من (دوره‌های خریداری‌شده)"
                       >
-                        <Briefcase className="w-3.5 h-3.5 text-purple-600" />
-                        <span>پنل تدریس</span>
+                        <GraduationCap className="w-3.5 h-3.5 text-blue-600" />
+                        <span>یادگیری من</span>
                       </Link>
-                    )}
-                  </div>
-                )}
+                      {userCanTeach && (
+                        <Link
+                          href="/instructor"
+                          className="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-purple-50 hover:bg-purple-100 text-purple-700 text-xs font-bold border border-purple-200 transition"
+                          title="فضای تدریس و ساخت دوره‌ها"
+                        >
+                          <Briefcase className="w-3.5 h-3.5 text-purple-600" />
+                          <span>پنل تدریس</span>
+                        </Link>
+                      )}
+                    </div>
+                  )}
               </div>
             </div>
 
@@ -755,8 +785,18 @@ export default function DashboardLayout({
                     <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-blue-600 text-white flex items-center justify-center font-bold text-xs sm:text-sm overflow-hidden shadow-xs shrink-0">
                       {user?.personnelPhoto || user?.avatar ? (
                         <img
-                          src={getImageUrl(user.personnelPhoto || user.avatar, "avatar", `${user.firstName || ""} ${user.lastName || ""}`)}
-                          onError={(e) => handleImageError(e, "avatar", `${user.firstName || ""} ${user.lastName || ""}`)}
+                          src={getImageUrl(
+                            user.personnelPhoto || user.avatar,
+                            "avatar",
+                            `${user.firstName || ""} ${user.lastName || ""}`,
+                          )}
+                          onError={(e) =>
+                            handleImageError(
+                              e,
+                              "avatar",
+                              `${user.firstName || ""} ${user.lastName || ""}`,
+                            )
+                          }
                           alt={user.firstName || "کاربر"}
                           className="w-full h-full object-cover"
                         />
@@ -772,15 +812,17 @@ export default function DashboardLayout({
                       {user?.firstName} {user?.lastName}
                     </div>
                     <div className="flex items-center gap-1 mt-0.5">
-                      <span className={`text-[10px] font-bold px-1.5 py-0.2 rounded-md ${
-                        user?.role === "super-admin"
-                          ? "bg-amber-100 text-amber-800"
-                          : user?.role === "admin"
-                            ? "bg-blue-100 text-blue-800"
-                            : user?.role === "instructor"
-                              ? "bg-emerald-100 text-emerald-800"
-                              : "bg-purple-100 text-purple-800"
-                      }`}>
+                      <span
+                        className={`text-[10px] font-bold px-1.5 py-0.2 rounded-md ${
+                          user?.role === "super-admin"
+                            ? "bg-amber-100 text-amber-800"
+                            : user?.role === "admin"
+                              ? "bg-blue-100 text-blue-800"
+                              : user?.role === "instructor"
+                                ? "bg-emerald-100 text-emerald-800"
+                                : "bg-purple-100 text-purple-800"
+                        }`}
+                      >
                         {user?.role === "super-admin"
                           ? "مدیر ارشد"
                           : user?.role === "admin"
@@ -823,7 +865,9 @@ export default function DashboardLayout({
                       : "text-slate-500 hover:text-slate-900"
                   }`}
                 >
-                  <LayoutDashboard className={`w-5 h-5 ${pathname === "/instructor" ? "text-[var(--neo-primary)]" : "text-slate-400"}`} />
+                  <LayoutDashboard
+                    className={`w-5 h-5 ${pathname === "/instructor" ? "text-[var(--neo-primary)]" : "text-slate-400"}`}
+                  />
                   <span className="text-[10px]">داشبورد</span>
                 </Link>
 
@@ -835,7 +879,9 @@ export default function DashboardLayout({
                       : "text-slate-500 hover:text-slate-900"
                   }`}
                 >
-                  <BookOpen className={`w-5 h-5 ${pathname.startsWith("/instructor/courses") ? "text-[var(--neo-primary)]" : "text-slate-400"}`} />
+                  <BookOpen
+                    className={`w-5 h-5 ${pathname.startsWith("/instructor/courses") ? "text-[var(--neo-primary)]" : "text-slate-400"}`}
+                  />
                   <span className="text-[10px]">دوره‌ها</span>
                 </Link>
 
@@ -847,7 +893,9 @@ export default function DashboardLayout({
                       : "text-slate-500 hover:text-slate-900"
                   }`}
                 >
-                  <Video className={`w-5 h-5 ${pathname.startsWith("/instructor/classes") ? "text-emerald-600" : "text-slate-400"}`} />
+                  <Video
+                    className={`w-5 h-5 ${pathname.startsWith("/instructor/classes") ? "text-emerald-600" : "text-slate-400"}`}
+                  />
                   <span className="text-[10px]">کلاس‌ها</span>
                 </Link>
 
@@ -859,7 +907,9 @@ export default function DashboardLayout({
                       : "text-slate-500 hover:text-slate-900"
                   }`}
                 >
-                  <Wallet className={`w-5 h-5 ${pathname.startsWith("/instructor/wallet") ? "text-indigo-600" : "text-slate-400"}`} />
+                  <Wallet
+                    className={`w-5 h-5 ${pathname.startsWith("/instructor/wallet") ? "text-indigo-600" : "text-slate-400"}`}
+                  />
                   <span className="text-[10px]">درآمد و کیف</span>
                 </Link>
 
@@ -887,7 +937,9 @@ export default function DashboardLayout({
                       : "text-slate-500 hover:text-slate-900"
                   }`}
                 >
-                  <LayoutDashboard className={`w-5 h-5 ${pathname === "/student" ? "text-blue-600" : "text-slate-400"}`} />
+                  <LayoutDashboard
+                    className={`w-5 h-5 ${pathname === "/student" ? "text-blue-600" : "text-slate-400"}`}
+                  />
                   <span className="text-[10px]">داشبورد</span>
                 </Link>
 
@@ -899,7 +951,9 @@ export default function DashboardLayout({
                       : "text-slate-500 hover:text-slate-900"
                   }`}
                 >
-                  <BookOpen className={`w-5 h-5 ${pathname.startsWith("/student/courses") ? "text-blue-600" : "text-slate-400"}`} />
+                  <BookOpen
+                    className={`w-5 h-5 ${pathname.startsWith("/student/courses") ? "text-blue-600" : "text-slate-400"}`}
+                  />
                   <span className="text-[10px]">دوره‌ها</span>
                 </Link>
 
@@ -911,7 +965,9 @@ export default function DashboardLayout({
                       : "text-slate-500 hover:text-slate-900"
                   }`}
                 >
-                  <Video className={`w-5 h-5 ${pathname.startsWith("/student/classes") ? "text-purple-600" : "text-slate-400"}`} />
+                  <Video
+                    className={`w-5 h-5 ${pathname.startsWith("/student/classes") ? "text-purple-600" : "text-slate-400"}`}
+                  />
                   <span className="text-[10px]">کلاس‌ها</span>
                 </Link>
 
@@ -923,7 +979,9 @@ export default function DashboardLayout({
                       : "text-slate-500 hover:text-slate-900"
                   }`}
                 >
-                  <Wallet className={`w-5 h-5 ${pathname.startsWith("/student/wallet") ? "text-indigo-600" : "text-slate-400"}`} />
+                  <Wallet
+                    className={`w-5 h-5 ${pathname.startsWith("/student/wallet") ? "text-indigo-600" : "text-slate-400"}`}
+                  />
                   <span className="text-[10px]">کیف پول</span>
                 </Link>
 
@@ -951,7 +1009,9 @@ export default function DashboardLayout({
                       : "text-slate-500 hover:text-slate-900"
                   }`}
                 >
-                  <LayoutDashboard className={`w-5 h-5 ${pathname === "/instructor" ? "text-blue-600" : "text-slate-400"}`} />
+                  <LayoutDashboard
+                    className={`w-5 h-5 ${pathname === "/instructor" ? "text-blue-600" : "text-slate-400"}`}
+                  />
                   <span className="text-[10px]">داشبورد</span>
                 </Link>
 
@@ -963,7 +1023,9 @@ export default function DashboardLayout({
                       : "text-slate-500 hover:text-slate-900"
                   }`}
                 >
-                  <BookOpen className={`w-5 h-5 ${pathname.startsWith("/instructor/courses") ? "text-blue-600" : "text-slate-400"}`} />
+                  <BookOpen
+                    className={`w-5 h-5 ${pathname.startsWith("/instructor/courses") ? "text-blue-600" : "text-slate-400"}`}
+                  />
                   <span className="text-[10px]">دوره‌ها</span>
                 </Link>
 
@@ -975,7 +1037,9 @@ export default function DashboardLayout({
                       : "text-slate-500 hover:text-slate-900"
                   }`}
                 >
-                  <Video className={`w-5 h-5 ${pathname.startsWith("/instructor/classes") ? "text-emerald-600" : "text-slate-400"}`} />
+                  <Video
+                    className={`w-5 h-5 ${pathname.startsWith("/instructor/classes") ? "text-emerald-600" : "text-slate-400"}`}
+                  />
                   <span className="text-[10px]">کلاس‌ها</span>
                 </Link>
 
@@ -987,7 +1051,9 @@ export default function DashboardLayout({
                       : "text-slate-500 hover:text-slate-900"
                   }`}
                 >
-                  <Wallet className={`w-5 h-5 ${pathname.startsWith("/instructor/wallet") ? "text-indigo-600" : "text-slate-400"}`} />
+                  <Wallet
+                    className={`w-5 h-5 ${pathname.startsWith("/instructor/wallet") ? "text-indigo-600" : "text-slate-400"}`}
+                  />
                   <span className="text-[10px]">کیف پول</span>
                 </Link>
 

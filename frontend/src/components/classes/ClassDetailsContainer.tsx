@@ -1,34 +1,62 @@
-'use client';
+"use client";
 
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useRouter } from 'next/navigation';
-import { useAuthStore } from '@/features/auth/stores/auth.store';
-import { commerceApi } from '@/features/commerce/api/commerce.api';
-import { classesApi } from '@/features/learning/api/classes.api';
-import toast from 'react-hot-toast';
-import { 
-  Loader2, Monitor, MapPin, Calendar, Clock, Users, ShieldCheck, 
-  CheckCircle, Star, ArrowLeft, BookOpen, Target, FileText, 
-  Sparkles, CheckCircle2, ChevronDown, ChevronUp, Copy, Check,
-  ExternalLink, CreditCard, AlertCircle, GraduationCap, ChevronLeft
-} from 'lucide-react';
-import { format } from 'date-fns-jalali';
-import Link from 'next/link';
-import { useState } from 'react';
-import { CommentsSection } from '@/features/comments/components/CommentsSection';
-import { getImageUrl, handleImageError } from '@/lib/utils';
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useRouter } from "next/navigation";
+import { useAuthStore } from "@/features/auth/stores/auth.store";
+import { commerceApi } from "@/features/commerce/api/commerce.api";
+import { classesApi } from "@/features/learning/api/classes.api";
+import toast from "react-hot-toast";
+import {
+  Loader2,
+  Monitor,
+  MapPin,
+  Calendar,
+  Clock,
+  Users,
+  ShieldCheck,
+  CheckCircle,
+  Star,
+  ArrowLeft,
+  BookOpen,
+  Target,
+  FileText,
+  Sparkles,
+  CheckCircle2,
+  ChevronDown,
+  ChevronUp,
+  Copy,
+  Check,
+  ExternalLink,
+  CreditCard,
+  AlertCircle,
+  GraduationCap,
+  ChevronLeft,
+} from "lucide-react";
+import { format } from "date-fns-jalali";
+import Link from "next/link";
+import { useState } from "react";
+import { CommentsSection } from "@/features/comments/components/CommentsSection";
+import { getImageUrl, handleImageError } from "@/lib/utils";
 
-export function ClassDetailsContainer({ slug, initialData }: { slug: string; initialData?: any }) {
+export function ClassDetailsContainer({
+  slug,
+  initialData,
+}: {
+  slug: string;
+  initialData?: any;
+}) {
   const router = useRouter();
   const queryClient = useQueryClient();
   const { isAuthenticated, isInitializing, user } = useAuthStore();
 
-  const [paymentChoice, setPaymentChoice] = useState<'cash' | 'installment' | 'deposit'>('cash');
+  const [paymentChoice, setPaymentChoice] = useState<
+    "cash" | "installment" | "deposit"
+  >("cash");
   const [copiedAddress, setCopiedAddress] = useState(false);
   const [expandedSession, setExpandedSession] = useState<number | null>(1);
 
   const { data: clsData, isLoading: queryLoading } = useQuery({
-    queryKey: ['class', slug],
+    queryKey: ["class", slug],
     queryFn: async () => {
       const res: any = await classesApi.getClassBySlug(slug);
       return res?.data !== undefined ? res.data : res;
@@ -40,21 +68,37 @@ export function ClassDetailsContainer({ slug, initialData }: { slug: string; ini
   const isLoading = !cls && queryLoading;
 
   // Pricing calculations
-  const rawPrice = cls?.price && cls?.price > 0 ? cls.price : (cls?.cashPrice && cls.cashPrice > 0 ? cls.cashPrice : 0);
+  const rawPrice =
+    cls?.price && cls?.price > 0
+      ? cls.price
+      : cls?.cashPrice && cls.cashPrice > 0
+        ? cls.cashPrice
+        : 0;
   const isFree = cls?.isFree === true;
   const discountPrice = cls?.discountPrice;
-  const hasDiscount = !isFree && discountPrice !== undefined && discountPrice !== null && discountPrice > 0 && discountPrice < rawPrice;
-  const finalCashPrice = isFree ? 0 : (hasDiscount ? discountPrice : rawPrice);
-  const discountPercent = hasDiscount && rawPrice > 0 ? Math.round((1 - discountPrice! / rawPrice) * 100) : 0;
-  
+  const hasDiscount =
+    !isFree &&
+    discountPrice !== undefined &&
+    discountPrice !== null &&
+    discountPrice > 0 &&
+    discountPrice < rawPrice;
+  const finalCashPrice = isFree ? 0 : hasDiscount ? discountPrice : rawPrice;
+  const discountPercent =
+    hasDiscount && rawPrice > 0
+      ? Math.round((1 - discountPrice! / rawPrice) * 100)
+      : 0;
+
   // Installment calculations (SnappPay 4 months, 0% interest)
-  const installmentTotal = cls?.installmentPrice && cls.installmentPrice > 0 ? cls.installmentPrice : finalCashPrice;
+  const installmentTotal =
+    cls?.installmentPrice && cls.installmentPrice > 0
+      ? cls.installmentPrice
+      : finalCashPrice;
   const downPayment = Math.round(installmentTotal * 0.25);
   const monthlyInstallment = Math.round((installmentTotal - downPayment) / 3);
 
   // Check enrollment in class
   const { data: enrollmentData, isLoading: isEnrollmentLoading } = useQuery({
-    queryKey: ['classEnrollment', cls?._id],
+    queryKey: ["classEnrollment", cls?._id],
     queryFn: async () => {
       const res: any = await classesApi.getClassEnrollmentStatus(cls._id);
       return res?.data !== undefined ? res.data : res;
@@ -64,84 +108,104 @@ export function ClassDetailsContainer({ slug, initialData }: { slug: string; ini
   });
 
   const isEnrolled = !!enrollmentData;
-  const isCheckingEnrollment = isAuthenticated && (isEnrollmentLoading || isInitializing);
+  const isCheckingEnrollment =
+    isAuthenticated && (isEnrollmentLoading || isInitializing);
 
   // Fetch Cart to check if class is already in cart
   const { data: cartData } = useQuery({
-    queryKey: ['cart'],
+    queryKey: ["cart"],
     queryFn: () => commerceApi.getCart().then((res: any) => res.data),
-    enabled: !!isAuthenticated && !isInitializing
+    enabled: !!isAuthenticated && !isInitializing,
   });
 
-  const isInCart = cartData?.items?.some((item: any) => item.itemId === cls?._id && item.itemType === 'class');
+  const isInCart = cartData?.items?.some(
+    (item: any) => item.itemId === cls?._id && item.itemType === "class",
+  );
 
   // Add to cart mutation supporting cash or installment
   const addToCartMutation = useMutation({
-    mutationFn: (plan?: 'cash' | 'installment') => 
-      commerceApi.addToCart('class', cls._id, plan || (paymentChoice === 'installment' ? 'installment' : 'cash')),
+    mutationFn: (plan?: "cash" | "installment") =>
+      commerceApi.addToCart(
+        "class",
+        cls._id,
+        plan || (paymentChoice === "installment" ? "installment" : "cash"),
+      ),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['cart'] });
-      toast.success('کلاس با موفقیت به سبد خرید اضافه شد');
-      router.push('/cart');
+      queryClient.invalidateQueries({ queryKey: ["cart"] });
+      toast.success("کلاس با موفقیت به سبد خرید اضافه شد");
+      router.push("/cart");
     },
     onError: (err: any) => {
-      toast.error(err.response?.data?.message || 'خطا در افزودن به سبد خرید');
-    }
+      toast.error(err.response?.data?.message || "خطا در افزودن به سبد خرید");
+    },
   });
 
   // Pre-registration with deposit mutation
   const preRegisterMutation = useMutation({
-    mutationFn: () => classesApi.registerForClass(cls._id, { paymentType: 'deposit' }),
+    mutationFn: () =>
+      classesApi.registerForClass(cls._id, { paymentType: "deposit" }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['classEnrollment', cls?._id] });
-      queryClient.invalidateQueries({ queryKey: ['class', slug] });
-      queryClient.invalidateQueries({ queryKey: ['myClasses'] });
-      toast.success('پیش‌ثبت‌نام شما با موفقیت ثبت شد!');
-      router.push('/student/classes');
+      queryClient.invalidateQueries({
+        queryKey: ["classEnrollment", cls?._id],
+      });
+      queryClient.invalidateQueries({ queryKey: ["class", slug] });
+      queryClient.invalidateQueries({ queryKey: ["myClasses"] });
+      toast.success("پیش‌ثبت‌نام شما با موفقیت ثبت شد!");
+      router.push("/student/classes");
     },
     onError: (err: any) => {
-      const msg = err.response?.data?.message || 'خطا در پیش‌ثبت‌نام';
+      const msg = err.response?.data?.message || "خطا در پیش‌ثبت‌نام";
       toast.error(msg, { duration: 4000 });
-      if (err.response?.data?.code === 'INSUFFICIENT_BALANCE' || msg.includes('کیف پول')) {
-        toast('در حال انتقال به صفحه شارژ کیف پول...', { icon: '💳' });
+      if (
+        err.response?.data?.code === "INSUFFICIENT_BALANCE" ||
+        msg.includes("کیف پول")
+      ) {
+        toast("در حال انتقال به صفحه شارژ کیف پول...", { icon: "💳" });
         setTimeout(() => {
-          router.push('/student/wallet');
+          router.push("/student/wallet");
         }, 2000);
       }
-    }
+    },
   });
 
   // Free class instant enrollment mutation
   const enrollFreeMutation = useMutation({
     mutationFn: () => classesApi.enrollFreeClass(cls._id),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['classEnrollment', cls?._id] });
-      queryClient.invalidateQueries({ queryKey: ['class', slug] });
-      toast.success('ثبت‌نام شما در این کلاس با موفقیت انجام شد!');
-      router.push('/student/classes');
+      queryClient.invalidateQueries({
+        queryKey: ["classEnrollment", cls?._id],
+      });
+      queryClient.invalidateQueries({ queryKey: ["class", slug] });
+      toast.success("ثبت‌نام شما در این کلاس با موفقیت انجام شد!");
+      router.push("/student/classes");
     },
     onError: (err: any) => {
-      toast.error(err.response?.data?.message || 'خطا در ثبت‌نام کلاس');
-    }
+      toast.error(err.response?.data?.message || "خطا در ثبت‌نام کلاس");
+    },
   });
 
-  const isPendingAction = addToCartMutation.isPending || preRegisterMutation.isPending || enrollFreeMutation.isPending;
+  const isPendingAction =
+    addToCartMutation.isPending ||
+    preRegisterMutation.isPending ||
+    enrollFreeMutation.isPending;
 
   const handleCopyAddress = (text: string) => {
     navigator.clipboard.writeText(text);
     setCopiedAddress(true);
-    toast.success('آدرس محل برگزاری کپی شد');
+    toast.success("آدرس محل برگزاری کپی شد");
     setTimeout(() => setCopiedAddress(false), 2000);
   };
 
   const handleAction = () => {
     if (isEnrolled) {
-      router.push('/student/classes');
+      router.push("/student/classes");
       return;
     }
 
     if (!isAuthenticated) {
-      toast('برای ثبت‌نام در کلاس، لطفاً ابتدا وارد حساب کاربری شوید', { icon: '🔒' });
+      toast("برای ثبت‌نام در کلاس، لطفاً ابتدا وارد حساب کاربری شوید", {
+        icon: "🔒",
+      });
       router.push(`/login?redirect=/classes/${encodeURIComponent(slug)}`);
       return;
     }
@@ -152,16 +216,18 @@ export function ClassDetailsContainer({ slug, initialData }: { slug: string; ini
     }
 
     // Pre-registration Deposit selected
-    if (paymentChoice === 'deposit' && cls?.allowPreRegistration) {
+    if (paymentChoice === "deposit" && cls?.allowPreRegistration) {
       preRegisterMutation.mutate();
       return;
     }
 
     // Cash or Installment Payment via Cart
     if (isInCart) {
-      router.push('/cart');
+      router.push("/cart");
     } else {
-      addToCartMutation.mutate(paymentChoice === 'installment' ? 'installment' : 'cash');
+      addToCartMutation.mutate(
+        paymentChoice === "installment" ? "installment" : "cash",
+      );
     }
   };
 
@@ -195,83 +261,134 @@ export function ClassDetailsContainer({ slug, initialData }: { slug: string; ini
         <div className="w-16 h-16 bg-rose-50 text-rose-500 rounded-full flex items-center justify-center mb-4 text-2xl font-bold">
           !
         </div>
-        <h2 className="text-xl font-bold text-[var(--neo-text-main)] mb-2">کلاس مورد نظر یافت نشد</h2>
-        <p className="text-[var(--neo-text-muted)] text-sm mb-6">ممکن است این کلاس حذف شده یا آدرس اشتباه باشد.</p>
-        <Link href="/classes" className="px-6 py-2.5 bg-[var(--neo-primary)] text-white rounded-xl font-medium hover:bg-blue-700 transition">
+        <h2 className="text-xl font-bold text-[var(--neo-text-main)] mb-2">
+          کلاس مورد نظر یافت نشد
+        </h2>
+        <p className="text-[var(--neo-text-muted)] text-sm mb-6">
+          ممکن است این کلاس حذف شده یا آدرس اشتباه باشد.
+        </p>
+        <Link
+          href="/classes"
+          className="px-6 py-2.5 bg-[var(--neo-primary)] text-white rounded-xl font-medium hover:bg-blue-700 transition"
+        >
           بازگشت به لیست کلاس‌ها
         </Link>
       </div>
     );
   }
 
-  const isOnline = cls.mode === 'online';
+  const isOnline = cls.mode === "online";
   const uniqueInstructors = Array.from(
     new Map(
       (cls.instructors || [])
-        .filter((inst: any) => inst && (inst._id || typeof inst === 'string'))
-        .map((inst: any) => [inst._id?.toString() || inst.toString(), inst])
-    ).values()
+        .filter((inst: any) => inst && (inst._id || typeof inst === "string"))
+        .map((inst: any) => [inst._id?.toString() || inst.toString(), inst]),
+    ).values(),
   );
-  const instructor = uniqueInstructors[0] || (cls.instructor && typeof cls.instructor === 'object' ? cls.instructor : null);
+  const instructor =
+    uniqueInstructors[0] ||
+    (cls.instructor && typeof cls.instructor === "object"
+      ? cls.instructor
+      : null);
   const startDate = cls.startDate ? new Date(cls.startDate) : new Date();
   const endDate = cls.endDate ? new Date(cls.endDate) : new Date();
-  
-  const enrolled = cls.enrolledCount || 0; 
+
+  const enrolled = cls.enrolledCount || 0;
   const isFull = enrolled >= cls.capacity;
   const isStarted = startDate <= new Date();
-  const isRegistrationClosed = cls.isRegistrationOpen === false || (isStarted && cls.registrationOpen !== true);
+  const isRegistrationClosed =
+    cls.isRegistrationOpen === false ||
+    (isStarted && cls.registrationOpen !== true);
   const remaining = Math.max(0, cls.capacity - enrolled);
-  
+
   const rating = cls.rating || 0;
   const sessions = cls.sessions || 10;
-  const totalHours = cls.totalHours || (sessions * 1.5);
+  const totalHours = cls.totalHours || sessions * 1.5;
 
   // Build default syllabus if none provided
-  const syllabusList = cls.syllabus && cls.syllabus.length > 0 ? cls.syllabus : [
-    { sessionNumber: 1, title: 'جلسه افتتاحیه: آشنایی، معرفی نقشه راه و ابزارها', description: 'تشریح سرفصل‌ها، نصب نیازمندی‌های اولیه و ایجاد محیط توسعه استاندارد.', durationMinutes: 90 },
-    { sessionNumber: 2, title: 'مفاهیم پایه و اصول معماری پروژه', description: 'بررسی ساختار، الگوهای طراحی استاندارد و آغاز کارگاه کدنویسی.', durationMinutes: 90 },
-    { sessionNumber: 3, title: 'پیاده‌سازی ماژول‌های اصلی و تعامل زنده', description: 'کدنویسی زنده همراه با مشارکت دانشجویان و رفع خطاهای پرتکرار.', durationMinutes: 90 },
-    { sessionNumber: 4, title: 'کارگاه عملی رفع اشکال و تمرین کلاسی', description: 'بررسی پروژه‌های ارسالی دانشجویان و بهینه‌سازی کدهای نوشته شده.', durationMinutes: 90 },
-  ];
+  const syllabusList =
+    cls.syllabus && cls.syllabus.length > 0
+      ? cls.syllabus
+      : [
+          {
+            sessionNumber: 1,
+            title: "جلسه افتتاحیه: آشنایی، معرفی نقشه راه و ابزارها",
+            description:
+              "تشریح سرفصل‌ها، نصب نیازمندی‌های اولیه و ایجاد محیط توسعه استاندارد.",
+            durationMinutes: 90,
+          },
+          {
+            sessionNumber: 2,
+            title: "مفاهیم پایه و اصول معماری پروژه",
+            description:
+              "بررسی ساختار، الگوهای طراحی استاندارد و آغاز کارگاه کدنویسی.",
+            durationMinutes: 90,
+          },
+          {
+            sessionNumber: 3,
+            title: "پیاده‌سازی ماژول‌های اصلی و تعامل زنده",
+            description:
+              "کدنویسی زنده همراه با مشارکت دانشجویان و رفع خطاهای پرتکرار.",
+            durationMinutes: 90,
+          },
+          {
+            sessionNumber: 4,
+            title: "کارگاه عملی رفع اشکال و تمرین کلاسی",
+            description:
+              "بررسی پروژه‌های ارسالی دانشجویان و بهینه‌سازی کدهای نوشته شده.",
+            durationMinutes: 90,
+          },
+        ];
 
   // CTA Text & State
-  let ctaText = 'ثبت‌نام و پرداخت شهریه';
-  let ctaClass = 'bg-blue-600 hover:bg-blue-700 text-white shadow-blue-600/30 shadow-lg';
+  let ctaText = "ثبت‌نام و پرداخت شهریه";
+  let ctaClass =
+    "bg-blue-600 hover:bg-blue-700 text-white shadow-blue-600/30 shadow-lg";
   let ctaDisabled = false;
 
   if (isCheckingEnrollment) {
-    ctaText = 'در حال بررسی وضعیت کلاس...';
-    ctaClass = 'bg-gray-100 text-gray-400 border border-gray-200 cursor-wait animate-pulse';
+    ctaText = "در حال بررسی وضعیت کلاس...";
+    ctaClass =
+      "bg-gray-100 text-gray-400 border border-gray-200 cursor-wait animate-pulse";
     ctaDisabled = true;
   } else if (isEnrolled) {
-    ctaText = enrollmentData?.isInstructor ? 'ورود به کلاس زنده (شما مدرس این کلاس هستید)' : 'مشاهده کلاس در پنل کاربری (ثبت‌نام شده)';
-    ctaClass = 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-emerald-600/30 shadow-lg';
+    ctaText = enrollmentData?.isInstructor
+      ? "ورود به کلاس زنده (شما مدرس این کلاس هستید)"
+      : "مشاهده کلاس در پنل کاربری (ثبت‌نام شده)";
+    ctaClass =
+      "bg-emerald-600 hover:bg-emerald-700 text-white shadow-emerald-600/30 shadow-lg";
     ctaDisabled = false;
-  } else if (cls.status === 'completed') {
-    ctaText = 'کلاس پایان یافته';
-    ctaClass = 'bg-slate-200 text-slate-500 cursor-not-allowed';
+  } else if (cls.status === "completed") {
+    ctaText = "کلاس پایان یافته";
+    ctaClass = "bg-slate-200 text-slate-500 cursor-not-allowed";
     ctaDisabled = true;
-  } else if (cls.status === 'cancelled') {
-    ctaText = 'کلاس لغو شده';
-    ctaClass = 'bg-rose-100 text-rose-600 cursor-not-allowed';
+  } else if (cls.status === "cancelled") {
+    ctaText = "کلاس لغو شده";
+    ctaClass = "bg-rose-100 text-rose-600 cursor-not-allowed";
     ctaDisabled = true;
   } else if (isRegistrationClosed) {
-    ctaText = isStarted ? 'مهلت ثبت‌نام به پایان رسیده (کلاس شروع شده)' : 'ثبت‌نام این کلاس در حال حاضر بسته است';
-    ctaClass = 'bg-rose-100 text-rose-700 border border-rose-300 cursor-not-allowed';
+    ctaText = isStarted
+      ? "مهلت ثبت‌نام به پایان رسیده (کلاس شروع شده)"
+      : "ثبت‌نام این کلاس در حال حاضر بسته است";
+    ctaClass =
+      "bg-rose-100 text-rose-700 border border-rose-300 cursor-not-allowed";
     ctaDisabled = true;
   } else if (isFull) {
-    ctaText = 'ظرفیت تکمیل شده است';
-    ctaClass = 'bg-slate-200 text-slate-500 cursor-not-allowed';
+    ctaText = "ظرفیت تکمیل شده است";
+    ctaClass = "bg-slate-200 text-slate-500 cursor-not-allowed";
     ctaDisabled = true;
   } else if (cls.price === 0) {
-    ctaText = 'ثبت‌نام رایگان در کلاس';
-    ctaClass = 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-emerald-600/30 shadow-lg';
-  } else if (paymentChoice === 'deposit' && cls.allowPreRegistration) {
-    ctaText = `پیش‌ثبت‌نام با بیعانه (${cls.preRegistrationDeposit?.toLocaleString('fa-IR')} تومان)`;
-    ctaClass = 'bg-amber-600 hover:bg-amber-700 text-white shadow-amber-600/30 shadow-lg';
+    ctaText = "ثبت‌نام رایگان در کلاس";
+    ctaClass =
+      "bg-emerald-600 hover:bg-emerald-700 text-white shadow-emerald-600/30 shadow-lg";
+  } else if (paymentChoice === "deposit" && cls.allowPreRegistration) {
+    ctaText = `پیش‌ثبت‌نام با بیعانه (${cls.preRegistrationDeposit?.toLocaleString("fa-IR")} تومان)`;
+    ctaClass =
+      "bg-amber-600 hover:bg-amber-700 text-white shadow-amber-600/30 shadow-lg";
   } else if (isInCart) {
-    ctaText = 'مشاهده در سبد خرید و تکمیل ثبت‌نام';
-    ctaClass = 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-emerald-600/30 shadow-lg';
+    ctaText = "مشاهده در سبد خرید و تکمیل ثبت‌نام";
+    ctaClass =
+      "bg-emerald-600 hover:bg-emerald-700 text-white shadow-emerald-600/30 shadow-lg";
   }
 
   return (
@@ -279,14 +396,18 @@ export function ClassDetailsContainer({ slug, initialData }: { slug: string; ini
       {/* Breadcrumb Bar */}
       <div className="bg-slate-950 border-b border-slate-800 text-xs py-3 px-4 sm:px-6 lg:px-8 text-slate-300">
         <div className="max-w-7xl mx-auto flex items-center gap-2 overflow-x-auto whitespace-nowrap">
-          <Link href="/" className="hover:text-white transition">خانه</Link>
+          <Link href="/" className="hover:text-white transition">
+            خانه
+          </Link>
           <span>/</span>
-          <Link href="/classes" className="hover:text-white transition">کلاس‌ها</Link>
+          <Link href="/classes" className="hover:text-white transition">
+            کلاس‌ها
+          </Link>
           {cls.categoryId?.name && (
             <>
               <span>/</span>
-              <Link 
-                href={`/categories/${cls.categoryId.slug || cls.categoryId._id}`} 
+              <Link
+                href={`/categories/${cls.categoryId.slug || cls.categoryId._id}`}
                 className="text-blue-400 hover:text-blue-300 transition font-bold"
               >
                 {cls.categoryId.name}
@@ -297,7 +418,7 @@ export function ClassDetailsContainer({ slug, initialData }: { slug: string; ini
           <span className="text-slate-400 truncate max-w-xs">{cls.title}</span>
         </div>
       </div>
-      
+
       {/* Hero Section */}
       <div className="bg-slate-900 text-white pt-12 pb-28 relative overflow-hidden">
         {/* Glow backdrop */}
@@ -305,7 +426,6 @@ export function ClassDetailsContainer({ slug, initialData }: { slug: string; ini
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 flex flex-col lg:flex-row gap-10 items-center justify-between">
           <div className="flex-1 space-y-5">
-            
             {/* Badges */}
             <div className="flex flex-wrap items-center gap-2.5">
               {cls.categoryId?.name && (
@@ -318,21 +438,35 @@ export function ClassDetailsContainer({ slug, initialData }: { slug: string; ini
                 </Link>
               )}
 
-              <span className={`px-3 py-1 rounded-full text-xs sm:text-sm font-bold flex items-center gap-1.5 shadow-sm ${
-                isOnline ? 'bg-blue-600/80 text-white' : 'bg-emerald-600/80 text-white'
-              }`}>
-                {isOnline ? <Monitor className="w-4 h-4" /> : <MapPin className="w-4 h-4" />}
-                {isOnline ? 'کلاس آنلاین تعاملی (وبینار)' : 'کارگاه تخصصی حضوری'}
+              <span
+                className={`px-3 py-1 rounded-full text-xs sm:text-sm font-bold flex items-center gap-1.5 shadow-sm ${
+                  isOnline
+                    ? "bg-blue-600/80 text-white"
+                    : "bg-emerald-600/80 text-white"
+                }`}
+              >
+                {isOnline ? (
+                  <Monitor className="w-4 h-4" />
+                ) : (
+                  <MapPin className="w-4 h-4" />
+                )}
+                {isOnline
+                  ? "کلاس آنلاین تعاملی (وبینار)"
+                  : "کارگاه تخصصی حضوری"}
               </span>
 
               {/* Class Phase Badge */}
-              <span className={`px-3 py-1 rounded-full text-xs font-bold border flex items-center gap-1 shadow-sm ${
-                isStarted
-                  ? 'bg-purple-500/20 text-purple-200 border-purple-400/40'
-                  : 'bg-cyan-500/20 text-cyan-200 border-cyan-400/40'
-              }`}>
+              <span
+                className={`px-3 py-1 rounded-full text-xs font-bold border flex items-center gap-1 shadow-sm ${
+                  isStarted
+                    ? "bg-purple-500/20 text-purple-200 border-purple-400/40"
+                    : "bg-cyan-500/20 text-cyan-200 border-cyan-400/40"
+                }`}
+              >
                 <Clock className="w-3.5 h-3.5" />
-                {isStarted ? 'فاز ۲: شروع کلاس / در حال برگزاری' : 'فاز ۱: در حال ثبت‌نام'}
+                {isStarted
+                  ? "فاز ۲: شروع کلاس / در حال برگزاری"
+                  : "فاز ۱: در حال ثبت‌نام"}
               </span>
 
               {isRegistrationClosed && (
@@ -349,23 +483,23 @@ export function ClassDetailsContainer({ slug, initialData }: { slug: string; ini
               )}
 
               <span className="px-3 py-1 rounded-full text-xs font-bold bg-white/10 text-white">
-                {cls.type === 'private' ? 'کلاس خصوصی' : 'کلاس عمومی'}
+                {cls.type === "private" ? "کلاس خصوصی" : "کلاس عمومی"}
               </span>
 
               <div className="flex items-center gap-1 text-amber-400 bg-amber-400/10 px-3 py-1 rounded-full text-xs sm:text-sm font-bold">
                 <Star className="w-4 h-4 fill-current" />
-                <span>{rating > 0 ? rating.toFixed(1) : 'جدید'}</span>
+                <span>{rating > 0 ? rating.toFixed(1) : "جدید"}</span>
               </div>
             </div>
-            
+
             <h1 className="text-2xl sm:text-4xl lg:text-5xl font-black leading-tight text-white">
               {cls.title}
             </h1>
 
             <p className="text-sm sm:text-base text-slate-300 leading-relaxed max-w-3xl">
-              {cls.shortDescription || cls.description?.slice(0, 180) + '...'}
+              {cls.shortDescription || cls.description?.slice(0, 180) + "..."}
             </p>
-            
+
             {/* Quick KPI Bar */}
             <div className="flex flex-wrap items-center gap-6 sm:gap-8 text-slate-300 bg-white/5 backdrop-blur-sm p-4 rounded-2xl border border-white/10">
               <div className="flex items-center gap-3">
@@ -374,7 +508,9 @@ export function ClassDetailsContainer({ slug, initialData }: { slug: string; ini
                 </div>
                 <div>
                   <div className="text-[11px] text-slate-400">شروع کلاس</div>
-                  <div className="font-bold text-sm text-white">{format(startDate, 'd MMMM yyyy')}</div>
+                  <div className="font-bold text-sm text-white">
+                    {format(startDate, "d MMMM yyyy")}
+                  </div>
                 </div>
               </div>
 
@@ -385,8 +521,12 @@ export function ClassDetailsContainer({ slug, initialData }: { slug: string; ini
                   <Clock className="w-5 h-5" />
                 </div>
                 <div>
-                  <div className="text-[11px] text-slate-400">تعداد و ساعات</div>
-                  <div className="font-bold text-sm text-white">{sessions} جلسه ({totalHours} ساعت)</div>
+                  <div className="text-[11px] text-slate-400">
+                    تعداد و ساعات
+                  </div>
+                  <div className="font-bold text-sm text-white">
+                    {sessions} جلسه ({totalHours} ساعت)
+                  </div>
                 </div>
               </div>
 
@@ -398,38 +538,58 @@ export function ClassDetailsContainer({ slug, initialData }: { slug: string; ini
                 </div>
                 <div>
                   <div className="text-[11px] text-slate-400">ظرفیت پذیرش</div>
-                  <div className="font-bold text-sm text-white">{cls.capacity} نفر ({remaining} جای خالی)</div>
+                  <div className="font-bold text-sm text-white">
+                    {cls.capacity} نفر ({remaining} جای خالی)
+                  </div>
                 </div>
               </div>
             </div>
           </div>
-          
+
           {/* Hero Thumbnail (Only rendered if class has image) */}
           {(() => {
-            const classImg = getImageUrl(cls.thumbnail || cls.coverImage || cls.banner, 'class', cls.title);
-            const hasClassImg = Boolean(classImg && classImg.trim() !== '');
+            const classImg = getImageUrl(
+              cls.thumbnail || cls.coverImage || cls.banner,
+              "class",
+              cls.title,
+            );
+            const hasClassImg = Boolean(classImg && classImg.trim() !== "");
 
             if (!hasClassImg) {
               return instructor ? (
                 <div className="w-full lg:w-[320px] shrink-0">
                   <div className="bg-white/10 backdrop-blur-md rounded-3xl p-6 border border-white/15">
-                    <span className="text-xs text-blue-300 block mb-3 font-medium">مدرس این کلاس:</span>
-                    <Link 
+                    <span className="text-xs text-blue-300 block mb-3 font-medium">
+                      مدرس این کلاس:
+                    </span>
+                    <Link
                       href={`/instructors/${instructor.slug || instructor._id}`}
                       className="flex items-center gap-4 group"
                     >
-                      <img 
-                        src={getImageUrl(instructor.personnelPhoto || instructor.avatar, 'avatar', `${instructor.firstName || ''} ${instructor.lastName || ''}`)} 
-                        className="w-16 h-16 rounded-2xl border-2 border-white/20 object-fill aspect-square shrink-0" 
-                        alt={`${instructor.firstName || ''} ${instructor.lastName || ''}`}
-                        onError={(e) => handleImageError(e, 'avatar', `${instructor.firstName || ''} ${instructor.lastName || ''}`)} 
+                      <img
+                        src={getImageUrl(
+                          instructor.personnelPhoto || instructor.avatar,
+                          "avatar",
+                          `${instructor.firstName || ""} ${instructor.lastName || ""}`,
+                        )}
+                        className="w-16 h-16 rounded-2xl border-2 border-white/20 object-fill aspect-square shrink-0"
+                        alt={`${instructor.firstName || ""} ${instructor.lastName || ""}`}
+                        onError={(e) =>
+                          handleImageError(
+                            e,
+                            "avatar",
+                            `${instructor.firstName || ""} ${instructor.lastName || ""}`,
+                          )
+                        }
                       />
                       <div>
                         <div className="font-bold text-base text-white group-hover:text-blue-300 transition flex items-center gap-1">
                           {instructor.firstName} {instructor.lastName}
                           <ChevronLeft className="w-4 h-4" />
                         </div>
-                        <div className="text-xs text-slate-300 mt-1 line-clamp-1">{instructor.specialty || 'مدرس تک‌یاد'}</div>
+                        <div className="text-xs text-slate-300 mt-1 line-clamp-1">
+                          {instructor.specialty || "مدرس تک یاد"}
+                        </div>
                       </div>
                     </Link>
                   </div>
@@ -440,27 +600,39 @@ export function ClassDetailsContainer({ slug, initialData }: { slug: string; ini
             return (
               <div className="w-full lg:w-[420px] shrink-0">
                 <div className="relative rounded-3xl overflow-hidden shadow-2xl border-4 border-white/10 aspect-video lg:aspect-[4/3] bg-slate-950">
-                  <img 
-                    src={classImg} 
-                    alt={cls.title} 
-                    className="w-full h-full object-fill" 
-                    onError={(e) => handleImageError(e, 'class', cls.title)}
+                  <img
+                    src={classImg}
+                    alt={cls.title}
+                    className="w-full h-full object-fill"
+                    onError={(e) => handleImageError(e, "class", cls.title)}
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent flex items-end p-5">
                     {instructor && (
-                      <Link 
+                      <Link
                         href={`/instructors/${instructor.slug || instructor._id}`}
                         className="flex items-center gap-3 bg-black/50 hover:bg-black/75 backdrop-blur-xs px-3 py-1.5 rounded-2xl border border-white/20 transition group"
                         title="مشاهده رزومه استاد"
                       >
-                        <img 
-                          src={getImageUrl(instructor.personnelPhoto || instructor.avatar, 'avatar', `${instructor.firstName || ''} ${instructor.lastName || ''}`)} 
-                          className="w-10 h-10 rounded-full border-2 border-white object-cover" 
-                          alt={`${instructor.firstName || ''} ${instructor.lastName || ''}`}
-                          onError={(e) => handleImageError(e, 'avatar', `${instructor.firstName || ''} ${instructor.lastName || ''}`)} 
+                        <img
+                          src={getImageUrl(
+                            instructor.personnelPhoto || instructor.avatar,
+                            "avatar",
+                            `${instructor.firstName || ""} ${instructor.lastName || ""}`,
+                          )}
+                          className="w-10 h-10 rounded-full border-2 border-white object-cover"
+                          alt={`${instructor.firstName || ""} ${instructor.lastName || ""}`}
+                          onError={(e) =>
+                            handleImageError(
+                              e,
+                              "avatar",
+                              `${instructor.firstName || ""} ${instructor.lastName || ""}`,
+                            )
+                          }
                         />
                         <div>
-                          <span className="text-[10px] text-slate-300 block">مدرس کلاس:</span>
+                          <span className="text-[10px] text-slate-300 block">
+                            مدرس کلاس:
+                          </span>
                           <span className="font-bold text-sm text-white group-hover:text-blue-300 transition flex items-center gap-1">
                             {instructor.firstName} {instructor.lastName}
                             <ChevronLeft className="w-3.5 h-3.5" />
@@ -473,17 +645,14 @@ export function ClassDetailsContainer({ slug, initialData }: { slug: string; ini
               </div>
             );
           })()}
-
         </div>
       </div>
 
       {/* Main Content & Sidebar Grid */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-12 relative z-20">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          
           {/* Main Column */}
           <div className="lg:col-span-2 space-y-8">
-            
             {/* Calendar & Schedule & Venue Information Card */}
             <section className="bg-white rounded-3xl shadow-sm border border-slate-200 p-6 sm:p-8 space-y-6">
               <div className="flex items-center justify-between border-b border-slate-100 pb-4">
@@ -491,50 +660,70 @@ export function ClassDetailsContainer({ slug, initialData }: { slug: string; ini
                   <Calendar className="w-6 h-6 text-blue-600" />
                   تقویم و زمان‌بندی دقیق برگزاری
                 </h2>
-                <span className={`px-3 py-1 rounded-xl text-xs font-bold ${
-                  isOnline ? 'bg-blue-50 text-blue-700 border border-blue-200' : 'bg-emerald-50 text-emerald-700 border border-emerald-200'
-                }`}>
-                  {isOnline ? 'برگزاری در اسکای‌روم' : 'برگزاری در سالن همایش'}
+                <span
+                  className={`px-3 py-1 rounded-xl text-xs font-bold ${
+                    isOnline
+                      ? "bg-blue-50 text-blue-700 border border-blue-200"
+                      : "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                  }`}
+                >
+                  {isOnline ? "برگزاری در اسکای‌روم" : "برگزاری در سالن همایش"}
                 </span>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {/* Days of week */}
                 <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100 space-y-2">
-                  <span className="text-xs font-bold text-slate-500 block">روزهای برگزاری در هفته:</span>
+                  <span className="text-xs font-bold text-slate-500 block">
+                    روزهای برگزاری در هفته:
+                  </span>
                   <div className="flex flex-wrap gap-1.5">
                     {cls.scheduleDays && cls.scheduleDays.length > 0 ? (
                       cls.scheduleDays.map((d: string) => (
-                        <span key={d} className="px-2.5 py-1 bg-white border border-slate-200 text-slate-800 rounded-lg text-xs font-bold">
+                        <span
+                          key={d}
+                          className="px-2.5 py-1 bg-white border border-slate-200 text-slate-800 rounded-lg text-xs font-bold"
+                        >
                           {d}
                         </span>
                       ))
                     ) : (
-                      <span className="text-xs text-slate-700 font-bold">شنبه و دوشنبه</span>
+                      <span className="text-xs text-slate-700 font-bold">
+                        شنبه و دوشنبه
+                      </span>
                     )}
                   </div>
                 </div>
 
                 {/* Time */}
                 <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100 space-y-1">
-                  <span className="text-xs font-bold text-slate-500 block">ساعت برگزاری هر جلسه:</span>
+                  <span className="text-xs font-bold text-slate-500 block">
+                    ساعت برگزاری هر جلسه:
+                  </span>
                   <div className="text-sm font-black text-slate-900 flex items-center gap-2">
                     <Clock className="w-4 h-4 text-blue-600" />
-                    <span>{cls.scheduleTime || '۱۸:۰۰ الی ۲۰:۰۰ (۲ ساعت)'}</span>
+                    <span>
+                      {cls.scheduleTime || "۱۸:۰۰ الی ۲۰:۰۰ (۲ ساعت)"}
+                    </span>
                   </div>
                 </div>
 
                 {/* Dates */}
                 <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100 space-y-1">
-                  <span className="text-xs font-bold text-slate-500 block">بازه برگزاری:</span>
+                  <span className="text-xs font-bold text-slate-500 block">
+                    بازه برگزاری:
+                  </span>
                   <div className="text-xs sm:text-sm font-bold text-slate-800">
-                    از {format(startDate, 'd MMMM yyyy')} تا {format(endDate, 'd MMMM yyyy')}
+                    از {format(startDate, "d MMMM yyyy")} تا{" "}
+                    {format(endDate, "d MMMM yyyy")}
                   </div>
                 </div>
 
                 {/* Number of sessions */}
                 <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100 space-y-1">
-                  <span className="text-xs font-bold text-slate-500 block">تعداد جلسات و حضور و غیاب:</span>
+                  <span className="text-xs font-bold text-slate-500 block">
+                    تعداد جلسات و حضور و غیاب:
+                  </span>
                   <div className="text-xs sm:text-sm font-bold text-slate-800">
                     {sessions} جلسه رسمی (با ثبت حضور و غیاب در هر جلسه)
                   </div>
@@ -550,17 +739,22 @@ export function ClassDetailsContainer({ slug, initialData }: { slug: string; ini
                     </div>
                     <div>
                       <h3 className="font-bold text-sm text-blue-900">
-                        محیط کلاس آنلاین: {cls.meetingPlatform || 'اسکای‌روم (Skyroom)'}
+                        محیط کلاس آنلاین:{" "}
+                        {cls.meetingPlatform || "اسکای‌روم (Skyroom)"}
                       </h3>
                       <p className="text-xs text-blue-800 mt-0.5">
-                        کلاس به صورت تعاملی دوطرفه (امکان اشتراک صدا، تصویر و اسکرین) برگزار می‌شود و ویدیوهای ضبط شده در پنل قرار می‌گیرد.
+                        کلاس به صورت تعاملی دوطرفه (امکان اشتراک صدا، تصویر و
+                        اسکرین) برگزار می‌شود و ویدیوهای ضبط شده در پنل قرار
+                        می‌گیرد.
                       </p>
                     </div>
                   </div>
 
                   {isEnrolled && cls.meetingLink && (
                     <div className="pt-2 border-t border-blue-200/80 flex items-center justify-between">
-                      <span className="text-xs font-bold text-blue-900">لینک اختصاصی ورود شما به کلاس:</span>
+                      <span className="text-xs font-bold text-blue-900">
+                        لینک اختصاصی ورود شما به کلاس:
+                      </span>
                       <a
                         href={cls.meetingLink}
                         target="_blank"
@@ -582,10 +776,11 @@ export function ClassDetailsContainer({ slug, initialData }: { slug: string; ini
                       </div>
                       <div>
                         <h3 className="font-bold text-sm text-emerald-950">
-                          محل برگزاری حضوری: {cls.city || 'تهران'}
+                          محل برگزاری حضوری: {cls.city || "تهران"}
                         </h3>
                         <p className="text-xs text-emerald-800 mt-1 leading-relaxed font-medium">
-                          {cls.address || 'تهران، خیابان آزادی، دانشگاه صنعتی شریف، سالن همایش‌های رازی'}
+                          {cls.address ||
+                            "تهران، خیابان آزادی، دانشگاه صنعتی شریف، سالن همایش‌های رازی"}
                         </p>
                         {cls.venueDetails && (
                           <p className="text-[11px] text-emerald-700 mt-1">
@@ -596,10 +791,18 @@ export function ClassDetailsContainer({ slug, initialData }: { slug: string; ini
                     </div>
 
                     <button
-                      onClick={() => handleCopyAddress(`${cls.city || 'تهران'} - ${cls.address || 'تهران، خیابان آزادی، دانشگاه شریف'}`)}
+                      onClick={() =>
+                        handleCopyAddress(
+                          `${cls.city || "تهران"} - ${cls.address || "تهران، خیابان آزادی، دانشگاه شریف"}`,
+                        )
+                      }
                       className="px-3 py-1.5 bg-white border border-emerald-300 text-emerald-800 hover:bg-emerald-100 rounded-xl text-xs font-bold transition flex items-center gap-1 shrink-0"
                     >
-                      {copiedAddress ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
+                      {copiedAddress ? (
+                        <Check className="w-3.5 h-3.5 text-emerald-600" />
+                      ) : (
+                        <Copy className="w-3.5 h-3.5" />
+                      )}
                       کپی آدرس
                     </button>
                   </div>
@@ -628,20 +831,30 @@ export function ClassDetailsContainer({ slug, initialData }: { slug: string; ini
                 {syllabusList.map((sess: any) => {
                   const isExpanded = expandedSession === sess.sessionNumber;
                   return (
-                    <div 
-                      key={sess.sessionNumber} 
+                    <div
+                      key={sess.sessionNumber}
                       className="border border-slate-200 rounded-2xl overflow-hidden transition-all duration-200"
                     >
                       <button
-                        onClick={() => setExpandedSession(isExpanded ? null : sess.sessionNumber)}
+                        onClick={() =>
+                          setExpandedSession(
+                            isExpanded ? null : sess.sessionNumber,
+                          )
+                        }
                         className={`w-full p-4 text-right flex items-center justify-between gap-3 transition ${
-                          isExpanded ? 'bg-emerald-50/50' : 'bg-white hover:bg-slate-50'
+                          isExpanded
+                            ? "bg-emerald-50/50"
+                            : "bg-white hover:bg-slate-50"
                         }`}
                       >
                         <div className="flex items-center gap-3">
-                          <div className={`w-8 h-8 rounded-xl font-bold text-xs flex items-center justify-center shrink-0 ${
-                            isExpanded ? 'bg-emerald-600 text-white' : 'bg-slate-100 text-slate-700'
-                          }`}>
+                          <div
+                            className={`w-8 h-8 rounded-xl font-bold text-xs flex items-center justify-center shrink-0 ${
+                              isExpanded
+                                ? "bg-emerald-600 text-white"
+                                : "bg-slate-100 text-slate-700"
+                            }`}
+                          >
                             {sess.sessionNumber}
                           </div>
                           <div>
@@ -649,7 +862,8 @@ export function ClassDetailsContainer({ slug, initialData }: { slug: string; ini
                               {sess.title}
                             </span>
                             <span className="text-[11px] text-slate-500">
-                              مدت زمان: {sess.durationMinutes || 90} دقیقه · شامل تمرین عملی
+                              مدت زمان: {sess.durationMinutes || 90} دقیقه ·
+                              شامل تمرین عملی
                             </span>
                           </div>
                         </div>
@@ -663,10 +877,16 @@ export function ClassDetailsContainer({ slug, initialData }: { slug: string; ini
 
                       {isExpanded && (
                         <div className="p-4 bg-slate-50/50 border-t border-slate-100 text-xs text-slate-600 leading-relaxed space-y-2">
-                          <p>{sess.description || 'توضیحات مباحث این جلسه توسط استاد در ابتدای جلسه ارائه خواهد شد.'}</p>
+                          <p>
+                            {sess.description ||
+                              "توضیحات مباحث این جلسه توسط استاد در ابتدای جلسه ارائه خواهد شد."}
+                          </p>
                           <div className="flex items-center gap-2 text-emerald-700 font-bold pt-1">
                             <CheckCircle2 className="w-3.5 h-3.5" />
-                            <span>حضور و غیاب دانشجو در انتهای این جلسه ثبت خواهد شد.</span>
+                            <span>
+                              حضور و غیاب دانشجو در انتهای این جلسه ثبت خواهد
+                              شد.
+                            </span>
                           </div>
                         </div>
                       )}
@@ -706,15 +926,23 @@ export function ClassDetailsContainer({ slug, initialData }: { slug: string; ini
                     <>
                       <li className="flex items-start gap-2">
                         <CheckCircle className="w-4 h-4 text-emerald-500 mt-0.5 shrink-0" />
-                        <span>علاقه‌مندان به یادگیری تعاملی و تمرین پروژه در کلاس</span>
+                        <span>
+                          علاقه‌مندان به یادگیری تعاملی و تمرین پروژه در کلاس
+                        </span>
                       </li>
                       <li className="flex items-start gap-2">
                         <CheckCircle className="w-4 h-4 text-emerald-500 mt-0.5 shrink-0" />
-                        <span>افرادی که به تعامل مستقیم و پرسش و پاسخ با استاد نیاز دارند</span>
+                        <span>
+                          افرادی که به تعامل مستقیم و پرسش و پاسخ با استاد نیاز
+                          دارند
+                        </span>
                       </li>
                       <li className="flex items-start gap-2">
                         <CheckCircle className="w-4 h-4 text-emerald-500 mt-0.5 shrink-0" />
-                        <span>داوطلبانی که به دنبال شبکه ارتباطی با هم‌دوره‌ای‌ها هستند</span>
+                        <span>
+                          داوطلبانی که به دنبال شبکه ارتباطی با هم‌دوره‌ای‌ها
+                          هستند
+                        </span>
                       </li>
                     </>
                   )}
@@ -742,7 +970,9 @@ export function ClassDetailsContainer({ slug, initialData }: { slug: string; ini
                       </li>
                       <li className="flex items-start gap-2">
                         <div className="w-1.5 h-1.5 bg-blue-500 rounded-full mt-1.5 shrink-0" />
-                        <span>همراه داشتن لپ‌تاپ (برای جلسات حضوری و تمرین‌ها)</span>
+                        <span>
+                          همراه داشتن لپ‌تاپ (برای جلسات حضوری و تمرین‌ها)
+                        </span>
                       </li>
                       <li className="flex items-start gap-2">
                         <div className="w-1.5 h-1.5 bg-blue-500 rounded-full mt-1.5 shrink-0" />
@@ -763,7 +993,7 @@ export function ClassDetailsContainer({ slug, initialData }: { slug: string; ini
                     درباره استاد و رزومه کلاس
                   </h2>
                   {instructor && (
-                    <Link 
+                    <Link
                       href={`/instructors/${instructor.slug || instructor._id}`}
                       className="text-xs font-bold text-blue-600 hover:underline flex items-center gap-1 self-start sm:self-auto"
                     >
@@ -777,82 +1007,107 @@ export function ClassDetailsContainer({ slug, initialData }: { slug: string; ini
                   {uniqueInstructors.map((inst: any) => {
                     const instSlug = inst.slug || inst._id || inst;
                     return (
-                    <div key={inst._id || inst} className="flex flex-col sm:flex-row gap-5 items-start">
-                      <Link href={`/instructors/${instSlug}`} className="shrink-0 group">
-                        <img 
-                          src={getImageUrl(inst.personnelPhoto || inst.avatar, 'avatar', `${inst.firstName || ''} ${inst.lastName || ''}`)} 
-                          className="w-20 h-20 sm:w-24 sm:h-24 aspect-square rounded-2xl object-fill border border-slate-200 shadow-xs group-hover:scale-105 transition duration-300 bg-slate-100" 
-                          alt={`${inst.firstName || ''} ${inst.lastName || ''}`}
-                          onError={(e) => handleImageError(e, 'avatar', `${inst.firstName || ''} ${inst.lastName || ''}`)}
-                        />
-                      </Link>
-                      <div className="space-y-2 flex-1">
-                        <div className="flex flex-wrap items-center justify-between gap-2">
-                          <div>
-                            <Link href={`/instructors/${instSlug}`}>
-                              <h3 className="text-lg font-bold text-slate-900 hover:text-blue-600 transition">
-                                {inst.firstName} {inst.lastName}
-                              </h3>
-                            </Link>
-                            <div className="text-xs font-bold text-emerald-600 bg-emerald-50 px-2.5 py-0.5 rounded-lg inline-block mt-1">
-                              {inst.specialty || 'مدرس و متخصص ارشد'}
+                      <div
+                        key={inst._id || inst}
+                        className="flex flex-col sm:flex-row gap-5 items-start"
+                      >
+                        <Link
+                          href={`/instructors/${instSlug}`}
+                          className="shrink-0 group"
+                        >
+                          <img
+                            src={getImageUrl(
+                              inst.personnelPhoto || inst.avatar,
+                              "avatar",
+                              `${inst.firstName || ""} ${inst.lastName || ""}`,
+                            )}
+                            className="w-20 h-20 sm:w-24 sm:h-24 aspect-square rounded-2xl object-fill border border-slate-200 shadow-xs group-hover:scale-105 transition duration-300 bg-slate-100"
+                            alt={`${inst.firstName || ""} ${inst.lastName || ""}`}
+                            onError={(e) =>
+                              handleImageError(
+                                e,
+                                "avatar",
+                                `${inst.firstName || ""} ${inst.lastName || ""}`,
+                              )
+                            }
+                          />
+                        </Link>
+                        <div className="space-y-2 flex-1">
+                          <div className="flex flex-wrap items-center justify-between gap-2">
+                            <div>
+                              <Link href={`/instructors/${instSlug}`}>
+                                <h3 className="text-lg font-bold text-slate-900 hover:text-blue-600 transition">
+                                  {inst.firstName} {inst.lastName}
+                                </h3>
+                              </Link>
+                              <div className="text-xs font-bold text-emerald-600 bg-emerald-50 px-2.5 py-0.5 rounded-lg inline-block mt-1">
+                                {inst.specialty || "مدرس و متخصص ارشد"}
+                              </div>
                             </div>
+                            <span className="text-xs font-bold bg-blue-50 text-blue-700 px-3 py-1 rounded-full border border-blue-200">
+                              مدرس تایید شده
+                            </span>
                           </div>
-                          <span className="text-xs font-bold bg-blue-50 text-blue-700 px-3 py-1 rounded-full border border-blue-200">
-                            مدرس تایید شده
-                          </span>
-                        </div>
 
-                        {/* Instructor Bio Summary (Concise 1-2 lines) */}
-                        <p className="text-xs sm:text-sm text-slate-600 leading-relaxed text-justify line-clamp-2 mt-1">
-                          {inst.bio || 'دارای سال‌ها تجربه در آموزش تخصصی، هدایت پروژه‌های عملی و کارگاهی و تدریس مباحث مهارتی در آکادمی تک‌یاد.'}
-                        </p>
+                          {/* Instructor Bio Summary (Concise 1-2 lines) */}
+                          <p className="text-xs sm:text-sm text-slate-600 leading-relaxed text-justify line-clamp-2 mt-1">
+                            {inst.bio ||
+                              "دارای سال‌ها تجربه در آموزش تخصصی، هدایت پروژه‌های عملی و کارگاهی و تدریس مباحث مهارتی در آکادمی تک یاد."}
+                          </p>
 
-                        <div className="pt-2">
-                          <Link 
-                            href={`/instructors/${instSlug}`}
-                            className="inline-flex items-center gap-1.5 text-xs font-bold text-blue-600 hover:text-blue-800 transition hover:underline"
-                          >
-                            مشاهده رزومه کامل، سوابق تحصیلی و سایر کلاس‌های استاد
-                            <ChevronLeft className="w-3.5 h-3.5" />
-                          </Link>
+                          <div className="pt-2">
+                            <Link
+                              href={`/instructors/${instSlug}`}
+                              className="inline-flex items-center gap-1.5 text-xs font-bold text-blue-600 hover:text-blue-800 transition hover:underline"
+                            >
+                              مشاهده رزومه کامل، سوابق تحصیلی و سایر کلاس‌های
+                              استاد
+                              <ChevronLeft className="w-3.5 h-3.5" />
+                            </Link>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  );
-                })}
+                    );
+                  })}
                 </div>
               </section>
             ) : null}
 
             {/* Comments and QA Section */}
-            <CommentsSection 
-              classId={cls._id} 
-              classSlug={cls.slug} 
-              isInstructor={user?.role === 'instructor' && (
-                cls.instructors?.some((inst: any) => (inst._id || inst).toString() === user?._id?.toString()) ||
-                (instructor?._id || instructor)?.toString() === user?._id?.toString()
-              )} 
+            <CommentsSection
+              classId={cls._id}
+              classSlug={cls.slug}
+              isInstructor={
+                user?.role === "instructor" &&
+                (cls.instructors?.some(
+                  (inst: any) =>
+                    (inst._id || inst).toString() === user?._id?.toString(),
+                ) ||
+                  (instructor?._id || instructor)?.toString() ===
+                    user?._id?.toString())
+              }
             />
-
           </div>
 
           {/* Sidebar Column: Registration & Payment Mode */}
           <div className="lg:col-span-1">
             <div className="bg-white rounded-3xl shadow-xl border border-slate-200 p-6 sticky top-24 space-y-6">
-              
               {/* Header Price */}
               <div className="text-center pb-4 border-b border-slate-100">
-                <span className="text-xs font-bold text-slate-400 block mb-1">شهریه کلاس</span>
+                <span className="text-xs font-bold text-slate-400 block mb-1">
+                  شهریه کلاس
+                </span>
                 <div className="flex flex-col items-center justify-center">
                   {isFree ? (
-                    <span className="text-3xl font-black text-emerald-600">رایگان</span>
+                    <span className="text-3xl font-black text-emerald-600">
+                      رایگان
+                    </span>
                   ) : finalCashPrice > 0 ? (
                     <>
                       {hasDiscount && (
                         <div className="flex items-center gap-2 mb-1">
                           <span className="text-sm text-slate-400 line-through font-mono">
-                            {rawPrice.toLocaleString('fa-IR')} تومان
+                            {rawPrice.toLocaleString("fa-IR")} تومان
                           </span>
                           <span className="bg-rose-500 text-white text-[11px] font-bold px-2 py-0.5 rounded-full shadow-2xs">
                             {discountPercent}% تخفیف
@@ -860,12 +1115,16 @@ export function ClassDetailsContainer({ slug, initialData }: { slug: string; ini
                         </div>
                       )}
                       <div className="text-3xl font-black text-slate-900 font-mono">
-                        {finalCashPrice.toLocaleString('fa-IR')}{' '}
-                        <span className="text-sm font-normal text-slate-500 font-sans">تومان</span>
+                        {finalCashPrice.toLocaleString("fa-IR")}{" "}
+                        <span className="text-sm font-normal text-slate-500 font-sans">
+                          تومان
+                        </span>
                       </div>
                     </>
                   ) : (
-                    <span className="text-lg font-bold text-slate-600">شهریه به‌زودی</span>
+                    <span className="text-lg font-bold text-slate-600">
+                      شهریه به‌زودی
+                    </span>
                   )}
                 </div>
               </div>
@@ -873,15 +1132,17 @@ export function ClassDetailsContainer({ slug, initialData }: { slug: string; ini
               {/* Payment Option Picker */}
               {!isFree && finalCashPrice > 0 && (
                 <div className="space-y-3 bg-slate-50 p-3.5 rounded-2xl border border-slate-200">
-                  <span className="text-xs font-bold text-slate-700 block">انتخاب روش پرداخت:</span>
+                  <span className="text-xs font-bold text-slate-700 block">
+                    انتخاب روش پرداخت:
+                  </span>
 
                   {/* 1. Cash Payment */}
-                  <label 
-                    onClick={() => setPaymentChoice('cash')}
+                  <label
+                    onClick={() => setPaymentChoice("cash")}
                     className={`p-3 rounded-xl border cursor-pointer block transition ${
-                      paymentChoice === 'cash'
-                        ? 'bg-white border-blue-500 shadow-xs ring-2 ring-blue-500/20'
-                        : 'bg-white/60 border-slate-200 hover:bg-white'
+                      paymentChoice === "cash"
+                        ? "bg-white border-blue-500 shadow-xs ring-2 ring-blue-500/20"
+                        : "bg-white/60 border-slate-200 hover:bg-white"
                     }`}
                   >
                     <div className="flex items-center justify-between mb-1">
@@ -889,14 +1150,16 @@ export function ClassDetailsContainer({ slug, initialData }: { slug: string; ini
                         <input
                           type="radio"
                           name="paymentMode"
-                          checked={paymentChoice === 'cash'}
-                          onChange={() => setPaymentChoice('cash')}
+                          checked={paymentChoice === "cash"}
+                          onChange={() => setPaymentChoice("cash")}
                           className="text-blue-600"
                         />
-                        <span className="text-xs font-bold text-slate-900">پرداخت نقدی یکجا</span>
+                        <span className="text-xs font-bold text-slate-900">
+                          پرداخت نقدی یکجا
+                        </span>
                       </div>
                       <span className="text-xs font-mono font-bold text-blue-600">
-                        {finalCashPrice.toLocaleString('fa-IR')} تومان
+                        {finalCashPrice.toLocaleString("fa-IR")} تومان
                       </span>
                     </div>
                     <div className="text-[10px] text-slate-500 pr-5">
@@ -905,12 +1168,12 @@ export function ClassDetailsContainer({ slug, initialData }: { slug: string; ini
                   </label>
 
                   {/* 2. SnappPay 4-Installment Plan */}
-                  <label 
-                    onClick={() => setPaymentChoice('installment')}
+                  <label
+                    onClick={() => setPaymentChoice("installment")}
                     className={`p-3 rounded-xl border cursor-pointer block transition ${
-                      paymentChoice === 'installment'
-                        ? 'bg-purple-50/80 border-purple-500 shadow-xs ring-2 ring-purple-500/20'
-                        : 'bg-white/60 border-slate-200 hover:bg-white'
+                      paymentChoice === "installment"
+                        ? "bg-purple-50/80 border-purple-500 shadow-xs ring-2 ring-purple-500/20"
+                        : "bg-white/60 border-slate-200 hover:bg-white"
                     }`}
                   >
                     <div className="flex items-center justify-between mb-1">
@@ -918,32 +1181,42 @@ export function ClassDetailsContainer({ slug, initialData }: { slug: string; ini
                         <input
                           type="radio"
                           name="paymentMode"
-                          checked={paymentChoice === 'installment'}
-                          onChange={() => setPaymentChoice('installment')}
+                          checked={paymentChoice === "installment"}
+                          onChange={() => setPaymentChoice("installment")}
                           className="text-purple-600"
                         />
-                        <span className="text-xs font-bold text-purple-950">اقساط ۴ ماهه اسنپ‌پی</span>
+                        <span className="text-xs font-bold text-purple-950">
+                          اقساط ۴ ماهه اسنپ‌پی
+                        </span>
                       </div>
                       <span className="text-[10px] bg-purple-100 text-purple-700 font-bold px-1.5 py-0.5 rounded">
                         بدون کارمزد
                       </span>
                     </div>
                     <div className="text-[11px] font-semibold text-purple-900 pr-5 mb-0.5">
-                      پیش‌پرداخت امروز: <span className="font-mono font-bold">{downPayment.toLocaleString('fa-IR')}</span> تومان
+                      پیش‌پرداخت امروز:{" "}
+                      <span className="font-mono font-bold">
+                        {downPayment.toLocaleString("fa-IR")}
+                      </span>{" "}
+                      تومان
                     </div>
                     <div className="text-[10px] text-purple-700 pr-5">
-                      + ۳ قسط ماهانه هر قسط <span className="font-mono font-bold">{monthlyInstallment.toLocaleString('fa-IR')}</span> تومان بدون چک و ضامن
+                      + ۳ قسط ماهانه هر قسط{" "}
+                      <span className="font-mono font-bold">
+                        {monthlyInstallment.toLocaleString("fa-IR")}
+                      </span>{" "}
+                      تومان بدون چک و ضامن
                     </div>
                   </label>
 
                   {/* 3. Pre-Registration Deposit (if enabled for this class) */}
                   {cls.allowPreRegistration && (
-                    <label 
-                      onClick={() => setPaymentChoice('deposit')}
+                    <label
+                      onClick={() => setPaymentChoice("deposit")}
                       className={`p-3 rounded-xl border cursor-pointer block transition ${
-                        paymentChoice === 'deposit'
-                          ? 'bg-amber-50/80 border-amber-500 shadow-xs ring-2 ring-amber-500/20'
-                          : 'bg-white/60 border-slate-200 hover:bg-white'
+                        paymentChoice === "deposit"
+                          ? "bg-amber-50/80 border-amber-500 shadow-xs ring-2 ring-amber-500/20"
+                          : "bg-white/60 border-slate-200 hover:bg-white"
                       }`}
                     >
                       <div className="flex items-center justify-between mb-1">
@@ -951,18 +1224,27 @@ export function ClassDetailsContainer({ slug, initialData }: { slug: string; ini
                           <input
                             type="radio"
                             name="paymentMode"
-                            checked={paymentChoice === 'deposit'}
-                            onChange={() => setPaymentChoice('deposit')}
+                            checked={paymentChoice === "deposit"}
+                            onChange={() => setPaymentChoice("deposit")}
                             className="text-amber-600"
                           />
-                          <span className="text-xs font-bold text-amber-950">پیش‌ثبت‌نام با بیعانه</span>
+                          <span className="text-xs font-bold text-amber-950">
+                            پیش‌ثبت‌نام با بیعانه
+                          </span>
                         </div>
                         <span className="text-xs font-mono font-bold text-amber-700">
-                          {cls.preRegistrationDeposit?.toLocaleString('fa-IR')} تومان
+                          {cls.preRegistrationDeposit?.toLocaleString("fa-IR")}{" "}
+                          تومان
                         </span>
                       </div>
                       <div className="text-[10px] text-amber-800 pr-5">
-                        رزرو صندلی با بیعانه؛ مابقی شهریه ({(finalCashPrice - (cls.preRegistrationDeposit || 0)).toLocaleString('fa-IR')} تومان) پس از جلسه {cls.remainingPaymentDueAfterSession || 2} تسویه خواهد شد.
+                        رزرو صندلی با بیعانه؛ مابقی شهریه (
+                        {(
+                          finalCashPrice - (cls.preRegistrationDeposit || 0)
+                        ).toLocaleString("fa-IR")}{" "}
+                        تومان) پس از جلسه{" "}
+                        {cls.remainingPaymentDueAfterSession || 2} تسویه خواهد
+                        شد.
                       </div>
                     </label>
                   )}
@@ -973,18 +1255,28 @@ export function ClassDetailsContainer({ slug, initialData }: { slug: string; ini
               <div className="space-y-2 bg-slate-50 p-4 rounded-2xl border border-slate-100">
                 <div className="flex justify-between text-xs font-medium">
                   <span className="text-slate-600">ظرفیت تکمیل شده:</span>
-                  <span className="font-bold text-slate-900">{enrolled} از {cls.capacity} نفر</span>
+                  <span className="font-bold text-slate-900">
+                    {enrolled} از {cls.capacity} نفر
+                  </span>
                 </div>
                 <div className="w-full bg-slate-200 rounded-full h-2 overflow-hidden">
                   <div
                     className={`h-full rounded-full transition-all ${
-                      isFull ? 'bg-rose-500' : remaining <= 3 ? 'bg-amber-500' : 'bg-emerald-500'
+                      isFull
+                        ? "bg-rose-500"
+                        : remaining <= 3
+                          ? "bg-amber-500"
+                          : "bg-emerald-500"
                     }`}
-                    style={{ width: `${Math.min(100, (enrolled / cls.capacity) * 100)}%` }}
+                    style={{
+                      width: `${Math.min(100, (enrolled / cls.capacity) * 100)}%`,
+                    }}
                   />
                 </div>
                 <div className="text-[11px] text-center text-slate-500">
-                  {isFull ? 'ظرفیت این کلاس به پایان رسیده است' : `تنها ${remaining} ظرفیت خالی باقی مانده است`}
+                  {isFull
+                    ? "ظرفیت این کلاس به پایان رسیده است"
+                    : `تنها ${remaining} ظرفیت خالی باقی مانده است`}
                 </div>
               </div>
 
@@ -1023,11 +1315,8 @@ export function ClassDetailsContainer({ slug, initialData }: { slug: string; ini
                   ctaText
                 )}
               </button>
-
             </div>
-
           </div>
-
         </div>
       </div>
 
@@ -1035,14 +1324,16 @@ export function ClassDetailsContainer({ slug, initialData }: { slug: string; ini
       <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-md border-t border-slate-200 p-3.5 sm:p-4 shadow-2xl z-30 flex items-center justify-between">
         <div>
           <span className="text-[11px] text-slate-400 block">
-            {paymentChoice === 'deposit' && cls.allowPreRegistration ? 'مبلغ بیعانه پیش‌ثبت‌نام' : 'شهریه کلاس'}
+            {paymentChoice === "deposit" && cls.allowPreRegistration
+              ? "مبلغ بیعانه پیش‌ثبت‌نام"
+              : "شهریه کلاس"}
           </span>
           <div className="text-base font-black text-slate-900">
-            {cls.price === 0 ? 'رایگان' : (
-              paymentChoice === 'deposit' && cls.allowPreRegistration
-                ? `${cls.preRegistrationDeposit?.toLocaleString('fa-IR')} تومان`
-                : `${cls.price.toLocaleString('fa-IR')} تومان`
-            )}
+            {cls.price === 0
+              ? "رایگان"
+              : paymentChoice === "deposit" && cls.allowPreRegistration
+                ? `${cls.preRegistrationDeposit?.toLocaleString("fa-IR")} تومان`
+                : `${cls.price.toLocaleString("fa-IR")} تومان`}
           </div>
         </div>
 
@@ -1051,10 +1342,13 @@ export function ClassDetailsContainer({ slug, initialData }: { slug: string; ini
           disabled={ctaDisabled || isPendingAction}
           className={`px-5 py-2.5 rounded-xl font-bold text-xs sm:text-sm transition-all flex items-center justify-center gap-2 ${ctaClass} disabled:opacity-60`}
         >
-          {isPendingAction ? <Loader2 className="w-4 h-4 animate-spin" /> : ctaText}
+          {isPendingAction ? (
+            <Loader2 className="w-4 h-4 animate-spin" />
+          ) : (
+            ctaText
+          )}
         </button>
       </div>
-
     </div>
   );
 }

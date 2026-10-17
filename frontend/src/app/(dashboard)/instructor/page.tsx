@@ -1,122 +1,155 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { useAuthStore } from '@/features/auth/stores/auth.store';
-import { 
-  BookOpen, Users, DollarSign, Video, 
-  FileText, Activity, CheckSquare, TrendingUp, Calendar,
-  Plus, ArrowUpRight, Award, MessageSquare, Clock, 
-  ChevronLeft, AlertCircle, Sparkles, CheckCircle, Eye
-} from 'lucide-react';
-import Link from 'next/link';
-import { useQuery } from '@tanstack/react-query';
-import { coursesApi } from '@/features/courses/api/courses.api';
-import { api } from '@/lib/api';
-import { getImageUrl, handleImageError } from '@/lib/utils';
+import { useState } from "react";
+import { useAuthStore } from "@/features/auth/stores/auth.store";
+import {
+  BookOpen,
+  Users,
+  DollarSign,
+  Video,
+  FileText,
+  Activity,
+  CheckSquare,
+  TrendingUp,
+  Calendar,
+  Plus,
+  ArrowUpRight,
+  Award,
+  MessageSquare,
+  Clock,
+  ChevronLeft,
+  AlertCircle,
+  Sparkles,
+  CheckCircle,
+  Eye,
+} from "lucide-react";
+import Link from "next/link";
+import { useQuery } from "@tanstack/react-query";
+import { coursesApi } from "@/features/courses/api/courses.api";
+import { api } from "@/lib/api";
+import { getImageUrl, handleImageError } from "@/lib/utils";
 
 export default function InstructorDashboard() {
   const { user } = useAuthStore();
-  
+
   // 1. Basic Stats
   const { data: statsData } = useQuery({
-    queryKey: ['instructor-stats'],
-    queryFn: () => coursesApi.getInstructorStats().then(res => res.data)
+    queryKey: ["instructor-stats"],
+    queryFn: () => coursesApi.getInstructorStats().then((res) => res.data),
   });
 
   // 2. Sales & Monthly Trend
   const { data: salesData } = useQuery({
-    queryKey: ['instructor-sales-overview'],
-    queryFn: () => api.get('/instructor/sales').then(res => res.data?.data || null)
+    queryKey: ["instructor-sales-overview"],
+    queryFn: () =>
+      api.get("/instructor/sales").then((res) => res.data?.data || null),
   });
 
   // 3. Courses
   const { data: coursesResponse } = useQuery({
-    queryKey: ['instructor-dashboard-courses'],
-    queryFn: () => coursesApi.getInstructorCourses({ limit: 5 }).then(res => res.data)
+    queryKey: ["instructor-dashboard-courses"],
+    queryFn: () =>
+      coursesApi.getInstructorCourses({ limit: 5 }).then((res) => res.data),
   });
 
   // 4. Upcoming Classes
   const { data: upcomingClasses = [] } = useQuery({
-    queryKey: ['instructor-upcoming-classes'],
-    queryFn: () => api.get('/instructor/classes').then(res => res.data?.data || res.data || [])
+    queryKey: ["instructor-upcoming-classes"],
+    queryFn: () =>
+      api
+        .get("/instructor/classes")
+        .then((res) => res.data?.data || res.data || []),
   });
 
   // 5. Pending Submissions to grade
   const { data: pendingSubmissions } = useQuery({
-    queryKey: ['instructor-pending-submissions-count'],
-    queryFn: () => api.get('/instructor/submissions', { params: { status: 'submitted', limit: 5 } }).then(res => res.data?.data || res.data)
+    queryKey: ["instructor-pending-submissions-count"],
+    queryFn: () =>
+      api
+        .get("/instructor/submissions", {
+          params: { status: "submitted", limit: 5 },
+        })
+        .then((res) => res.data?.data || res.data),
   });
 
   // 6. Quizzes
   const { data: quizzesList = [] } = useQuery({
-    queryKey: ['instructor-quizzes-overview'],
-    queryFn: () => api.get('/instructor/quizzes').then(res => res.data?.data || [])
+    queryKey: ["instructor-quizzes-overview"],
+    queryFn: () =>
+      api.get("/instructor/quizzes").then((res) => res.data?.data || []),
   });
 
   // 7. Recent Students
   const { data: recentStudentsData } = useQuery({
-    queryKey: ['instructor-recent-students'],
-    queryFn: () => coursesApi.getInstructorStudents({ limit: 5 }).then(res => res.data)
+    queryKey: ["instructor-recent-students"],
+    queryFn: () =>
+      coursesApi.getInstructorStudents({ limit: 5 }).then((res) => res.data),
   });
 
   const courses = coursesResponse?.courses || [];
   const recentStudents = recentStudentsData?.students || [];
   const pendingSubs = pendingSubmissions?.submissions || [];
   const monthlyTrend = salesData?.monthlyTrend || [];
-  
+
   const totalRevenue = salesData?.totalSales ?? (statsData?.totalRevenue || 0);
-  const netEarnings = salesData?.netInstructorEarnings ?? Math.round(totalRevenue * 0.7);
+  const netEarnings =
+    salesData?.netInstructorEarnings ?? Math.round(totalRevenue * 0.7);
   const totalStudents = statsData?.totalStudents ?? 0;
   const totalCourses = statsData?.totalCourses ?? courses.length;
-  const publishedCourses = statsData?.publishedCourses ?? courses.filter((c: any) => c.status === 'published').length;
+  const publishedCourses =
+    statsData?.publishedCourses ??
+    courses.filter((c: any) => c.status === "published").length;
 
-  const maxRevenueInTrend = Math.max(...monthlyTrend.map((m: any) => m.revenue), 100000);
+  const maxRevenueInTrend = Math.max(
+    ...monthlyTrend.map((m: any) => m.revenue),
+    100000,
+  );
 
-  const activeLiveClasses = Array.isArray(upcomingClasses) 
-    ? upcomingClasses.filter((c: any) => c.status === 'published')?.slice(0, 3) 
+  const activeLiveClasses = Array.isArray(upcomingClasses)
+    ? upcomingClasses.filter((c: any) => c.status === "published")?.slice(0, 3)
     : [];
 
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700 pb-12">
-      
       {/* Hero Welcome Banner */}
       <div className="bg-gradient-to-l from-[var(--neo-primary)]/10 via-[var(--neo-surface)] to-[var(--neo-surface)] rounded-3xl p-6 sm:p-8 shadow-sm border border-[var(--neo-border)] relative overflow-hidden">
         <div className="absolute top-0 left-0 w-72 h-72 bg-gradient-to-br from-emerald-400/15 to-blue-500/15 rounded-full blur-3xl -translate-y-1/2 -translate-x-1/2 pointer-events-none" />
-        
+
         <div className="relative z-10 flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
           <div>
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[var(--neo-primary)]/10 text-[var(--neo-primary)] text-xs font-bold mb-3">
               <Sparkles className="w-3.5 h-3.5" />
-              پنل جامع مدرسان تک‌یاد
+              پنل جامع مدرسان تک یاد
             </div>
             <h1 className="text-2xl sm:text-3xl font-black text-[var(--neo-text-main)] mb-2">
-              سلام استاد {user?.lastName || user?.firstName || ''}! 🎓
+              سلام استاد {user?.lastName || user?.firstName || ""}! 🎓
             </h1>
             <p className="text-[var(--neo-text-secondary)] text-sm sm:text-base max-w-2xl leading-relaxed">
-              مرکز کنترل و مدیریت دوره‌ها، درآمد، آزمون‌ها و تکالیف شما. وضعیت تعامل دانشجویان و رشد درآمدی خود را در این صفحه دنبال کنید.
+              مرکز کنترل و مدیریت دوره‌ها، درآمد، آزمون‌ها و تکالیف شما. وضعیت
+              تعامل دانشجویان و رشد درآمدی خود را در این صفحه دنبال کنید.
             </p>
           </div>
 
           {/* Quick Action Buttons */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 w-full lg:w-auto shrink-0">
-            <Link 
-              href="/instructor/courses/new" 
+            <Link
+              href="/instructor/courses/new"
               className="px-4 py-2.5 bg-[var(--neo-primary)] hover:bg-[var(--neo-primary)] text-white rounded-2xl font-bold shadow-lg shadow-[var(--neo-primary)]/20 transition-all hover:scale-105 flex items-center justify-center gap-2 text-xs sm:text-sm text-center"
             >
               <Plus className="w-4 h-4" />
               ایجاد دوره جدید
             </Link>
 
-            <Link 
-              href="/instructor/quizzes" 
+            <Link
+              href="/instructor/quizzes"
               className="px-4 py-2.5 bg-[var(--neo-surface)] hover:bg-[var(--neo-surface-2)] text-[var(--neo-text-main)] border border-[var(--neo-border)] rounded-2xl font-bold transition-all flex items-center justify-center gap-2 text-xs sm:text-sm text-center"
             >
               <CheckSquare className="w-4 h-4 text-[var(--neo-primary)]" />
               طراحی کوییز
             </Link>
 
-            <Link 
-              href="/instructor/assignments" 
+            <Link
+              href="/instructor/assignments"
               className="px-4 py-2.5 bg-[var(--neo-surface)] hover:bg-[var(--neo-surface-2)] text-[var(--neo-text-main)] border border-[var(--neo-border)] rounded-2xl font-bold transition-all flex items-center justify-center gap-2 text-xs sm:text-sm text-center"
             >
               <FileText className="w-4 h-4 text-emerald-600" />
@@ -139,11 +172,17 @@ export default function InstructorDashboard() {
             </span>
           </div>
           <div className="text-2xl sm:text-3xl font-black text-[var(--neo-text-main)] mb-1">
-            {netEarnings.toLocaleString()} <span className="text-xs font-bold text-[var(--neo-text-secondary)]">تومان</span>
+            {netEarnings.toLocaleString()}{" "}
+            <span className="text-xs font-bold text-[var(--neo-text-secondary)]">
+              تومان
+            </span>
           </div>
           <div className="text-xs font-bold text-[var(--neo-text-secondary)] flex items-center gap-1.5">
             درآمد خالص کسب شده
-            <Link href="/instructor/sales" className="text-[var(--neo-primary)] hover:underline mr-auto">
+            <Link
+              href="/instructor/sales"
+              className="text-[var(--neo-primary)] hover:underline mr-auto"
+            >
               جزئیات مالی
             </Link>
           </div>
@@ -160,11 +199,17 @@ export default function InstructorDashboard() {
             </span>
           </div>
           <div className="text-2xl sm:text-3xl font-black text-[var(--neo-text-main)] mb-1">
-            {totalStudents.toLocaleString()} <span className="text-xs font-bold text-[var(--neo-text-secondary)]">نفر</span>
+            {totalStudents.toLocaleString()}{" "}
+            <span className="text-xs font-bold text-[var(--neo-text-secondary)]">
+              نفر
+            </span>
           </div>
           <div className="text-xs font-bold text-[var(--neo-text-secondary)] flex items-center gap-1.5">
             کل دانش‌آموختگان دوره‌های شما
-            <Link href="/instructor/students" className="text-[var(--neo-primary)] hover:underline mr-auto">
+            <Link
+              href="/instructor/students"
+              className="text-[var(--neo-primary)] hover:underline mr-auto"
+            >
               مشاهده لیست
             </Link>
           </div>
@@ -181,11 +226,17 @@ export default function InstructorDashboard() {
             </span>
           </div>
           <div className="text-2xl sm:text-3xl font-black text-[var(--neo-text-main)] mb-1">
-            {totalCourses} <span className="text-xs font-bold text-[var(--neo-text-secondary)]">دوره</span>
+            {totalCourses}{" "}
+            <span className="text-xs font-bold text-[var(--neo-text-secondary)]">
+              دوره
+            </span>
           </div>
           <div className="text-xs font-bold text-[var(--neo-text-secondary)] flex items-center gap-1.5">
             محتوای آموزشی ایجاد شده
-            <Link href="/instructor/courses" className="text-[var(--neo-primary)] hover:underline mr-auto">
+            <Link
+              href="/instructor/courses"
+              className="text-[var(--neo-primary)] hover:underline mr-auto"
+            >
               مدیریت
             </Link>
           </div>
@@ -204,11 +255,17 @@ export default function InstructorDashboard() {
             )}
           </div>
           <div className="text-2xl sm:text-3xl font-black text-[var(--neo-text-main)] mb-1">
-            {pendingSubs.length} <span className="text-xs font-bold text-[var(--neo-text-secondary)]">تکلیف</span>
+            {pendingSubs.length}{" "}
+            <span className="text-xs font-bold text-[var(--neo-text-secondary)]">
+              تکلیف
+            </span>
           </div>
           <div className="text-xs font-bold text-[var(--neo-text-secondary)] flex items-center gap-1.5">
             در انتظار بررسی و نمره‌دهی
-            <Link href="/instructor/assignments" className="text-amber-600 hover:underline mr-auto font-bold">
+            <Link
+              href="/instructor/assignments"
+              className="text-amber-600 hover:underline mr-auto font-bold"
+            >
               ثبت نمره
             </Link>
           </div>
@@ -217,7 +274,6 @@ export default function InstructorDashboard() {
 
       {/* Monthly Revenue Chart + Action Items */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        
         {/* Visual Revenue Trend Chart (2 cols) */}
         <div className="lg:col-span-2 bg-[var(--neo-surface)] rounded-3xl p-6 sm:p-7 shadow-sm border border-[var(--neo-border)] flex flex-col justify-between">
           <div className="flex justify-between items-center mb-6">
@@ -226,10 +282,12 @@ export default function InstructorDashboard() {
                 <TrendingUp className="w-5 h-5 text-emerald-500" />
                 روند درآمد ماهیانه شما
               </h3>
-              <p className="text-xs text-[var(--neo-text-secondary)] mt-0.5">درآمد ناخالص و تعداد فروش طی ۶ ماه گذشته</p>
+              <p className="text-xs text-[var(--neo-text-secondary)] mt-0.5">
+                درآمد ناخالص و تعداد فروش طی ۶ ماه گذشته
+              </p>
             </div>
-            <Link 
-              href="/instructor/sales" 
+            <Link
+              href="/instructor/sales"
               className="text-xs font-bold text-[var(--neo-primary)] hover:underline flex items-center gap-1"
             >
               گزارش جامع مالی
@@ -246,16 +304,22 @@ export default function InstructorDashboard() {
             <div className="space-y-4">
               <div className="h-44 flex items-end justify-between gap-3 pt-4 px-2">
                 {monthlyTrend.map((m: any, idx: number) => {
-                  const heightPercent = maxRevenueInTrend > 0 ? Math.max((m.revenue / maxRevenueInTrend) * 100, 8) : 8;
+                  const heightPercent =
+                    maxRevenueInTrend > 0
+                      ? Math.max((m.revenue / maxRevenueInTrend) * 100, 8)
+                      : 8;
                   return (
-                    <div key={idx} className="flex-1 flex flex-col items-center gap-2 h-full justify-end group relative">
+                    <div
+                      key={idx}
+                      className="flex-1 flex flex-col items-center gap-2 h-full justify-end group relative"
+                    >
                       {/* Tooltip */}
                       <div className="opacity-0 group-hover:opacity-100 transition-opacity absolute -top-10 bg-slate-900 text-white text-[10px] py-1 px-2 rounded-lg pointer-events-none whitespace-nowrap shadow-md z-20">
                         {m.revenue.toLocaleString()} تومان ({m.salesCount} فروش)
                       </div>
 
                       <div className="w-full max-w-[48px] bg-[var(--neo-surface-2)] rounded-2xl overflow-hidden flex flex-col justify-end h-full p-1">
-                        <div 
+                        <div
                           style={{ height: `${heightPercent}%` }}
                           className="w-full bg-gradient-to-t from-[var(--neo-primary)] to-blue-400 rounded-xl transition-all duration-500 group-hover:from-emerald-500 group-hover:to-teal-400"
                         />
@@ -270,7 +334,12 @@ export default function InstructorDashboard() {
               </div>
 
               <div className="pt-4 border-t border-[var(--neo-border)] flex justify-between items-center text-xs text-[var(--neo-text-secondary)]">
-                <span>مجموع فروش کل دوره: <strong className="text-[var(--neo-text-main)] font-black">{totalRevenue.toLocaleString()} تومان</strong></span>
+                <span>
+                  مجموع فروش کل دوره:{" "}
+                  <strong className="text-[var(--neo-text-main)] font-black">
+                    {totalRevenue.toLocaleString()} تومان
+                  </strong>
+                </span>
                 <span className="inline-flex items-center gap-1 text-emerald-600 font-bold">
                   <CheckCircle className="w-3.5 h-3.5" /> تسویه منظم ماهیانه
                 </span>
@@ -297,8 +366,8 @@ export default function InstructorDashboard() {
                 <div className="text-[11px] text-amber-700 mt-0.5">
                   دانشجویان منتظر دریافت نمره و بازخورد استاد هستند.
                 </div>
-                <Link 
-                  href="/instructor/assignments" 
+                <Link
+                  href="/instructor/assignments"
                   className="inline-flex items-center gap-1 text-[11px] font-bold text-amber-800 hover:underline mt-2"
                 >
                   شروع نمره‌دهی
@@ -317,8 +386,8 @@ export default function InstructorDashboard() {
                 <div className="text-[11px] text-blue-700 mt-0.5">
                   برای سنجش یادگیری، آزمون پایان فصل طراحی کنید.
                 </div>
-                <Link 
-                  href="/instructor/quizzes" 
+                <Link
+                  href="/instructor/quizzes"
                   className="inline-flex items-center gap-1 text-[11px] font-bold text-[var(--neo-primary)] hover:underline mt-2"
                 >
                   مدیریت آزمون‌ها
@@ -337,8 +406,8 @@ export default function InstructorDashboard() {
                 <div className="text-[11px] text-purple-700 mt-0.5">
                   پشتیبانی آنلاین و رفع اشکال تعاملی با دانشجویان.
                 </div>
-                <Link 
-                  href="/instructor/classes" 
+                <Link
+                  href="/instructor/classes"
                   className="inline-flex items-center gap-1 text-[11px] font-bold text-purple-800 hover:underline mt-2"
                 >
                   برنامه کلاس‌ها
@@ -348,12 +417,10 @@ export default function InstructorDashboard() {
             </div>
           </div>
         </div>
-
       </div>
 
       {/* Bottom 2 Columns: Top Courses & Recent Students */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        
         {/* Top Courses */}
         <div className="bg-[var(--neo-surface)] rounded-3xl p-6 sm:p-7 shadow-sm border border-[var(--neo-border)]">
           <div className="flex justify-between items-center mb-5">
@@ -361,7 +428,10 @@ export default function InstructorDashboard() {
               <BookOpen className="w-5 h-5 text-[var(--neo-primary)]" />
               دوره‌های اخیر شما
             </h3>
-            <Link href="/instructor/courses" className="text-xs font-bold text-[var(--neo-primary)] hover:underline">
+            <Link
+              href="/instructor/courses"
+              className="text-xs font-bold text-[var(--neo-primary)] hover:underline"
+            >
               همه دوره‌ها ({totalCourses})
             </Link>
           </div>
@@ -373,22 +443,41 @@ export default function InstructorDashboard() {
               </div>
             ) : (
               courses.slice(0, 4).map((course: any) => (
-                <div key={course._id} className="p-3.5 rounded-2xl bg-[var(--neo-surface-2)]/60 border border-[var(--neo-border)] flex items-center justify-between gap-3 hover:bg-[var(--neo-surface-2)] transition-colors">
+                <div
+                  key={course._id}
+                  className="p-3.5 rounded-2xl bg-[var(--neo-surface-2)]/60 border border-[var(--neo-border)] flex items-center justify-between gap-3 hover:bg-[var(--neo-surface-2)] transition-colors"
+                >
                   <div className="flex items-center gap-3 min-w-0">
                     <div className="w-12 h-10 rounded-xl bg-[var(--neo-surface)] overflow-hidden shrink-0 border border-[var(--neo-border)] flex items-center justify-center">
-                      <img 
-                        src={getImageUrl(course.thumbnail, 'course', course.title)} 
-                        alt={course.title} 
-                        className="w-full h-full object-cover" 
-                        onError={(e) => handleImageError(e, 'course', course.title)}
+                      <img
+                        src={getImageUrl(
+                          course.thumbnail,
+                          "course",
+                          course.title,
+                        )}
+                        alt={course.title}
+                        className="w-full h-full object-cover"
+                        onError={(e) =>
+                          handleImageError(e, "course", course.title)
+                        }
                       />
                     </div>
                     <div className="min-w-0">
-                      <h4 className="font-bold text-sm text-[var(--neo-text-main)] truncate">{course.title}</h4>
+                      <h4 className="font-bold text-sm text-[var(--neo-text-main)] truncate">
+                        {course.title}
+                      </h4>
                       <div className="flex items-center gap-2 text-xs text-[var(--neo-text-secondary)] mt-0.5">
-                        <span>{course.price === 0 ? 'رایگان' : `${course.price?.toLocaleString()} تومان`}</span>
+                        <span>
+                          {course.price === 0
+                            ? "رایگان"
+                            : `${course.price?.toLocaleString()} تومان`}
+                        </span>
                         <span>•</span>
-                        <span className="text-emerald-600 font-bold">{course.status === 'published' ? 'منتشر شده' : 'پیش‌نویس'}</span>
+                        <span className="text-emerald-600 font-bold">
+                          {course.status === "published"
+                            ? "منتشر شده"
+                            : "پیش‌نویس"}
+                        </span>
                       </div>
                     </div>
                   </div>
@@ -415,7 +504,10 @@ export default function InstructorDashboard() {
               <Users className="w-5 h-5 text-emerald-600" />
               آخرین دانشجویان ثبت‌نام شده
             </h3>
-            <Link href="/instructor/students" className="text-xs font-bold text-[var(--neo-primary)] hover:underline">
+            <Link
+              href="/instructor/students"
+              className="text-xs font-bold text-[var(--neo-primary)] hover:underline"
+            >
               مشاهده تمام دانشجویان
             </Link>
           </div>
@@ -427,24 +519,31 @@ export default function InstructorDashboard() {
               </div>
             ) : (
               recentStudents.slice(0, 4).map((student: any) => (
-                <div key={student._id} className="p-3.5 rounded-2xl bg-[var(--neo-surface-2)]/60 border border-[var(--neo-border)] flex items-center justify-between gap-3">
+                <div
+                  key={student._id}
+                  className="p-3.5 rounded-2xl bg-[var(--neo-surface-2)]/60 border border-[var(--neo-border)] flex items-center justify-between gap-3"
+                >
                   <div className="flex items-center gap-3 min-w-0">
                     <div className="w-10 h-10 rounded-2xl bg-[var(--neo-primary)]/10 text-[var(--neo-primary)] flex items-center justify-center font-bold text-sm shrink-0">
-                      {student.firstName?.[0] || 'د'}
+                      {student.firstName?.[0] || "د"}
                     </div>
                     <div className="min-w-0">
                       <h4 className="font-bold text-sm text-[var(--neo-text-main)] truncate">
                         {student.firstName} {student.lastName}
                       </h4>
                       <div className="text-xs text-[var(--neo-text-secondary)] truncate mt-0.5">
-                        {student.courseTitle || student.email || 'دانشجو'}
+                        {student.courseTitle || student.email || "دانشجو"}
                       </div>
                     </div>
                   </div>
 
                   <div className="text-left shrink-0">
                     <span className="text-xs text-[var(--neo-text-secondary)] block">
-                      {student.enrolledAt ? new Date(student.enrolledAt).toLocaleDateString('fa-IR') : 'به‌تازگی'}
+                      {student.enrolledAt
+                        ? new Date(student.enrolledAt).toLocaleDateString(
+                            "fa-IR",
+                          )
+                        : "به‌تازگی"}
                     </span>
                     <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full inline-block mt-0.5">
                       فعال
@@ -455,7 +554,6 @@ export default function InstructorDashboard() {
             )}
           </div>
         </div>
-
       </div>
 
       {/* Upcoming Classes Section */}
@@ -466,7 +564,10 @@ export default function InstructorDashboard() {
               <Calendar className="w-5 h-5 text-[var(--neo-primary)]" />
               کلاس‌های زنده و وبینارهای آینده شما
             </h3>
-            <Link href="/instructor/classes" className="text-xs font-bold text-[var(--neo-primary)] hover:underline">
+            <Link
+              href="/instructor/classes"
+              className="text-xs font-bold text-[var(--neo-primary)] hover:underline"
+            >
               مشاهده همه کلاس‌ها
             </Link>
           </div>
@@ -475,17 +576,31 @@ export default function InstructorDashboard() {
             {activeLiveClasses.map((cls: any) => {
               const date = new Date(cls.startDate);
               const day = date.getDate();
-              const monthName = date.toLocaleDateString('fa-IR', { month: 'short' });
-              const time = date.toLocaleTimeString('fa-IR', { hour: '2-digit', minute: '2-digit' });
+              const monthName = date.toLocaleDateString("fa-IR", {
+                month: "short",
+              });
+              const time = date.toLocaleTimeString("fa-IR", {
+                hour: "2-digit",
+                minute: "2-digit",
+              });
 
               return (
-                <div key={cls._id} className="p-4 rounded-2xl bg-[var(--neo-surface-2)]/60 border border-[var(--neo-border)] flex items-center gap-4">
+                <div
+                  key={cls._id}
+                  className="p-4 rounded-2xl bg-[var(--neo-surface-2)]/60 border border-[var(--neo-border)] flex items-center gap-4"
+                >
                   <div className="w-14 h-14 bg-[var(--neo-surface)] rounded-2xl border border-[var(--neo-border)] flex flex-col items-center justify-center shrink-0 shadow-sm">
-                    <span className="text-[10px] font-bold text-red-500">{monthName}</span>
-                    <span className="text-lg font-black text-[var(--neo-text-main)]">{day}</span>
+                    <span className="text-[10px] font-bold text-red-500">
+                      {monthName}
+                    </span>
+                    <span className="text-lg font-black text-[var(--neo-text-main)]">
+                      {day}
+                    </span>
                   </div>
                   <div className="flex-1 min-w-0">
-                    <h4 className="font-bold text-sm text-[var(--neo-text-main)] truncate">{cls.title}</h4>
+                    <h4 className="font-bold text-sm text-[var(--neo-text-main)] truncate">
+                      {cls.title}
+                    </h4>
                     <div className="text-xs text-[var(--neo-text-secondary)] mt-1 flex items-center gap-1">
                       <Clock className="w-3.5 h-3.5" />
                       <span>ساعت {time}</span>
@@ -507,7 +622,6 @@ export default function InstructorDashboard() {
           </div>
         </div>
       )}
-
     </div>
   );
 }

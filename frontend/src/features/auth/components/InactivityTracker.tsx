@@ -1,11 +1,11 @@
-'use client';
+"use client";
 
-import { useEffect, useState, useRef, useCallback } from 'react';
-import { useRouter } from 'next/navigation';
-import { useAuthStore } from '../stores/auth.store';
-import { authApi } from '../api/auth.api';
-import { ShieldAlert, RefreshCw, LogOut, Clock } from 'lucide-react';
-import toast from 'react-hot-toast';
+import { useEffect, useState, useRef, useCallback } from "react";
+import { useRouter } from "next/navigation";
+import { useAuthStore } from "../stores/auth.store";
+import { authApi } from "../api/auth.api";
+import { ShieldAlert, RefreshCw, LogOut, Clock } from "lucide-react";
+import toast from "react-hot-toast";
 
 export function InactivityTracker() {
   const { user, isAuthenticated, logout } = useAuthStore();
@@ -18,12 +18,20 @@ export function InactivityTracker() {
   const warningTimerRef = useRef<any>(null);
 
   const role = user?.role;
-  const isSuperAdmin = role === 'super-admin';
-  const isAdmin = role === 'admin';
+  const isSuperAdmin = role === "super-admin";
+  const isAdmin = role === "admin";
 
   // 15 min for super-admin (warn at 14m), 30 min for admin (warn at 28m)
-  const timeoutMs = isSuperAdmin ? 15 * 60 * 1000 : (isAdmin ? 30 * 60 * 1000 : 0);
-  const warningMs = isSuperAdmin ? 14 * 60 * 1000 : (isAdmin ? 28 * 60 * 1000 : 0);
+  const timeoutMs = isSuperAdmin
+    ? 15 * 60 * 1000
+    : isAdmin
+      ? 30 * 60 * 1000
+      : 0;
+  const warningMs = isSuperAdmin
+    ? 14 * 60 * 1000
+    : isAdmin
+      ? 28 * 60 * 1000
+      : 0;
 
   const handleLogoutDueToInactivity = useCallback(async () => {
     setShowWarning(false);
@@ -33,11 +41,11 @@ export function InactivityTracker() {
     logout();
     toast.error(
       isSuperAdmin
-        ? 'نشست کاری سوپرادمین به دلیل عدم فعالیت به مدت ۱۵ دقیقه جهت حفظ امنیت بسته شد.'
-        : 'نشست کاری ادمین به دلیل عدم فعالیت به مدت ۳۰ دقیقه بسته شد.',
-      { duration: 6000 }
+        ? "نشست کاری سوپرادمین به دلیل عدم فعالیت به مدت ۱۵ دقیقه جهت حفظ امنیت بسته شد."
+        : "نشست کاری ادمین به دلیل عدم فعالیت به مدت ۳۰ دقیقه بسته شد.",
+      { duration: 6000 },
     );
-    router.push('/login?reason=inactivity');
+    router.push("/login?reason=inactivity");
   }, [logout, router, isSuperAdmin]);
 
   const keepAlive = useCallback(async () => {
@@ -45,7 +53,7 @@ export function InactivityTracker() {
     setShowWarning(false);
     try {
       await authApi.getMe();
-      toast.success('نشست شما با موفقیت تمدید شد.');
+      toast.success("نشست شما با موفقیت تمدید شد.");
     } catch (err) {
       // If server rejected due to expired session, log out
       handleLogoutDueToInactivity();
@@ -65,7 +73,13 @@ export function InactivityTracker() {
 
     lastActivityRef.current = Date.now();
 
-    const activityEvents = ['mousedown', 'keydown', 'scroll', 'touchstart', 'click'];
+    const activityEvents = [
+      "mousedown",
+      "keydown",
+      "scroll",
+      "touchstart",
+      "click",
+    ];
     const handleEvent = () => recordActivity();
 
     activityEvents.forEach((event) => {
@@ -80,7 +94,10 @@ export function InactivityTracker() {
         handleLogoutDueToInactivity();
       } else if (inactive >= warningMs && !showWarning) {
         setShowWarning(true);
-        const remaining = Math.max(0, Math.round((timeoutMs - inactive) / 1000));
+        const remaining = Math.max(
+          0,
+          Math.round((timeoutMs - inactive) / 1000),
+        );
         setSecondsRemaining(remaining);
       }
     }, 1000);
@@ -91,7 +108,17 @@ export function InactivityTracker() {
       });
       if (checkIntervalRef.current) clearInterval(checkIntervalRef.current);
     };
-  }, [isAuthenticated, user, isSuperAdmin, isAdmin, timeoutMs, warningMs, showWarning, recordActivity, handleLogoutDueToInactivity]);
+  }, [
+    isAuthenticated,
+    user,
+    isSuperAdmin,
+    isAdmin,
+    timeoutMs,
+    warningMs,
+    showWarning,
+    recordActivity,
+    handleLogoutDueToInactivity,
+  ]);
 
   // Warning countdown timer
   useEffect(() => {
@@ -130,21 +157,22 @@ export function InactivityTracker() {
         </h3>
 
         <p className="text-sm text-[var(--neo-text-secondary)] text-center leading-relaxed mb-6">
-          به دلیل حفظ امنیت داده‌های سامانه تک‌یاد، چنانچه تا{' '}
+          به دلیل حفظ امنیت داده‌های سامانه تک یاد، چنانچه تا{" "}
           <span className="font-black text-amber-600 text-base mx-1 font-mono inline-block">
             {secondsRemaining}
-          </span>{' '}
-          ثانیه دیگر فعالیتی انجام ندهید، حساب کاربری{' '}
+          </span>{" "}
+          ثانیه دیگر فعالیتی انجام ندهید، حساب کاربری{" "}
           <span className="font-bold text-[var(--neo-text-main)]">
-            {isSuperAdmin ? 'سوپرادمین' : 'ادمین'}
-          </span>{' '}
+            {isSuperAdmin ? "سوپرادمین" : "ادمین"}
+          </span>{" "}
           به‌صورت خودکار بسته خواهد شد.
         </p>
 
         <div className="flex items-center justify-center gap-2 mb-6 py-2 px-4 bg-amber-50 rounded-xl text-amber-800 text-xs font-medium border border-amber-100">
           <Clock className="w-4 h-4 shrink-0 text-amber-600" />
           <span>
-            سیاست امنیتی: خروج پس از {isSuperAdmin ? '۱۵' : '۳۰'} دقیقه عدم فعالیت
+            سیاست امنیتی: خروج پس از {isSuperAdmin ? "۱۵" : "۳۰"} دقیقه عدم
+            فعالیت
           </span>
         </div>
 

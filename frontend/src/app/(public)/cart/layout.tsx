@@ -1,8 +1,9 @@
-import type { Metadata } from 'next';
+import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: 'سبد خرید شما | تک‌یاد',
-  description: 'مشاهده دوره‌ها و کارگاه‌های آموزشی انتخابی و تسویه حساب در تک‌یاد.',
+  title: "سبد خرید شما | تک یاد",
+  description:
+    "مشاهده دوره‌ها و کارگاه‌های آموزشی انتخابی و تسویه حساب در تک یاد.",
   robots: {
     index: false,
     follow: false,

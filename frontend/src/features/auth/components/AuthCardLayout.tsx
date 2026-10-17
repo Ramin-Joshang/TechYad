@@ -29,11 +29,11 @@ export function AuthCardLayout({
           >
             <img
               src="/logo.png"
-              alt="لوگو تک‌یاد"
+              alt="لوگو تک یاد"
               className="h-14 w-auto object-contain rounded-xl shadow-xs group-hover:scale-105 transition-transform"
             />
             <span className="font-black text-xl text-[var(--neo-text-main)] tracking-tight inline-flex items-center gap-1.5">
-              <span>تک‌یاد</span>
+              <span>تک یاد</span>
               <span className="text-[10px] font-mono tracking-wider font-semibold text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded uppercase">
                 Tecyad
               </span>
