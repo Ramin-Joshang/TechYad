@@ -71,6 +71,7 @@ export default function UserDetailPage() {
     password: '',
     status: 'active',
     role: '',
+    roles: [] as string[],
     specialty: '',
     bio: '',
   });
@@ -80,6 +81,11 @@ export default function UserDetailPage() {
 
   useEffect(() => {
     if (user) {
+      const userRoleIds: string[] = [
+        ...(Array.isArray(user.roles) ? user.roles.map((r: any) => r._id?.toString() || r.slug || r) : []),
+        user.role?._id?.toString() || user.role?.slug || user.role
+      ].filter(Boolean);
+
       setFormData({
         firstName: user.firstName || '',
         lastName: user.lastName || '',
@@ -90,6 +96,7 @@ export default function UserDetailPage() {
         password: '',
         status: user.status || 'active',
         role: user.role?._id || user.role || '',
+        roles: Array.from(new Set(userRoleIds)),
         specialty: user.specialty || instructorProfile?.title || '',
         bio: user.bio || instructorProfile?.bio || '',
       });

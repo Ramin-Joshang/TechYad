@@ -227,23 +227,24 @@ export class CommerceService {
           discount = 0;
         } else if (plan === 'installment') {
           // 4-month installment pricing (SnappPay 0% interest)
-          originalPrice = (course.installmentPrice && course.installmentPrice > 0)
+          const instPrice = (course.installmentPrice && course.installmentPrice > 0)
             ? course.installmentPrice
-            : (course.price > 0 ? course.price : 0);
-          finalPrice = originalPrice;
+            : ((course.cashPrice || course.price || 0) * 2);
+          originalPrice = instPrice;
+          finalPrice = instPrice;
           discount = 0;
-          downPayment = Math.round(finalPrice * 0.25);
-          monthlyInstallment = Math.round((finalPrice - downPayment) / 3);
+          downPayment = Math.round(instPrice / 4);
+          monthlyInstallment = Math.round(instPrice / 4);
         } else {
           // Cash pricing with discount check
-          const validDiscount = (course.discountPrice !== undefined && course.discountPrice !== null && course.discountPrice > 0 && course.discountPrice < originalPrice)
+          const cashVal = (course.cashPrice && course.cashPrice > 0) ? course.cashPrice : (course.price || 0);
+          const nominalFull = (course.installmentPrice && course.installmentPrice > 0) ? course.installmentPrice : (cashVal * 2);
+          const validDiscount = (course.discountPrice && course.discountPrice > 0 && course.discountPrice < cashVal)
             ? course.discountPrice
             : undefined;
-          const validCash = (course.cashPrice !== undefined && course.cashPrice !== null && course.cashPrice > 0 && course.cashPrice <= originalPrice)
-            ? course.cashPrice
-            : undefined;
 
-          finalPrice = validDiscount !== undefined ? validDiscount : (validCash !== undefined ? validCash : originalPrice);
+          finalPrice = validDiscount !== undefined ? validDiscount : cashVal;
+          originalPrice = nominalFull;
           discount = Math.max(0, originalPrice - finalPrice);
         }
 
@@ -558,7 +559,7 @@ export class CommerceService {
     const orders = await Order.find({ userId }).sort({ createdAt: -1 });
     const orderIds = orders.map(o => o._id);
     const payments = await Payment.find({ orderId: { $in: orderIds }, userId });
-    const paymentMap = new Map(payments.map(p => [p.orderId.toString(), p]));
+    const paymentMap = new Map(payments.filter(p => p.orderId).map(p => [p.orderId!.toString(), p]));
 
     return orders.map(order => {
       const payment = paymentMap.get(order._id.toString());
@@ -991,5 +992,227 @@ export class CommerceService {
       session.endSession();
       throw error;
     }
+  }
+
+  static async getAccountingOverview(query: { startDate?: string; endDate?: string } = {}) {
+    const filter: any = {};
+    if (query.startDate || query.endDate) {
+      filter.createdAt = {};
+      if (query.startDate) filter.createdAt.$gte = new Date(query.startDate);
+      if (query.endDate) filter.createdAt.$lte = new Date(query.endDate);
+    }
+
+    const [
+      totalOrders,
+      paidOrders,
+      totalPayments,
+      paidPayments,
+      pendingPayments,
+      failedPayments,
+      refundedPayments,
+      completedWalletDeposits
+    ] = await Promise.all([
+      Order.countDocuments(filter),
+      Order.find({ ...filter, status: 'paid' }).lean(),
+      Payment.countDocuments(filter),
+      Payment.find({ ...filter, status: 'paid' }).lean(),
+      Payment.countDocuments({ ...filter, status: 'pending' }),
+      Payment.countDocuments({ ...filter, status: 'failed' }),
+      Payment.find({ ...filter, status: 'refunded' }).lean(),
+      WalletTransaction.find({ ...filter, type: 'deposit', status: 'completed' }).lean()
+    ]);
+
+    // Financial Metrics
+    const grossPaymentRevenue = paidPayments.reduce((sum, p) => sum + (p.amount || 0), 0);
+    const totalOrderRevenue = paidOrders.reduce((sum, o) => sum + (o.totalAmount || 0), 0);
+    const totalDiscounts = paidOrders.reduce((sum, o) => sum + (o.discountAmount || 0), 0);
+    const totalRefundedAmount = refundedPayments.reduce((sum, p) => sum + (p.amount || 0), 0);
+    const totalWalletDeposits = completedWalletDeposits.reduce((sum, w) => sum + (w.amount || 0), 0);
+
+    // Course vs Class sales breakdown
+    let courseSalesCount = 0;
+    let classSalesCount = 0;
+    let courseRevenue = 0;
+    let classRevenue = 0;
+
+    for (const order of paidOrders) {
+      for (const item of (order as any).items || []) {
+        if (item.itemType === 'course') {
+          courseSalesCount++;
+          courseRevenue += item.finalPrice || item.price || 0;
+        } else if (item.itemType === 'class') {
+          classSalesCount++;
+          classRevenue += item.finalPrice || item.price || 0;
+        }
+      }
+    }
+
+    // Net Revenue: Actual collected funds from paid orders minus refunds
+    const netRevenue = Math.max(0, totalOrderRevenue - totalRefundedAmount);
+
+    return {
+      ordersCount: totalOrders,
+      paidOrdersCount: paidOrders.length,
+      totalPayments,
+      paymentsSummary: {
+        paidCount: paidPayments.length,
+        pendingCount: pendingPayments,
+        failedCount: failedPayments,
+        refundedCount: refundedPayments.length,
+      },
+      financials: {
+        grossRevenue: grossPaymentRevenue,
+        orderRevenue: totalOrderRevenue,
+        totalDiscounts,
+        totalRefunds: totalRefundedAmount,
+        netRevenue,
+        currency: 'تومان'
+      },
+      salesBreakdown: {
+        courses: { count: courseSalesCount, revenue: courseRevenue },
+        classes: { count: classSalesCount, revenue: classRevenue }
+      },
+      walletSummary: {
+        depositCount: completedWalletDeposits.length,
+        totalDepositAmount: totalWalletDeposits
+      }
+    };
+  }
+
+  static async getAccountingTransactions(params: {
+    page?: number;
+    limit?: number;
+    status?: string;
+    type?: string;
+    search?: string;
+    startDate?: string;
+    endDate?: string;
+  }) {
+    const page = Math.max(1, Number(params.page) || 1);
+    const limit = Math.min(100, Math.max(1, Number(params.limit) || 15));
+    const skip = (page - 1) * limit;
+
+    const filter: any = {};
+    if (params.status && params.status !== 'all') {
+      filter.status = params.status;
+    }
+    if (params.type && params.type !== 'all') {
+      filter.originType = params.type;
+    }
+    if (params.startDate || params.endDate) {
+      filter.createdAt = {};
+      if (params.startDate) filter.createdAt.$gte = new Date(params.startDate);
+      if (params.endDate) filter.createdAt.$lte = new Date(params.endDate);
+    }
+
+    if (params.search && params.search.trim()) {
+      const term = params.search.trim();
+      filter.$or = [
+        { resNum: { $regex: term, $options: 'i' } },
+        { refNum: { $regex: term, $options: 'i' } },
+        { traceNo: { $regex: term, $options: 'i' } },
+        { rrn: { $regex: term, $options: 'i' } },
+        { referenceId: { $regex: term, $options: 'i' } },
+        { authority: { $regex: term, $options: 'i' } }
+      ];
+    }
+
+    const [total, payments] = await Promise.all([
+      Payment.countDocuments(filter),
+      Payment.find(filter)
+        .populate('userId', 'firstName lastName email mobile')
+        .populate({
+          path: 'orderId',
+          select: 'items totalAmount discountAmount status paymentMethod'
+        })
+        .populate('walletTransactionId', 'title description amount status')
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit)
+        .lean()
+    ]);
+
+    const sanitizedPayments = payments.map((p: any) => ({
+      _id: p._id,
+      amount: p.amount,
+      currency: p.currency || 'تومان',
+      gateway: p.gateway,
+      originType: p.originType || (p.walletTransactionId ? 'wallet_topup' : 'order'),
+      status: p.status,
+      resNum: p.resNum || p.referenceId,
+      refNum: p.refNum,
+      rrn: p.rrn,
+      traceNo: p.traceNo,
+      terminalId: p.terminalId,
+      maskedPan: p.maskedPan,
+      gatewayErrorCode: p.gatewayErrorCode,
+      gatewayErrorMessage: p.gatewayErrorMessage,
+      createdAt: p.createdAt,
+      returnAt: p.returnAt,
+      verifiedAt: p.verifiedAt || p.paidAt,
+      user: p.userId ? {
+        id: p.userId._id,
+        name: `${p.userId.firstName || ''} ${p.userId.lastName || ''}`.trim(),
+        mobile: p.userId.mobile,
+        email: p.userId.email
+      } : null,
+      order: p.orderId ? {
+        id: p.orderId._id,
+        itemsCount: p.orderId.items?.length || 0,
+        items: p.orderId.items?.map((it: any) => it.titleSnapshot) || [],
+        totalAmount: p.orderId.totalAmount
+      } : null,
+      walletTx: p.walletTransactionId ? {
+        id: p.walletTransactionId._id,
+        title: p.walletTransactionId.title,
+        status: p.walletTransactionId.status
+      } : null
+    }));
+
+    return {
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit),
+      transactions: sanitizedPayments
+    };
+  }
+
+  static async getAccountingTransactionById(id: string) {
+    const payment = await Payment.findById(id)
+      .populate('userId', 'firstName lastName email mobile status')
+      .populate({
+        path: 'orderId',
+        select: 'items totalAmount discountAmount walletAmountApplied gatewayAmount status paymentMethod createdAt'
+      })
+      .populate('walletTransactionId')
+      .lean();
+
+    if (!payment) {
+      throw new AppError('تراکنش مالی یافت نشد', 404);
+    }
+
+    return {
+      _id: payment._id,
+      amount: payment.amount,
+      currency: payment.currency || 'تومان',
+      gateway: payment.gateway,
+      originType: payment.originType || (payment.walletTransactionId ? 'wallet_topup' : 'order'),
+      status: payment.status,
+      resNum: payment.resNum || payment.referenceId,
+      refNum: payment.refNum,
+      rrn: payment.rrn,
+      traceNo: payment.traceNo,
+      terminalId: payment.terminalId,
+      maskedPan: payment.maskedPan,
+      gatewayErrorCode: payment.gatewayErrorCode,
+      gatewayErrorMessage: payment.gatewayErrorMessage,
+      createdAt: payment.createdAt,
+      returnAt: payment.returnAt,
+      verifiedAt: payment.verifiedAt || payment.paidAt,
+      user: payment.userId,
+      order: payment.orderId,
+      walletTransaction: payment.walletTransactionId
+    };
   }
 }

@@ -7,6 +7,7 @@ export type UserStatus =
 
 export interface IUser extends Document {
   role: Types.ObjectId;
+  roles?: Types.ObjectId[];
 
   firstName: string;
   lastName: string;
@@ -50,6 +51,14 @@ const userSchema = new Schema<IUser>(
       required: true,
       index: true,
     },
+
+    roles: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: "Role",
+        index: true,
+      },
+    ],
 
     firstName: {
       type: String,

@@ -55,6 +55,8 @@ export default function EditCoursePage() {
     shortDescription: '',
     description: '',
     price: 0,
+    cashPrice: 0,
+    installmentPrice: 0,
     thumbnail: '',
     previewVideo: '',
     categoryId: '',
@@ -75,6 +77,8 @@ export default function EditCoursePage() {
         shortDescription: course.shortDescription || '',
         description: course.description || '',
         price: course.price || 0,
+        cashPrice: course.cashPrice !== undefined && course.cashPrice !== null ? course.cashPrice : (course.price || 0),
+        installmentPrice: course.installmentPrice !== undefined && course.installmentPrice !== null ? course.installmentPrice : (course.price ? course.price * 2 : 0),
         thumbnail: course.thumbnail || '',
         previewVideo: course.previewVideo || '',
         categoryId: course.categoryId?._id || course.categoryId || '',
@@ -92,9 +96,13 @@ export default function EditCoursePage() {
     setLoading(true);
 
     try {
+      const cash = Number(formData.cashPrice) || Number(formData.price) || 0;
+      const inst = Number(formData.installmentPrice) || (cash * 2);
       const payload = {
         ...formData,
-        price: Number(formData.price)
+        price: cash,
+        cashPrice: cash,
+        installmentPrice: inst,
       };
 
       if (isAdminUser) {
@@ -281,19 +289,52 @@ export default function EditCoursePage() {
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-[var(--neo-text-main)] mb-1.5">قیمت دوره (تومان) *</label>
+                <label className="block text-xs font-bold text-[var(--neo-text-main)] mb-1.5">قیمت نقدی دوره (تومان) *</label>
                 <input 
                   type="text" 
                   inputMode="numeric"
                   required
-                  value={formData.price}
+                  value={formData.cashPrice !== undefined ? formData.cashPrice : formData.price}
                   onChange={(e) => {
                     const clean = toEnDigits(e.target.value).replace(/[^0-9]/g, '');
-                    setFormData({...formData, price: clean ? Number(clean) : 0});
+                    const val = clean ? Number(clean) : 0;
+                    setFormData(prev => ({
+                      ...prev,
+                      cashPrice: val,
+                      price: val,
+                      installmentPrice: prev.installmentPrice ? prev.installmentPrice : val * 2,
+                    }));
                   }}
                   className="w-full px-4 py-2.5 bg-[var(--neo-surface-2)] border border-[var(--neo-border)] rounded-xl focus:ring-2 focus:ring-[var(--neo-primary)] outline-none text-sm font-medium text-left dir-ltr"
                   placeholder="0 برای دوره رایگان"
                 />
+                <span className="text-[11px] text-[var(--neo-text-muted)] block mt-1">مبلغ کل در روش پرداخت نقدی</span>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-[var(--neo-text-main)] mb-1.5">قیمت اقساطی ۴ ماهه اسنپ‌پی (تومان)</label>
+                <input 
+                  type="text" 
+                  inputMode="numeric"
+                  value={formData.installmentPrice || ''}
+                  onChange={(e) => {
+                    const clean = toEnDigits(e.target.value).replace(/[^0-9]/g, '');
+                    const val = clean ? Number(clean) : 0;
+                    setFormData(prev => ({
+                      ...prev,
+                      installmentPrice: val,
+                    }));
+                  }}
+                  className="w-full px-4 py-2.5 bg-[var(--neo-surface-2)] border border-[var(--neo-border)] rounded-xl focus:ring-2 focus:ring-[var(--neo-primary)] outline-none text-sm font-medium text-left dir-ltr"
+                  placeholder="پیش‌فرض: ۲ برابر قیمت نقدی"
+                />
+                {formData.installmentPrice > 0 ? (
+                  <span className="text-[11px] text-purple-700 block mt-1 font-medium">
+                    قسط اول (امروز): {Math.round(formData.installmentPrice / 4).toLocaleString('fa-IR')} ت | ۳ قسط بعدی: ماهانه {Math.round(formData.installmentPrice / 4).toLocaleString('fa-IR')} ت
+                  </span>
+                ) : (
+                  <span className="text-[11px] text-[var(--neo-text-muted)] block mt-1">امکان پرداخت در ۴ قسط مساوی</span>
+                )}
               </div>
             </div>
 

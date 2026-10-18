@@ -11,12 +11,31 @@ import { Order } from '../commerce/order.model.js';
 import { Enrollment } from '../learning/enrollment.model.js';
 import { AuditService } from '../../common/services/audit.service.js';
 import { MediaService } from '../media/media.service.js';
+import { normalizePricing } from '../../common/utils/pricing.js';
 
 export class CourseService {
   // --- Courses ---
   static async createCourse(instructorId: string, data: any) {
     const payload = { ...data };
     delete payload.instructorSharePercent; // Never allow instructor to alter commission share
+
+    // Explicit pricing normalization (Cash vs 4-Month Installment vs Free)
+    const normPrice = normalizePricing({
+      price: payload.price,
+      cashPrice: payload.cashPrice,
+      installmentPrice: payload.installmentPrice,
+      discountPrice: payload.discountPrice,
+      isFree: payload.isFree,
+    });
+    payload.isFree = normPrice.isFree;
+    payload.price = normPrice.price;
+    payload.cashPrice = normPrice.cashPrice;
+    payload.installmentPrice = normPrice.installmentPrice;
+    if (normPrice.discountPrice) {
+      payload.discountPrice = normPrice.discountPrice;
+    } else {
+      delete payload.discountPrice;
+    }
 
     const course = await Course.create({
       ...payload,
@@ -223,11 +242,25 @@ static async getInstructorCourses(instructorId: string, query: any) {
     const existingCourse = await Course.findOne(query);
     if (!existingCourse) throw new AppError('Course not found or unauthorized', 404, 'NOT_FOUND');
 
-    // Clean up old thumbnail if replaced
-    if (payload.thumbnail && existingCourse.thumbnail && payload.thumbnail !== existingCourse.thumbnail && existingCourse.thumbnail.startsWith('/uploads/')) {
-      MediaService.deleteFile(instructorId || existingCourse.createdBy?.toString() || '', existingCourse.thumbnail, true).catch(err => {
-        console.error('Failed to delete old course thumbnail:', err);
+    // Explicit pricing normalization (Cash vs 4-Month Installment vs Free)
+    if (payload.price !== undefined || payload.cashPrice !== undefined || payload.installmentPrice !== undefined || payload.isFree !== undefined || payload.discountPrice !== undefined) {
+      const normPrice = normalizePricing({
+        price: payload.price !== undefined ? payload.price : existingCourse.price,
+        cashPrice: payload.cashPrice !== undefined ? payload.cashPrice : existingCourse.cashPrice,
+        installmentPrice: payload.installmentPrice !== undefined ? payload.installmentPrice : existingCourse.installmentPrice,
+        discountPrice: payload.discountPrice !== undefined ? payload.discountPrice : existingCourse.discountPrice,
+        isFree: payload.isFree !== undefined ? payload.isFree : existingCourse.isFree,
       });
+      payload.isFree = normPrice.isFree;
+      payload.price = normPrice.price;
+      payload.cashPrice = normPrice.cashPrice;
+      payload.installmentPrice = normPrice.installmentPrice;
+      if (normPrice.discountPrice) {
+        payload.discountPrice = normPrice.discountPrice;
+      } else {
+        payload.$unset = { ...(payload.$unset || {}), discountPrice: 1 };
+        delete payload.discountPrice;
+      }
     }
 
     const course = await Course.findByIdAndUpdate(

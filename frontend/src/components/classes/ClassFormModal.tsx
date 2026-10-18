@@ -123,7 +123,11 @@ export function ClassFormModal({
     startDate: initialData?.startDate ? initialData.startDate.substring(0, 16) : '',
     endDate: initialData?.endDate ? initialData.endDate.substring(0, 16) : '',
     price: initialData?.price || 0,
+    cashPrice: initialData?.cashPrice !== undefined && initialData?.cashPrice !== null ? initialData.cashPrice : (initialData?.price || 0),
+    installmentPrice: initialData?.installmentPrice !== undefined && initialData?.installmentPrice !== null ? initialData.installmentPrice : (initialData?.price ? initialData.price * 2 : 0),
     discountPrice: initialData?.discountPrice || 0,
+    isFree: !!initialData?.isFree,
+    autoCalculatePricing: initialData?.installmentPrice ? (initialData.installmentPrice === (initialData.cashPrice || initialData.price) * 2) : true,
     capacity: initialData?.capacity || initialData?.maxStudents || 30,
     sessions: initialData?.sessions || 10,
     totalHours: initialData?.totalHours || 20,
@@ -213,6 +217,55 @@ export function ClassFormModal({
         totalHours: calcHours
       };
     });
+  };
+
+  const handleCashPriceChange = (num: number) => {
+    setFormData(prev => {
+      const cash = Math.max(0, num || 0);
+      const isFree = cash === 0 && (!prev.autoCalculatePricing ? prev.installmentPrice === 0 : true);
+      return {
+        ...prev,
+        cashPrice: cash,
+        price: cash,
+        isFree,
+        installmentPrice: prev.autoCalculatePricing ? (cash * 2) : prev.installmentPrice,
+      };
+    });
+  };
+
+  const handleInstallmentPriceChange = (num: number) => {
+    setFormData(prev => {
+      const inst = Math.max(0, num || 0);
+      return {
+        ...prev,
+        installmentPrice: inst,
+        cashPrice: prev.autoCalculatePricing ? Math.round(inst / 2) : prev.cashPrice,
+        price: prev.autoCalculatePricing ? Math.round(inst / 2) : prev.cashPrice,
+        isFree: inst === 0 && (prev.autoCalculatePricing ? true : prev.cashPrice === 0),
+      };
+    });
+  };
+
+  const handleToggleAutoCalculatePricing = (checked: boolean) => {
+    setFormData(prev => {
+      const nextInst = checked ? (prev.cashPrice * 2) : prev.installmentPrice;
+      return {
+        ...prev,
+        autoCalculatePricing: checked,
+        installmentPrice: nextInst,
+      };
+    });
+  };
+
+  const handleToggleFree = (checked: boolean) => {
+    setFormData(prev => ({
+      ...prev,
+      isFree: checked,
+      price: checked ? 0 : prev.price,
+      cashPrice: checked ? 0 : prev.cashPrice,
+      installmentPrice: checked ? 0 : prev.installmentPrice,
+      discountPrice: checked ? 0 : prev.discountPrice,
+    }));
   };
 
   const toggleDay = (day: string) => {
@@ -317,7 +370,9 @@ export function ClassFormModal({
       return;
     }
 
-    const price = Number(formData.price) || 0;
+    const isFree = formData.isFree || (formData.cashPrice === 0 && formData.installmentPrice === 0);
+    const cashPrice = isFree ? 0 : (Number(formData.cashPrice) || Number(formData.price) || 0);
+    const installmentPrice = isFree ? 0 : (Number(formData.installmentPrice) || (cashPrice * 2));
     const discountPrice = Number(formData.discountPrice) || 0;
     const capacity = Number(formData.capacity) || 0;
 
@@ -327,21 +382,21 @@ export function ClassFormModal({
       return;
     }
 
-    if (discountPrice > 0 && discountPrice >= price) {
-      toast.error('شهریه تخفیف‌دار باید کمتر از شهریه اصلی کلاس باشد');
+    if (!isFree && discountPrice > 0 && discountPrice >= cashPrice) {
+      toast.error('شهریه تخفیف‌دار باید کمتر از قیمت نقدی کلاس باشد');
       setActiveTab('pricing');
       return;
     }
 
-    if (formData.allowPreRegistration) {
+    if (formData.allowPreRegistration && !isFree) {
       const deposit = Number(formData.preRegistrationDeposit) || 0;
       if (deposit <= 0) {
         toast.error('لطفاً مبلغ معتبر برای بیعانه پیش‌ثبت‌نام تعیین کنید');
         setActiveTab('pricing');
         return;
       }
-      if (price > 0 && deposit >= price) {
-        toast.error('مبلغ بیعانه باید کمتر از کل شهریه کلاس باشد');
+      if (cashPrice > 0 && deposit >= cashPrice) {
+        toast.error('مبلغ بیعانه باید کمتر از کل شهریه نقدی کلاس باشد');
         setActiveTab('pricing');
         return;
       }
@@ -356,13 +411,16 @@ export function ClassFormModal({
     const payload = {
       ...formData,
       instructors: formData.instructorId ? [formData.instructorId] : (initialData?.instructors || undefined),
-      price: price,
-      discountPrice: discountPrice,
+      price: cashPrice,
+      cashPrice: cashPrice,
+      installmentPrice: installmentPrice,
+      discountPrice: discountPrice > 0 ? discountPrice : undefined,
+      isFree: isFree,
       capacity: capacity,
       sessions: Number(formData.sessions) || formData.syllabus.length || 10,
       totalHours: Number(formData.totalHours) || 20,
       sessionDuration: Number(formData.sessionDuration) || 90,
-      preRegistrationDeposit: formData.allowPreRegistration ? Number(formData.preRegistrationDeposit) : 0,
+      preRegistrationDeposit: (formData.allowPreRegistration && !isFree) ? Number(formData.preRegistrationDeposit) : 0,
       remainingPaymentDueAfterSession: Number(formData.remainingPaymentDueAfterSession) || 2,
     };
 
@@ -805,29 +863,134 @@ export function ClassFormModal({
           {/* TAB 3: PRICING & PRE-REGISTRATION */}
           {activeTab === 'pricing' && (
             <div className="space-y-6 animate-in fade-in duration-200">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <NumericInput
-                    label="شهریه کل کلاس"
-                    unit="تومان"
-                    required
-                    value={formData.price}
-                    onChange={num => setFormData({ ...formData, price: num })}
-                    placeholder="0 برای کلاس رایگان"
-                    helperText={formData.price > 0 ? `${Number(formData.price).toLocaleString('fa-IR')} تومان` : 'کلاس به صورت رایگان ارائه می‌شود'}
+              {/* Free Class Toggle */}
+              <div className="flex items-center justify-between p-4 bg-slate-50 border border-slate-200 rounded-2xl">
+                <div className="flex items-center gap-3">
+                  <input
+                    type="checkbox"
+                    id="isFreeClassToggle"
+                    checked={formData.isFree}
+                    onChange={e => handleToggleFree(e.target.checked)}
+                    className="w-5 h-5 rounded text-emerald-600 focus:ring-emerald-500 border-slate-300 cursor-pointer"
                   />
+                  <label htmlFor="isFreeClassToggle" className="text-sm font-bold text-slate-900 cursor-pointer">
+                    ارائه این کلاس به صورت کاملاً رایگان (بدون دریافت شهریه)
+                  </label>
                 </div>
-
-                <div>
-                  <NumericInput
-                    label="شهریه با تخفیف ویژه (اختیاری)"
-                    unit="تومان"
-                    value={formData.discountPrice || ''}
-                    onChange={num => setFormData({ ...formData, discountPrice: num })}
-                    placeholder="در صورت وجود تخفیف"
-                  />
-                </div>
+                {formData.isFree && (
+                  <span className="text-xs font-bold text-emerald-700 bg-emerald-100/80 px-2.5 py-1 rounded-lg">
+                    کلاس رایگان
+                  </span>
+                )}
               </div>
+
+              {!formData.isFree && (
+                <>
+                  {/* Business Policy Auto-Calculate Switch */}
+                  <div className="flex items-center justify-between p-3.5 bg-blue-50/70 border border-blue-200 rounded-2xl text-xs">
+                    <label className="flex items-center gap-2.5 cursor-pointer font-bold text-blue-950">
+                      <input
+                        type="checkbox"
+                        checked={formData.autoCalculatePricing}
+                        onChange={e => handleToggleAutoCalculatePricing(e.target.checked)}
+                        className="w-4 h-4 rounded text-blue-600 focus:ring-blue-500 border-blue-300"
+                      />
+                      <span>سیاست استاندارد پلتفرم: قیمت نقدی برابر با نصف قیمت اقساطی ۴ ماهه است (۵۰٪ تخفیف نقدی)</span>
+                    </label>
+                    <span className="text-[11px] font-semibold text-blue-700 bg-white px-2 py-0.5 rounded-md border border-blue-200 shrink-0">
+                      {formData.autoCalculatePricing ? 'محاسبه هماهنگ فعال' : 'قیمت‌گذاری مستقل'}
+                    </span>
+                  </div>
+
+                  {/* Dual Pricing Grid */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="p-4 bg-white border-2 border-blue-200 rounded-2xl space-y-2">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-black text-blue-900">روش اول: پرداخت نقدی</span>
+                        <span className="text-[10px] bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full font-bold">تسویه یکجا</span>
+                      </div>
+                      <NumericInput
+                        label="قیمت نقدی کلاس"
+                        unit="تومان"
+                        required
+                        value={formData.cashPrice || ''}
+                        onChange={handleCashPriceChange}
+                        placeholder="مثال: ۱,۵۰۰,۰۰۰"
+                        helperText={formData.cashPrice > 0 ? `${Number(formData.cashPrice).toLocaleString('fa-IR')} تومان` : 'مبلغ کل در روش پرداخت نقدی'}
+                      />
+                    </div>
+
+                    <div className="p-4 bg-white border-2 border-purple-200 rounded-2xl space-y-2">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-black text-purple-900">روش دوم: پرداخت اقساطی ۴ ماهه</span>
+                        <span className="text-[10px] bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full font-bold">اسنپ‌پی (بدون کارمزد)</span>
+                      </div>
+                      <NumericInput
+                        label="مجموع شهریه اقساطی ۴ ماهه"
+                        unit="تومان"
+                        required
+                        value={formData.installmentPrice || ''}
+                        onChange={handleInstallmentPriceChange}
+                        placeholder="مثال: ۳,۰۰۰,۰۰۰"
+                        helperText={formData.installmentPrice > 0 ? `${Number(formData.installmentPrice).toLocaleString('fa-IR')} تومان` : 'مبلغ کل روش اقساطی'}
+                      />
+                    </div>
+                  </div>
+
+                  {/* SnappPay 4-Month Breakdown Live Preview Card */}
+                  {formData.installmentPrice > 0 && (
+                    <div className="p-4 bg-linear-to-r from-purple-50 via-indigo-50 to-purple-50 border border-purple-200 rounded-2xl space-y-3">
+                      <div className="flex items-center justify-between flex-wrap gap-2">
+                        <div className="flex items-center gap-2">
+                          <CreditCard className="w-4 h-4 text-purple-700" />
+                          <h4 className="text-xs font-black text-purple-950">
+                            محاسبه هوشمند اقساط اسنپ‌پی (قواعد پرداخت ۴ ماهه)
+                          </h4>
+                        </div>
+                        <span className="text-[11px] font-bold text-purple-700 bg-white px-2.5 py-0.5 rounded-full border border-purple-200">
+                          ۴ قسط مساوی ماهانه (۰٪ سود و بدون کارمزد)
+                        </span>
+                      </div>
+
+                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 text-xs">
+                        <div className="bg-white p-2.5 rounded-xl border border-purple-100">
+                          <span className="text-slate-500 block text-[11px] mb-0.5">قسط اول (پیش‌پرداخت امروز):</span>
+                          <span className="font-black text-purple-900 text-sm font-mono">
+                            {Math.round(formData.installmentPrice / 4).toLocaleString('fa-IR')}
+                          </span>{' '}
+                          <span className="text-[10px] text-slate-500">تومان</span>
+                        </div>
+                        <div className="bg-white p-2.5 rounded-xl border border-purple-100">
+                          <span className="text-slate-500 block text-[11px] mb-0.5">۳ قسط ماهانه بعدی:</span>
+                          <span className="font-bold text-purple-700 text-sm font-mono">
+                            هر ماه {Math.round(formData.installmentPrice / 4).toLocaleString('fa-IR')}
+                          </span>{' '}
+                          <span className="text-[10px] text-slate-500">تومان</span>
+                        </div>
+                        <div className="bg-white p-2.5 rounded-xl border border-emerald-200 col-span-2 sm:col-span-1">
+                          <span className="text-emerald-700 block text-[11px] mb-0.5 font-bold">مزیت پرداخت نقدی:</span>
+                          <span className="font-black text-emerald-800 text-sm font-mono">
+                            {Math.max(0, formData.installmentPrice - formData.cashPrice).toLocaleString('fa-IR')}
+                          </span>{' '}
+                          <span className="text-[10px] text-emerald-700">تومان تخفیف</span>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Optional Promotional Discount on Cash Price */}
+                  <div className="p-4 bg-slate-50 border border-slate-200 rounded-2xl">
+                    <NumericInput
+                      label="شهریه با تخفیف ویژه دوره‌ای (اختیاری بر روی قیمت نقدی)"
+                      unit="تومان"
+                      value={formData.discountPrice || ''}
+                      onChange={num => setFormData({ ...formData, discountPrice: num })}
+                      placeholder="در صورت وجود جشنواره یا کد تخفیف عمومی"
+                      helperText={formData.discountPrice && formData.discountPrice > 0 ? `قیمت پس از تخفیف جشنواره: ${Number(formData.discountPrice).toLocaleString('fa-IR')} تومان` : 'اختیاری - در صورت تمایل به تخفیف بیشتر روی قیمت نقدی'}
+                    />
+                  </div>
+                </>
+              )}
 
               {/* Pre-registration deposit block */}
               <div className="p-5 bg-amber-50/70 border border-amber-200 rounded-2xl space-y-4">
@@ -840,7 +1003,7 @@ export function ClassFormModal({
                     className="w-5 h-5 rounded text-amber-600 focus:ring-amber-500 border-slate-300"
                   />
                   <label htmlFor="allowPreRegModal" className="text-sm font-bold text-amber-950 cursor-pointer">
-                    فعال‌سازی امکان پیش‌ثبت‌نام با پرداخت بیعانه (پیش‌پرداخت اقساطی)
+                    فعال‌سازی امکان پیش‌ثبت‌نام با پرداخت بیعانه (پیش‌پرداخت رزرو صندلی)
                   </label>
                 </div>
 
@@ -858,7 +1021,7 @@ export function ClassFormModal({
                         value={formData.preRegistrationDeposit || ''}
                         onChange={num => setFormData({ ...formData, preRegistrationDeposit: num })}
                         placeholder="مثال: ۵۰۰,۰۰۰"
-                        helperText={`مانده بدهی دانشجو: ${(Math.max(0, formData.price - (Number(formData.preRegistrationDeposit) || 0))).toLocaleString('fa-IR')} تومان`}
+                        helperText={`مانده بدهی دانشجو: ${(Math.max(0, (formData.cashPrice || formData.price) - (Number(formData.preRegistrationDeposit) || 0))).toLocaleString('fa-IR')} تومان`}
                       />
                     </div>
 

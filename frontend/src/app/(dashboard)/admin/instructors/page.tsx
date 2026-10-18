@@ -59,7 +59,8 @@ export default function AdminInstructorsPage() {
   const instructors = useMemo(() => {
     return users.filter((u: any) => {
       const roleSlug = u.role?.slug || u.role;
-      return roleSlug === "instructor";
+      const roleSlugs: string[] = u.roleSlugs || (u.roles?.map((r: any) => r.slug || r) || []);
+      return roleSlugs.includes("instructor") || roleSlug === "instructor" || !!u.canTeach;
     });
   }, [users]);
 

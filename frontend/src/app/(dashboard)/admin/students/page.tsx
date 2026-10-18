@@ -62,11 +62,12 @@ export default function AdminStudentsPage() {
 
   const users = usersData || [];
 
-  // Filter only students (either explicit role 'student' or missing role)
+  // Filter only students (has role 'student' in roles array or primary role, or default)
   const students = useMemo(() => {
     return users.filter((u: any) => {
       const roleSlug = u.role?.slug || u.role;
-      return !roleSlug || roleSlug === 'student';
+      const roleSlugs: string[] = u.roleSlugs || (u.roles?.map((r: any) => r.slug || r) || []);
+      return roleSlugs.includes('student') || roleSlug === 'student' || (!roleSlug && roleSlugs.length === 0);
     });
   }, [users]);
 

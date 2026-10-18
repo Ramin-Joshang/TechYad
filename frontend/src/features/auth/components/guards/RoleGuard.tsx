@@ -6,7 +6,7 @@ import { ReactNode } from 'react';
 
 interface RoleGuardProps {
   children: ReactNode;
-  allowedRoles: Array<'super-admin' | 'admin' | 'instructor' | 'student'>;
+  allowedRoles: Array<'super-admin' | 'admin' | 'instructor' | 'student' | 'partner' | 'accountant' | string>;
   fallback?: ReactNode;
 }
 
@@ -17,13 +17,18 @@ export function RoleGuard({ children, allowedRoles, fallback = null }: RoleGuard
     return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
   }
 
+  const userRoles: string[] = [
+    ...(user?.role ? [user.role] : []),
+    ...(user?.roles || []),
+  ];
+
   // Super-admin has access to everything
-  if (user?.role === 'super-admin') {
+  if (userRoles.includes('super-admin')) {
     return <AuthGuard>{children}</AuthGuard>;
   }
 
   // Admin with explicit instructor capability can access instructor workspace
-  if (allowedRoles.includes('instructor') && user?.role === 'admin' && user?.canTeach) {
+  if (allowedRoles.includes('instructor') && userRoles.includes('admin') && user?.canTeach) {
     return <AuthGuard>{children}</AuthGuard>;
   }
 
@@ -32,7 +37,7 @@ export function RoleGuard({ children, allowedRoles, fallback = null }: RoleGuard
     return <AuthGuard>{children}</AuthGuard>;
   }
 
-  if (user && allowedRoles.includes(user.role)) {
+  if (user && userRoles.some((r) => allowedRoles.includes(r))) {
     return <AuthGuard>{children}</AuthGuard>;
   }
 

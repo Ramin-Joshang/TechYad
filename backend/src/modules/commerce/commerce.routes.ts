@@ -38,4 +38,28 @@ router.post('/payments/callback/:gateway', asyncHandler(Controller.handleGateway
 // --- Instructor Sales ---
 router.get('/instructor/sales', isInstructor, asyncHandler(Controller.getInstructorSales));
 
+// --- Accounting Dashboard (for Super-Admin, Admin, Accountant, Partner) ---
+const requireAccountingAccess = [
+  requireAuth,
+  (req: any, res: any, next: any) => {
+    const roleSlugs: string[] = req.user?.roleSlugs || [req.user?.role?.slug].filter(Boolean);
+    const permissions: string[] = req.user?.allPermissions || req.user?.role?.permissions || [];
+    if (
+      roleSlugs.includes('super-admin') ||
+      roleSlugs.includes('admin') ||
+      roleSlugs.includes('accountant') ||
+      roleSlugs.includes('partner') ||
+      permissions.includes('accounting.view') ||
+      permissions.includes('admin.access')
+    ) {
+      return next();
+    }
+    return res.status(403).json({ success: false, message: 'دسترسی به بخش حسابداری مجاز نمی‌باشد' });
+  }
+];
+
+router.get('/accounting/overview', requireAccountingAccess, asyncHandler(Controller.getAccountingOverview));
+router.get('/accounting/transactions', requireAccountingAccess, asyncHandler(Controller.getAccountingTransactions));
+router.get('/accounting/transactions/:id', requireAccountingAccess, asyncHandler(Controller.getAccountingTransactionById));
+
 export default router;

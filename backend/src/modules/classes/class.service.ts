@@ -11,6 +11,7 @@ import { AuditService } from '../../common/services/audit.service.js';
 import { FinancialRevenueService } from '../commerce/financial-revenue.service.js';
 import { MediaService } from '../media/media.service.js';
 import { InstructorProfile } from '../instructors/instructor-profile.model.js';
+import { normalizePricing } from '../../common/utils/pricing.js';
 
 export class ClassService {
   static async getInstructorClasses(instructorId: string) {
@@ -243,35 +244,22 @@ export class ClassService {
       payload.allowPreRegistration = true;
     }
 
-    // Explicit pricing normalization (Cash vs Installment vs Free)
-    if (payload.isFree === true || Number(payload.price) === 0) {
-      payload.isFree = true;
-      payload.price = 0;
-      payload.cashPrice = 0;
-      payload.installmentPrice = 0;
-      delete payload.discountPrice;
+    // Explicit pricing normalization (Cash vs 4-Month Installment vs Free)
+    const normPrice = normalizePricing({
+      price: payload.price,
+      cashPrice: payload.cashPrice,
+      installmentPrice: payload.installmentPrice,
+      discountPrice: payload.discountPrice,
+      isFree: payload.isFree,
+    });
+    payload.isFree = normPrice.isFree;
+    payload.price = normPrice.price;
+    payload.cashPrice = normPrice.cashPrice;
+    payload.installmentPrice = normPrice.installmentPrice;
+    if (normPrice.discountPrice) {
+      payload.discountPrice = normPrice.discountPrice;
     } else {
-      payload.isFree = false;
-      const basePrice = Number(payload.price) || 0;
-      payload.price = basePrice;
-      
-      const rawCash = payload.cashPrice !== undefined && payload.cashPrice !== null ? Number(payload.cashPrice) : undefined;
-      const rawDiscount = payload.discountPrice !== undefined && payload.discountPrice !== null ? Number(payload.discountPrice) : undefined;
-      
-      if (rawDiscount !== undefined && rawDiscount > 0 && rawDiscount < basePrice) {
-        payload.discountPrice = rawDiscount;
-        payload.cashPrice = rawCash !== undefined && rawCash > 0 ? rawCash : rawDiscount;
-      } else {
-        delete payload.discountPrice;
-        payload.cashPrice = rawCash !== undefined && rawCash > 0 ? rawCash : basePrice;
-      }
-
-      const rawInstallment = payload.installmentPrice !== undefined && payload.installmentPrice !== null ? Number(payload.installmentPrice) : undefined;
-      if (rawInstallment !== undefined && rawInstallment > 0) {
-        payload.installmentPrice = rawInstallment;
-      } else {
-        payload.installmentPrice = (payload.cashPrice || basePrice) * 2;
-      }
+      delete payload.discountPrice;
     }
 
     const createdClass = await Class.create({
@@ -456,38 +444,24 @@ export class ClassService {
       });
     }
 
-    // Explicit pricing normalization (Cash vs Installment vs Free)
-    if (payload.price !== undefined || payload.cashPrice !== undefined || payload.installmentPrice !== undefined || payload.isFree !== undefined) {
-      if (payload.isFree === true || Number(payload.price) === 0) {
-        payload.isFree = true;
-        payload.price = 0;
-        payload.cashPrice = 0;
-        payload.installmentPrice = 0;
+    // Explicit pricing normalization (Cash vs 4-Month Installment vs Free)
+    if (payload.price !== undefined || payload.cashPrice !== undefined || payload.installmentPrice !== undefined || payload.isFree !== undefined || payload.discountPrice !== undefined) {
+      const normPrice = normalizePricing({
+        price: payload.price !== undefined ? payload.price : existingClass.price,
+        cashPrice: payload.cashPrice !== undefined ? payload.cashPrice : existingClass.cashPrice,
+        installmentPrice: payload.installmentPrice !== undefined ? payload.installmentPrice : existingClass.installmentPrice,
+        discountPrice: payload.discountPrice !== undefined ? payload.discountPrice : existingClass.discountPrice,
+        isFree: payload.isFree !== undefined ? payload.isFree : existingClass.isFree,
+      });
+      payload.isFree = normPrice.isFree;
+      payload.price = normPrice.price;
+      payload.cashPrice = normPrice.cashPrice;
+      payload.installmentPrice = normPrice.installmentPrice;
+      if (normPrice.discountPrice) {
+        payload.discountPrice = normPrice.discountPrice;
+      } else {
         payload.$unset = { ...(payload.$unset || {}), discountPrice: 1 };
         delete payload.discountPrice;
-      } else {
-        payload.isFree = false;
-        const basePrice = payload.price !== undefined ? (Number(payload.price) || 0) : existingClass.price;
-        payload.price = basePrice;
-        
-        const rawCash = payload.cashPrice !== undefined && payload.cashPrice !== null ? Number(payload.cashPrice) : undefined;
-        const rawDiscount = payload.discountPrice !== undefined && payload.discountPrice !== null ? Number(payload.discountPrice) : undefined;
-        
-        if (rawDiscount !== undefined && rawDiscount > 0 && rawDiscount < basePrice) {
-          payload.discountPrice = rawDiscount;
-          payload.cashPrice = rawCash !== undefined && rawCash > 0 ? rawCash : rawDiscount;
-        } else if (rawDiscount === 0 || rawDiscount === undefined) {
-          payload.$unset = { ...(payload.$unset || {}), discountPrice: 1 };
-          delete payload.discountPrice;
-          payload.cashPrice = rawCash !== undefined && rawCash > 0 ? rawCash : (existingClass.cashPrice || basePrice);
-        }
-
-        const rawInstallment = payload.installmentPrice !== undefined && payload.installmentPrice !== null ? Number(payload.installmentPrice) : undefined;
-        if (rawInstallment !== undefined && rawInstallment > 0) {
-          payload.installmentPrice = rawInstallment;
-        } else {
-          payload.installmentPrice = (payload.cashPrice || basePrice) * 2;
-        }
       }
     }
 

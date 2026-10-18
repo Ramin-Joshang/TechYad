@@ -33,6 +33,8 @@ export default function AdminCoursesPage() {
     slug: '',
     categoryId: '',
     price: 0,
+    cashPrice: 0,
+    installmentPrice: 0,
     shortDescription: '',
     description: '',
     thumbnail: '',
@@ -121,6 +123,8 @@ export default function AdminCoursesPage() {
         slug: '',
         categoryId: '',
         price: 0,
+        cashPrice: 0,
+        installmentPrice: 0,
         shortDescription: '',
         description: '',
         thumbnail: '',
@@ -384,7 +388,11 @@ export default function AdminCoursesPage() {
 
                           {/* Quick Edit */}
                           <button
-                            onClick={() => setEditingCourse(course)}
+                            onClick={() => setEditingCourse({
+                              ...course,
+                              cashPrice: course.cashPrice !== undefined && course.cashPrice !== null ? course.cashPrice : (course.price || 0),
+                              installmentPrice: course.installmentPrice !== undefined && course.installmentPrice !== null ? course.installmentPrice : (course.price ? course.price * 2 : 0),
+                            })}
                             className="p-1.5 text-[var(--neo-primary)] hover:bg-[var(--neo-primary)]/10 rounded-lg transition"
                             title="ویرایش مشخصات"
                           >
@@ -515,12 +523,16 @@ export default function AdminCoursesPage() {
             <form
               onSubmit={(e) => {
                 e.preventDefault();
+                const cash = Number(editingCourse.cashPrice) || Number(editingCourse.price) || 0;
+                const inst = Number(editingCourse.installmentPrice) || (cash * 2);
                 updateCourseMutation.mutate({
                   id: editingCourse._id,
                   data: {
                     title: editingCourse.title,
                     slug: editingCourse.slug,
-                    price: Number(editingCourse.price) || 0,
+                    price: cash,
+                    cashPrice: cash,
+                    installmentPrice: inst,
                     status: editingCourse.status,
                     thumbnail: editingCourse.thumbnail,
                     previewVideo: editingCourse.previewVideo,
@@ -551,19 +563,47 @@ export default function AdminCoursesPage() {
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-[var(--neo-text-main)] mb-1">قیمت (تومان)</label>
+                  <label className="block text-xs font-bold text-[var(--neo-text-main)] mb-1">قیمت نقدی (تومان)</label>
                   <input
                     type="text"
                     inputMode="numeric"
-                    value={editingCourse.price || 0}
+                    value={editingCourse.cashPrice ?? editingCourse.price ?? 0}
                     onChange={(e) => {
                       const clean = toEnDigits(e.target.value).replace(/[^0-9]/g, '');
-                      setEditingCourse({ ...editingCourse, price: clean ? Number(clean) : 0 });
+                      const val = clean ? Number(clean) : 0;
+                      setEditingCourse({
+                        ...editingCourse,
+                        cashPrice: val,
+                        price: val,
+                        installmentPrice: editingCourse.installmentPrice || val * 2,
+                      });
                     }}
                     className="w-full px-3.5 py-2 bg-[var(--neo-surface-2)] border border-[var(--neo-border)] rounded-xl text-xs outline-none focus:ring-2 focus:ring-[var(--neo-primary)] dir-ltr text-left"
                   />
                 </div>
                 <div>
+                  <label className="block text-xs font-bold text-[var(--neo-text-main)] mb-1">قیمت اقساطی ۴ ماهه اسنپ‌پی (تومان)</label>
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    value={editingCourse.installmentPrice ?? ((editingCourse.cashPrice ?? editingCourse.price ?? 0) * 2)}
+                    onChange={(e) => {
+                      const clean = toEnDigits(e.target.value).replace(/[^0-9]/g, '');
+                      const val = clean ? Number(clean) : 0;
+                      setEditingCourse({
+                        ...editingCourse,
+                        installmentPrice: val,
+                      });
+                    }}
+                    className="w-full px-3.5 py-2 bg-[var(--neo-surface-2)] border border-[var(--neo-border)] rounded-xl text-xs outline-none focus:ring-2 focus:ring-[var(--neo-primary)] dir-ltr text-left"
+                  />
+                  {editingCourse.installmentPrice > 0 && (
+                    <span className="text-[10px] text-purple-700 block mt-1">
+                      قسط اول: {Math.round(editingCourse.installmentPrice / 4).toLocaleString('fa-IR')} ت | ۳ قسط بعدی: ماهانه {Math.round(editingCourse.installmentPrice / 4).toLocaleString('fa-IR')} ت
+                    </span>
+                  )}
+                </div>
+                <div className="sm:col-span-2">
                   <label className="block text-xs font-bold text-[var(--neo-text-main)] mb-1">وضعیت</label>
                   <select
                     value={editingCourse.status || 'draft'}
@@ -648,7 +688,14 @@ export default function AdminCoursesPage() {
                   toast.error('لطفاً عنوان، نامک و دسته‌بندی را مشخص کنید');
                   return;
                 }
-                createCourseMutation.mutate(newCourseData);
+                const cash = Number(newCourseData.cashPrice) || Number(newCourseData.price) || 0;
+                const inst = Number(newCourseData.installmentPrice) || (cash * 2);
+                createCourseMutation.mutate({
+                  ...newCourseData,
+                  price: cash,
+                  cashPrice: cash,
+                  installmentPrice: inst,
+                });
               }}
               className="space-y-4"
             >
@@ -689,17 +736,46 @@ export default function AdminCoursesPage() {
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-[var(--neo-text-main)] mb-1">قیمت (تومان)</label>
+                  <label className="block text-xs font-bold text-[var(--neo-text-main)] mb-1">قیمت نقدی (تومان)</label>
                   <input
                     type="text"
                     inputMode="numeric"
-                    value={newCourseData.price}
+                    value={newCourseData.cashPrice || newCourseData.price || 0}
                     onChange={(e) => {
                       const clean = toEnDigits(e.target.value).replace(/[^0-9]/g, '');
-                      setNewCourseData({ ...newCourseData, price: clean ? Number(clean) : 0 });
+                      const val = clean ? Number(clean) : 0;
+                      setNewCourseData(prev => ({
+                        ...prev,
+                        cashPrice: val,
+                        price: val,
+                        installmentPrice: prev.installmentPrice ? prev.installmentPrice : val * 2,
+                      }));
                     }}
                     className="w-full px-3.5 py-2 bg-[var(--neo-surface-2)] border border-[var(--neo-border)] rounded-xl text-xs outline-none focus:ring-2 focus:ring-[var(--neo-primary)] dir-ltr text-left"
                   />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-[var(--neo-text-main)] mb-1">قیمت اقساطی ۴ ماهه اسنپ‌پی (تومان)</label>
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    value={newCourseData.installmentPrice || 0}
+                    onChange={(e) => {
+                      const clean = toEnDigits(e.target.value).replace(/[^0-9]/g, '');
+                      const val = clean ? Number(clean) : 0;
+                      setNewCourseData(prev => ({
+                        ...prev,
+                        installmentPrice: val,
+                      }));
+                    }}
+                    placeholder="پیش‌فرض: ۲ برابر قیمت نقدی"
+                    className="w-full px-3.5 py-2 bg-[var(--neo-surface-2)] border border-[var(--neo-border)] rounded-xl text-xs outline-none focus:ring-2 focus:ring-[var(--neo-primary)] dir-ltr text-left"
+                  />
+                  {newCourseData.installmentPrice > 0 && (
+                    <span className="text-[10px] text-purple-700 block mt-1">
+                      قسط اول: {Math.round(newCourseData.installmentPrice / 4).toLocaleString('fa-IR')} ت | ۳ قسط بعدی: ماهانه {Math.round(newCourseData.installmentPrice / 4).toLocaleString('fa-IR')} ت
+                    </span>
+                  )}
                 </div>
               </div>
 

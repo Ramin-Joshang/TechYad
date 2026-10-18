@@ -133,5 +133,16 @@ export const adminApi = {
   },
   updateSettings: async (data: Record<string, any>) => {
     return api.patch<any, any>('/admin/settings', data);
+  },
+
+  // Accounting Dashboard (for Accountant, Partner, Super Admin)
+  getAccountingOverview: async (params?: any) => {
+    return api.get<any, any>('/commerce/accounting/overview', { params });
+  },
+  getAccountingTransactions: async (params?: any) => {
+    return api.get<any, any>('/commerce/accounting/transactions', { params });
+  },
+  getAccountingTransactionById: async (id: string) => {
+    return api.get<any, any>(`/commerce/accounting/transactions/${id}`);
   }
 };

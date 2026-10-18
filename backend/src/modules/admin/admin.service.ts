@@ -257,22 +257,43 @@ export class AdminService {
       }
     }
 
-    let targetRole: any = null;
-    if (roleId) {
-      targetRole = await Role.findById(roleId);
+    // Support multi-role assignment (roles array, roleIds, or single role)
+    let targetRoles: any[] = [];
+    if (Array.isArray(data.roles) && data.roles.length > 0) {
+      targetRoles = await Role.find({
+        $or: [
+          { _id: { $in: data.roles.filter((r: any) => mongoose.Types.ObjectId.isValid(r)) } },
+          { slug: { $in: data.roles } }
+        ]
+      });
+    } else if (Array.isArray(data.roleIds) && data.roleIds.length > 0) {
+      targetRoles = await Role.find({ _id: { $in: data.roleIds } });
+    } else if (roleId) {
+      const r = await Role.findById(roleId);
+      if (r) targetRoles = [r];
     } else if (roleSlug) {
-      targetRole = await Role.findOne({ slug: roleSlug });
+      const r = await Role.findOne({ slug: roleSlug });
+      if (r) targetRoles = [r];
     } else {
-      targetRole = await Role.findOne({ slug: 'student' });
+      const defaultStudent = await Role.findOne({ slug: 'student' });
+      if (defaultStudent) targetRoles = [defaultStudent];
     }
 
-    if (!targetRole) {
+    if (targetRoles.length === 0) {
       throw new AppError('نقش کاربری مشخص شده نامعتبر است', 400, 'INVALID_ROLE');
     }
 
+    const targetRoleSlugs = targetRoles.map(r => r.slug);
+    const primaryRole = targetRoles.find(r => r.slug === 'super-admin') ||
+                        targetRoles.find(r => r.slug === 'admin') ||
+                        targetRoles.find(r => r.slug === 'partner') ||
+                        targetRoles.find(r => r.slug === 'accountant') ||
+                        targetRoles.find(r => r.slug === 'instructor') ||
+                        targetRoles[0];
+
     // RBAC check: only super-admin can create super-admin
-    const creatorRoleSlug = creatorUser.role?.slug || creatorUser.role;
-    if (creatorRoleSlug !== 'super-admin' && targetRole.slug === 'super-admin') {
+    const creatorRoleSlug = creatorUser?.role?.slug || creatorUser?.role;
+    if (creatorRoleSlug !== 'super-admin' && targetRoleSlugs.includes('super-admin')) {
       throw new AppError('تنها مدیر کل (Super Admin) مجاز به تعریف کاربر با نقش مدیر کل است', 403, 'FORBIDDEN_ROLE_ASSIGNMENT');
     }
 
@@ -283,7 +304,7 @@ export class AdminService {
     if (userSlug) {
       userSlug = userSlug.replace(/[^a-z0-9-]/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '');
     }
-    if (targetRole.slug === 'instructor' && !userSlug) {
+    if (targetRoleSlugs.includes('instructor') && !userSlug) {
       userSlug = `instructor-${cleanMobile ? cleanMobile.slice(-4) : Date.now().toString().slice(-4)}`;
     }
 
@@ -294,7 +315,9 @@ export class AdminService {
       mobile: cleanMobile,
       email: cleanEmail,
       passwordHash,
-      role: targetRole._id,
+      role: primaryRole._id,
+      roles: targetRoles.map(r => r._id),
+      canTeach: targetRoleSlugs.includes('instructor'),
       status: status === 'pending' || status === 'blocked' ? status : 'active',
       mobileVerified: data.mobileVerified !== undefined ? Boolean(data.mobileVerified) : !!cleanMobile,
       emailVerified: !!cleanEmail,
@@ -306,7 +329,7 @@ export class AdminService {
       // Non-fatal referral initialization
     }
 
-    if (targetRole.slug === 'instructor') {
+    if (targetRoleSlugs.includes('instructor')) {
       const existingProfile = await InstructorProfile.findOne({ userId: newUser._id });
       if (!existingProfile) {
         await InstructorProfile.create({
@@ -325,7 +348,7 @@ export class AdminService {
       userRole: creatorRoleSlug,
       action: 'create_user',
       category: 'user',
-      title: `کاربر جدید «${newUser.firstName} ${newUser.lastName}» با نقش ${targetRole.name} ایجاد شد`,
+      title: `کاربر جدید «${newUser.firstName} ${newUser.lastName}» با نقش‌های ${targetRoles.map(r => r.name).join('، ')} ایجاد شد`,
       targetId: newUser._id.toString(),
       targetType: 'user',
       targetTitle: `${newUser.firstName} ${newUser.lastName}`,
@@ -336,15 +359,25 @@ export class AdminService {
     return {
       ...userObj,
       role: {
-        _id: targetRole._id,
-        name: targetRole.name,
-        slug: targetRole.slug,
+        _id: primaryRole._id,
+        name: primaryRole.name,
+        slug: primaryRole.slug,
       },
+      roles: targetRoles.map(r => ({
+        _id: r._id,
+        name: r.name,
+        slug: r.slug,
+      })),
     };
   }
 
   static async getUsers() {
-    const users = await User.find().populate('role', 'name slug').select('-passwordHash').sort({ createdAt: -1 }).lean();
+    const users = await User.find()
+      .populate('role', 'name slug')
+      .populate('roles', 'name slug permissions')
+      .select('-passwordHash')
+      .sort({ createdAt: -1 })
+      .lean();
 
     // Enrich users with enrollment count, paid orders count, total spent, and instructor details
     const enrichedUsers = await Promise.all(users.map(async (u: any) => {
@@ -353,12 +386,20 @@ export class AdminService {
       const totalSpent = userOrders.reduce((sum, ord) => sum + (ord.totalAmount || 0), 0);
       const ordersCount = userOrders.length;
 
+      const userRoles: any[] = [
+        ...(Array.isArray(u.roles) && u.roles.length > 0 ? u.roles : []),
+        ...(u.role ? [u.role] : [])
+      ].filter((r, idx, self) => r && self.findIndex((s: any) => s._id?.toString() === r._id?.toString()) === idx);
+
+      const roleSlugs = userRoles.map((r: any) => r.slug).filter(Boolean);
+      if (roleSlugs.length === 0) roleSlugs.push('student');
+
       let instructorProfile: any = null;
       let coursesCount = 0;
       let totalStudentsCount = 0;
 
-      const roleSlug = u.role?.slug || '';
-      if (roleSlug === 'instructor') {
+      const isInstructor = roleSlugs.includes('instructor') || !!u.canTeach;
+      if (isInstructor) {
         instructorProfile = await InstructorProfile.findOne({ userId: u._id }).lean();
         coursesCount = await Course.countDocuments({ instructors: u._id });
 
@@ -372,6 +413,8 @@ export class AdminService {
 
       return {
         ...u,
+        roles: userRoles,
+        roleSlugs,
         enrollmentsCount,
         ordersCount,
         totalSpent,
@@ -396,8 +439,19 @@ export class AdminService {
   }
 
   static async getUserDetails(id: string) {
-    const user = await User.findById(id).populate('role', 'name slug permissions').select('-passwordHash').lean();
+    const user = await User.findById(id)
+      .populate('role', 'name slug permissions')
+      .populate('roles', 'name slug permissions')
+      .select('-passwordHash')
+      .lean();
     if (!user) throw new AppError('کاربر یافت نشد', 404);
+
+    const userRoles = [
+      ...(Array.isArray(user.roles) && user.roles.length > 0 ? user.roles : []),
+      ...(user.role ? [user.role] : [])
+    ].filter((r, idx, self) => r && self.findIndex((s: any) => s._id?.toString() === r._id?.toString()) === idx);
+
+    const roleSlugs = userRoles.map((r: any) => r.slug).filter(Boolean);
 
     // 1. Instructor profile
     const instructorProfile = await InstructorProfile.findOne({ userId: id }).lean();
@@ -420,7 +474,7 @@ export class AdminService {
     let totalInstructorStudents = 0;
     let totalCourseRevenue = 0;
 
-    const isInstructor = (user.role as any)?.slug === 'instructor' || !!instructorProfile;
+    const isInstructor = roleSlugs.includes('instructor') || (user.role as any)?.slug === 'instructor' || !!instructorProfile || !!(user as any).canTeach;
     if (isInstructor) {
       instructorCourses = await Course.find({ instructors: id }).sort({ createdAt: -1 }).lean();
       instructorClasses = await Class.find({ $or: [{ instructors: id }, { createdBy: id }] }).sort({ createdAt: -1 }).lean();
@@ -450,6 +504,8 @@ export class AdminService {
     return {
       user: {
         ...user,
+        roles: userRoles,
+        roleSlugs,
         bio: user.bio || instructorProfile?.bio || '',
         specialty: user.specialty || instructorProfile?.title || '',
         instructorProfile
@@ -525,12 +581,123 @@ export class AdminService {
     // Extract instructor profile fields if provided
     const { title, specialties, education, socialLinks, ...userData } = data;
 
+    // Find existing user with current roles
+    const existingUser = await User.findById(id).populate('roles').populate('role');
+    if (!existingUser) throw new AppError('کاربر یافت نشد', 404);
+
+    const currentRoles = [
+      ...(Array.isArray(existingUser.roles) && existingUser.roles.length > 0 ? (existingUser.roles as any[]) : []),
+      ...(existingUser.role ? [existingUser.role as any] : [])
+    ].filter((r, idx, self) => r && self.findIndex((s: any) => s._id?.toString() === r._id?.toString()) === idx);
+
+    const currentRoleSlugs: string[] = currentRoles.map(r => r.slug).filter(Boolean);
+
+    // Multi-role update with dependency checking
+    if (data.roles !== undefined || data.roleIds !== undefined || data.role !== undefined) {
+      let targetRoles: any[] = [];
+      if (Array.isArray(data.roles) && data.roles.length > 0) {
+        targetRoles = await Role.find({
+          $or: [
+            { _id: { $in: data.roles.filter((r: any) => mongoose.Types.ObjectId.isValid(r)) } },
+            { slug: { $in: data.roles } }
+          ]
+        });
+      } else if (Array.isArray(data.roleIds) && data.roleIds.length > 0) {
+        targetRoles = await Role.find({ _id: { $in: data.roleIds } });
+      } else if (data.role) {
+        const r = await Role.findOne({
+          $or: [
+            { _id: mongoose.Types.ObjectId.isValid(data.role) ? data.role : undefined },
+            { slug: data.role }
+          ].filter(Boolean)
+        });
+        if (r) targetRoles = [r];
+      }
+
+      if (targetRoles.length === 0) {
+        const defaultStudent = await Role.findOne({ slug: 'student' });
+        if (defaultStudent) targetRoles = [defaultStudent];
+      }
+
+      const newRoleSlugs = targetRoles.map(r => r.slug);
+      const removedRoleSlugs = currentRoleSlugs.filter(s => !newRoleSlugs.includes(s));
+      const addedRoleSlugs = newRoleSlugs.filter(s => !currentRoleSlugs.includes(s));
+
+      // 1. Dependency check: Removing super-admin
+      if (removedRoleSlugs.includes('super-admin')) {
+        const superAdminRole = await Role.findOne({ slug: 'super-admin' });
+        if (superAdminRole) {
+          const remainingSuperAdmins = await User.countDocuments({
+            _id: { $ne: id },
+            status: 'active',
+            $or: [
+              { roles: superAdminRole._id },
+              { role: superAdminRole._id }
+            ]
+          });
+          if (remainingSuperAdmins === 0) {
+            throw new AppError('امکان حذف یا تنزل نقش آخرین مدیر ارشد (Super Admin) سامانه وجود ندارد. سیستم نباید بدون مدیر کل باقی بماند.', 400);
+          }
+        }
+      }
+
+      // 2. Dependency check: Removing instructor
+      if (removedRoleSlugs.includes('instructor')) {
+        const [activeCoursesCount, activeClassesCount] = await Promise.all([
+          Course.countDocuments({ instructors: id, status: { $ne: 'rejected' } }),
+          Class.countDocuments({ instructors: id })
+        ]);
+        if (activeCoursesCount > 0 || activeClassesCount > 0) {
+          throw new AppError(
+            `امکان حذف نقش استاد وجود ندارد: این کاربر دارای ${activeCoursesCount} دوره و ${activeClassesCount} کلاس فعال در سیستم است. برای حذف این نقش، ابتدا باید دوره‌ها یا کلاس‌ها به مدرس جایگزین منتقل شوند.`,
+            400
+          );
+        }
+      }
+
+      // Select primary role
+      const primaryRole = targetRoles.find(r => r.slug === 'super-admin') ||
+                          targetRoles.find(r => r.slug === 'admin') ||
+                          targetRoles.find(r => r.slug === 'partner') ||
+                          targetRoles.find(r => r.slug === 'accountant') ||
+                          targetRoles.find(r => r.slug === 'instructor') ||
+                          targetRoles[0];
+
+      userData.roles = targetRoles.map(r => r._id);
+      userData.role = primaryRole._id;
+      if (newRoleSlugs.includes('instructor')) {
+        userData.canTeach = true;
+      }
+
+      // Audit Log for role change
+      if (removedRoleSlugs.length > 0 || addedRoleSlugs.length > 0) {
+        AuditService.log({
+          userId: id,
+          userRole: 'admin',
+          action: 'user_roles_updated',
+          category: 'user',
+          title: `نقش‌های کاربر «${existingUser.firstName} ${existingUser.lastName}» به‌روزرسانی شد`,
+          targetId: id,
+          targetType: 'user',
+          details: {
+            previousRoles: currentRoleSlugs,
+            newRoles: newRoleSlugs,
+            addedRoles: addedRoleSlugs,
+            removedRoles: removedRoleSlugs
+          }
+        });
+      }
+    }
+
     // Also sync bio & specialty directly to User if provided
     if (title && !userData.specialty) {
       userData.specialty = title;
     }
 
-    const userToUpdate = await User.findByIdAndUpdate(id, userData, { new: true }).populate('role', 'name slug');
+    const userToUpdate = await User.findByIdAndUpdate(id, userData, { new: true })
+      .populate('role', 'name slug')
+      .populate('roles', 'name slug permissions');
+
     if (!userToUpdate) throw new AppError('User not found', 404);
 
     // If bio or specialty or instructor fields were provided, update/upsert InstructorProfile

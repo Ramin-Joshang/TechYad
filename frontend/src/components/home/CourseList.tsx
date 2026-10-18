@@ -46,7 +46,7 @@ export function CourseList({
           <div className="flex items-center gap-2 shrink-0">
             {/* Swiper Navigation Buttons */}
             {data.length > 1 && (
-              <div className="hidden sm:flex items-center gap-1.5 bg-white p-1 rounded-2xl border border-[var(--neo-border)] shadow-2xs">
+              <div className="flex items-center gap-1.5 bg-white p-1 rounded-2xl border border-[var(--neo-border)] shadow-2xs">
                 <button
                   type="button"
                   onClick={() => swiper?.slidePrev()}

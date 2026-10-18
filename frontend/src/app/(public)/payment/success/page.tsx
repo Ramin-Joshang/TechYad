@@ -49,6 +49,12 @@ function PaymentSuccessContent() {
               <span className="text-[var(--neo-text-muted)]">شماره سفارش:</span>
               <span className="font-bold text-[var(--neo-text-main)] font-mono text-sm">{order._id}</span>
             </div>
+            {searchParams.get('refNum') && (
+              <div className="flex justify-between items-center mb-4 border-b border-[var(--neo-border)] pb-4">
+                <span className="text-[var(--neo-text-muted)]">رسید دیجیتال بانک (RefNum):</span>
+                <span className="font-bold text-emerald-700 font-mono text-sm">{searchParams.get('refNum')}</span>
+              </div>
+            )}
             <div className="flex justify-between items-center mb-6">
               <span className="text-[var(--neo-text-muted)]">مبلغ پرداخت شده:</span>
               <span className="font-bold text-emerald-600 text-lg">{order.totalAmount?.toLocaleString('fa-IR')} تومان</span>

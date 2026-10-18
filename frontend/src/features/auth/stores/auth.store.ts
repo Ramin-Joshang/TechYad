@@ -10,7 +10,9 @@ export interface User {
   mobile?: string;
   mobileVerified?: boolean;
   slug?: string;
-  role: 'super-admin' | 'admin' | 'instructor' | 'student';
+  role: 'super-admin' | 'admin' | 'instructor' | 'student' | 'partner' | 'accountant' | string;
+  roles?: string[];
+  rolesDetail?: { _id: string; name: string; slug: string; permissions?: string[] }[];
   avatar?: string;
   personnelPhoto?: string;
   bio?: string;

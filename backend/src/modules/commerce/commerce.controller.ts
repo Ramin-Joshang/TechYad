@@ -83,14 +83,25 @@ export const handleGatewayCallback = async (req: Request, res: Response) => {
   const traceNo = params.TraceNo || params.traceNo || '';
 
   // 1. Handle online wallet charge callback
-  if (authority && String(authority).startsWith('WALLET_')) {
+  const isWalletAuthority = String(authority).startsWith('WALLET') || String(resNum).startsWith('WALLET');
+  let walletTx: any = null;
+  if (isWalletAuthority || authority) {
+    walletTx = await WalletTransaction.findOne({
+      $or: [
+        { referenceId: authority },
+        { referenceId: resNum },
+        { resNum: resNum || authority }
+      ]
+    });
+  }
+
+  if (isWalletAuthority || walletTx) {
     try {
-      const tx = await WalletTransaction.findOne({ referenceId: authority });
-      if (tx) {
+      if (walletTx) {
         if (isSuccess) {
           const verifyChargeRes = await WalletService.verifyCharge(
-            tx.userId.toString(),
-            authority,
+            walletTx.userId.toString(),
+            walletTx.referenceId || authority,
             'OK',
             {
               refNum,
@@ -100,19 +111,20 @@ export const handleGatewayCallback = async (req: Request, res: Response) => {
             }
           );
           if (verifyChargeRes.success) {
-            return res.redirect(`${frontendBaseUrl}/student/wallet?charged=true&amount=${tx.amount}&refNum=${encodeURIComponent(refNum)}`);
+            return res.redirect(`${frontendBaseUrl}/student/wallet?charged=true&amount=${walletTx.amount}&refNum=${encodeURIComponent(refNum || '')}&traceNo=${encodeURIComponent(traceNo || '')}&rrn=${encodeURIComponent(rrn || '')}`);
           } else {
-            return res.redirect(`${frontendBaseUrl}/student/wallet?charged=failed&message=${encodeURIComponent(verifyChargeRes.message || 'خطا در تایید شارژ')}`);
+            return res.redirect(`${frontendBaseUrl}/student/wallet?charged=failed&message=${encodeURIComponent(verifyChargeRes.message || 'خطا در تایید شارژ')}&traceNo=${encodeURIComponent(traceNo || '')}`);
           }
         } else {
-          await WalletService.verifyCharge(tx.userId.toString(), authority, 'NOK');
-          return res.redirect(`${frontendBaseUrl}/student/wallet?charged=failed`);
+          await WalletService.verifyCharge(walletTx.userId.toString(), walletTx.referenceId || authority, 'NOK');
+          return res.redirect(`${frontendBaseUrl}/student/wallet?charged=failed&reason=cancelled&traceNo=${encodeURIComponent(traceNo || '')}&resNum=${encodeURIComponent(resNum || authority)}`);
         }
       }
     } catch (e) {
       console.error('Wallet gateway callback handling error:', e);
     }
-    return res.redirect(`${frontendBaseUrl}/student/wallet?charged=failed`);
+    // Always return to student wallet, NEVER to cart!
+    return res.redirect(`${frontendBaseUrl}/student/wallet?charged=failed&reason=cancelled&resNum=${encodeURIComponent(resNum || authority)}`);
   }
 
   // 2. Handle order purchase callback
@@ -140,13 +152,15 @@ export const handleGatewayCallback = async (req: Request, res: Response) => {
               rawParams: params
             }
           );
+          const orderIdStr = payment.orderId ? payment.orderId.toString() : '';
           if (verifyRes.success) {
-            return res.redirect(`${frontendBaseUrl}/payment/success?orderId=${encodeURIComponent(payment.orderId.toString())}&refNum=${encodeURIComponent(refNum || payment.refNum || '')}&gateway=${encodeURIComponent(gateway)}`);
+            return res.redirect(`${frontendBaseUrl}/payment/success?orderId=${encodeURIComponent(orderIdStr)}&refNum=${encodeURIComponent(refNum || payment.refNum || '')}&gateway=${encodeURIComponent(gateway)}`);
           } else {
             return res.redirect(`${frontendBaseUrl}/payment/failed?authority=${encodeURIComponent(authority)}&gateway=${encodeURIComponent(gateway)}&message=${encodeURIComponent(verifyRes.message || 'خطا در تایید تراکنش')}`);
           }
         } else if (payment.status === 'paid') {
-          return res.redirect(`${frontendBaseUrl}/payment/success?orderId=${encodeURIComponent(payment.orderId.toString())}&refNum=${encodeURIComponent(payment.refNum || refNum)}&gateway=${encodeURIComponent(gateway)}`);
+          const orderIdStr = payment.orderId ? payment.orderId.toString() : '';
+          return res.redirect(`${frontendBaseUrl}/payment/success?orderId=${encodeURIComponent(orderIdStr)}&refNum=${encodeURIComponent(payment.refNum || refNum)}&gateway=${encodeURIComponent(gateway)}`);
         }
       } else {
         // State is not OK or payment canceled
@@ -186,4 +200,20 @@ export const getInstructorSales = async (req: AuthRequest, res: Response) => {
   );
   sendSuccess(res, result, 'Instructor sales retrieved successfully');
 };
+
+export const getAccountingOverview = async (req: AuthRequest, res: Response) => {
+  const result = await CommerceService.getAccountingOverview(req.query as any);
+  sendSuccess(res, result, 'اطلاعات داشبورد حسابداری با موفقیت دریافت شد');
+};
+
+export const getAccountingTransactions = async (req: AuthRequest, res: Response) => {
+  const result = await CommerceService.getAccountingTransactions(req.query as any);
+  sendSuccess(res, result, 'تراکنش‌های حسابداری با موفقیت دریافت شد');
+};
+
+export const getAccountingTransactionById = async (req: AuthRequest, res: Response) => {
+  const result = await CommerceService.getAccountingTransactionById(req.params.id as string);
+  sendSuccess(res, result, 'جزئیات تراکنش مالی با موفقیت دریافت شد');
+};
+
 

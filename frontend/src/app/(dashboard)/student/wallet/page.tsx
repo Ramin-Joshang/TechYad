@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   Wallet,
@@ -33,11 +34,23 @@ import { toEnDigits } from "@/lib/utils";
 
 export default function StudentWalletPage() {
   const queryClient = useQueryClient();
+  const searchParams = useSearchParams();
+  const router = useRouter();
 
   // Modals & States
   const [showDepositModal, setShowDepositModal] = useState(false);
   const [depositAmount, setDepositAmount] = useState<number>(100000);
   const [isDepositing, setIsDepositing] = useState(false);
+
+  const [chargeResultModal, setChargeResultModal] = useState<{
+    open: boolean;
+    status: 'success' | 'failed' | 'pending';
+    amount?: number;
+    refNum?: string;
+    traceNo?: string;
+    rrn?: string;
+    message?: string;
+  } | null>(null);
 
   const [showWithdrawModal, setShowWithdrawModal] = useState(false);
   const [withdrawAmount, setWithdrawAmount] = useState<number>(100000);
@@ -56,6 +69,55 @@ export default function StudentWalletPage() {
   const [filterDirection, setFilterDirection] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [page, setPage] = useState(1);
+
+  // Handle gateway return query params (charged=true / charged=failed)
+  useEffect(() => {
+    const chargedStatus = searchParams?.get('charged');
+    if (!chargedStatus) return;
+
+    const amount = searchParams?.get('amount');
+    const refNum = searchParams?.get('refNum');
+    const traceNo = searchParams?.get('traceNo');
+    const rrn = searchParams?.get('rrn');
+    const reason = searchParams?.get('reason');
+    const msg = searchParams?.get('message');
+
+    if (chargedStatus === 'true') {
+      setChargeResultModal({
+        open: true,
+        status: 'success',
+        amount: amount ? Number(amount) : undefined,
+        refNum: refNum || undefined,
+        traceNo: traceNo || undefined,
+        rrn: rrn || undefined,
+        message: 'مبلغ با موفقیت به موجودی کیف پول شما افزوده شد.'
+      });
+      queryClient.invalidateQueries({ queryKey: ['studentWalletOverview'] });
+      queryClient.invalidateQueries({ queryKey: ['studentWalletTransactions'] });
+      toast.success('کیف پول با موفقیت شارژ گردید');
+    } else if (chargedStatus === 'failed') {
+      setChargeResultModal({
+        open: true,
+        status: 'failed',
+        refNum: refNum || undefined,
+        traceNo: traceNo || undefined,
+        rrn: rrn || undefined,
+        message: msg || (reason === 'cancelled' ? 'پرداخت شارژ کیف پول از طرف شما لغو گردید و وجهی کسر نشد.' : 'خطا در تایید تراکنش بانکی. در صورت کسر وجه، تا ۷۲ ساعت آینده توسط بانک عودت می‌گردد.')
+      });
+      toast.error('عملیات شارژ ناموفق بود یا لغو گردید');
+    } else if (chargedStatus === 'pending') {
+      setChargeResultModal({
+        open: true,
+        status: 'pending',
+        refNum: refNum || undefined,
+        traceNo: traceNo || undefined,
+        message: 'تراکنش در انتظار استعلام نهایی از درگاه شاپرک است.'
+      });
+    }
+
+    // Clean URL
+    router.replace('/student/wallet');
+  }, [searchParams, queryClient, router]);
 
   // Fetch Wallet Overview
   const {
@@ -1073,6 +1135,65 @@ export default function StudentWalletPage() {
               className="w-full bg-slate-900 text-white font-bold py-3 rounded-xl hover:bg-slate-800 transition text-xs"
             >
               بستن رسید
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Gateway Return Status Modal */}
+      {chargeResultModal && chargeResultModal.open && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl p-6 sm:p-8 max-w-md w-full border border-slate-200 shadow-2xl text-center space-y-4 animate-in zoom-in-95">
+            <div className={`w-16 h-16 rounded-full flex items-center justify-center mx-auto ${
+              chargeResultModal.status === 'success' ? 'bg-emerald-50 text-emerald-600' : (
+                chargeResultModal.status === 'pending' ? 'bg-amber-50 text-amber-600' : 'bg-rose-50 text-rose-600'
+              )
+            }`}>
+              {chargeResultModal.status === 'success' && <CheckCircle2 className="w-9 h-9" />}
+              {chargeResultModal.status === 'pending' && <Clock className="w-9 h-9" />}
+              {chargeResultModal.status === 'failed' && <XCircle className="w-9 h-9" />}
+            </div>
+
+            <h3 className="text-xl font-black text-slate-900">
+              {chargeResultModal.status === 'success' && 'شارژ کیف پول با موفقیت انجام شد'}
+              {chargeResultModal.status === 'pending' && 'تراکنش در انتظار تایید'}
+              {chargeResultModal.status === 'failed' && 'عملیات پرداخت لغو شد'}
+            </h3>
+
+            <p className="text-xs text-slate-600 leading-relaxed">
+              {chargeResultModal.message}
+            </p>
+
+            {(chargeResultModal.amount || chargeResultModal.refNum || chargeResultModal.traceNo) && (
+              <div className="bg-slate-50 rounded-2xl p-4 text-xs space-y-2 border border-slate-100 text-right">
+                {chargeResultModal.amount && (
+                  <div className="flex justify-between items-center py-1 border-b border-slate-200">
+                    <span className="text-slate-500">مبلغ شارژ:</span>
+                    <span className="font-bold text-emerald-600 font-mono text-sm">
+                      {chargeResultModal.amount.toLocaleString('fa-IR')} تومان
+                    </span>
+                  </div>
+                )}
+                {chargeResultModal.refNum && (
+                  <div className="flex justify-between items-center py-1 border-b border-slate-200">
+                    <span className="text-slate-500">رسید دیجیتال (RefNum):</span>
+                    <span className="font-mono text-slate-800 font-semibold">{chargeResultModal.refNum}</span>
+                  </div>
+                )}
+                {chargeResultModal.traceNo && (
+                  <div className="flex justify-between items-center py-1">
+                    <span className="text-slate-500">کد پیگیری شتاب (TraceNo):</span>
+                    <span className="font-mono text-slate-800 font-semibold">{chargeResultModal.traceNo}</span>
+                  </div>
+                )}
+              </div>
+            )}
+
+            <button
+              onClick={() => setChargeResultModal(null)}
+              className="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold py-3.5 rounded-xl transition text-xs shadow-md"
+            >
+              متوجه شدم و مشاهده تراکنش‌ها
             </button>
           </div>
         </div>

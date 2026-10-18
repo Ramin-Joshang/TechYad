@@ -82,10 +82,15 @@ export const getMe = async (req: AuthRequest, res: Response) => {
     avatar: user.avatar,
     personnelPhoto: user.personnelPhoto,
     bio: user.bio,
-    specialty: user.specialty,
     role: user.role?.slug,
-    permissions: user.role?.permissions || [],
-    canTeach: user.role?.slug === 'instructor' || user.role?.slug === 'super-admin' || !!user.canTeach,
+    roles: user.roleSlugs || (user.roles?.map((r: any) => r.slug || r) || [user.role?.slug].filter(Boolean)),
+    rolesDetail: (user.allRoles || user.roles || []).map((r: any) => ({
+      _id: r._id,
+      name: r.name,
+      slug: r.slug
+    })),
+    permissions: user.allPermissions || user.role?.permissions || [],
+    canTeach: (user.roleSlugs || []).includes('instructor') || (user.roleSlugs || []).includes('super-admin') || !!user.canTeach,
     hasExplicitTeachingGrant: !!user.canTeach,
     instructorCapabilityGrantedAt: user.instructorCapabilityGrantedAt,
     referralCode: user.referralCode,

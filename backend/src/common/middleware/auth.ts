@@ -23,7 +23,9 @@ export const authenticate = async (req: AuthRequest, res: Response, next: NextFu
     }
 
     const decoded = jwt.verify(token, env.JWT_SECRET) as { id: string; tokenVersion?: number; role?: string };
-    const currentUser = await User.findById(decoded.id).populate<{ role: IRole }>('role');
+    const currentUser = await User.findById(decoded.id)
+      .populate<{ role: IRole }>('role')
+      .populate<{ roles: IRole[] }>('roles');
 
     if (!currentUser) {
       return next(new AppError('The user belonging to this token does no longer exist.', 401, 'AUTH_USER_NOT_FOUND'));
@@ -38,7 +40,33 @@ export const authenticate = async (req: AuthRequest, res: Response, next: NextFu
       return next(new AppError('نشست شما منقضی یا باطل شده است. لطفاً مجدداً وارد شوید.', 401, 'AUTH_SESSION_REVOKED'));
     }
 
-    const roleSlug = currentUser.role?.slug || 'student';
+    // Multi-role extraction and union of roles
+    const userRoles: IRole[] = [
+      ...(currentUser.roles && currentUser.roles.length > 0 ? (currentUser.roles as any) : []),
+      ...(currentUser.role ? [currentUser.role as any] : [])
+    ].filter((r, idx, self) => r && self.findIndex(s => s?._id?.toString() === r?._id?.toString()) === idx);
+
+    const roleSlugs = userRoles.map(r => r.slug).filter(Boolean);
+    if (roleSlugs.length === 0) {
+      roleSlugs.push('student');
+    }
+
+    const allPermissions = Array.from(new Set(userRoles.flatMap(r => r.permissions || [])));
+
+    (currentUser as any).allRoles = userRoles;
+    (currentUser as any).roleSlugs = roleSlugs;
+    (currentUser as any).allPermissions = allPermissions;
+    (currentUser as any).hasRole = (slug: string) => roleSlugs.includes(slug);
+
+    const primaryRoleSlug = roleSlugs.includes('super-admin')
+      ? 'super-admin'
+      : (roleSlugs.includes('admin')
+        ? 'admin'
+        : (roleSlugs.includes('partner')
+          ? 'partner'
+          : (roleSlugs.includes('accountant')
+            ? 'accountant'
+            : (roleSlugs.includes('instructor') ? 'instructor' : 'student'))));
 
     // 2. Role-based inactivity timeout enforcement
     const isVerificationOrAuthEndpoint = req.originalUrl?.includes('/api/auth/me') ||
@@ -50,11 +78,11 @@ export const authenticate = async (req: AuthRequest, res: Response, next: NextFu
     const lastActive = currentUser.lastActiveAt ? new Date(currentUser.lastActiveAt).getTime() : Date.now();
     const inactiveMs = Date.now() - lastActive;
 
-    if (roleSlug === 'super-admin' && inactiveMs > 15 * 60 * 1000 && !isVerificationOrAuthEndpoint) {
+    if (roleSlugs.includes('super-admin') && inactiveMs > 15 * 60 * 1000 && !isVerificationOrAuthEndpoint) {
       return next(new AppError('نشست شما به دلیل عدم فعالیت بیش از ۱۵ دقیقه منقضی شد. لطفاً دوباره وارد شوید.', 401, 'AUTH_SESSION_INACTIVE_TIMEOUT'));
     }
 
-    if (roleSlug === 'admin' && inactiveMs > 30 * 60 * 1000 && !isVerificationOrAuthEndpoint) {
+    if (roleSlugs.includes('admin') && inactiveMs > 30 * 60 * 1000 && !isVerificationOrAuthEndpoint) {
       return next(new AppError('نشست شما به دلیل عدم فعالیت بیش از ۳۰ دقیقه منقضی شد. لطفاً دوباره وارد شوید.', 401, 'AUTH_SESSION_INACTIVE_TIMEOUT'));
     }
 
@@ -81,15 +109,15 @@ export const authenticate = async (req: AuthRequest, res: Response, next: NextFu
 export const authorize = (...permissions: (string | string[])[]) => {
   const flattened = permissions.flat();
   return (req: AuthRequest, res: Response, next: NextFunction) => {
-    if (!req.user || !req.user.role) {
+    if (!req.user) {
       return next(new AppError('You do not have permission to perform this action', 403, 'AUTH_FORBIDDEN'));
     }
 
-    const userPermissions: string[] = req.user.role.permissions || [];
-    const roleSlug = req.user.role.slug;
+    const roleSlugs: string[] = req.user.roleSlugs || (req.user.role?.slug ? [req.user.role.slug] : ['student']);
+    const userPermissions: string[] = req.user.allPermissions || req.user.role?.permissions || [];
     
     // Super admin has full administrative authorization
-    if (roleSlug === 'super-admin') {
+    if (roleSlugs.includes('super-admin')) {
       return next();
     }
 
@@ -103,17 +131,14 @@ export const authorize = (...permissions: (string | string[])[]) => {
 
     // Teaching capability checks
     if (isTeachingPermissionCheck) {
-      if (roleSlug === 'instructor') {
-        return next();
-      }
-      if (roleSlug === 'admin' && req.user.canTeach) {
+      if (roleSlugs.includes('instructor') || req.user.canTeach) {
         return next();
       }
       return next(new AppError('دسترسی مجاز نمی‌باشد. این حساب کاربری فاقد مجوز تدریس است.', 403, 'AUTH_TEACHING_FORBIDDEN'));
     }
 
     // Admin role authorization for administrative features
-    if (roleSlug === 'admin') {
+    if (roleSlugs.includes('admin')) {
       // Super admin specific routes check
       if (flattened.includes('super_admin.access')) {
         return next(new AppError('این عملیات تنها در صلاحیت مدیر ارشد (Super Admin) می‌باشد', 403, 'AUTH_SUPER_ADMIN_REQUIRED'));
@@ -121,8 +146,15 @@ export const authorize = (...permissions: (string | string[])[]) => {
       return next();
     }
 
-    // If checking instructor permission and user is instructor
-    if (roleSlug === 'instructor' && flattened.some(p => p.includes('course') || p.includes('class') || p.includes('instructor'))) {
+    // Partner and Accountant authorization for accounting endpoints
+    if (flattened.includes('accounting.view')) {
+      if (roleSlugs.includes('partner') || roleSlugs.includes('accountant')) {
+        return next();
+      }
+    }
+
+    // If checking instructor permission and user has instructor role
+    if (roleSlugs.includes('instructor') && flattened.some(p => p.includes('course') || p.includes('class') || p.includes('instructor'))) {
       return next();
     }
 

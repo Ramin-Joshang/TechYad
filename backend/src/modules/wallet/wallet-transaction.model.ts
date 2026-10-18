@@ -24,8 +24,18 @@ export interface IWalletTransaction extends Document {
   title: string;
   description?: string;
   referenceId?: string; // شماره تراکنش، کد پیگیری، شماره سفارش
+  resNum?: string;
+  refNum?: string;
+  rrn?: string;
+  traceNo?: string;
+  terminalId?: string;
+  maskedPan?: string;
+  gatewayErrorCode?: string;
+  gatewayErrorMessage?: string;
+  returnAt?: Date;
+  verifiedAt?: Date;
   orderId?: Types.ObjectId;
-  gateway?: string;     // 'zarinpal_mock' | 'wallet' | 'manual' | 'referral' | 'settlement'
+  gateway?: string;     // 'saman' | 'zarinpal_mock' | 'wallet' | 'manual' | 'referral' | 'settlement'
   bankInfo?: {
     shaba?: string;
     cardNumber?: string;
@@ -98,6 +108,24 @@ const walletTransactionSchema = new Schema<IWalletTransaction>(
       index: true,
       trim: true,
     },
+    resNum: {
+      type: String,
+      index: true,
+      trim: true,
+    },
+    refNum: {
+      type: String,
+      index: true,
+      trim: true,
+    },
+    rrn: String,
+    traceNo: String,
+    terminalId: String,
+    maskedPan: String,
+    gatewayErrorCode: String,
+    gatewayErrorMessage: String,
+    returnAt: Date,
+    verifiedAt: Date,
     orderId: {
       type: Schema.Types.ObjectId,
       ref: "Order",
