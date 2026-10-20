@@ -16,14 +16,29 @@ export class InstructorService {
     const enrichedProfiles = await Promise.all(
       profiles.map(async (p: any) => {
         const uId = p.userId?._id || p.userId;
+        const instId = p._id;
+        const instructorIds = [uId, instId].filter(Boolean);
         const [cCount, clCount] = await Promise.all([
-          Course.countDocuments({ $or: [{ instructors: uId }, { createdBy: uId }], status: 'published' }),
-          Class.countDocuments({ $or: [{ instructors: uId }, { createdBy: uId }], status: { $ne: 'cancelled' } })
+          Course.countDocuments({
+            $or: [
+              { instructors: { $in: instructorIds } },
+              { createdBy: { $in: instructorIds } }
+            ],
+            status: 'published'
+          }),
+          Class.countDocuments({
+            $or: [
+              { instructors: { $in: instructorIds } },
+              { createdBy: { $in: instructorIds } }
+            ],
+            status: { $ne: 'cancelled' }
+          })
         ]);
         return {
           ...p,
           coursesCount: cCount,
           classesCount: clCount,
+          trainingCount: cCount + clCount,
           rating: p.rating || 5
         };
       })

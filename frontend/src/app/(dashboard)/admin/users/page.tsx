@@ -369,15 +369,53 @@ export default function AdminUsersPage() {
 
                       {/* Role */}
                       <td className="p-4">
-                        <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-bold ${
-                          roleSlug === 'super-admin' ? 'bg-purple-100 text-purple-700' :
-                          roleSlug === 'admin' ? 'bg-blue-100 text-blue-700' :
-                          roleSlug === 'instructor' ? 'bg-amber-100 text-amber-800' :
-                          'bg-[var(--neo-surface-2)] text-[var(--neo-text-main)]'
-                        }`}>
-                          {roleSlug === 'super-admin' && <Shield className="w-3 h-3" />}
-                          {roleName}
-                        </span>
+                        <div className="flex flex-wrap items-center gap-1.5 max-w-[200px]">
+                          {(() => {
+                            const userRoleSlugs: string[] = Array.from(new Set([
+                              ...(user.roleSlugs || []),
+                              ...(user.roles?.map((r: any) => r.slug || r) || []),
+                              ...(roleSlug ? [roleSlug] : [])
+                            ])).filter(Boolean);
+                            if (userRoleSlugs.length === 0) userRoleSlugs.push('student');
+
+                            return (
+                              <>
+                                {userRoleSlugs.map((slug: string) => {
+                                  const isSA = slug === 'super-admin';
+                                  const isAdm = slug === 'admin';
+                                  const isInst = slug === 'instructor';
+                                  const isAcc = slug === 'accountant';
+                                  const isPart = slug === 'partner';
+
+                                  const label = isSA ? 'مدیر کل' :
+                                                isAdm ? 'مدیر' :
+                                                isInst ? 'مدرس' :
+                                                isAcc ? 'حسابدار' :
+                                                isPart ? 'شریک' : 'دانشجو';
+
+                                  const colorCls = isSA ? 'bg-purple-100 text-purple-700 border border-purple-200' :
+                                                   isAdm ? 'bg-blue-100 text-blue-700 border border-blue-200' :
+                                                   isInst ? 'bg-amber-100 text-amber-800 border border-amber-200' :
+                                                   isAcc ? 'bg-emerald-100 text-emerald-800 border border-emerald-200' :
+                                                   isPart ? 'bg-indigo-100 text-indigo-800 border border-indigo-200' :
+                                                   'bg-[var(--neo-surface-2)] text-[var(--neo-text-main)] border border-[var(--neo-border)]';
+
+                                  return (
+                                    <span key={slug} className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-bold ${colorCls}`}>
+                                      {isSA && <Shield className="w-3 h-3" />}
+                                      {label}
+                                    </span>
+                                  );
+                                })}
+                                {userRoleSlugs.length > 1 && (
+                                  <span className="text-[10px] font-bold text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200" title="کاربر با چند نقش همزمان">
+                                    چندنقشی
+                                  </span>
+                                )}
+                              </>
+                            );
+                          })()}
+                        </div>
                       </td>
 
                       {/* Learning & Purchase Activity */}

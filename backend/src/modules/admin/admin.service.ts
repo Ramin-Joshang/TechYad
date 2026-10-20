@@ -398,15 +398,17 @@ export class AdminService {
 
       let instructorProfile: any = null;
       let coursesCount = 0;
+      let classesCount = 0;
       let totalStudentsCount = 0;
 
       const isInstructor = roleSlugs.includes('instructor') || !!u.canTeach;
       if (isInstructor) {
         instructorProfile = await InstructorProfile.findOne({ userId: u._id }).lean();
-        coursesCount = await Course.countDocuments({ instructors: u._id });
+        coursesCount = await Course.countDocuments({ $or: [{ instructors: u._id }, { createdBy: u._id }] });
+        classesCount = await Class.countDocuments({ $or: [{ instructors: u._id }, { createdBy: u._id }], status: { $ne: 'cancelled' } });
 
         // Count total unique students across this instructor's courses
-        const instructorCourses = await Course.find({ instructors: u._id }).select('_id').lean();
+        const instructorCourses = await Course.find({ $or: [{ instructors: u._id }, { createdBy: u._id }] }).select('_id').lean();
         if (instructorCourses.length > 0) {
           const courseIds = instructorCourses.map(c => c._id);
           totalStudentsCount = await Enrollment.countDocuments({ courseId: { $in: courseIds } });
@@ -421,6 +423,7 @@ export class AdminService {
         ordersCount,
         totalSpent,
         coursesCount,
+        classesCount,
         totalStudentsCount,
         bio: u.bio || instructorProfile?.bio || '',
         specialty: u.specialty || instructorProfile?.title || (instructorProfile?.specialties && instructorProfile.specialties[0]) || '',

@@ -329,9 +329,11 @@ export function AccountingDashboard({ forcedRole }: AccountingDashboardProps) {
   });
 
   // Helper formatting
-  const formatToman = (amount?: number) => {
-    if (amount === undefined || amount === null) return '۰ تومان';
-    return `${Number(amount).toLocaleString('fa-IR')} تومان`;
+  const formatToman = (val?: any) => {
+    if (val === undefined || val === null) return '۰ تومان';
+    const num = typeof val === 'object' && val !== null ? Number(val.amount ?? 0) : Number(val);
+    if (isNaN(num)) return '۰ تومان';
+    return `${num.toLocaleString('fa-IR')} تومان`;
   };
 
   const accounts = accountsRes || [];
@@ -344,9 +346,10 @@ export function AccountingDashboard({ forcedRole }: AccountingDashboardProps) {
   // Filtered COA
   const filteredAccounts = useMemo(() => {
     return accounts.filter((acc) => {
+      const accTitle = (acc.title || acc.name || '').toLowerCase();
       const matchSearch =
-        acc.name.toLowerCase().includes(coaSearch.toLowerCase()) ||
-        acc.code.includes(coaSearch);
+        accTitle.includes(coaSearch.toLowerCase()) ||
+        Boolean(acc.code && acc.code.includes(coaSearch));
       const matchType = coaTypeFilter === 'all' || acc.type === coaTypeFilter;
       return matchSearch && matchType;
     });
@@ -639,7 +642,7 @@ export function AccountingDashboard({ forcedRole }: AccountingDashboardProps) {
                 {finAccounts.map((acc) => (
                   <div key={acc._id} className="py-3 flex items-center justify-between text-xs">
                     <div>
-                      <span className="font-bold text-slate-900">{acc.name}</span>
+                      <span className="font-bold text-slate-900">{acc.title || acc.name}</span>
                       <p className="text-[11px] text-slate-400 mt-0.5">
                         {acc.bankName} {acc.cardLast4 ? `• کارت: ****${acc.cardLast4}` : ''}
                       </p>
@@ -713,7 +716,7 @@ export function AccountingDashboard({ forcedRole }: AccountingDashboardProps) {
                   <tr key={acc._id} className="hover:bg-slate-50/50 transition">
                     <td className="py-3 px-4 font-mono font-bold text-slate-900">{acc.code}</td>
                     <td className="py-3 px-4">
-                      <div className="font-bold text-slate-800">{acc.name}</div>
+                      <div className="font-bold text-slate-800">{acc.title || acc.name}</div>
                       {acc.description && (
                         <div className="text-[11px] text-slate-400 mt-0.5">{acc.description}</div>
                       )}
@@ -1028,7 +1031,7 @@ export function AccountingDashboard({ forcedRole }: AccountingDashboardProps) {
                       <Building2 className="w-5 h-5" />
                     </div>
                     <div>
-                      <h4 className="font-bold text-xs text-slate-900">{acc.name}</h4>
+                      <h4 className="font-bold text-xs text-slate-900">{acc.title || acc.name}</h4>
                       <p className="text-[10px] text-slate-400 font-mono">کد معین: {acc.code}</p>
                     </div>
                   </div>
@@ -1406,7 +1409,7 @@ export function AccountingDashboard({ forcedRole }: AccountingDashboardProps) {
                         >
                           {accounts.map((a) => (
                             <option key={a.code} value={a.code}>
-                              {a.code} - {a.name}
+                              {a.code} - {a.title || a.name}
                             </option>
                           ))}
                         </select>
@@ -1596,7 +1599,7 @@ export function AccountingDashboard({ forcedRole }: AccountingDashboardProps) {
                   <option value="">انتخاب حساب مالی...</option>
                   {finAccounts.map((a) => (
                     <option key={a._id} value={a._id}>
-                      {a.name} ({a.bankName} - مانده: {formatToman(a.currentBalance)})
+                      {a.title || a.name} ({a.bankName || 'حساب'} - مانده: {formatToman(a.currentBalance)})
                     </option>
                   ))}
                 </select>
@@ -1613,7 +1616,7 @@ export function AccountingDashboard({ forcedRole }: AccountingDashboardProps) {
                     <option value="">انتخاب حساب مقصد...</option>
                     {finAccounts.map((a) => (
                       <option key={a._id} value={a._id}>
-                        {a.name} ({a.bankName})
+                        {a.title || a.name} ({a.bankName || 'حساب'})
                       </option>
                     ))}
                   </select>

@@ -66,9 +66,21 @@ export function InstructorCard({
       : user._id || instructor._id);
 
   const coursesCount =
-    instructor.coursesCount !== undefined ? Number(instructor.coursesCount) : 0;
+    instructor.coursesCount !== undefined
+      ? Number(instructor.coursesCount)
+      : Array.isArray(instructor.courses)
+        ? instructor.courses.length
+        : 0;
   const classesCount =
-    instructor.classesCount !== undefined ? Number(instructor.classesCount) : 0;
+    instructor.classesCount !== undefined
+      ? Number(instructor.classesCount)
+      : Array.isArray(instructor.classes)
+        ? instructor.classes.length
+        : 0;
+  const totalTraining =
+    instructor.trainingCount !== undefined
+      ? Number(instructor.trainingCount)
+      : coursesCount + classesCount;
   const totalStudents =
     instructor.studentCount || instructor.studentsCount || 0;
   const rating = instructor.averageRating || instructor.rating || 5.0;
@@ -131,7 +143,7 @@ export function InstructorCard({
               <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
               <span>{rating ? Number(rating).toFixed(1) : "۵.۰"}</span>
               <span className="text-slate-400 font-normal text-[11px] mr-1">
-                ({coursesCount + classesCount} آموزش)
+                ({totalTraining} آموزش)
               </span>
             </div>
           </div>

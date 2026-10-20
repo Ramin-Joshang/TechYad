@@ -276,8 +276,28 @@ export default function AdminStudentsPage() {
                             />
                           </div>
                           <div>
-                            <div className="font-bold text-sm text-gray-900">
-                              {user.firstName || 'کاربر'} {user.lastName || ''}
+                            <div className="font-bold text-sm text-gray-900 flex items-center gap-1.5 flex-wrap">
+                              <span>{user.firstName || 'کاربر'} {user.lastName || ''}</span>
+                              {(() => {
+                                const roleSlugs: string[] = Array.from(new Set([
+                                  ...(user.roleSlugs || []),
+                                  ...(user.roles?.map((r: any) => r.slug || r) || []),
+                                  ...(user.role?.slug ? [user.role.slug] : [])
+                                ])).filter(Boolean);
+                                const otherRoles = roleSlugs.filter((r: string) => r !== 'student');
+                                return otherRoles.map((r: string) => {
+                                  const label = r === 'instructor' ? 'مدرس' :
+                                                r === 'super-admin' ? 'مدیر کل' :
+                                                r === 'admin' ? 'مدیر' :
+                                                r === 'accountant' ? 'حسابدار' :
+                                                r === 'partner' ? 'شریک' : r;
+                                  return (
+                                    <span key={r} className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-amber-50 text-amber-800 border border-amber-200">
+                                      همچنین {label}
+                                    </span>
+                                  );
+                                });
+                              })()}
                             </div>
                             <div className="text-[11px] text-gray-400 flex items-center gap-1 mt-0.5">
                               <span>شناسه:</span>

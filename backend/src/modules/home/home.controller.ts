@@ -77,10 +77,41 @@ export const getHomeData = async (req: Request, res: Response, next: NextFunctio
       return { ...obj, phase: getClassPhase(obj), isRegistrationOpen: isClassRegistrationOpen(obj) };
     });
 
-    const topInstructors = await InstructorProfile.find({ isApproved: true })
+    const rawTopInstructors = await InstructorProfile.find({ isApproved: true })
       .limit(12)
       .populate('userId', 'firstName lastName avatar personnelPhoto specialty bio')
       .lean();
+
+    const topInstructors = await Promise.all(
+      rawTopInstructors.map(async (inst: any) => {
+        const uId = inst.userId?._id || inst.userId;
+        const instId = inst._id;
+        const instructorIds = [uId, instId].filter(Boolean);
+        const [coursesCount, classesCount] = await Promise.all([
+          Course.countDocuments({
+            $or: [
+              { instructors: { $in: instructorIds } },
+              { createdBy: { $in: instructorIds } }
+            ],
+            status: 'published'
+          }),
+          Class.countDocuments({
+            $or: [
+              { instructors: { $in: instructorIds } },
+              { createdBy: { $in: instructorIds } }
+            ],
+            status: { $ne: 'cancelled' }
+          })
+        ]);
+        return {
+          ...inst,
+          coursesCount,
+          classesCount,
+          trainingCount: coursesCount + classesCount,
+          rating: inst.rating || 5
+        };
+      })
+    );
     const latestArticles = await Article.find({ status: "published" }).sort({ createdAt: -1 }).limit(8);
     const testimonials = await Testimonial.find({ isActive: { $ne: false } }).sort({ order: 1, createdAt: -1 }).limit(10);
 

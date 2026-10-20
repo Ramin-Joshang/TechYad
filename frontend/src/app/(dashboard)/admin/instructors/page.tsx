@@ -319,8 +319,28 @@ export default function AdminInstructorsPage() {
                             />
                           </div>
                           <div>
-                            <div className="font-bold text-sm text-[var(--neo-text-main)]">
-                              {user.firstName} {user.lastName}
+                            <div className="font-bold text-sm text-[var(--neo-text-main)] flex items-center gap-1.5 flex-wrap">
+                              <span>{user.firstName} {user.lastName}</span>
+                              {(() => {
+                                const roleSlugs: string[] = Array.from(new Set([
+                                  ...(user.roleSlugs || []),
+                                  ...(user.roles?.map((r: any) => r.slug || r) || []),
+                                  ...(user.role?.slug ? [user.role.slug] : [])
+                                ])).filter(Boolean);
+                                const otherRoles = roleSlugs.filter(r => r !== 'instructor');
+                                return otherRoles.map((r: string) => {
+                                  const label = r === 'student' ? 'دانشجو' :
+                                                r === 'super-admin' ? 'مدیر کل' :
+                                                r === 'admin' ? 'مدیر' :
+                                                r === 'accountant' ? 'حسابدار' :
+                                                r === 'partner' ? 'شریک' : r;
+                                  return (
+                                    <span key={r} className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-blue-50 text-blue-800 border border-blue-200">
+                                      همچنین {label}
+                                    </span>
+                                  );
+                                });
+                              })()}
                             </div>
                             <div className="text-[11px] text-[var(--neo-text-muted)] flex items-center gap-1 mt-0.5">
                               <Calendar className="w-3 h-3" />
@@ -369,9 +389,13 @@ export default function AdminInstructorsPage() {
                           <div className="text-xs text-[var(--neo-text-secondary)] flex items-center gap-1.5">
                             <BookOpen className="w-3.5 h-3.5 text-indigo-500" />
                             <span className="font-bold">
-                              {coursesCount}
-                            </span>{" "}
-                            دوره فعال
+                              {coursesCount} دوره
+                            </span>
+                            {Boolean(user.classesCount) && (
+                              <span className="text-[11px] text-amber-700 font-bold bg-amber-50 px-1.5 py-0.2 rounded border border-amber-200">
+                                + {user.classesCount} کلاس
+                              </span>
+                            )}
                           </div>
                           <div className="text-xs text-[var(--neo-text-muted)] flex items-center gap-1.5">
                             <Users className="w-3.5 h-3.5 text-blue-500" />

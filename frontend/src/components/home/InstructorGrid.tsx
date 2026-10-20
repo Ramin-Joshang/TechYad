@@ -75,33 +75,29 @@ export function InstructorGrid({ data = [], isLoading = false }: { data?: any[],
             ))}
           </div>
         ) : (
-          <div dir="rtl">
+          <div dir="rtl" className="w-full overflow-hidden">
             <Swiper
               onSwiper={setSwiper}
               modules={[Autoplay]}
               autoplay={false}
               spaceBetween={20}
-              slidesPerView={1.2}
+              slidesPerView={1}
               grabCursor={true}
               breakpoints={{
-                480: {
-                  slidesPerView: 1.35,
-                  spaceBetween: 16,
-                },
                 640: {
-                  slidesPerView: 2.2,
-                  spaceBetween: 18,
+                  slidesPerView: 2,
+                  spaceBetween: 20,
                 },
                 1024: {
-                  slidesPerView: 3.2,
-                  spaceBetween: 22,
+                  slidesPerView: 3,
+                  spaceBetween: 20,
                 },
                 1280: {
                   slidesPerView: 4,
                   spaceBetween: 24,
                 },
               }}
-              className="!overflow-visible"
+              className="w-full overflow-hidden"
             >
               {data.map((inst: any) => (
                 <SwiperSlide key={inst._id} className="h-auto">

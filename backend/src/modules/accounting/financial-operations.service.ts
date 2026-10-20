@@ -154,7 +154,20 @@ export class FinancialOperationsService {
     input: CreateFinancialAccountInput,
     userId: string
   ): Promise<IFinancialAccount> {
-    const { title, accountType, bankName, accountNumber, cardLast4, shebaNumber, branchName, accountHolder, coaAccountCode, openingBalance = 0, openingDate, description, isDefault } = input;
+    const title = input.title || (input as any).name;
+    const rawType = (input.accountType || (input as any).type || "bank") as string;
+    const accountType = (rawType === "cash" ? "cash_register" : rawType) as FinancialAccountType;
+    const bankName = input.bankName;
+    const accountNumber = input.accountNumber;
+    const cardLast4 = input.cardLast4;
+    const shebaNumber = input.shebaNumber || (input as any).shaba;
+    const branchName = input.branchName;
+    const accountHolder = input.accountHolder || (input as any).accountHolderName;
+    const coaAccountCode = input.coaAccountCode || (input as any).code;
+    const openingBalance = input.openingBalance ?? (input as any).initialBalance ?? 0;
+    const openingDate = input.openingDate;
+    const description = input.description;
+    const isDefault = input.isDefault;
 
     if (!title || !title.trim()) {
       throw new AppError("عنوان حساب مالی الزامی است.", 400, "TITLE_REQUIRED");
@@ -360,6 +373,10 @@ export class FinancialOperationsService {
       notes,
     } = input;
 
+    const resolvedFinAccountId = financialAccountId || (input as any).fromAccountId;
+    const resolvedToFinAccountId = toFinancialAccountId || (input as any).toAccountId;
+    const resolvedParty = party?.name ? party : { name: (input as any).payerOrPayee || "طرف حساب عمومی" };
+
     // Idempotency check: prevent duplicate submissions
     if (idempotencyKey) {
       const existing = await FinancialOperation.findOne({ idempotencyKey });
@@ -375,14 +392,14 @@ export class FinancialOperationsService {
       throw new AppError("شرح عملیات مالی الزامی است.", 400, "DESCRIPTION_REQUIRED");
     }
 
-    if (!party || !party.name || !party.name.trim()) {
+    if (!resolvedParty || !resolvedParty.name || !resolvedParty.name.trim()) {
       throw new AppError("مشخصات طرف حساب (نام پرداخت‌کننده یا دریافت‌کننده) الزامی است.", 400, "PARTY_REQUIRED");
     }
 
     // Resolve primary financial account
     let primaryAcc: IFinancialAccount | null = null;
-    if (financialAccountId) {
-      primaryAcc = await FinancialAccount.findById(financialAccountId);
+    if (resolvedFinAccountId) {
+      primaryAcc = await FinancialAccount.findById(resolvedFinAccountId);
       if (!primaryAcc) {
         throw new AppError("حساب مالی مبدأ / انتخاب‌شده یافت نشد.", 404, "FINANCIAL_ACCOUNT_NOT_FOUND");
       }
@@ -470,14 +487,15 @@ export class FinancialOperationsService {
       // C) TRANSFER (انتقال بین حساب‌ها: بدهکار مقصد، بستانکار مبدأ | اثر صفر در سود/زیان)
       // -------------------------------------------------------------------
       case "transfer": {
-        if (!toFinancialAccountId) {
+        const destId = resolvedToFinAccountId;
+        if (!destId) {
           throw new AppError("حساب مالی مقصد جهت انتقال وجه الزامی است.", 400, "DESTINATION_ACCOUNT_REQUIRED");
         }
-        if (toFinancialAccountId === primaryAcc._id.toString()) {
+        if (destId === primaryAcc._id.toString()) {
           throw new AppError("حساب مبدأ و مقصد در انتقال وجه نمی‌توانند یکسان باشند.", 400, "SAME_ACCOUNT_TRANSFER");
         }
 
-        const destAcc = await FinancialAccount.findById(toFinancialAccountId);
+        const destAcc = await FinancialAccount.findById(destId);
         if (!destAcc) {
           throw new AppError("حساب مالی مقصد یافت نشد.", 404, "DESTINATION_ACCOUNT_NOT_FOUND");
         }
@@ -881,6 +899,19 @@ export class FinancialOperationsService {
     // 8. موجودی نقد و بانک مجموع (کد 1010)
     const cashAndBankLedger = await AccountingLedgerService.getAccountLedger("1010");
 
+    const totalPayables =
+      Math.max(0, teacherPayablesLedger.finalBalance) +
+      Math.max(0, walletLiabilityLedger.finalBalance) +
+      Math.max(0, unearnedRevenueLedger.finalBalance) +
+      Math.max(0, partnerLoanLedger.finalBalance);
+
+    const totalReceivables =
+      Math.max(0, samanClearingLedger.finalBalance) +
+      Math.max(0, snappPayClearingLedger.finalBalance);
+
+    const partnerCapital = Math.max(0, partnerEquityLedger.finalBalance);
+    const partnerWithdrawals = Math.max(0, partnerWithdrawalLedger.finalBalance);
+
     return {
       payables: {
         // بدهی به مدرسان
@@ -907,11 +938,10 @@ export class FinancialOperationsService {
           title: "تسهیلات و بدهی جاری به شرکا (وام)",
           amount: Math.max(0, partnerLoanLedger.finalBalance),
         },
-        totalPayables:
-          Math.max(0, teacherPayablesLedger.finalBalance) +
-          Math.max(0, walletLiabilityLedger.finalBalance) +
-          Math.max(0, unearnedRevenueLedger.finalBalance) +
-          Math.max(0, partnerLoanLedger.finalBalance),
+        totalPayables,
+        total: totalPayables,
+        instructorsPendingSettlement: Math.max(0, teacherPayablesLedger.finalBalance),
+        studentWalletLiabilities: Math.max(0, walletLiabilityLedger.finalBalance),
       },
       receivables: {
         // وجوه در راه درگاه سامان
@@ -926,26 +956,32 @@ export class FinancialOperationsService {
           title: "وجوه در راه تسویه اقساطی اسنپ‌پی",
           amount: Math.max(0, snappPayClearingLedger.finalBalance),
         },
-        totalReceivables:
-          Math.max(0, samanClearingLedger.finalBalance) +
-          Math.max(0, snappPayClearingLedger.finalBalance),
+        totalReceivables,
+        total: totalReceivables,
+        gatewayTransit: Math.max(0, samanClearingLedger.finalBalance),
+        studentInstallments: Math.max(0, snappPayClearingLedger.finalBalance),
       },
       partnerSummary: {
         capitalRegistered: {
           accountCode: "3010",
           title: "سرمایه اولیه و آورده سهامداران/شرکا",
-          amount: Math.max(0, partnerEquityLedger.finalBalance),
+          amount: partnerCapital,
         },
         withdrawals: {
           accountCode: "3030",
           title: "مجموع برداشت سود و جاری شرکا",
-          amount: Math.max(0, partnerWithdrawalLedger.finalBalance),
+          amount: partnerWithdrawals,
         },
         loansReceived: {
           accountCode: "2060",
           title: "مانده وام‌ها و استقراض از شرکا",
           amount: Math.max(0, partnerLoanLedger.finalBalance),
         },
+      },
+      equityAndReserves: {
+        partnerCapital,
+        partnerWithdrawals,
+        retainedEarnings: 0,
       },
       treasurySummary: {
         totalCashAndBank: Math.max(0, cashAndBankLedger.finalBalance),

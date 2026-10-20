@@ -3,7 +3,8 @@ import { api } from '@/lib/api';
 export interface ChartAccount {
   _id: string;
   code: string;
-  name: string;
+  name?: string;
+  title?: string;
   type: 'asset' | 'liability' | 'equity' | 'revenue' | 'expense';
   nature: 'debit' | 'credit';
   level: number;
@@ -51,7 +52,8 @@ export interface JournalEntry {
 
 export interface FinancialAccountItem {
   _id: string;
-  name: string;
+  name?: string;
+  title?: string;
   type: 'bank' | 'card' | 'cash' | 'gateway_settlement' | 'partner_equity' | 'other';
   code: string;
   bankName?: string;

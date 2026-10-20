@@ -142,15 +142,43 @@ export default function AdminsManagementPage() {
                       <div className="text-xs text-[var(--neo-text-secondary)]">{admin.email}</div>
                     </td>
                     <td className="p-4">
-                      <div className="flex flex-col gap-1 items-start">
-                        <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-bold ${
-                          admin.role?.slug === 'super-admin' 
-                            ? 'bg-purple-100 text-purple-700' 
-                            : 'bg-blue-100 text-blue-700'
-                        }`}>
-                          {admin.role?.slug === 'super-admin' && <Shield className="w-3.5 h-3.5" />}
-                          {admin.role?.name || admin.role?.slug}
-                        </span>
+                      <div className="flex flex-wrap gap-1.5 items-center max-w-[200px]">
+                        {(() => {
+                          const adminRoleSlugs: string[] = Array.from(new Set([
+                            ...(admin.roleSlugs || []),
+                            ...(admin.roles?.map((r: any) => r.slug || r) || []),
+                            ...(admin.role?.slug ? [admin.role.slug] : [])
+                          ])).filter(Boolean);
+                          if (adminRoleSlugs.length === 0) adminRoleSlugs.push(admin.role?.slug || 'admin');
+
+                          return adminRoleSlugs.map((slug: string) => {
+                            const isSA = slug === 'super-admin';
+                            const isAdm = slug === 'admin';
+                            const isInst = slug === 'instructor';
+                            const isAcc = slug === 'accountant';
+                            const isPart = slug === 'partner';
+
+                            const label = isSA ? 'مدیر کل' :
+                                          isAdm ? 'مدیر' :
+                                          isInst ? 'مدرس' :
+                                          isAcc ? 'حسابدار' :
+                                          isPart ? 'شریک' : 'دانشجو';
+
+                            const colorCls = isSA ? 'bg-purple-100 text-purple-700 border border-purple-200' :
+                                             isAdm ? 'bg-blue-100 text-blue-700 border border-blue-200' :
+                                             isInst ? 'bg-amber-100 text-amber-800 border border-amber-200' :
+                                             isAcc ? 'bg-emerald-100 text-emerald-800 border border-emerald-200' :
+                                             isPart ? 'bg-indigo-100 text-indigo-800 border border-indigo-200' :
+                                             'bg-slate-100 text-slate-700 border border-slate-200';
+
+                            return (
+                              <span key={slug} className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-bold ${colorCls}`}>
+                                {isSA && <Shield className="w-3 h-3" />}
+                                {label}
+                              </span>
+                            );
+                          });
+                        })()}
                         {admin.role?.slug === 'admin' && admin.canTeach && (
                           <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] font-bold">
                             <span>مجوز تدریس فعال</span>
