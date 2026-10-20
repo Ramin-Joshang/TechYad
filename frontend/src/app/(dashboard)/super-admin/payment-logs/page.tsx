@@ -209,18 +209,23 @@ export default function PaymentLogsPage() {
                         <button
                           onClick={() => setSelectedRawData({
                             orderId: order._id,
-                            paymentMethod: order.paymentMethod,
+                            paymentMethod: order.paymentMethod || order.gateway || 'سامان (شاپرک)',
+                            authority: order.authority || order.resNum,
+                            refNum: order.refNum,
+                            rrn: order.rrn,
+                            traceNo: order.traceNo,
+                            maskedPan: order.maskedPan,
                             trackingCode: order.trackingCode,
                             amount: order.finalAmount || order.totalAmount,
                             status: order.status,
                             createdAt: order.createdAt,
                             gatewayCallback: order.gatewayResponse || {
                               status: isPaid ? 'OK' : 'NOK',
-                              trackId: order.trackingCode || 'TRK-' + order._id?.slice(-6),
-                              cardPan: '****-****-****-' + Math.floor(1000 + Math.random() * 9000),
-                              hashedCardPan: 'SHA256-HASH-VALUE',
-                              fee: 0,
-                              shaparakRefId: order.trackingCode || 'SHP-' + Date.now().toString().slice(-8)
+                              refNum: order.refNum,
+                              traceNo: order.traceNo,
+                              rrn: order.rrn,
+                              maskedPan: order.maskedPan,
+                              gateway: order.gateway || 'saman',
                             }
                           })}
                           className="p-1.5 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-lg text-xs font-bold transition inline-flex items-center gap-1"

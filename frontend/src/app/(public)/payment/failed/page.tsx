@@ -11,7 +11,7 @@ function PaymentFailedContent() {
   const type = searchParams?.get('type');
   const authority = searchParams?.get('authority');
   const message = searchParams?.get('message');
-  const isWallet = origin === 'wallet' || type === 'wallet' || authority?.startsWith('WALLET');
+  const isWallet = origin === 'wallet' || origin === 'wallet_topup' || type === 'wallet' || authority?.startsWith('WALLET');
 
   return (
     <main className="bg-[var(--neo-bg)] min-h-screen py-16 px-4 flex items-center justify-center">

@@ -8,6 +8,7 @@ import { Coupon } from '../commerce/coupon.model.js';
 import { AppError } from '../../common/errors/AppError.js';
 import { Role } from '../auth/role.model.js';
 import { Class } from '../classes/class.model.js';
+import { Payment } from '../commerce/payment.model.js';
 import { Ticket } from '../support/ticket.model.js';
 import { TicketMessage } from '../support/ticket-message.model.js';
 import { Enrollment } from '../learning/enrollment.model.js';
@@ -24,6 +25,7 @@ import { parseDateSafely } from '../../common/utils/date.js';
 import { AuditService } from '../../common/services/audit.service.js';
 import { ReferralService } from '../referral/referral.service.js';
 import { SmsService } from '../../common/services/sms.service.js';
+import { AccountingIntegrationService } from '../accounting/accounting-integration.service.js';
 
 
 export class AdminService {
@@ -100,9 +102,9 @@ export class AdminService {
     const instructorRole = await Role.findOne({ slug: 'instructor' });
     const adminRole = await Role.findOne({ slug: 'admin' });
     const superAdminRole = await Role.findOne({ slug: 'super-admin' });
-    const students = studentRole ? await User.countDocuments({ role: studentRole._id }) : 0;
-    const instructors = instructorRole ? await User.countDocuments({ role: instructorRole._id }) : 0;
-    const admins = (adminRole ? await User.countDocuments({ role: adminRole._id }) : 0) + (superAdminRole ? await User.countDocuments({ role: superAdminRole._id }) : 0);
+    const students = studentRole ? await User.countDocuments({ $or: [{ role: studentRole._id }, { roles: studentRole._id }] }) : 0;
+    const instructors = instructorRole ? await User.countDocuments({ $or: [{ role: instructorRole._id }, { roles: instructorRole._id }, { canTeach: true }] }) : 0;
+    const admins = (adminRole ? await User.countDocuments({ $or: [{ role: adminRole._id }, { roles: adminRole._id }] }) : 0) + (superAdminRole ? await User.countDocuments({ $or: [{ role: superAdminRole._id }, { roles: superAdminRole._id }] }) : 0);
 
     const classes = await Class.countDocuments({ status: 'published' });
     const totalClasses = await Class.countDocuments();
@@ -902,8 +904,40 @@ export class AdminService {
     const paidCount = allPaidOrders.length;
     const averageOrderValue = paidCount > 0 ? Math.round(totalRevenue / paidCount) : 0;
 
+    // Attach structured payment details to each order
+    const orderIds = orders.map((o: any) => o._id);
+    const payments = (await Payment.find({ orderId: { $in: orderIds } }).lean()) as any[];
+    const paymentMap = new Map(payments.map((p: any) => [p.orderId?.toString(), p]));
+
+    const enrichedOrders = orders.map((order: any) => {
+      const p = paymentMap.get(order._id.toString());
+      return {
+        ...order,
+        paymentDetails: p ? {
+          _id: p._id,
+          resNum: p.resNum || p.referenceId,
+          refNum: p.refNum,
+          rrn: p.rrn,
+          traceNo: p.traceNo,
+          terminalId: p.terminalId,
+          maskedPan: p.maskedPan,
+          authority: p.authority,
+          gateway: p.gateway,
+          status: p.status,
+          amount: p.amount,
+          currency: p.currency || 'تومان',
+          originType: p.originType,
+          gatewayErrorCode: p.gatewayErrorCode,
+          gatewayErrorMessage: p.gatewayErrorMessage,
+          returnAt: p.returnAt,
+          verifiedAt: p.verifiedAt || p.paidAt,
+          createdAt: p.createdAt,
+        } : undefined
+      };
+    });
+
     return {
-      orders,
+      orders: enrichedOrders,
       total,
       page,
       pages: Math.ceil(total / limit) || 1,
@@ -926,13 +960,36 @@ export class AdminService {
       .lean();
     if (!order) throw new AppError('سفارش یافت نشد', 404);
 
-    const [courseEnrollments, classEnrollments] = await Promise.all([
+    const [courseEnrollments, classEnrollments, payment] = await Promise.all([
       Enrollment.find({ orderId: id }).populate('courseId', 'title slug thumbnail').lean(),
-      ClassEnrollment.find({ orderId: id }).populate('classId', 'title slug thumbnail').lean()
+      ClassEnrollment.find({ orderId: id }).populate('classId', 'title slug thumbnail').lean(),
+      Payment.findOne({ orderId: id }).lean() as Promise<any>
     ]);
 
     return {
-      order,
+      order: {
+        ...order,
+        paymentDetails: payment ? {
+          _id: payment._id,
+          resNum: payment.resNum || payment.referenceId,
+          refNum: payment.refNum,
+          rrn: payment.rrn,
+          traceNo: payment.traceNo,
+          terminalId: payment.terminalId,
+          maskedPan: payment.maskedPan,
+          authority: payment.authority,
+          gateway: payment.gateway,
+          status: payment.status,
+          amount: payment.amount,
+          currency: payment.currency || 'تومان',
+          originType: payment.originType,
+          gatewayErrorCode: payment.gatewayErrorCode,
+          gatewayErrorMessage: payment.gatewayErrorMessage,
+          returnAt: payment.returnAt,
+          verifiedAt: payment.verifiedAt || payment.paidAt,
+          createdAt: payment.createdAt,
+        } : undefined
+      },
       enrollments: {
         courses: courseEnrollments,
         classes: classEnrollments
@@ -1776,6 +1833,13 @@ export class AdminService {
           matchingTx.processedBy = new mongoose.Types.ObjectId(adminId);
           await matchingTx.save();
         }
+
+        // Record in double-entry accounting ledger (reduce instructor payable, debit 2020 / credit 1011)
+        try {
+          await AccountingIntegrationService.recordSettlementPayout(settlement, adminId);
+        } catch (accErr) {
+          console.error('Accounting settlement payout recording error:', accErr);
+        }
       } else if (status === 'rejected' && previousStatus !== 'rejected') {
         // Refund amount to instructor wallet balance
         const updatedUser = await User.findByIdAndUpdate(
@@ -2180,6 +2244,202 @@ export class AdminService {
       await setting.save();
     }
     return setting.value;
+  }
+
+  static async getPartners() {
+    const partnerRole = await Role.findOne({ slug: 'partner' });
+    if (!partnerRole) return [];
+
+    const users = await User.find({
+      $or: [
+        { roles: partnerRole._id },
+        { role: partnerRole._id }
+      ]
+    })
+      .populate('role', 'name slug')
+      .populate('roles', 'name slug permissions')
+      .select('-passwordHash')
+      .sort({ createdAt: -1 })
+      .lean();
+
+    return users.map((u: any) => ({
+      ...u,
+      roleSlugs: [
+        ...(Array.isArray(u.roles) ? u.roles.map((r: any) => r.slug || r) : []),
+        u.role?.slug || u.role
+      ].filter(Boolean)
+    }));
+  }
+
+  static async getAccountants() {
+    const accountantRole = await Role.findOne({ slug: 'accountant' });
+    if (!accountantRole) return [];
+
+    const users = await User.find({
+      $or: [
+        { roles: accountantRole._id },
+        { role: accountantRole._id }
+      ]
+    })
+      .populate('role', 'name slug')
+      .populate('roles', 'name slug permissions')
+      .select('-passwordHash')
+      .sort({ createdAt: -1 })
+      .lean();
+
+    return users.map((u: any) => ({
+      ...u,
+      roleSlugs: [
+        ...(Array.isArray(u.roles) ? u.roles.map((r: any) => r.slug || r) : []),
+        u.role?.slug || u.role
+      ].filter(Boolean)
+    }));
+  }
+
+  static async assignUserRole(actingUser: any, data: { userId: string; roleSlug: string }) {
+    const { userId, roleSlug } = data;
+    if (!userId || !roleSlug) {
+      throw new AppError('شناسه کاربر و شناسه نقش الزامی است', 400);
+    }
+
+    const targetRole = await Role.findOne({ slug: roleSlug });
+    if (!targetRole) {
+      throw new AppError(`نقش با شناسه «${roleSlug}» در سیستم یافت نشد`, 404);
+    }
+
+    const user = await User.findById(userId).populate('role').populate('roles');
+    if (!user) {
+      throw new AppError('کاربر مورد نظر یافت نشد', 404);
+    }
+
+    // Role hierarchy permission checks
+    const actingRoleSlug = actingUser?.role?.slug || actingUser?.role;
+    if (actingRoleSlug !== 'super-admin' && (roleSlug === 'super-admin' || roleSlug === 'partner' || roleSlug === 'accountant' || roleSlug === 'admin')) {
+      throw new AppError('تنها مدیر کل سیستم (Super Admin) مجاز به تخصیص این نقش می‌باشد.', 403, 'FORBIDDEN_ROLE_ASSIGNMENT');
+    }
+
+    const currentRoleIds = (user.roles || []).map((r: any) => r._id?.toString() || r.toString());
+    if (user.role) currentRoleIds.push(user.role._id?.toString() || user.role.toString());
+
+    if (currentRoleIds.includes(targetRole._id.toString())) {
+      return { success: true, message: `کاربر از قبل دارای نقش «${targetRole.name}» می‌باشد`, user };
+    }
+
+    const updatedRoleIds = Array.from(new Set([...currentRoleIds, targetRole._id.toString()]));
+    user.roles = updatedRoleIds.map(id => new mongoose.Types.ObjectId(id)) as any;
+
+    if (roleSlug === 'instructor') {
+      user.canTeach = true;
+    }
+
+    await user.save();
+
+    AuditService.log({
+      userId: actingUser?._id || actingUser?.id || user._id,
+      userRole: actingRoleSlug || 'super-admin',
+      action: 'assign_user_role',
+      category: 'user',
+      title: `نقش «${targetRole.name}» به کاربر «${user.firstName} ${user.lastName}» اختصاص یافت`,
+      targetId: user._id.toString(),
+      targetType: 'user',
+      details: {
+        userId: user._id.toString(),
+        assignedRole: roleSlug,
+        assignedRoleName: targetRole.name,
+        timestamp: new Date().toISOString()
+      }
+    });
+
+    return {
+      success: true,
+      message: `نقش «${targetRole.name}» با موفقیت به کاربر اختصاص یافت.`,
+      user
+    };
+  }
+
+  static async removeUserRole(actingUser: any, data: { userId: string; roleSlug: string }) {
+    const { userId, roleSlug } = data;
+    if (!userId || !roleSlug) {
+      throw new AppError('شناسه کاربر و شناسه نقش الزامی است', 400);
+    }
+
+    const targetRole = await Role.findOne({ slug: roleSlug });
+    if (!targetRole) {
+      throw new AppError(`نقش «${roleSlug}» یافت نشد`, 404);
+    }
+
+    const user = await User.findById(userId).populate('role').populate('roles');
+    if (!user) {
+      throw new AppError('کاربر مورد نظر یافت نشد', 404);
+    }
+
+    // Role removal dependency validations
+    if (roleSlug === 'super-admin') {
+      const remainingSuperAdmins = await User.countDocuments({
+        _id: { $ne: user._id },
+        status: 'active',
+        $or: [
+          { roles: targetRole._id },
+          { role: targetRole._id }
+        ]
+      });
+      if (remainingSuperAdmins === 0) {
+        throw new AppError('امکان حذف نقش آخرین مدیر ارشد (Super Admin) سامانه وجود ندارد. سیستم نباید بدون مدیر کل باقی بماند.', 400);
+      }
+    }
+
+    if (roleSlug === 'instructor') {
+      const [activeCoursesCount, activeClassesCount] = await Promise.all([
+        Course.countDocuments({ instructors: user._id, status: { $ne: 'rejected' } }),
+        Class.countDocuments({ instructors: user._id })
+      ]);
+      if (activeCoursesCount > 0 || activeClassesCount > 0) {
+        throw new AppError(
+          `امکان حذف نقش استاد وجود ندارد: این کاربر دارای ${activeCoursesCount} دوره و ${activeClassesCount} کلاس فعال در سیستم است. برای حذف این نقش، ابتدا باید دوره‌ها یا کلاس‌ها به مدرس جایگزین منتقل شوند. سوابق تدریس و تعهدات مالی باید حفظ گردند.`,
+          400
+        );
+      }
+    }
+
+    const currentRoleIds = (user.roles || []).map((r: any) => r._id?.toString() || r.toString());
+    const filteredRoleIds = currentRoleIds.filter(id => id !== targetRole._id.toString());
+
+    if (filteredRoleIds.length === 0) {
+      const defaultStudentRole = await Role.findOne({ slug: 'student' });
+      if (defaultStudentRole) {
+        filteredRoleIds.push(defaultStudentRole._id.toString());
+      }
+    }
+
+    user.roles = filteredRoleIds.map(id => new mongoose.Types.ObjectId(id)) as any;
+    if (user.role?._id?.toString() === targetRole._id.toString() || user.role?.toString() === targetRole._id.toString()) {
+      user.role = filteredRoleIds[0] as any;
+    }
+
+    await user.save();
+
+    AuditService.log({
+      userId: actingUser?._id || actingUser?.id || user._id,
+      userRole: actingUser?.role?.slug || actingUser?.role || 'super-admin',
+      action: 'remove_user_role',
+      category: 'user',
+      title: `نقش «${targetRole.name}» از کاربر «${user.firstName} ${user.lastName}» حذف گردید`,
+      targetId: user._id.toString(),
+      targetType: 'user',
+      details: {
+        userId: user._id.toString(),
+        removedRole: roleSlug,
+        removedRoleName: targetRole.name,
+        remainingRolesCount: filteredRoleIds.length,
+        timestamp: new Date().toISOString()
+      }
+    });
+
+    return {
+      success: true,
+      message: `نقش «${targetRole.name}» با موفقیت از کاربر سلب گردید.`,
+      user
+    };
   }
 }
 

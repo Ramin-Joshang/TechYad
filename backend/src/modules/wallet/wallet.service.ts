@@ -16,6 +16,7 @@ import { ReferralService } from "../referral/referral.service.js";
 import { FinancialRevenueService } from "../commerce/financial-revenue.service.js";
 import { Settlement } from "../commerce/settlement.model.js";
 import { SamanGatewayService } from "../commerce/saman-gateway.service.js";
+import { AccountingIntegrationService } from "../accounting/accounting-integration.service.js";
 import {
   WalletTransaction,
   IWalletTransaction,
@@ -330,10 +331,29 @@ export class WalletService {
       amount,
       balanceAfter: user.walletBalance || 0, // will update on success
       status: "pending",
+      initialStatus: "pending",
       title: "افزایش اعتبار کیف پول (شتاب - سامان)",
       description: `درخواست شارژ آنلاین کیف پول به مبلغ ${amount.toLocaleString("fa-IR")} تومان از درگاه پرداخت سامان`,
       referenceId: authority,
+      resNum: authority,
+      terminalId: String(terminalId || ""),
       gateway: gatewayName,
+    });
+
+    // Also register structured Payment record for unified financial tracking
+    await Payment.create({
+      userId: user._id,
+      amount,
+      currency: "تومان",
+      gateway: gatewayName,
+      originType: "wallet_topup",
+      walletTransactionId: transaction._id,
+      authority,
+      resNum: authority,
+      referenceId: authority,
+      terminalId: String(terminalId || ""),
+      status: "pending",
+      initialStatus: "pending",
     });
 
     return {
@@ -358,11 +378,17 @@ export class WalletService {
       refNum?: string;
       rrn?: string;
       traceNo?: string;
+      maskedPan?: string;
+      terminalId?: string;
       rawParams?: Record<string, unknown>;
     }
   ) {
     const transaction = await WalletTransaction.findOne({
-      referenceId: authority,
+      $or: [
+        { referenceId: authority },
+        { resNum: authority },
+        { trackingCode: authority }
+      ],
       userId,
       type: "deposit",
     });
@@ -382,43 +408,109 @@ export class WalletService {
       };
     }
 
+    const now = new Date();
+    const targetRefNum = verifyData?.refNum || transaction.refNum;
+    const targetTraceNo = verifyData?.traceNo || transaction.traceNo;
+    const targetRrn = verifyData?.rrn || transaction.rrn;
+    const targetMaskedPan = verifyData?.maskedPan || transaction.maskedPan;
+    const targetTerminalId = verifyData?.terminalId || transaction.terminalId;
+
     // Double spending prevention: ensure RefNum hasn't been approved for another transaction
-    const targetRefNum = verifyData?.refNum;
     if (targetRefNum) {
-      const existingTx = await WalletTransaction.findOne({
-        trackingCode: targetRefNum,
-        status: "completed",
-        _id: { $ne: transaction._id }
-      });
-      if (existingTx) {
+      const [existingTx, existingPaidPayment] = await Promise.all([
+        WalletTransaction.findOne({
+          $or: [{ trackingCode: targetRefNum }, { refNum: targetRefNum }],
+          status: "completed",
+          _id: { $ne: transaction._id }
+        }),
+        Payment.findOne({
+          refNum: targetRefNum,
+          status: "paid",
+          walletTransactionId: { $ne: transaction._id }
+        })
+      ]);
+
+      if (existingTx || existingPaidPayment) {
         throw new AppError("این رسید دیجیتالی قبلاً برای تراکنش دیگری تایید شده است (Double Spending)", 400);
       }
     }
 
+    // 1. If user canceled or callback state is not OK
     if (status !== "OK") {
       transaction.status = "failed";
+      transaction.callbackState = status;
+      transaction.returnAt = now;
+      transaction.gatewayErrorMessage = "پرداخت توسط کاربر لغو گردید یا از سوی درگاه تایید نشد.";
       await transaction.save();
+
+      await Payment.findOneAndUpdate(
+        { walletTransactionId: transaction._id },
+        {
+          $set: {
+            status: "failed",
+            callbackState: status,
+            returnAt: now,
+            gatewayErrorMessage: "پرداخت توسط کاربر لغو گردید یا از سوی درگاه تایید نشد."
+          }
+        }
+      );
+
       return {
         success: false,
         message: "عملیات پرداخت یا شارژ لغو گردید",
       };
     }
 
-    // If Saman SEP gateway, verify transaction using RefNum and amount in Rials
+    // 2. If Saman SEP gateway, verify transaction with Bank using RefNum and amount in Rials
     if (transaction.gateway === "saman" && targetRefNum) {
       const expectedRials = (transaction.amount || 0) * 10;
       const verifyRes = await SamanGatewayService.verifyTransaction(targetRefNum, expectedRials);
       if (!verifyRes.success) {
-        transaction.status = "failed";
+        // If timeout or indeterminate, set to under_review
+        const isIndeterminate = verifyRes.resultCode === -1 || String(verifyRes.resultDescription || "").includes("پاسخی از سرور");
+        const nextStatus = isIndeterminate ? "under_review" : "failed";
+
+        transaction.status = nextStatus;
+        transaction.callbackState = status;
+        transaction.verifyResultCode = verifyRes.resultCode;
+        transaction.gatewayErrorMessage = verifyRes.resultDescription;
+        transaction.refNum = targetRefNum;
+        transaction.traceNo = targetTraceNo || verifyRes.traceNo;
+        transaction.rrn = targetRrn || verifyRes.rrn;
+        transaction.maskedPan = targetMaskedPan || verifyRes.maskedPan;
+        transaction.returnAt = now;
         await transaction.save();
+
+        await Payment.findOneAndUpdate(
+          { walletTransactionId: transaction._id },
+          {
+            $set: {
+              status: nextStatus,
+              callbackState: status,
+              verifyResultCode: verifyRes.resultCode,
+              gatewayErrorMessage: verifyRes.resultDescription,
+              refNum: targetRefNum,
+              traceNo: targetTraceNo || verifyRes.traceNo,
+              rrn: targetRrn || verifyRes.rrn,
+              maskedPan: targetMaskedPan || verifyRes.maskedPan,
+              returnAt: now,
+            }
+          }
+        );
+
         return {
           success: false,
+          underReview: isIndeterminate,
           message: verifyRes.resultDescription,
         };
       }
+
+      if (verifyRes.rrn) transaction.rrn = verifyRes.rrn;
+      if (verifyRes.traceNo) transaction.traceNo = verifyRes.traceNo;
+      if (verifyRes.maskedPan) transaction.maskedPan = verifyRes.maskedPan;
     }
 
-    // Atomically increment user wallet balance
+    // 3. Atomically increment user wallet balance
     const user = await User.findByIdAndUpdate(
       userId,
       { $inc: { walletBalance: transaction.amount } },
@@ -431,13 +523,43 @@ export class WalletService {
     transaction.status = "completed";
     transaction.balanceAfter = user.walletBalance || 0;
     transaction.trackingCode = trackingCode;
-    if (verifyData?.rrn || verifyData?.traceNo) {
+    transaction.refNum = targetRefNum || trackingCode;
+    if (targetTraceNo) transaction.traceNo = targetTraceNo;
+    if (targetRrn) transaction.rrn = targetRrn;
+    if (targetMaskedPan) transaction.maskedPan = targetMaskedPan;
+    if (targetTerminalId) transaction.terminalId = targetTerminalId;
+    transaction.callbackState = "OK";
+    transaction.verifyResultCode = 0;
+    transaction.returnAt = now;
+    transaction.verifiedAt = now;
+
+    if (transaction.rrn || transaction.traceNo) {
       transaction.bankInfo = {
         ...(transaction.bankInfo || {}),
-        cardNumber: verifyData.rrn ? `RRN: ${verifyData.rrn}` : undefined,
+        cardNumber: transaction.maskedPan || (transaction.rrn ? `RRN: ${transaction.rrn}` : undefined),
       };
     }
     await transaction.save();
+
+    // Sync Payment record
+    await Payment.findOneAndUpdate(
+      { walletTransactionId: transaction._id },
+      {
+        $set: {
+          status: "paid",
+          refNum: transaction.refNum,
+          traceNo: transaction.traceNo,
+          rrn: transaction.rrn,
+          maskedPan: transaction.maskedPan,
+          terminalId: transaction.terminalId,
+          callbackState: "OK",
+          verifyResultCode: 0,
+          returnAt: now,
+          paidAt: now,
+          verifiedAt: now
+        }
+      }
+    );
 
     // Send in-app notification
     await Notification.create({
@@ -449,8 +571,15 @@ export class WalletService {
       )} تومان با موفقیت به کیف پول شما افزوده شد. موجودی فعلی: ${(
         user.walletBalance || 0
       ).toLocaleString("fa-IR")} تومان. کد پیگیری: ${trackingCode}`,
-      data: { transactionId: transaction._id, trackingCode },
+      data: { transactionId: transaction._id, trackingCode, refNum: transaction.refNum, traceNo: transaction.traceNo },
     });
+
+    // Record in double-entry accounting ledger (idempotent liability recognition)
+    try {
+      await AccountingIntegrationService.recordWalletTopup(transaction);
+    } catch (accErr) {
+      console.error("Accounting wallet topup recording error:", accErr);
+    }
 
     return {
       success: true,

@@ -12,7 +12,7 @@ export type WalletTransactionType =
 
 export type WalletTransactionDirection = "credit" | "debit"; // credit = واریز (+), debit = برداشت (-)
 
-export type WalletTransactionStatus = "completed" | "pending" | "failed" | "rejected";
+export type WalletTransactionStatus = "completed" | "pending" | "failed" | "rejected" | "under_review";
 
 export interface IWalletTransaction extends Document {
   userId: Types.ObjectId;
@@ -30,6 +30,9 @@ export interface IWalletTransaction extends Document {
   traceNo?: string;
   terminalId?: string;
   maskedPan?: string;
+  initialStatus?: string;
+  callbackState?: string;
+  verifyResultCode?: string | number;
   gatewayErrorCode?: string;
   gatewayErrorMessage?: string;
   returnAt?: Date;
@@ -90,7 +93,7 @@ const walletTransactionSchema = new Schema<IWalletTransaction>(
     },
     status: {
       type: String,
-      enum: ["completed", "pending", "failed", "rejected"],
+      enum: ["completed", "pending", "failed", "rejected", "under_review"],
       default: "completed",
       index: true,
     },
@@ -122,6 +125,9 @@ const walletTransactionSchema = new Schema<IWalletTransaction>(
     traceNo: String,
     terminalId: String,
     maskedPan: String,
+    initialStatus: String,
+    callbackState: String,
+    verifyResultCode: Schema.Types.Mixed,
     gatewayErrorCode: String,
     gatewayErrorMessage: String,
     returnAt: Date,

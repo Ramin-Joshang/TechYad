@@ -6,7 +6,10 @@
     "dev":  "cross-env PORT=5000 tsx watch src/server.ts",
     "build": "tsc",
     "start": "cross-env PORT=5000 node dist/server.js",
-    "seed": "tsx src/seed.ts"
+    "seed": "tsx src/seed.ts",
+    "test:accounting": "tsx src/modules/accounting/__tests__/accounting.test.ts",
+    "test:financial-ops": "tsx src/modules/accounting/__tests__/financial-operations.test.ts",
+    "test:multirole": "tsx src/modules/accounting/__tests__/payment-wallet-multirole.test.ts"
   },
   "dependencies": {
     "@types/cookie-parser": "^1.4.10",

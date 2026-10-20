@@ -8,7 +8,7 @@ export interface IAuditLog extends Document {
   userRole?: 'student' | 'instructor' | 'admin' | 'super-admin' | 'guest';
   action: string;
   title?: string;
-  category: 'auth' | 'course' | 'class' | 'assignment' | 'quiz' | 'wallet' | 'order' | 'referral' | 'support' | 'security' | 'profile' | 'settings' | 'settlement' | 'notification' | 'system' | 'sms' | 'payment' | 'user';
+  category: 'auth' | 'course' | 'class' | 'assignment' | 'quiz' | 'wallet' | 'order' | 'referral' | 'support' | 'security' | 'profile' | 'settings' | 'settlement' | 'notification' | 'system' | 'sms' | 'payment' | 'user' | 'accounting';
   targetId?: string;
   targetType?: string;
   targetTitle?: string;
@@ -66,7 +66,7 @@ const auditLogSchema = new Schema<IAuditLog>(
         'auth', 'course', 'class', 'assignment', 'quiz', 
         'wallet', 'order', 'referral', 'support', 'security', 
         'profile', 'settings', 'settlement', 'notification', 
-        'system', 'sms', 'payment', 'user'
+        'system', 'sms', 'payment', 'user', 'accounting'
       ], 
       default: 'system',
       index: true

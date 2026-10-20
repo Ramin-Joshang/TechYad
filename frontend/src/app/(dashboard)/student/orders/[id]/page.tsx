@@ -298,24 +298,75 @@ export default function OrderInvoiceDetailsPage() {
               </span>
             </div>
 
+            {paymentDetails?.gateway && (
+              <div className="flex justify-between">
+                <span className="text-slate-500">درگاه پرداخت:</span>
+                <span className="font-bold text-slate-800">
+                  {paymentDetails.gateway === 'saman' ? 'سامان (شاپرک - سپ)' : paymentDetails.gateway}
+                </span>
+              </div>
+            )}
+
+            {(paymentDetails?.refNum || order.refNum) && (
+              <div className="flex justify-between font-mono">
+                <span className="text-slate-500 font-sans">
+                  شماره مرجع تراکنش (RefNum):
+                </span>
+                <span className="font-bold text-emerald-700">
+                  {paymentDetails?.refNum || order.refNum}
+                </span>
+              </div>
+            )}
+
+            {(paymentDetails?.traceNo || order.traceNo) && (
+              <div className="flex justify-between font-mono">
+                <span className="text-slate-500 font-sans">
+                  شماره پیگیری شاپرک (TraceNo):
+                </span>
+                <span className="font-bold text-blue-700">
+                  {paymentDetails?.traceNo || order.traceNo}
+                </span>
+              </div>
+            )}
+
+            {(paymentDetails?.rrn || paymentDetails?.referenceId) && (
+              <div className="flex justify-between font-mono">
+                <span className="text-slate-500 font-sans">
+                  شماره ارجاع شاپرک (RRN):
+                </span>
+                <span className="font-bold text-slate-800">
+                  {paymentDetails?.rrn || paymentDetails?.referenceId}
+                </span>
+              </div>
+            )}
+
+            {paymentDetails?.maskedPan && (
+              <div className="flex justify-between font-mono">
+                <span className="text-slate-500 font-sans">
+                  شماره کارت پرداخت‌کننده:
+                </span>
+                <span className="font-bold text-slate-800 dir-ltr text-right">
+                  {paymentDetails.maskedPan}
+                </span>
+              </div>
+            )}
+
             {paymentDetails?.authority && (
               <div className="flex justify-between font-mono">
                 <span className="text-slate-500 font-sans">
-                  شناسه درگاه (Authority):
+                  شناسه درخواست (Authority / ResNum):
                 </span>
-                <span className="font-bold text-slate-900">
+                <span className="font-bold text-slate-600 text-[11px]">
                   {paymentDetails.authority}
                 </span>
               </div>
             )}
 
-            {paymentDetails?.referenceId && (
-              <div className="flex justify-between font-mono">
-                <span className="text-slate-500 font-sans">
-                  شماره پیگیری مرجع (RRN):
-                </span>
-                <span className="font-bold text-emerald-700">
-                  {paymentDetails.referenceId}
+            {paymentDetails?.paidAt && (
+              <div className="flex justify-between">
+                <span className="text-slate-500">تاریخ تایید پرداخت:</span>
+                <span className="font-mono text-slate-800">
+                  {new Date(paymentDetails.paidAt).toLocaleString('fa-IR')}
                 </span>
               </div>
             )}

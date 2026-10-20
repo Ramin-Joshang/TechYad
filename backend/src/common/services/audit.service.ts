@@ -15,7 +15,7 @@ export interface LogAuditParams {
     | 'auth' | 'course' | 'class' | 'assignment' | 'quiz' 
     | 'wallet' | 'order' | 'referral' | 'support' | 'security' 
     | 'profile' | 'settings' | 'settlement' | 'notification' 
-    | 'system' | 'sms' | 'payment' | 'user';
+    | 'system' | 'sms' | 'payment' | 'user' | 'accounting';
   targetId?: string;
   targetType?: string;
   targetTitle?: string;

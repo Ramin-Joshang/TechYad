@@ -68,34 +68,55 @@ import { WalletService } from '../wallet/wallet.service.js';
 export const handleGatewayCallback = async (req: Request, res: Response) => {
   // Support both GET query parameters and POST body parameters from Iranian gateways (Saman/SEP, ZarinPal, SnappPay)
   const params = { ...req.query, ...req.body };
-  const resNum = params.ResNum || params.resNum || '';
-  const refNum = params.RefNum || params.refNum || '';
-  const token = params.Token || params.token || '';
-  const authority = resNum || refNum || token || params.Authority || params.authority || '';
-  const status = params.Status || params.status || '';
-  const state = String(params.State || params.state || '').toUpperCase();
-  const gateway = req.params.gateway || params.gateway || 'saman';
+  const resNum = String(params.ResNum || params.resNum || '').trim();
+  const refNum = String(params.RefNum || params.refNum || '').trim();
+  const token = String(params.Token || params.token || '').trim();
+  const authority = String(resNum || refNum || token || params.Authority || params.authority || '').trim();
+  const status = String(params.Status || params.status || '').trim();
+  const state = String(params.State || params.state || '').toUpperCase().trim();
+  const gateway = String(req.params.gateway || params.gateway || 'saman');
 
-  const frontendBaseUrl = process.env.FRONTEND_URL || 'https://tecyad.ir';
+  const frontendBaseUrl = (process.env.FRONTEND_URL || 'https://tecyad.ir').replace(/\/+$/, '');
   const isSuccess = state === 'OK' || status === '100' || status === '2';
 
-  const rrn = params.RRN || params.rrn || '';
-  const traceNo = params.TraceNo || params.traceNo || '';
+  const rrn = String(params.RRN || params.rrn || '').trim();
+  const traceNo = String(params.TraceNo || params.traceNo || '').trim();
+  const terminalId = String(params.TerminalId || params.terminalId || params.TerminalNumber || '').trim();
+  const maskedPan = String(params.PAN || params.pan || params.CardNumber || params.cardNumber || '').trim();
 
-  // 1. Handle online wallet charge callback
-  const isWalletAuthority = String(authority).startsWith('WALLET') || String(resNum).startsWith('WALLET');
+  // 1. First, search Payment record by unique server-side authorities/identifiers
+  let payment: any = null;
+  if (authority || resNum || token) {
+    payment = await Payment.findOne({
+      $or: [
+        { authority },
+        { resNum: resNum || authority },
+        { referenceId: resNum || authority },
+        { referenceId: authority },
+        { authority: token }
+      ].filter(Boolean)
+    });
+  }
+
+  // 2. Search WalletTransaction if authority indicates wallet or payment references wallet transaction
+  const isWalletAuthority = authority.startsWith('WALLET') || resNum.startsWith('WALLET');
   let walletTx: any = null;
-  if (isWalletAuthority || authority) {
+  if (payment?.walletTransactionId) {
+    walletTx = await WalletTransaction.findById(payment.walletTransactionId);
+  }
+  if (!walletTx && (isWalletAuthority || authority)) {
     walletTx = await WalletTransaction.findOne({
       $or: [
         { referenceId: authority },
         { referenceId: resNum },
-        { resNum: resNum || authority }
-      ]
+        { resNum: resNum || authority },
+        { trackingCode: refNum || authority }
+      ].filter(Boolean)
     });
   }
 
-  if (isWalletAuthority || walletTx) {
+  // 3. Handle Wallet Top-Up Return Flow: Must ALWAYS return to Student Wallet, NEVER to Cart or Checkout!
+  if (payment?.originType === 'wallet_topup' || isWalletAuthority || walletTx) {
     try {
       if (walletTx) {
         if (isSuccess) {
@@ -107,13 +128,17 @@ export const handleGatewayCallback = async (req: Request, res: Response) => {
               refNum,
               rrn,
               traceNo,
+              maskedPan,
+              terminalId,
               rawParams: params
             }
           );
           if (verifyChargeRes.success) {
-            return res.redirect(`${frontendBaseUrl}/student/wallet?charged=true&amount=${walletTx.amount}&refNum=${encodeURIComponent(refNum || '')}&traceNo=${encodeURIComponent(traceNo || '')}&rrn=${encodeURIComponent(rrn || '')}`);
+            return res.redirect(`${frontendBaseUrl}/student/wallet?charged=true&amount=${walletTx.amount}&refNum=${encodeURIComponent(refNum || walletTx.refNum || '')}&traceNo=${encodeURIComponent(traceNo || walletTx.traceNo || '')}&rrn=${encodeURIComponent(rrn || walletTx.rrn || '')}&resNum=${encodeURIComponent(resNum || authority)}`);
+          } else if ((verifyChargeRes as any).underReview) {
+            return res.redirect(`${frontendBaseUrl}/student/wallet?charged=pending&traceNo=${encodeURIComponent(traceNo || '')}&resNum=${encodeURIComponent(resNum || authority)}&refNum=${encodeURIComponent(refNum || '')}`);
           } else {
-            return res.redirect(`${frontendBaseUrl}/student/wallet?charged=failed&message=${encodeURIComponent(verifyChargeRes.message || 'خطا در تایید شارژ')}&traceNo=${encodeURIComponent(traceNo || '')}`);
+            return res.redirect(`${frontendBaseUrl}/student/wallet?charged=failed&message=${encodeURIComponent(verifyChargeRes.message || 'خطا در تایید شارژ')}&traceNo=${encodeURIComponent(traceNo || '')}&resNum=${encodeURIComponent(resNum || authority)}&refNum=${encodeURIComponent(refNum || '')}`);
           }
         } else {
           await WalletService.verifyCharge(walletTx.userId.toString(), walletTx.referenceId || authority, 'NOK');
@@ -123,24 +148,16 @@ export const handleGatewayCallback = async (req: Request, res: Response) => {
     } catch (e) {
       console.error('Wallet gateway callback handling error:', e);
     }
-    // Always return to student wallet, NEVER to cart!
+    // Safe server-determined fallback: always student wallet
     return res.redirect(`${frontendBaseUrl}/student/wallet?charged=failed&reason=cancelled&resNum=${encodeURIComponent(resNum || authority)}`);
   }
 
-  // 2. Handle order purchase callback
+  // 4. Handle Order / Course / Class Purchase Callback
   try {
-    const payment = await Payment.findOne({
-      $or: [
-        { authority },
-        { referenceId: authority },
-        { referenceId: resNum },
-        { authority: token }
-      ]
-    });
-
     if (payment) {
+      const orderIdStr = payment.orderId ? payment.orderId.toString() : '';
       if (isSuccess) {
-        if (payment.status === 'pending') {
+        if (payment.status === 'pending' || payment.status === 'under_review') {
           const verifyRes = await CommerceService.verifyPaymentMock(
             payment.userId.toString(),
             payment.authority || authority,
@@ -149,21 +166,23 @@ export const handleGatewayCallback = async (req: Request, res: Response) => {
               refNum,
               rrn,
               traceNo,
+              maskedPan,
+              terminalId,
               rawParams: params
             }
           );
-          const orderIdStr = payment.orderId ? payment.orderId.toString() : '';
           if (verifyRes.success) {
-            return res.redirect(`${frontendBaseUrl}/payment/success?orderId=${encodeURIComponent(orderIdStr)}&refNum=${encodeURIComponent(refNum || payment.refNum || '')}&gateway=${encodeURIComponent(gateway)}`);
+            return res.redirect(`${frontendBaseUrl}/payment/success?orderId=${encodeURIComponent(orderIdStr)}&refNum=${encodeURIComponent(refNum || payment.refNum || '')}&traceNo=${encodeURIComponent(traceNo || '')}&gateway=${encodeURIComponent(gateway)}`);
+          } else if ((verifyRes as any).underReview) {
+            return res.redirect(`${frontendBaseUrl}/payment/failed?origin=${encodeURIComponent(payment.originType || 'order')}&orderId=${encodeURIComponent(orderIdStr)}&authority=${encodeURIComponent(authority)}&status=under_review&message=${encodeURIComponent('تراکنش در انتظار بررسی و استعلام نهایی از شاپرک می‌باشد.')}`);
           } else {
-            return res.redirect(`${frontendBaseUrl}/payment/failed?authority=${encodeURIComponent(authority)}&gateway=${encodeURIComponent(gateway)}&message=${encodeURIComponent(verifyRes.message || 'خطا در تایید تراکنش')}`);
+            return res.redirect(`${frontendBaseUrl}/payment/failed?origin=${encodeURIComponent(payment.originType || 'order')}&orderId=${encodeURIComponent(orderIdStr)}&authority=${encodeURIComponent(authority)}&gateway=${encodeURIComponent(gateway)}&message=${encodeURIComponent(verifyRes.message || 'خطا در تایید تراکنش')}`);
           }
         } else if (payment.status === 'paid') {
-          const orderIdStr = payment.orderId ? payment.orderId.toString() : '';
           return res.redirect(`${frontendBaseUrl}/payment/success?orderId=${encodeURIComponent(orderIdStr)}&refNum=${encodeURIComponent(payment.refNum || refNum)}&gateway=${encodeURIComponent(gateway)}`);
         }
       } else {
-        // State is not OK or payment canceled
+        // State is not OK or payment canceled by user
         if (payment.status === 'pending') {
           await CommerceService.verifyPaymentMock(
             payment.userId.toString(),
@@ -171,13 +190,14 @@ export const handleGatewayCallback = async (req: Request, res: Response) => {
             'NOK'
           );
         }
+        return res.redirect(`${frontendBaseUrl}/payment/failed?origin=${encodeURIComponent(payment.originType || 'order')}&orderId=${encodeURIComponent(orderIdStr)}&authority=${encodeURIComponent(authority)}&gateway=${encodeURIComponent(gateway)}&message=${encodeURIComponent('پرداخت توسط کاربر لغو گردید')}`);
       }
     }
   } catch (err: any) {
     console.error('Order gateway callback handling error:', err);
   }
 
-  // Fallback to failed payment page
+  // Fallback for general order
   return res.redirect(`${frontendBaseUrl}/payment/failed?authority=${encodeURIComponent(authority)}&gateway=${encodeURIComponent(gateway)}`);
 };
 

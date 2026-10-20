@@ -310,4 +310,25 @@ export const getSmsCredit = async (req: Request, res: Response) => {
   sendSuccess(res, result, 'اطلاعات شارژ سامانه پیامکی دریافت شد');
 };
 
+export const getPartners = async (req: Request, res: Response) => {
+  const result = await AdminService.getPartners();
+  sendSuccess(res, result, 'فهرست شرکای مؤسسه با موفقیت دریافت شد');
+};
+
+export const getAccountants = async (req: Request, res: Response) => {
+  const result = await AdminService.getAccountants();
+  sendSuccess(res, result, 'فهرست حسابداران مؤسسه با موفقیت دریافت شد');
+};
+
+export const assignUserRole = async (req: any, res: Response) => {
+  const result = await AdminService.assignUserRole(req.user, req.body);
+  sendSuccess(res, result.user, result.message);
+};
+
+export const removeUserRole = async (req: any, res: Response) => {
+  const result = await AdminService.removeUserRole(req.user, req.body);
+  sendSuccess(res, result.user, result.message);
+};
+
+
 

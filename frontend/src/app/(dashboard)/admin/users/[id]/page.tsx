@@ -210,6 +210,7 @@ export default function UserDetailPage() {
       mobileVerified: formData.mobileVerified,
       status: formData.status,
       role: formData.role,
+      roles: formData.roles,
       specialty: formData.specialty,
       bio: formData.bio,
     };
@@ -818,17 +819,72 @@ export default function UserDetailPage() {
               />
             </div>
 
-            <div>
-              <label className="block text-xs font-bold text-[var(--neo-text-main)] mb-1.5">نقش کاربر</label>
-              <select 
-                value={formData.role} 
-                onChange={e => handleChange('role', e.target.value)}
-                className="w-full px-4 py-2.5 rounded-xl border border-[var(--neo-border)] bg-[var(--neo-surface-2)] text-xs outline-none cursor-pointer"
-              >
-                {rolesData?.map((r: any) => (
-                  <option key={r._id || r.slug} value={r._id || r.slug}>{r.name || r.slug}</option>
-                ))}
-              </select>
+            <div className="space-y-3 p-4 bg-slate-50/70 rounded-2xl border border-[var(--neo-border)]">
+              <div>
+                <label className="block text-xs font-black text-[var(--neo-text-main)] mb-1">
+                  انتساب نقش‌های چندگانه (Multi-Role Support)
+                </label>
+                <p className="text-[11px] text-[var(--neo-text-muted)] mb-3">
+                  کاربر می‌تواند همزمان چندین نقش فعال (مانند دانشجو + مدرس یا شریک + حسابدار) داشته باشد بدون اینکه سوابق قبلی تخریب شود.
+                </p>
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                  {rolesData?.map((r: any) => {
+                    const rId = r._id?.toString() || r.slug;
+                    const isChecked = formData.roles.includes(rId) || formData.roles.includes(r.slug) || formData.role === rId || formData.role === r.slug;
+                    return (
+                      <label
+                        key={rId}
+                        className={`p-2.5 rounded-xl border flex items-center gap-2 cursor-pointer transition text-xs font-bold ${
+                          isChecked
+                            ? 'bg-blue-50 border-blue-300 text-blue-900 shadow-xs'
+                            : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50'
+                        }`}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={isChecked}
+                          onChange={(e) => {
+                            let nextRoles = [...formData.roles];
+                            if (e.target.checked) {
+                              if (!nextRoles.includes(rId)) nextRoles.push(rId);
+                              if (!nextRoles.includes(r.slug)) nextRoles.push(r.slug);
+                            } else {
+                              nextRoles = nextRoles.filter(x => x !== rId && x !== r.slug);
+                            }
+                            if (!e.target.checked && r.slug === 'instructor' && (courses.length > 0 || classes.length > 0)) {
+                              toast.error(`توجه: این کاربر دارای ${courses.length} دوره و ${classes.length} کلاس فعال است. سیستم هنگام ذخیره وابستگی‌ها را بررسی می‌کند.`);
+                            }
+                            const nextPrimary = nextRoles.includes(formData.role) ? formData.role : (nextRoles[0] || 'student');
+                            setFormData(prev => ({ ...prev, roles: nextRoles, role: nextPrimary }));
+                          }}
+                          className="rounded text-blue-600 focus:ring-blue-500 w-4 h-4 cursor-pointer"
+                        />
+                        <span className="truncate">{r.name || r.slug}</span>
+                      </label>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <div className="pt-2 border-t border-slate-200">
+                <label className="block text-xs font-bold text-[var(--neo-text-main)] mb-1.5">
+                  نقش اصلی کاربر (Primary Role)
+                </label>
+                <select 
+                  value={formData.role} 
+                  onChange={e => handleChange('role', e.target.value)}
+                  className="w-full px-4 py-2.5 rounded-xl border border-[var(--neo-border)] bg-white text-xs outline-none cursor-pointer font-bold"
+                >
+                  {rolesData?.map((r: any) => (
+                    <option key={r._id || r.slug} value={r._id || r.slug}>
+                      {r.name || r.slug} {formData.roles.includes(r._id) || formData.roles.includes(r.slug) ? '✓ (فعال)' : ''}
+                    </option>
+                  ))}
+                </select>
+                <p className="text-[10px] text-[var(--neo-text-muted)] mt-1">
+                  نقش پیش‌فرض در ارجاع‌ها و داشبورد اولیه ورود
+                </p>
+              </div>
             </div>
 
             <div>

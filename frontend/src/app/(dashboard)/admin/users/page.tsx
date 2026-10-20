@@ -109,7 +109,11 @@ export default function AdminUsersPage() {
     const total = users.length;
     const activeCount = users.filter((u: any) => u.status === 'active').length;
     const blockedCount = users.filter((u: any) => u.status === 'blocked').length;
-    const studentsCount = users.filter((u: any) => (u.role?.slug || u.role) === 'student').length;
+    const studentsCount = users.filter((u: any) => {
+      const roleSlugs: string[] = u.roleSlugs || (u.roles?.map((r: any) => r.slug || r) || []);
+      const roleSlug = u.role?.slug || u.role;
+      return roleSlugs.includes('student') || roleSlug === 'student' || (!roleSlug && roleSlugs.length === 0);
+    }).length;
     const totalRevenue = users.reduce((sum: number, u: any) => sum + (u.totalSpent || 0), 0);
     return { total, activeCount, blockedCount, studentsCount, totalRevenue };
   }, [users]);
@@ -124,8 +128,11 @@ export default function AdminUsersPage() {
                             email.includes(search.toLowerCase()) ||
                             mobile.includes(search.toLowerCase());
       
-      const roleSlug = u.role?.slug || u.role;
-      const matchesRole = roleFilter === 'all' || roleSlug === roleFilter;
+      const userRoleSlugs: string[] = u.roleSlugs || (u.roles?.map((r: any) => r.slug || r) || []);
+      const primarySlug = u.role?.slug || u.role;
+      if (primarySlug && !userRoleSlugs.includes(primarySlug)) userRoleSlugs.push(primarySlug);
+      if (userRoleSlugs.length === 0) userRoleSlugs.push('student');
+      const matchesRole = roleFilter === 'all' || userRoleSlugs.includes(roleFilter);
       const matchesStatus = statusFilter === 'all' || u.status === statusFilter;
 
       return matchesSearch && matchesRole && matchesStatus;
@@ -136,12 +143,18 @@ export default function AdminUsersPage() {
   const uniqueRoles = useMemo(() => {
     const roleMap = new Map<string, string>();
     users.forEach((u: any) => {
-      if (u.role) {
-        const slug = u.role?.slug || u.role;
-        const name = u.role?.name || slug;
+      const allR = [
+        ...(Array.isArray(u.roles) ? u.roles : []),
+        ...(u.role ? [u.role] : [])
+      ];
+      allR.forEach((r: any) => {
+        const slug = r?.slug || r;
+        const name = r?.name || slug;
         if (slug) roleMap.set(slug, name);
-      }
+      });
     });
+    if (!roleMap.has('student')) roleMap.set('student', 'دانشجو');
+    if (!roleMap.has('instructor')) roleMap.set('instructor', 'مدرس');
     return Array.from(roleMap.entries()).map(([slug, name]) => ({ slug, name }));
   }, [users]);
 
@@ -567,6 +580,8 @@ export default function AdminUsersPage() {
                   >
                     <option value="student">🎓 دانشجو (Student)</option>
                     <option value="instructor">👨‍🏫 مدرس / استاد (Instructor)</option>
+                    <option value="accountant">📊 حسابدار (Accountant)</option>
+                    <option value="partner">🤝 شریک مؤسسه (Partner)</option>
                     <option value="admin">🛡️ مدیر (Admin)</option>
                     <option value="support">🎧 پشتیبان (Support)</option>
                     {isSuperAdmin && (

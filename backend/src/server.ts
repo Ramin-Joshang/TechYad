@@ -3,6 +3,7 @@ import { connectDB } from './config/database.js';
 import { env } from './config/env.js';
 import { cleanupAllBase64FromDatabase } from './modules/media/cleanupBase64.js';
 import { ensureInstructorSlugsAndVerification } from './modules/instructors/instructor-slug.migration.js';
+import { AccountingLedgerService } from './modules/accounting/accounting-ledger.service.js';
 
 const startServer = async () => {
   // 1. Connect to Database
@@ -16,6 +17,22 @@ const startServer = async () => {
   // 3. Ensure all instructors have English slugs and administrators have verified status
   ensureInstructorSlugsAndVerification().catch(err => {
     console.error('Failed to migrate instructor slugs:', err);
+  });
+
+  // 4. Ensure Standard Double-Entry Chart of Accounts exists
+  AccountingLedgerService.ensureChartOfAccounts().then(res => {
+    console.log(`✅ Accounting Chart of Accounts initialized: ${res.total} accounts ready`);
+  }).catch(err => {
+    console.error('Failed to ensure Chart of Accounts:', err);
+  });
+
+  // 5. Ensure partner, accountant, multi-role structure and user backward compatibility
+  import('./modules/auth/role.migration.js').then(({ ensureRolesAndMultiRoleMigration }) => {
+    ensureRolesAndMultiRoleMigration().then(res => {
+      console.log(`✅ Roles & Multi-Role Migration verified: ${res.rolesCreated.length} roles created, ${res.usersMigrated} users backfilled`);
+    }).catch(err => {
+      console.error('Failed to run roles migration:', err);
+    });
   });
 
   // 3. Start Express Server

@@ -57,6 +57,7 @@ import {
   Home,
   ArrowRight,
   Percent,
+  Calculator,
 } from "lucide-react";
 
 export default function DashboardLayout({
@@ -109,12 +110,18 @@ export default function DashboardLayout({
 
   const closeMenu = () => setMobileMenuOpen(false);
 
+  const userRole = user?.role;
+  const userRoles = Array.isArray(user?.roles) ? user.roles : [];
+  const hasRole = (r: string) => userRole === r || userRoles.includes(r);
+
   const userCanTeach =
-    user?.role === "instructor" ||
-    user?.role === "super-admin" ||
-    (user?.role === "admin" && !!user?.canTeach);
-  const userCanAdmin = user?.role === "admin" || user?.role === "super-admin";
-  const userCanSuperAdmin = user?.role === "super-admin";
+    hasRole("instructor") ||
+    hasRole("super-admin") ||
+    (hasRole("admin") && !!user?.canTeach);
+  const userCanAdmin = hasRole("admin") || hasRole("super-admin");
+  const userCanSuperAdmin = hasRole("super-admin");
+  const userCanAccountant = hasRole("accountant") || hasRole("super-admin") || hasRole("admin");
+  const userCanPartner = hasRole("partner") || hasRole("super-admin");
 
   const getNavLinks = () => {
     const profileLink = {
@@ -244,6 +251,11 @@ export default function DashboardLayout({
           href: "/super-admin/commissions",
           icon: Percent,
         },
+        {
+          name: "حسابداری و دفاتر مالی",
+          href: "/super-admin/accounting",
+          icon: Calculator,
+        },
         { name: "دوره‌ها", href: "/super-admin/courses", icon: BookOpen },
         {
           name: "مدیریت نظرات",
@@ -339,6 +351,7 @@ export default function DashboardLayout({
         { name: "دانشجویان", href: "/admin/students", icon: GraduationCap },
         { name: "اساتید", href: "/admin/instructors", icon: Briefcase },
         { name: "تسویه‌حساب اساتید", href: "/admin/settlements", icon: Wallet },
+        { name: "حسابداری و دفاتر مالی", href: "/admin/accounting", icon: Calculator },
         { name: "دسته‌بندی‌ها", href: "/admin/categories", icon: List },
         { name: "کل دوره‌ها", href: "/admin/courses", icon: BookOpen },
         {
@@ -406,6 +419,18 @@ export default function DashboardLayout({
           icon: CreditCard,
         },
         { name: "تنظیمات و برندینگ", href: "/admin/settings", icon: Settings },
+        profileLink,
+      ];
+    }
+
+    // 5. Partner Workspace
+    if (
+      pathname?.startsWith("/partner") ||
+      (!isInstructorPath && !isAdminPath && !isSuperAdminPath && !isStudentPath && hasRole("partner"))
+    ) {
+      return [
+        { name: "داشبورد شریک مؤسسه", href: "/partner/accounting", icon: LayoutDashboard },
+        { name: "حسابداری و صورت‌های مالی", href: "/partner/accounting", icon: Calculator },
         profileLink,
       ];
     }
@@ -485,7 +510,7 @@ export default function DashboardLayout({
           </div>
 
           {/* Multi-Role Workspace Switcher in Sidebar */}
-          {(userCanTeach || userCanAdmin) && !isSidebarCollapsed && (
+          {(userCanTeach || userCanAdmin || userCanAccountant || userCanPartner) && !isSidebarCollapsed && (
             <div className="mx-3 my-2 p-2.5 bg-slate-50 border border-slate-200/80 rounded-2xl space-y-1.5">
               <div className="text-[10px] font-black text-slate-500 px-1 uppercase tracking-wider flex items-center justify-between">
                 <span>تغییر فضای کاری</span>
@@ -577,6 +602,34 @@ export default function DashboardLayout({
                       <span>مدیریت ارشد</span>
                     </div>
                     {pathname?.startsWith("/super-admin") && (
+                      <span className="w-1.5 h-1.5 rounded-full bg-white" />
+                    )}
+                  </Link>
+                )}
+
+                {/* Accounting Workspace */}
+                {(userCanAccountant || userCanPartner || userCanSuperAdmin) && (
+                  <Link
+                    href={
+                      userCanSuperAdmin
+                        ? "/super-admin/accounting"
+                        : userCanAccountant
+                        ? "/admin/accounting"
+                        : "/partner/accounting"
+                    }
+                    onClick={closeMenu}
+                    className={`flex items-center justify-between px-2.5 py-1.5 rounded-xl text-xs font-bold transition ${
+                      pathname?.includes("/accounting")
+                        ? "bg-emerald-600 text-white shadow-xs"
+                        : "text-slate-700 hover:bg-slate-200/60"
+                    }`}
+                    title="ورود به پنل حسابداری و دفاتر مالی"
+                  >
+                    <div className="flex items-center gap-1.5">
+                      <Calculator className="w-3.5 h-3.5 shrink-0" />
+                      <span>حسابداری و امور مالی</span>
+                    </div>
+                    {pathname?.includes("/accounting") && (
                       <span className="w-1.5 h-1.5 rounded-full bg-white" />
                     )}
                   </Link>

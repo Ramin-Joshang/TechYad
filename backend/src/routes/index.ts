@@ -21,6 +21,7 @@ import generalRoutes from '../modules/general/general.routes.js';
 import referralRoutes from '../modules/referral/referral.routes.js';
 import walletRoutes from '../modules/wallet/wallet.routes.js';
 import commentRoutes from '../modules/comments/comment.routes.js';
+import accountingRoutes from '../modules/accounting/accounting.routes.js';
 
 const router = Router();
 
@@ -63,6 +64,8 @@ router.use('/', generalRoutes);
 router.use('/', referralRoutes);
 router.use('/', walletRoutes);
 router.use('/', commentRoutes);
+router.use('/accounting', accountingRoutes);
+router.use('/', accountingRoutes);
 
 router.use("/", searchRoutes);
 export default router;

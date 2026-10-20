@@ -42,6 +42,12 @@ export interface WalletTransactionItem {
   referenceId?: string;
   orderId?: string | { _id: string; totalAmount?: number };
   gateway?: string;
+  refNum?: string;
+  traceNo?: string;
+  rrn?: string;
+  maskedPan?: string;
+  terminalId?: string;
+  resNum?: string;
   bankInfo?: {
     shaba?: string;
     cardNumber?: string;

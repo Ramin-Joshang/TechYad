@@ -9,9 +9,20 @@ export default function DashboardIndexPage() {
   const { user } = useAuthStore();
 
   useEffect(() => {
-    if (user?.role === 'super-admin' || user?.role === 'admin') {
+    if (!user) return;
+
+    const roles: string[] = [
+      ...(Array.isArray(user.roles) ? user.roles : []),
+      user.role || ''
+    ].filter(Boolean);
+
+    if (roles.includes('super-admin') || roles.includes('admin')) {
       router.replace('/admin');
-    } else if (user?.role === 'instructor') {
+    } else if (roles.includes('accountant')) {
+      router.replace('/admin/accounting');
+    } else if (roles.includes('partner')) {
+      router.replace('/partner/accounting');
+    } else if (roles.includes('instructor')) {
       router.replace('/instructor');
     } else {
       router.replace('/student');

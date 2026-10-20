@@ -1087,6 +1087,46 @@ export default function StudentWalletPage() {
                   {selectedTx.trackingCode || selectedTx.referenceId || "---"}
                 </span>
               </div>
+              {selectedTx.gateway && (
+                <div className="flex justify-between py-1.5 border-b border-slate-100">
+                  <span>درگاه پرداخت:</span>
+                  <span className="font-bold text-slate-800">
+                    {selectedTx.gateway === 'saman' ? 'سامان (شاپرک - سپ)' : selectedTx.gateway}
+                  </span>
+                </div>
+              )}
+              {selectedTx.refNum && (
+                <div className="flex justify-between py-1.5 border-b border-slate-100">
+                  <span>شماره مرجع بانکی (RefNum):</span>
+                  <span className="font-mono font-bold text-emerald-700">
+                    {selectedTx.refNum}
+                  </span>
+                </div>
+              )}
+              {selectedTx.traceNo && (
+                <div className="flex justify-between py-1.5 border-b border-slate-100">
+                  <span>شماره پیگیری شاپرک (TraceNo):</span>
+                  <span className="font-mono font-bold text-blue-700">
+                    {selectedTx.traceNo}
+                  </span>
+                </div>
+              )}
+              {selectedTx.rrn && (
+                <div className="flex justify-between py-1.5 border-b border-slate-100">
+                  <span>شماره ارجاع شاپرک (RRN):</span>
+                  <span className="font-mono font-bold text-slate-800">
+                    {selectedTx.rrn}
+                  </span>
+                </div>
+              )}
+              {(selectedTx.maskedPan || selectedTx.bankInfo?.cardNumber) && (
+                <div className="flex justify-between py-1.5 border-b border-slate-100">
+                  <span>شماره کارت پرداخت‌کننده:</span>
+                  <span className="font-mono font-bold text-slate-800 dir-ltr text-right">
+                    {selectedTx.maskedPan || selectedTx.bankInfo?.cardNumber}
+                  </span>
+                </div>
+              )}
               <div className="flex justify-between py-1.5 border-b border-slate-100">
                 <span>شناسه تراکنش:</span>
                 <span className="font-mono text-slate-500">

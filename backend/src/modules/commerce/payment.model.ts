@@ -16,7 +16,10 @@ export interface IPayment extends Document {
   traceNo?: string;
   terminalId?: string;
   maskedPan?: string;
-  status: "pending" | "paid" | "failed" | "refunded";
+  status: "pending" | "paid" | "failed" | "refunded" | "under_review";
+  initialStatus?: string;
+  callbackState?: string;
+  verifyResultCode?: string | number;
   gatewayErrorCode?: string;
   gatewayErrorMessage?: string;
   rawResponse?: Record<string, unknown>;
@@ -89,10 +92,13 @@ const paymentSchema = new Schema<IPayment>(
     maskedPan: String,
     status: {
       type: String,
-      enum: ["pending", "paid", "failed", "refunded"],
+      enum: ["pending", "paid", "failed", "refunded", "under_review"],
       default: "pending",
       index: true,
     },
+    initialStatus: String,
+    callbackState: String,
+    verifyResultCode: Schema.Types.Mixed,
     gatewayErrorCode: String,
     gatewayErrorMessage: String,
     rawResponse: Schema.Types.Mixed,

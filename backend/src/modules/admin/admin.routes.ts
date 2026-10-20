@@ -57,6 +57,12 @@ router.post('/super-admin/roles', isSuperAdmin, asyncHandler(Controller.createRo
 router.patch('/super-admin/roles/:id', isSuperAdmin, asyncHandler(Controller.updateRole));
 router.delete('/super-admin/roles/:id', isSuperAdmin, asyncHandler(Controller.deleteRole));
 
+// Partners & Accountants Management
+router.get('/super-admin/partners', isSuperAdmin, asyncHandler(Controller.getPartners));
+router.get('/super-admin/accountants', isSuperAdmin, asyncHandler(Controller.getAccountants));
+router.post('/super-admin/assign-role', isSuperAdmin, asyncHandler(Controller.assignUserRole));
+router.post('/super-admin/remove-role', isSuperAdmin, asyncHandler(Controller.removeUserRole));
+
 // Global Settings
 router.get('/settings/public', asyncHandler(Controller.getPublicSettings));
 router.get('/super-admin/settings', isSuperAdmin, asyncHandler(Controller.getSettings));

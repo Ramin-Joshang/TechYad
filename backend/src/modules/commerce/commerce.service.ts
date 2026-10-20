@@ -15,6 +15,7 @@ import { Notification } from '../notifications/notification.model.js';
 import { AuditService } from '../../common/services/audit.service.js';
 import { FinancialRevenueService } from './financial-revenue.service.js';
 import { SamanGatewayService } from './saman-gateway.service.js';
+import { AccountingIntegrationService } from '../accounting/accounting-integration.service.js';
 
 export class CommerceService {
   static async getInstructorSales(instructorId: string, month?: number, year?: number) {
@@ -566,11 +567,24 @@ export class CommerceService {
       return {
         ...order.toObject(),
         paymentDetails: payment ? {
+          _id: payment._id,
+          resNum: payment.resNum || payment.referenceId,
+          refNum: payment.refNum,
+          rrn: payment.rrn,
+          traceNo: payment.traceNo,
+          terminalId: payment.terminalId,
+          maskedPan: payment.maskedPan,
           authority: payment.authority,
           gateway: payment.gateway,
-          referenceId: payment.referenceId,
+          amount: payment.amount,
+          currency: payment.currency || 'تومان',
+          originType: payment.originType,
           status: payment.status,
           paidAt: (payment as any).paidAt || payment.updatedAt,
+          verifiedAt: payment.verifiedAt,
+          returnAt: payment.returnAt,
+          gatewayErrorCode: payment.gatewayErrorCode,
+          gatewayErrorMessage: payment.gatewayErrorMessage,
         } : undefined
       };
     });
@@ -581,17 +595,30 @@ export class CommerceService {
     if (!order) throw new AppError('Order not found', 404, 'NOT_FOUND');
 
     const payment = await Payment.findOne({ orderId: order._id, userId });
-    const user = await User.findById(userId).select('firstName lastName email phoneNumber nationalCode');
+    const user = await User.findById(userId).select('firstName lastName email mobile');
 
     return {
       ...order.toObject(),
       user,
       paymentDetails: payment ? {
+        _id: payment._id,
+        resNum: payment.resNum || payment.referenceId,
+        refNum: payment.refNum,
+        rrn: payment.rrn,
+        traceNo: payment.traceNo,
+        terminalId: payment.terminalId,
+        maskedPan: payment.maskedPan,
         authority: payment.authority,
         gateway: payment.gateway,
-        referenceId: payment.referenceId,
+        amount: payment.amount,
+        currency: payment.currency || 'تومان',
+        originType: payment.originType,
         status: payment.status,
         paidAt: (payment as any).paidAt || payment.updatedAt,
+        verifiedAt: payment.verifiedAt,
+        returnAt: payment.returnAt,
+        gatewayErrorCode: payment.gatewayErrorCode,
+        gatewayErrorMessage: payment.gatewayErrorMessage,
       } : undefined
     };
   }
@@ -639,16 +666,25 @@ export class CommerceService {
       throw new AppError('درگاه پرداخت سامان در حال حاضر غیرفعال است. لطفاً از پنل مدیریت وضعیت درگاه را بررسی نمایید.', 400);
     }
 
-    // Create a pending payment
+    const hasOnlyCourses = order.items.every((i: any) => i.itemType === 'course');
+    const hasOnlyClasses = order.items.every((i: any) => i.itemType === 'class');
+    const originType = hasOnlyCourses ? 'course_checkout' : (hasOnlyClasses ? 'class_checkout' : 'order');
+
+    // Create a pending payment with structured tracking fields
     const payment = await Payment.create({
       orderId,
       userId,
       amount: payableAmount,
+      currency: 'تومان',
       gateway: gatewayName,
+      originType,
       authority,
+      resNum,
       referenceId: resNum,
+      terminalId: String(terminalId || ''),
+      status: 'pending',
+      initialStatus: 'pending',
       rawResponse: { resNum },
-      status: 'pending'
     });
 
     return {
@@ -671,6 +707,7 @@ export class CommerceService {
       rrn?: string;
       traceNo?: string;
       maskedPan?: string;
+      terminalId?: string;
       rawParams?: Record<string, unknown>;
     }
   ) {
@@ -679,14 +716,26 @@ export class CommerceService {
 
     try {
       const payment = await Payment.findOne({
-        $or: [{ authority }, { referenceId: authority }],
+        $or: [
+          { authority },
+          { resNum: authority },
+          { referenceId: authority }
+        ],
         userId
       }).session(session);
       if (!payment) throw new AppError('Payment not found', 404, 'NOT_FOUND');
-      if (payment.status !== 'pending') throw new AppError('Payment already processed', 400, 'PAYMENT_PROCESSED');
+      if (payment.status !== 'pending' && payment.status !== 'under_review') {
+        throw new AppError('Payment already processed', 400, 'PAYMENT_PROCESSED');
+      }
+
+      const now = new Date();
+      const targetRefNum = verifyData?.refNum || payment.refNum;
+      const targetTraceNo = verifyData?.traceNo || payment.traceNo;
+      const targetRrn = verifyData?.rrn || payment.rrn;
+      const targetMaskedPan = verifyData?.maskedPan || payment.maskedPan;
+      const targetTerminalId = verifyData?.terminalId || payment.terminalId;
 
       // Double-spending prevention: ensure RefNum hasn't been approved for another payment
-      const targetRefNum = verifyData?.refNum || payment.refNum;
       if (targetRefNum) {
         const existingPaid = await Payment.findOne({
           refNum: targetRefNum,
@@ -703,12 +752,15 @@ export class CommerceService {
 
       if (status !== 'OK') {
         payment.status = 'failed';
+        payment.callbackState = status;
+        payment.returnAt = now;
+        payment.gatewayErrorMessage = 'پرداخت توسط کاربر لغو شد یا از سوی درگاه تایید نگردید';
         await payment.save({ session });
         order.status = 'failed';
         await order.save({ session });
         await session.commitTransaction();
         session.endSession();
-        return { success: false, message: 'Payment failed' };
+        return { success: false, message: 'Payment cancelled or failed' };
       }
 
       // If Saman SEP gateway, run verification check with Bank (SEP v3.6)
@@ -716,14 +768,30 @@ export class CommerceService {
         const expectedRials = (payment.amount || 0) * 10;
         const verifyRes = await SamanGatewayService.verifyTransaction(targetRefNum, expectedRials);
         if (!verifyRes.success) {
-          payment.status = 'failed';
-          payment.rawResponse = { ...(payment.rawResponse || {}), verifyError: verifyRes.resultDescription };
+          const isIndeterminate = verifyRes.resultCode === -1 || String(verifyRes.resultDescription || '').includes('پاسخی از سرور');
+          const nextStatus = isIndeterminate ? 'under_review' : 'failed';
+
+          payment.status = nextStatus;
+          payment.callbackState = status;
+          payment.verifyResultCode = verifyRes.resultCode;
+          payment.gatewayErrorMessage = verifyRes.resultDescription;
+          payment.refNum = targetRefNum;
+          if (targetTraceNo || verifyRes.traceNo) payment.traceNo = targetTraceNo || verifyRes.traceNo;
+          if (targetRrn || verifyRes.rrn) payment.rrn = targetRrn || verifyRes.rrn;
+          if (targetMaskedPan || verifyRes.maskedPan) payment.maskedPan = targetMaskedPan || verifyRes.maskedPan;
+          payment.returnAt = now;
           await payment.save({ session });
-          order.status = 'failed';
+
+          order.status = nextStatus === 'under_review' ? 'pending' : 'failed';
           await order.save({ session });
+
           await session.commitTransaction();
           session.endSession();
-          return { success: false, message: verifyRes.resultDescription };
+          return {
+            success: false,
+            underReview: isIndeterminate,
+            message: verifyRes.resultDescription
+          };
         }
         if (verifyRes.rrn) payment.rrn = verifyRes.rrn;
         if (verifyRes.traceNo) payment.traceNo = verifyRes.traceNo;
@@ -736,6 +804,7 @@ export class CommerceService {
         if (verifyData.maskedPan) payment.maskedPan = verifyData.maskedPan;
       }
 
+      if (targetTerminalId) payment.terminalId = targetTerminalId;
 
       // If hybrid payment, deduct wallet balance atomically inside this transaction
       if (order.walletAmountApplied && order.walletAmountApplied > 0) {
@@ -793,9 +862,13 @@ export class CommerceService {
         }
       }
 
-      // 2. Mark Payment as success
+      // 2. Mark Payment as success with all tracking fields
       payment.status = 'paid';
-      payment.paidAt = new Date();
+      payment.callbackState = 'OK';
+      payment.verifyResultCode = 0;
+      payment.returnAt = now;
+      payment.paidAt = now;
+      payment.verifiedAt = now;
       await payment.save({ session });
 
       // 3. Mark Order as paid
@@ -986,6 +1059,14 @@ export class CommerceService {
 
       await session.commitTransaction();
       session.endSession();
+
+      // Record in double-entry accounting ledger (idempotent, single-source of truth)
+      try {
+        await AccountingIntegrationService.recordOrderPayment(order, payment);
+      } catch (accErr) {
+        console.error('Accounting order payment recording error:', accErr);
+      }
+
       return { success: true, orderId: order._id };
     } catch (error) {
       await session.abortTransaction();
