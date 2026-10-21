@@ -13,7 +13,7 @@ export function FloatingContactWidget() {
   const [isOpen, setIsOpen] = useState(false);
   const pathname = usePathname();
 
-  // Hide completely on all dashboard panels and learning player
+  // Hide completely on all dashboard panels, accounting, and learning player
   if (
     pathname === "/dashboard" ||
     pathname?.startsWith("/dashboard") ||
@@ -23,7 +23,9 @@ export function FloatingContactWidget() {
     (pathname?.startsWith("/instructor") &&
       !pathname?.startsWith("/instructors")) ||
     pathname?.startsWith("/profile") ||
-    pathname?.startsWith("/learn")
+    pathname?.startsWith("/learn") ||
+    pathname?.startsWith("/accounting") ||
+    pathname?.startsWith("/partner")
   ) {
     return null;
   }

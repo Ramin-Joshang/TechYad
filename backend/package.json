@@ -9,7 +9,9 @@
     "seed": "tsx src/seed.ts",
     "test:accounting": "tsx src/modules/accounting/__tests__/accounting.test.ts",
     "test:financial-ops": "tsx src/modules/accounting/__tests__/financial-operations.test.ts",
-    "test:multirole": "tsx src/modules/accounting/__tests__/payment-wallet-multirole.test.ts"
+    "test:multirole": "tsx src/modules/accounting/__tests__/payment-wallet-multirole.test.ts",
+    "inspect:users": "tsx src/modules/accounting/__tests__/inspect-users.ts",
+    "fix:roles": "tsx src/scripts/fix-instructor-partner.ts"
   },
   "dependencies": {
     "@types/cookie-parser": "^1.4.10",

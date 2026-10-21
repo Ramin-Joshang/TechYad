@@ -285,13 +285,16 @@ export class AdminService {
       throw new AppError('نقش کاربری مشخص شده نامعتبر است', 400, 'INVALID_ROLE');
     }
 
-    const targetRoleSlugs = targetRoles.map(r => r.slug);
-    const primaryRole = targetRoles.find(r => r.slug === 'super-admin') ||
+    const explicitRole = data.role ? targetRoles.find(r => r._id.toString() === data.role.toString() || r.slug === data.role) : null;
+    const primaryRole = explicitRole ||
+                        targetRoles.find(r => r.slug === 'super-admin') ||
                         targetRoles.find(r => r.slug === 'admin') ||
+                        targetRoles.find(r => r.slug === 'instructor') ||
                         targetRoles.find(r => r.slug === 'partner') ||
                         targetRoles.find(r => r.slug === 'accountant') ||
-                        targetRoles.find(r => r.slug === 'instructor') ||
                         targetRoles[0];
+
+    const targetRoleSlugs = targetRoles.map(r => r.slug);
 
     // RBAC check: only super-admin can create super-admin
     const creatorRoleSlug = creatorUser?.role?.slug || creatorUser?.role;
@@ -660,12 +663,14 @@ export class AdminService {
         }
       }
 
-      // Select primary role
-      const primaryRole = targetRoles.find(r => r.slug === 'super-admin') ||
+      // Select primary role (respect explicit role if valid, otherwise choose priority)
+      const explicitRole = data.role ? targetRoles.find(r => r._id.toString() === data.role.toString() || r.slug === data.role) : null;
+      const primaryRole = explicitRole ||
+                          targetRoles.find(r => r.slug === 'super-admin') ||
                           targetRoles.find(r => r.slug === 'admin') ||
+                          targetRoles.find(r => r.slug === 'instructor') ||
                           targetRoles.find(r => r.slug === 'partner') ||
                           targetRoles.find(r => r.slug === 'accountant') ||
-                          targetRoles.find(r => r.slug === 'instructor') ||
                           targetRoles[0];
 
       userData.roles = targetRoles.map(r => r._id);

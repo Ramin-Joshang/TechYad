@@ -5,7 +5,7 @@ import { useAuthStore } from "@/features/auth/stores/auth.store";
 import { AuthGuard } from "@/features/auth/components/guards/AuthGuard";
 import { InactivityTracker } from "@/features/auth/components/InactivityTracker";
 import Link from "next/link";
-import { useRouter, usePathname } from "next/navigation";
+import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import { authApi } from "@/features/auth/api/auth.api";
 import { superAdminApi } from "@/features/admin/api/super-admin.api";
 import { walletApi } from "@/features/wallet/api/wallet.api";
@@ -58,6 +58,11 @@ import {
   ArrowRight,
   Percent,
   Calculator,
+  Layers,
+  BarChart3,
+  PieChart,
+  ArrowRightLeft,
+  Calendar,
 } from "lucide-react";
 
 export default function DashboardLayout({
@@ -68,6 +73,7 @@ export default function DashboardLayout({
   const { user, logout } = useAuthStore();
   const router = useRouter();
   const pathname = usePathname();
+  const searchParams = useSearchParams();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
@@ -112,16 +118,26 @@ export default function DashboardLayout({
 
   const userRole = user?.role;
   const userRoles = Array.isArray(user?.roles) ? user.roles : [];
-  const hasRole = (r: string) => userRole === r || userRoles.includes(r);
+  const rolesDetailSlugs = Array.isArray(user?.rolesDetail) ? user.rolesDetail.map((r: any) => r.slug) : [];
+  const allUserRoles = Array.from(new Set([userRole, ...userRoles, ...rolesDetailSlugs].filter(Boolean))) as string[];
+  const hasRole = (r: string) => allUserRoles.includes(r);
 
   const userCanTeach =
     hasRole("instructor") ||
     hasRole("super-admin") ||
+    !!user?.canTeach ||
     (hasRole("admin") && !!user?.canTeach);
   const userCanAdmin = hasRole("admin") || hasRole("super-admin");
   const userCanSuperAdmin = hasRole("super-admin");
   const userCanAccountant = hasRole("accountant") || hasRole("super-admin") || hasRole("admin");
   const userCanPartner = hasRole("partner") || hasRole("super-admin");
+  const userCanAccounting = userCanAccountant || userCanPartner || userCanSuperAdmin;
+
+  const isAccountingPath =
+    pathname === "/accounting" ||
+    pathname?.startsWith("/accounting") ||
+    pathname?.includes("/accounting") ||
+    pathname?.startsWith("/partner");
 
   const getNavLinks = () => {
     const profileLink = {
@@ -132,8 +148,39 @@ export default function DashboardLayout({
 
     const isStudentPath = pathname?.startsWith("/student");
     const isInstructorPath = pathname?.startsWith("/instructor");
-    const isSuperAdminPath = pathname?.startsWith("/super-admin");
-    const isAdminPath = pathname?.startsWith("/admin") && !isSuperAdminPath;
+    const isSuperAdminPath = pathname?.startsWith("/super-admin") && !isAccountingPath;
+    const isAdminPath = pathname?.startsWith("/admin") && !pathname?.startsWith("/super-admin") && !isAccountingPath;
+
+    // 0. Dedicated Standalone Accounting Workspace
+    if (
+      isAccountingPath ||
+      (!isInstructorPath &&
+        !isAdminPath &&
+        !isSuperAdminPath &&
+        !isStudentPath &&
+        (userRole === "accountant" || (userRole === "partner" && !userCanTeach)))
+    ) {
+      const accountingBase = pathname?.startsWith("/partner")
+        ? "/partner/accounting"
+        : pathname?.startsWith("/super-admin/accounting")
+        ? "/super-admin/accounting"
+        : pathname?.startsWith("/admin/accounting")
+        ? "/admin/accounting"
+        : "/accounting";
+
+      return [
+        { name: "داشبورد کلان و تراز مالی", href: `${accountingBase}?tab=overview`, icon: LayoutDashboard },
+        { name: "سرفصل‌ها و درخت حساب‌ها", href: `${accountingBase}?tab=coa`, icon: Layers },
+        { name: "اسناد و دفاتر حسابداری", href: `${accountingBase}?tab=journal`, icon: FileText },
+        { name: "تراز آزمایشی و گردش حساب‌ها", href: `${accountingBase}?tab=trial-balance`, icon: BarChart3 },
+        { name: "حساب‌های بانکی و صندوق‌ها", href: `${accountingBase}?tab=accounts`, icon: Wallet },
+        { name: "عملیات مالی، تسهیلات و شرکا", href: `${accountingBase}?tab=operations`, icon: ArrowRightLeft },
+        { name: "صورت وضعیت مطالبات و بدهی‌ها", href: `${accountingBase}?tab=summary`, icon: PieChart },
+        { name: "دوره‌ها و سال‌های مالی", href: `${accountingBase}?tab=fiscal-years`, icon: Calendar },
+        { name: "لاگ و ممیزی رویدادهای مالی", href: `${accountingBase}?tab=audit`, icon: History },
+        profileLink,
+      ];
+    }
 
     // 1. Student Learning Area
     if (
@@ -168,7 +215,7 @@ export default function DashboardLayout({
     // 2. Instructor Teaching Area
     if (
       isInstructorPath ||
-      (!isAdminPath && !isSuperAdminPath && user?.role === "instructor")
+      (!isAdminPath && !isSuperAdminPath && !isAccountingPath && (user?.role === "instructor" || userCanTeach))
     ) {
       return [
         { name: "داشبورد تدریس", href: "/instructor", icon: LayoutDashboard },
@@ -423,18 +470,6 @@ export default function DashboardLayout({
       ];
     }
 
-    // 5. Partner Workspace
-    if (
-      pathname?.startsWith("/partner") ||
-      (!isInstructorPath && !isAdminPath && !isSuperAdminPath && !isStudentPath && hasRole("partner"))
-    ) {
-      return [
-        { name: "داشبورد شریک مؤسسه", href: "/partner/accounting", icon: LayoutDashboard },
-        { name: "حسابداری و صورت‌های مالی", href: "/partner/accounting", icon: Calculator },
-        profileLink,
-      ];
-    }
-
     // Default Fallback
     return [
       { name: "داشبورد", href: "/student", icon: LayoutDashboard },
@@ -509,8 +544,23 @@ export default function DashboardLayout({
             </div>
           </div>
 
+          {/* Dedicated Accounting Header Indicator */}
+          {!isSidebarCollapsed && isAccountingPath && (
+            <div className="mx-3 my-2 p-2.5 bg-emerald-50 border border-emerald-200/90 rounded-2xl flex items-center gap-2.5 shadow-2xs">
+              <div className="p-2 bg-emerald-600 text-white rounded-xl shadow-xs shrink-0">
+                <Calculator className="w-4 h-4" />
+              </div>
+              <div className="text-right overflow-hidden">
+                <div className="text-xs font-black text-emerald-950 truncate">سامانه حسابداری و دفاتر مالی</div>
+                <div className="text-[10px] font-bold text-emerald-700 truncate">
+                  {userCanSuperAdmin ? "مدیریت کلان مالی" : userCanPartner ? "فضای مالی شریک مؤسسه" : "دفتر حسابداری"}
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Multi-Role Workspace Switcher in Sidebar */}
-          {(userCanTeach || userCanAdmin || userCanAccountant || userCanPartner) && !isSidebarCollapsed && (
+          {(userCanTeach || userCanAdmin || userCanAccounting) && !isSidebarCollapsed && (
             <div className="mx-3 my-2 p-2.5 bg-slate-50 border border-slate-200/80 rounded-2xl space-y-1.5">
               <div className="text-[10px] font-black text-slate-500 px-1 uppercase tracking-wider flex items-center justify-between">
                 <span>تغییر فضای کاری</span>
@@ -568,7 +618,8 @@ export default function DashboardLayout({
                     onClick={closeMenu}
                     className={`flex items-center justify-between px-2.5 py-1.5 rounded-xl text-xs font-bold transition ${
                       pathname?.startsWith("/admin") &&
-                      !pathname?.startsWith("/super-admin")
+                      !pathname?.startsWith("/super-admin") &&
+                      !isAccountingPath
                         ? "bg-indigo-600 text-white shadow-xs"
                         : "text-slate-700 hover:bg-slate-200/60"
                     }`}
@@ -579,7 +630,8 @@ export default function DashboardLayout({
                       <span>پنل مدیریت</span>
                     </div>
                     {pathname?.startsWith("/admin") &&
-                      !pathname?.startsWith("/super-admin") && (
+                      !pathname?.startsWith("/super-admin") &&
+                      !isAccountingPath && (
                         <span className="w-1.5 h-1.5 rounded-full bg-white" />
                       )}
                   </Link>
@@ -591,7 +643,7 @@ export default function DashboardLayout({
                     href="/super-admin"
                     onClick={closeMenu}
                     className={`flex items-center justify-between px-2.5 py-1.5 rounded-xl text-xs font-bold transition ${
-                      pathname?.startsWith("/super-admin")
+                      pathname?.startsWith("/super-admin") && !isAccountingPath
                         ? "bg-rose-600 text-white shadow-xs"
                         : "text-slate-700 hover:bg-slate-200/60"
                     }`}
@@ -601,25 +653,19 @@ export default function DashboardLayout({
                       <ShieldAlert className="w-3.5 h-3.5 shrink-0" />
                       <span>مدیریت ارشد</span>
                     </div>
-                    {pathname?.startsWith("/super-admin") && (
+                    {pathname?.startsWith("/super-admin") && !isAccountingPath && (
                       <span className="w-1.5 h-1.5 rounded-full bg-white" />
                     )}
                   </Link>
                 )}
 
                 {/* Accounting Workspace */}
-                {(userCanAccountant || userCanPartner || userCanSuperAdmin) && (
+                {userCanAccounting && (
                   <Link
-                    href={
-                      userCanSuperAdmin
-                        ? "/super-admin/accounting"
-                        : userCanAccountant
-                        ? "/admin/accounting"
-                        : "/partner/accounting"
-                    }
+                    href="/accounting"
                     onClick={closeMenu}
                     className={`flex items-center justify-between px-2.5 py-1.5 rounded-xl text-xs font-bold transition ${
-                      pathname?.includes("/accounting")
+                      isAccountingPath
                         ? "bg-emerald-600 text-white shadow-xs"
                         : "text-slate-700 hover:bg-slate-200/60"
                     }`}
@@ -627,9 +673,9 @@ export default function DashboardLayout({
                   >
                     <div className="flex items-center gap-1.5">
                       <Calculator className="w-3.5 h-3.5 shrink-0" />
-                      <span>حسابداری و امور مالی</span>
+                      <span>پنل حسابداری و مالی</span>
                     </div>
-                    {pathname?.includes("/accounting") && (
+                    {isAccountingPath && (
                       <span className="w-1.5 h-1.5 rounded-full bg-white" />
                     )}
                   </Link>
@@ -638,17 +684,75 @@ export default function DashboardLayout({
             </div>
           )}
 
+          {/* Compact Multi-Role Workspace Switcher for Collapsed Sidebar */}
+          {(userCanTeach || userCanAdmin || userCanAccounting) && isSidebarCollapsed && (
+            <div className="mx-2 my-2 py-2 flex flex-col items-center gap-1.5 border-b border-[var(--neo-border)]">
+              <Link
+                href="/student"
+                title="فضای یادگیری من (دانشجو)"
+                className={`p-2 rounded-xl transition ${pathname?.startsWith("/student") ? "bg-blue-600 text-white shadow-xs" : "text-slate-600 hover:bg-slate-100"}`}
+              >
+                <GraduationCap className="w-4 h-4" />
+              </Link>
+              {userCanTeach && (
+                <Link
+                  href="/instructor"
+                  title="فضای تدریس (مدرس)"
+                  className={`p-2 rounded-xl transition ${pathname?.startsWith("/instructor") ? "bg-purple-600 text-white shadow-xs" : "text-slate-600 hover:bg-slate-100"}`}
+                >
+                  <Briefcase className="w-4 h-4" />
+                </Link>
+              )}
+              {userCanAdmin && (
+                <Link
+                  href="/admin"
+                  title="پنل مدیریت آموزشی"
+                  className={`p-2 rounded-xl transition ${pathname?.startsWith("/admin") && !pathname?.startsWith("/super-admin") && !isAccountingPath ? "bg-indigo-600 text-white shadow-xs" : "text-slate-600 hover:bg-slate-100"}`}
+                >
+                  <Shield className="w-4 h-4" />
+                </Link>
+              )}
+              {userCanSuperAdmin && (
+                <Link
+                  href="/super-admin"
+                  title="مدیریت ارشد"
+                  className={`p-2 rounded-xl transition ${pathname?.startsWith("/super-admin") && !isAccountingPath ? "bg-rose-600 text-white shadow-xs" : "text-slate-600 hover:bg-slate-100"}`}
+                >
+                  <ShieldAlert className="w-4 h-4" />
+                </Link>
+              )}
+              {userCanAccounting && (
+                <Link
+                  href="/accounting"
+                  title="سامانه حسابداری و دفاتر مالی"
+                  className={`p-2 rounded-xl transition ${isAccountingPath ? "bg-emerald-600 text-white shadow-xs" : "text-slate-600 hover:bg-slate-100"}`}
+                >
+                  <Calculator className="w-4 h-4" />
+                </Link>
+              )}
+            </div>
+          )}
+
           <nav className="flex-1 overflow-y-auto p-4 space-y-1 hide-scrollbar">
             {navLinks.map((link) => {
               const Icon = link.icon;
-              // Strict exact match for root dashboard paths, partial for others
-              const isActive =
+              let isActive = false;
+              if (link.href.includes("?tab=")) {
+                const linkTab = link.href.split("?tab=")[1];
+                const currentTab = searchParams?.get("tab") || "overview";
+                isActive = isAccountingPath && currentTab === linkTab;
+              } else if (
                 link.href === "/student" ||
                 link.href === "/admin" ||
                 link.href === "/instructor" ||
-                link.href === "/super-admin"
-                  ? pathname === link.href
-                  : pathname.startsWith(link.href);
+                link.href === "/super-admin" ||
+                link.href === "/accounting" ||
+                link.href === "/partner/accounting"
+              ) {
+                isActive = pathname === link.href;
+              } else {
+                isActive = pathname.startsWith(link.href);
+              }
 
               return (
                 <Link
@@ -732,17 +836,19 @@ export default function DashboardLayout({
 
               <div className="hidden md:flex items-center gap-2">
                 <span className="text-xs font-black text-slate-800 bg-slate-100 px-2.5 py-1 rounded-lg border border-slate-200/60">
-                  {pathname?.startsWith("/super-admin")
-                    ? "پنل مدیریت کلان"
-                    : pathname?.startsWith("/admin")
-                      ? "پنل مدیریت آموزشی"
-                      : pathname?.startsWith("/instructor")
-                        ? "فضای تدریس و اساتید"
-                        : "فضای یادگیری دانشجو"}
+                  {isAccountingPath
+                    ? "سامانه حسابداری و دفاتر مالی"
+                    : pathname?.startsWith("/super-admin")
+                      ? "پنل مدیریت کلان"
+                      : pathname?.startsWith("/admin")
+                        ? "پنل مدیریت آموزشی"
+                        : pathname?.startsWith("/instructor")
+                          ? "فضای تدریس و اساتید"
+                          : "فضای یادگیری دانشجو"}
                 </span>
 
                 {/* Quick Workspace Switchers for Multi-Role Users */}
-                {userCanTeach && pathname?.startsWith("/student") && (
+                {userCanTeach && (pathname?.startsWith("/student") || isAccountingPath) && (
                   <Link
                     href="/instructor"
                     className="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-purple-50 hover:bg-purple-100 text-purple-700 text-xs font-bold border border-purple-200 transition"
@@ -753,7 +859,18 @@ export default function DashboardLayout({
                   </Link>
                 )}
 
-                {userCanTeach && pathname?.startsWith("/instructor") && (
+                {userCanAccounting && !isAccountingPath && (
+                  <Link
+                    href="/accounting"
+                    className="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-700 text-xs font-bold border border-emerald-200 transition"
+                    title="ورود به پنل حسابداری و دفاتر مالی"
+                  >
+                    <Calculator className="w-3.5 h-3.5" />
+                    <span>پنل حسابداری</span>
+                  </Link>
+                )}
+
+                {(pathname?.startsWith("/instructor") || isAccountingPath) && (
                   <Link
                     href="/student"
                     className="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-700 text-xs font-bold border border-blue-200 transition"
@@ -766,7 +883,8 @@ export default function DashboardLayout({
 
                 {userCanAdmin &&
                   (pathname?.startsWith("/student") ||
-                    pathname?.startsWith("/instructor")) && (
+                    pathname?.startsWith("/instructor") ||
+                    isAccountingPath) && (
                     <Link
                       href={userCanSuperAdmin ? "/super-admin" : "/admin"}
                       className="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-xs font-bold border border-indigo-200 transition"
@@ -779,7 +897,8 @@ export default function DashboardLayout({
 
                 {userCanAdmin &&
                   (pathname?.startsWith("/admin") ||
-                    pathname?.startsWith("/super-admin")) && (
+                    pathname?.startsWith("/super-admin")) &&
+                  !isAccountingPath && (
                     <div className="flex items-center gap-1">
                       <Link
                         href="/student"
@@ -864,26 +983,37 @@ export default function DashboardLayout({
                     <div className="font-black text-xs text-slate-900 leading-tight truncate max-w-[100px] md:max-w-none">
                       {user?.firstName} {user?.lastName}
                     </div>
-                    <div className="flex items-center gap-1 mt-0.5">
-                      <span
-                        className={`text-[10px] font-bold px-1.5 py-0.2 rounded-md ${
-                          user?.role === "super-admin"
-                            ? "bg-amber-100 text-amber-800"
-                            : user?.role === "admin"
-                              ? "bg-blue-100 text-blue-800"
-                              : user?.role === "instructor"
-                                ? "bg-emerald-100 text-emerald-800"
-                                : "bg-purple-100 text-purple-800"
-                        }`}
-                      >
-                        {user?.role === "super-admin"
-                          ? "مدیر ارشد"
-                          : user?.role === "admin"
-                            ? "مدیریت"
-                            : user?.role === "instructor"
-                              ? "استاد"
-                              : "دانشجو"}
-                      </span>
+                    <div className="flex items-center gap-1 mt-0.5 flex-wrap">
+                      {(userRoles.includes("partner") || user?.role === "partner") && (
+                        <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-md bg-emerald-100 text-emerald-800">
+                          شریک
+                        </span>
+                      )}
+                      {(userRoles.includes("instructor") || user?.role === "instructor" || !!user?.canTeach) && (
+                        <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-md bg-purple-100 text-purple-800">
+                          مدرس
+                        </span>
+                      )}
+                      {(userRoles.includes("accountant") || user?.role === "accountant") && (
+                        <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-md bg-teal-100 text-teal-800">
+                          حسابدار
+                        </span>
+                      )}
+                      {(userRoles.includes("super-admin") || user?.role === "super-admin") && (
+                        <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-md bg-amber-100 text-amber-800">
+                          مدیر ارشد
+                        </span>
+                      )}
+                      {(userRoles.includes("admin") || user?.role === "admin") && !userRoles.includes("super-admin") && user?.role !== "super-admin" && (
+                        <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-md bg-blue-100 text-blue-800">
+                          مدیر
+                        </span>
+                      )}
+                      {userRoles.length === 0 && user?.role === "student" && (
+                        <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-md bg-slate-100 text-slate-700">
+                          دانشجو
+                        </span>
+                      )}
                     </div>
                   </div>
                 </Link>
@@ -906,8 +1036,69 @@ export default function DashboardLayout({
             <div className="max-w-7xl mx-auto">{children}</div>
           </div>
 
-          {/* Instructor Mobile Bottom Navigation Bar */}
-          {user?.role === "instructor" && (
+          {/* Mobile Bottom Navigation Bars */}
+          {isAccountingPath ? (
+            <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-slate-200 px-2 py-1 shadow-lg">
+              <div className="grid grid-cols-5 items-center h-14">
+                <Link
+                  href="/accounting?tab=overview"
+                  className={`flex flex-col items-center justify-center gap-0.5 py-1 rounded-xl transition ${
+                    searchParams?.get("tab") === "overview" || !searchParams?.get("tab")
+                      ? "text-emerald-700 font-bold"
+                      : "text-slate-500 hover:text-slate-900"
+                  }`}
+                >
+                  <LayoutDashboard className="w-5 h-5 text-emerald-600" />
+                  <span className="text-[10px]">داشبورد</span>
+                </Link>
+
+                <Link
+                  href="/accounting?tab=journal"
+                  className={`flex flex-col items-center justify-center gap-0.5 py-1 rounded-xl transition ${
+                    searchParams?.get("tab") === "journal"
+                      ? "text-emerald-700 font-bold"
+                      : "text-slate-500 hover:text-slate-900"
+                  }`}
+                >
+                  <FileText className="w-5 h-5 text-emerald-600" />
+                  <span className="text-[10px]">اسناد</span>
+                </Link>
+
+                <Link
+                  href="/accounting?tab=coa"
+                  className={`flex flex-col items-center justify-center gap-0.5 py-1 rounded-xl transition ${
+                    searchParams?.get("tab") === "coa"
+                      ? "text-emerald-700 font-bold"
+                      : "text-slate-500 hover:text-slate-900"
+                  }`}
+                >
+                  <Layers className="w-5 h-5 text-emerald-600" />
+                  <span className="text-[10px]">کدینگ</span>
+                </Link>
+
+                <Link
+                  href="/accounting?tab=operations"
+                  className={`flex flex-col items-center justify-center gap-0.5 py-1 rounded-xl transition ${
+                    searchParams?.get("tab") === "operations"
+                      ? "text-emerald-700 font-bold"
+                      : "text-slate-500 hover:text-slate-900"
+                  }`}
+                >
+                  <ArrowRightLeft className="w-5 h-5 text-emerald-600" />
+                  <span className="text-[10px]">عملیات</span>
+                </Link>
+
+                <button
+                  type="button"
+                  onClick={() => setMobileMenuOpen(true)}
+                  className="flex flex-col items-center justify-center gap-0.5 py-1 text-slate-500 hover:text-emerald-700 rounded-xl transition"
+                >
+                  <Menu className="w-5 h-5 text-slate-400" />
+                  <span className="text-[10px]">منو کامل</span>
+                </button>
+              </div>
+            </nav>
+          ) : pathname.startsWith("/instructor") ? (
             <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-slate-200 px-2 py-1 shadow-lg">
               <div className="grid grid-cols-5 items-center h-14">
                 <Link
@@ -976,10 +1167,7 @@ export default function DashboardLayout({
                 </button>
               </div>
             </nav>
-          )}
-
-          {/* Student Mobile Bottom Navigation Bar */}
-          {user?.role === "student" && (
+          ) : (
             <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-slate-200 px-2 py-1 shadow-lg">
               <div className="grid grid-cols-5 items-center h-14">
                 <Link
@@ -1034,78 +1222,6 @@ export default function DashboardLayout({
                 >
                   <Wallet
                     className={`w-5 h-5 ${pathname.startsWith("/student/wallet") ? "text-indigo-600" : "text-slate-400"}`}
-                  />
-                  <span className="text-[10px]">کیف پول</span>
-                </Link>
-
-                <button
-                  type="button"
-                  onClick={() => setMobileMenuOpen(true)}
-                  className="flex flex-col items-center justify-center gap-0.5 py-1 text-slate-500 hover:text-blue-600 rounded-xl transition"
-                >
-                  <Menu className="w-5 h-5 text-slate-400" />
-                  <span className="text-[10px]">منو کامل</span>
-                </button>
-              </div>
-            </nav>
-          )}
-
-          {/* Instructor Mobile Bottom Navigation Bar */}
-          {user?.role === "instructor" && (
-            <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-slate-200 px-2 py-1 shadow-lg">
-              <div className="grid grid-cols-5 items-center h-14">
-                <Link
-                  href="/instructor"
-                  className={`flex flex-col items-center justify-center gap-0.5 py-1 rounded-xl transition ${
-                    pathname === "/instructor"
-                      ? "text-blue-600 font-bold"
-                      : "text-slate-500 hover:text-slate-900"
-                  }`}
-                >
-                  <LayoutDashboard
-                    className={`w-5 h-5 ${pathname === "/instructor" ? "text-blue-600" : "text-slate-400"}`}
-                  />
-                  <span className="text-[10px]">داشبورد</span>
-                </Link>
-
-                <Link
-                  href="/instructor/courses"
-                  className={`flex flex-col items-center justify-center gap-0.5 py-1 rounded-xl transition ${
-                    pathname.startsWith("/instructor/courses")
-                      ? "text-blue-600 font-bold"
-                      : "text-slate-500 hover:text-slate-900"
-                  }`}
-                >
-                  <BookOpen
-                    className={`w-5 h-5 ${pathname.startsWith("/instructor/courses") ? "text-blue-600" : "text-slate-400"}`}
-                  />
-                  <span className="text-[10px]">دوره‌ها</span>
-                </Link>
-
-                <Link
-                  href="/instructor/classes"
-                  className={`flex flex-col items-center justify-center gap-0.5 py-1 rounded-xl transition ${
-                    pathname.startsWith("/instructor/classes")
-                      ? "text-emerald-600 font-bold"
-                      : "text-slate-500 hover:text-slate-900"
-                  }`}
-                >
-                  <Video
-                    className={`w-5 h-5 ${pathname.startsWith("/instructor/classes") ? "text-emerald-600" : "text-slate-400"}`}
-                  />
-                  <span className="text-[10px]">کلاس‌ها</span>
-                </Link>
-
-                <Link
-                  href="/instructor/wallet"
-                  className={`flex flex-col items-center justify-center gap-0.5 py-1 rounded-xl transition ${
-                    pathname.startsWith("/instructor/wallet")
-                      ? "text-indigo-600 font-bold"
-                      : "text-slate-500 hover:text-slate-900"
-                  }`}
-                >
-                  <Wallet
-                    className={`w-5 h-5 ${pathname.startsWith("/instructor/wallet") ? "text-indigo-600" : "text-slate-400"}`}
                   />
                   <span className="text-[10px]">کیف پول</span>
                 </Link>

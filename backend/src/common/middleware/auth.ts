@@ -57,16 +57,19 @@ export const authenticate = async (req: AuthRequest, res: Response, next: NextFu
     (currentUser as any).roleSlugs = roleSlugs;
     (currentUser as any).allPermissions = allPermissions;
     (currentUser as any).hasRole = (slug: string) => roleSlugs.includes(slug);
+    (currentUser as any).canTeach = roleSlugs.includes('instructor') || roleSlugs.includes('super-admin') || !!currentUser.canTeach;
 
     const primaryRoleSlug = roleSlugs.includes('super-admin')
       ? 'super-admin'
       : (roleSlugs.includes('admin')
         ? 'admin'
-        : (roleSlugs.includes('partner')
-          ? 'partner'
-          : (roleSlugs.includes('accountant')
-            ? 'accountant'
-            : (roleSlugs.includes('instructor') ? 'instructor' : 'student'))));
+        : (roleSlugs.includes('instructor')
+          ? 'instructor'
+          : (roleSlugs.includes('partner')
+            ? 'partner'
+            : (roleSlugs.includes('accountant')
+              ? 'accountant'
+              : 'student'))));
 
     // 2. Role-based inactivity timeout enforcement
     const isVerificationOrAuthEndpoint = req.originalUrl?.includes('/api/auth/me') ||

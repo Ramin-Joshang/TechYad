@@ -153,7 +153,9 @@ export function Navbar() {
     (pathname?.startsWith("/instructor") &&
       !pathname?.startsWith("/instructors")) ||
     pathname?.startsWith("/profile") ||
-    pathname?.startsWith("/learn")
+    pathname?.startsWith("/learn") ||
+    pathname?.startsWith("/accounting") ||
+    pathname?.startsWith("/partner")
   ) {
     return null;
   }
@@ -165,14 +167,21 @@ export function Navbar() {
   const displaySiteName =
     rawSiteName.replace(/[a-zA-Z]/g, "").trim() || "آکادمی تک یاد";
 
+  const userRolesList = [
+    ...(Array.isArray(user?.roles) ? user.roles : []),
+    user?.role || "",
+  ].filter(Boolean);
+
   const userDashboardHref =
-    user?.role === "super-admin"
+    userRolesList.includes("super-admin")
       ? "/super-admin"
-      : user?.role === "student"
-        ? "/student"
-        : user?.role === "instructor"
+      : userRolesList.includes("admin")
+        ? "/admin"
+        : userRolesList.includes("instructor") || !!user?.canTeach
           ? "/instructor"
-          : "/admin";
+          : userRolesList.includes("accountant") || userRolesList.includes("partner")
+            ? "/accounting"
+            : "/student";
 
   return (
     <>

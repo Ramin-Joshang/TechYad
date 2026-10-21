@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuthStore } from '@/features/auth/stores/auth.store';
 import {
@@ -64,10 +65,32 @@ export function AccountingDashboard({ forcedRole }: AccountingDashboardProps) {
   const isPartner = !isSuperAdmin && !isAccountant && (userRole === 'partner' || userRoles.includes('partner'));
   const canMutate = isSuperAdmin || isAccountant;
 
-  // Active Tab
-  const [activeTab, setActiveTab] = useState<
+  const searchParams = useSearchParams();
+  const urlTab = searchParams?.get('tab') as any;
+  const validTabs = useMemo(
+    () => ['overview', 'coa', 'journal', 'trial-balance', 'accounts', 'operations', 'summary', 'fiscal-years', 'audit'],
+    []
+  );
+
+  // Active Tab with URL Synchronization
+  const [activeTab, setActiveTabState] = useState<
     'overview' | 'coa' | 'journal' | 'trial-balance' | 'accounts' | 'operations' | 'summary' | 'fiscal-years' | 'audit'
-  >('overview');
+  >(urlTab && validTabs.includes(urlTab) ? urlTab : 'overview');
+
+  useEffect(() => {
+    if (urlTab && validTabs.includes(urlTab) && urlTab !== activeTab) {
+      setActiveTabState(urlTab);
+    }
+  }, [urlTab, validTabs, activeTab]);
+
+  const setActiveTab = (tab: any) => {
+    setActiveTabState(tab);
+    if (typeof window !== 'undefined') {
+      const url = new URL(window.location.href);
+      url.searchParams.set('tab', tab);
+      window.history.replaceState({}, '', url.toString());
+    }
+  };
 
   // Modals
   const [showNewEntryModal, setShowNewEntryModal] = useState(false);

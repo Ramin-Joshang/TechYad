@@ -66,10 +66,16 @@ export default function LoginPage() {
       return;
     }
 
-    const role = user.role;
-    if (role === 'super-admin') router.push('/super-admin');
-    else if (role === 'admin') router.push('/admin');
-    else if (role === 'instructor') router.push('/instructor');
+    const roles: string[] = [
+      ...(Array.isArray(user.roles) ? user.roles : []),
+      ...(Array.isArray(user.rolesDetail) ? user.rolesDetail.map((r: any) => r.slug) : []),
+      user.role || ''
+    ].filter(Boolean);
+
+    if (roles.includes('super-admin')) router.push('/super-admin');
+    else if (roles.includes('admin')) router.push('/admin');
+    else if (roles.includes('instructor') || !!user.canTeach) router.push('/instructor');
+    else if (roles.includes('accountant') || roles.includes('partner')) router.push('/accounting');
     else router.push('/student');
   };
 

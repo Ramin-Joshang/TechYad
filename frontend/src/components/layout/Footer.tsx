@@ -25,15 +25,19 @@ export function Footer() {
     staleTime: 1000 * 60 * 10,
   });
 
-  // Hide footer completely inside user, instructor, and admin dashboards / panels
+  // Hide footer completely inside user, instructor, accounting, and admin dashboards / panels
   if (
+    pathname === "/dashboard" ||
+    pathname?.startsWith("/dashboard") ||
     pathname?.startsWith("/admin") ||
     pathname?.startsWith("/super-admin") ||
     pathname?.startsWith("/student") ||
     (pathname?.startsWith("/instructor") &&
       !pathname?.startsWith("/instructors")) ||
     pathname?.startsWith("/profile") ||
-    pathname?.startsWith("/learn")
+    pathname?.startsWith("/learn") ||
+    pathname?.startsWith("/accounting") ||
+    pathname?.startsWith("/partner")
   ) {
     return null;
   }

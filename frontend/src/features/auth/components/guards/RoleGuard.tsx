@@ -20,6 +20,7 @@ export function RoleGuard({ children, allowedRoles, fallback = null }: RoleGuard
   const userRoles: string[] = [
     ...(user?.role ? [user.role] : []),
     ...(user?.roles || []),
+    ...(Array.isArray(user?.rolesDetail) ? user.rolesDetail.map(r => r.slug) : []),
   ];
 
   // Super-admin has access to everything
@@ -27,8 +28,8 @@ export function RoleGuard({ children, allowedRoles, fallback = null }: RoleGuard
     return <AuthGuard>{children}</AuthGuard>;
   }
 
-  // Admin with explicit instructor capability can access instructor workspace
-  if (allowedRoles.includes('instructor') && userRoles.includes('admin') && user?.canTeach) {
+  // Instructor capability: users with instructor role or explicit canTeach flag can access instructor workspace
+  if (allowedRoles.includes('instructor') && (userRoles.includes('instructor') || !!user?.canTeach)) {
     return <AuthGuard>{children}</AuthGuard>;
   }
 

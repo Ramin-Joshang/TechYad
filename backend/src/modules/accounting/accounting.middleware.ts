@@ -19,6 +19,7 @@ export const requireAccountingView = (
 
   if (
     roleSlugs.includes("super-admin") ||
+    roleSlugs.includes("admin") ||
     roleSlugs.includes("accountant") ||
     roleSlugs.includes("partner")
   ) {

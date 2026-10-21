@@ -13,17 +13,18 @@ export default function DashboardIndexPage() {
 
     const roles: string[] = [
       ...(Array.isArray(user.roles) ? user.roles : []),
+      ...(Array.isArray(user.rolesDetail) ? user.rolesDetail.map((r: any) => r.slug) : []),
       user.role || ''
     ].filter(Boolean);
 
-    if (roles.includes('super-admin') || roles.includes('admin')) {
+    if (roles.includes('super-admin')) {
+      router.replace('/super-admin');
+    } else if (roles.includes('admin')) {
       router.replace('/admin');
-    } else if (roles.includes('accountant')) {
-      router.replace('/admin/accounting');
-    } else if (roles.includes('partner')) {
-      router.replace('/partner/accounting');
-    } else if (roles.includes('instructor')) {
+    } else if (roles.includes('instructor') || !!user.canTeach) {
       router.replace('/instructor');
+    } else if (roles.includes('accountant') || roles.includes('partner')) {
+      router.replace('/accounting');
     } else {
       router.replace('/student');
     }

@@ -244,7 +244,7 @@ export class AuthService {
       throw new AppError('شماره موبایل وارد شده نامعتبر است (فرمت صحیح: ۰۹۱۲۳۴۵۶۷۸۹)', 400, 'INVALID_MOBILE');
     }
 
-    const user = await User.findOne({ mobile: cleanMobile }).select('+passwordHash').populate('role');
+    const user = await User.findOne({ mobile: cleanMobile }).select('+passwordHash').populate('role').populate('roles');
     
     if (!user) {
       try {
@@ -298,9 +298,24 @@ export class AuthService {
       throw new AppError('شماره موبایل شما تایید نشده است. کد تایید پیامکی ارسال شد؛ لطفاً شماره خود را تایید نمایید.', 403, 'AUTH_PHONE_NOT_VERIFIED');
     }
 
+    const userRoles: any[] = [];
+    if (user.role) {
+      userRoles.push(user.role);
+    }
+    if (Array.isArray(user.roles)) {
+      for (const r of user.roles) {
+        if (!userRoles.some(existing => (existing?._id?.toString() || existing) === (r?._id?.toString() || r))) {
+          userRoles.push(r);
+        }
+      }
+    }
+    const roleSlugs = userRoles.map(r => r.slug || r.name).filter(Boolean);
+    if (roleSlugs.length === 0) roleSlugs.push('student');
+
     const role = user.role as any;
-    const roleSlug = role?.slug || 'student';
+    const roleSlug = role?.slug || roleSlugs[0] || 'student';
     const tokenVersion = user.tokenVersion || 0;
+    const canTeach = roleSlugs.includes('instructor') || roleSlugs.includes('super-admin') || !!user.canTeach;
 
     user.lastActiveAt = new Date();
     await user.save();
@@ -342,8 +357,15 @@ export class AuthService {
         bio: user.bio,
         specialty: user.specialty,
         role: roleSlug,
-        permissions: role?.permissions || [],
-        canTeach: roleSlug === 'instructor' || roleSlug === 'super-admin' || !!user.canTeach,
+        roles: roleSlugs,
+        rolesDetail: userRoles.map((r: any) => ({
+          _id: r._id,
+          name: r.name,
+          slug: r.slug,
+          permissions: r.permissions || []
+        })),
+        permissions: Array.from(new Set(userRoles.flatMap(r => r.permissions || []))),
+        canTeach,
         hasExplicitTeachingGrant: !!user.canTeach,
         instructorCapabilityGrantedAt: user.instructorCapabilityGrantedAt,
         referralCode: user.referralCode,
@@ -484,7 +506,7 @@ export class AuthService {
 
     try {
       const decoded = jwt.verify(refreshToken, env.JWT_REFRESH_SECRET) as { id: string; tokenVersion?: number; role?: string };
-      const user = await User.findById(decoded.id).populate('role');
+      const user = await User.findById(decoded.id).populate('role').populate('roles');
       
       if (!user || user.status !== 'active') {
         throw new AppError('User no longer exists or is inactive', 401, 'AUTH_USER_NOT_FOUND');
@@ -495,9 +517,24 @@ export class AuthService {
         throw new AppError('نشست شما باطل شده است. لطفاً دوباره وارد شوید.', 401, 'AUTH_SESSION_REVOKED');
       }
 
+      const userRoles: any[] = [];
+      if (user.role) {
+        userRoles.push(user.role);
+      }
+      if (Array.isArray(user.roles)) {
+        for (const r of user.roles) {
+          if (!userRoles.some(existing => (existing?._id?.toString() || existing) === (r?._id?.toString() || r))) {
+            userRoles.push(r);
+          }
+        }
+      }
+      const roleSlugs = userRoles.map(r => r.slug || r.name).filter(Boolean);
+      if (roleSlugs.length === 0) roleSlugs.push('student');
+
       const role = user.role as any;
-      const roleSlug = role?.slug || 'student';
+      const roleSlug = role?.slug || roleSlugs[0] || 'student';
       const sessionConfig = getSessionConfigForRole(roleSlug);
+      const canTeach = roleSlugs.includes('instructor') || roleSlugs.includes('super-admin') || !!user.canTeach;
 
       // 2. Inactivity timeout check (e.g. 15m for super-admin, 30m for admin)
       const lastActive = user.lastActiveAt ? new Date(user.lastActiveAt).getTime() : Date.now();
@@ -526,7 +563,17 @@ export class AuthService {
           bio: user.bio,
           specialty: user.specialty,
           role: roleSlug,
-          permissions: role?.permissions || [],
+          roles: roleSlugs,
+          rolesDetail: userRoles.map((r: any) => ({
+            _id: r._id,
+            name: r.name,
+            slug: r.slug,
+            permissions: r.permissions || []
+          })),
+          permissions: Array.from(new Set(userRoles.flatMap(r => r.permissions || []))),
+          canTeach,
+          hasExplicitTeachingGrant: !!user.canTeach,
+          instructorCapabilityGrantedAt: user.instructorCapabilityGrantedAt,
           referralCode: user.referralCode,
           walletBalance: user.walletBalance || 0
         },
@@ -593,7 +640,7 @@ export class AuthService {
       await Otp.deleteOne({ _id: otpRecord._id });
     }
 
-    let user = await User.findOne({ mobile }).populate('role');
+    let user = await User.findOne({ mobile }).populate('role').populate('roles');
     if (!user) {
       let studentRole = await Role.findOne({ slug: 'student' });
       if (!studentRole) {
@@ -609,6 +656,7 @@ export class AuthService {
         email: `${mobile}@tecyad.local`,
         passwordHash: dummyPassword,
         role: studentRole._id,
+        roles: [studentRole._id],
         status: 'active',
         mobileVerified: true,
         emailVerified: false
@@ -625,7 +673,22 @@ export class AuthService {
       await user.save();
     }
 
-    const role = (user.role as any)?.slug || 'student';
+    const userRoles: any[] = [];
+    if (user.role) {
+      userRoles.push(user.role);
+    }
+    if (Array.isArray(user.roles)) {
+      for (const r of user.roles) {
+        if (!userRoles.some(existing => (existing?._id?.toString() || existing) === (r?._id?.toString() || r))) {
+          userRoles.push(r);
+        }
+      }
+    }
+    const roleSlugs = userRoles.map(r => r.slug || r.name).filter(Boolean);
+    if (roleSlugs.length === 0) roleSlugs.push('student');
+
+    const role = (user.role as any)?.slug || roleSlugs[0] || 'student';
+    const canTeach = roleSlugs.includes('instructor') || roleSlugs.includes('super-admin') || !!user.canTeach;
     user.lastActiveAt = new Date();
     await user.save();
 
@@ -643,7 +706,17 @@ export class AuthService {
         slug: user.slug,
         avatar: user.avatar,
         role,
-        permissions: (user.role as any)?.permissions || [],
+        roles: roleSlugs,
+        rolesDetail: userRoles.map((r: any) => ({
+          _id: r._id,
+          name: r.name,
+          slug: r.slug,
+          permissions: r.permissions || []
+        })),
+        permissions: Array.from(new Set(userRoles.flatMap(r => r.permissions || []))),
+        canTeach,
+        hasExplicitTeachingGrant: !!user.canTeach,
+        instructorCapabilityGrantedAt: user.instructorCapabilityGrantedAt,
         walletBalance: user.walletBalance || 0
       },
       accessToken,
