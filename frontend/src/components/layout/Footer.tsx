@@ -50,7 +50,7 @@ export function Footer() {
   const supportPhone = publicSettings?.supportPhone || "09372731037";
   const telegramUrl = publicSettings?.telegramUrl || "https://t.me/tecyad_ir";
   const instagramUrl =
-    publicSettings?.instagramUrl || "https://instagram.com/tecyad.ir";
+    publicSettings?.instagramUrl || "https://www.instagram.com/tecyad.ir/";
   const whatsappUrl = "https://wa.me/989372731037";
 
   return (
@@ -88,20 +88,21 @@ export function Footer() {
               <span className="font-bold text-2xl text-[var(--neo-text-main)] inline-flex items-center gap-2 tracking-tight">
                 <span>{siteTitle}</span>
                 <span className="text-xs tracking-wider font-semibold text-blue-600 bg-blue-50 px-2 py-0.5 rounded uppercase">
-                  Tecyad
+                  TechYad
                 </span>
               </span>
             </Link>
             <p className="mb-6 leading-relaxed text-sm font-medium text-gray-600 max-w-sm">
               {publicSettings?.seoDescription ||
-                "پلتفرمی برای یادگیری عمیق، مهارت‌افزایی و آینده‌سازی. دوره‌های حضوری و آنلاین با رویکردی متفاوت و حرفه‌ای."}
+                "آکادمی تک یاد؛ پلتفرم یادگیری عمیق، مهارت‌افزایی و آینده‌سازی. دوره‌ها و کلاس‌های تخصصی آنلاین و حضوری با برترین اساتید."}
             </p>
             <div className="flex gap-2.5">
               <a
-                href={instagramUrl}
+                href="https://www.instagram.com/tecyad.ir/"
                 target="_blank"
                 rel="noopener noreferrer"
-                title="اینستاگرام tecyad.ir"
+                aria-label="صفحه رسمی آکادمی تک یاد در اینستاگرام"
+                title="صفحه رسمی اینستاگرام آکادمی تک یاد (@tecyad.ir)"
                 className="w-9 h-9 rounded-full border border-[var(--neo-border)] bg-[var(--neo-bg)] flex items-center justify-center text-slate-700 hover:bg-gradient-to-tr hover:from-amber-500 hover:via-rose-500 hover:to-purple-600 hover:text-white hover:border-transparent transition-all shadow-2xs"
               >
                 <InstagramIcon className="w-4 h-4" />

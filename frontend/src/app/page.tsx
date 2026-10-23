@@ -5,18 +5,16 @@ import type { Metadata } from "next";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title:
-    "آکادمی تک یاد | پلتفرم جامع آموزش آنلاین، دوره‌ها و کلاس‌های تخصصی برنامه‌نویسی",
+  title: "آکادمی تک یاد | کلاس‌های آنلاین و دوره‌های تخصصی",
   description:
-    "سامانه آموزش آنلاین آکادمی تک یاد (Tecyad)؛ مرجع تخصصی دوره‌های پروژه‌محور برنامه‌نویسی، طراحی وب، هوش مصنوعی، کلاس‌های زنده و کارگاه‌های مهارتی با برترین اساتید ایران.",
+    "آکادمی تک یاد؛ برگزارکننده کلاس‌های آنلاین و دوره‌های تخصصی دروس دانشگاهی، مهندسی، برنامه‌نویسی و هوش مصنوعی با اساتید مجرب. مشاهده دوره‌ها و ثبت‌نام آنلاین.",
   keywords: [
     "آکادمی تک یاد",
-    "آکادمی تک‌یاد",
     "تک یاد",
     "تک‌یاد",
     "تکیاد",
+    "TechYad",
     "Tecyad",
-    "Tecyad Academy",
     "آموزش برنامه‌نویسی",
     "کلاس آنلاین",
     "دوره آموزش پایتون",
@@ -31,24 +29,24 @@ export const metadata: Metadata = {
     type: "website",
     locale: "fa_IR",
     url: "https://tecyad.ir",
-    siteName: "آکادمی تک یاد | Tecyad",
-    title: "آکادمی تک یاد | پلتفرم جامع آموزش آنلاین، دوره‌ها و کلاس‌های تخصصی",
+    siteName: "آکادمی تک یاد",
+    title: "آکادمی تک یاد | کلاس‌های آنلاین و دوره‌های تخصصی",
     description:
-      "سامانه آموزش آنلاین آکادمی تک یاد؛ مرجع تخصصی دوره‌های پروژه‌محور برنامه‌نویسی، طراحی وب و هوش مصنوعی با برترین اساتید.",
+      "آکادمی تک یاد؛ برگزارکننده کلاس‌های آنلاین و دوره‌های تخصصی دروس دانشگاهی، مهندسی، برنامه‌نویسی و هوش مصنوعی با اساتید مجرب.",
     images: [
       {
         url: "https://tecyad.ir/hero-image.png",
         width: 1200,
         height: 630,
-        alt: "آکادمی تک یاد Tecyad",
+        alt: "آکادمی تک یاد - کلاس‌های آنلاین و دوره‌های تخصصی",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "آکادمی تک یاد | پلتفرم جامع آموزش آنلاین، دوره‌ها و کلاس‌های تخصصی",
+    title: "آکادمی تک یاد | کلاس‌های آنلاین و دوره‌های تخصصی",
     description:
-      "مرجع تخصصی دوره‌های برنامه‌نویسی، کلاس‌های آنلاین و کارگاه‌های مهارتی در آکادمی تک یاد.",
+      "آکادمی تک یاد؛ برگزارکننده کلاس‌های آنلاین و دوره‌های تخصصی دروس دانشگاهی، مهندسی، برنامه‌نویسی و هوش مصنوعی با اساتید مجرب.",
     images: ["https://tecyad.ir/hero-image.png"],
   },
 };
@@ -56,49 +54,8 @@ export const metadata: Metadata = {
 export default async function HomePage() {
   const homeData = await fetchHomeData();
 
-  const websiteJsonLd = {
-    "@context": "https://schema.org",
-    "@type": "WebSite",
-    name: "آکادمی تک یاد",
-    alternateName: ["آکادمی تک یاد", "تک یاد", "تک یاد", "تکیاد", "Tecyad"],
-    url: "https://tecyad.ir",
-    description:
-      "پلتفرم جامع آموزش آنلاین، دوره‌ها و کلاس‌های تخصصی آکادمی تک یاد",
-    potentialAction: {
-      "@type": "SearchAction",
-      target: "https://tecyad.ir/search?q={search_term_string}",
-      "query-input": "required name=search_term_string",
-    },
-  };
-
-  const orgJsonLd = {
-    "@context": "https://schema.org",
-    "@type": "EducationalOrganization",
-    name: "آکادمی تک‌یاد",
-    alternateName: [
-      "آکادمی تک یاد",
-      "تک‌یاد",
-      "تک یاد",
-      "تکیاد",
-      "Tecyad Academy",
-      "Tecyad",
-    ],
-    url: "https://tecyad.ir",
-    logo: "https://tecyad.ir/logo.png",
-    telephone: "09372731037",
-    sameAs: ["https://t.me/tecyad_ir", "https://instagram.com/tecyad.ir"],
-  };
-
   return (
     <>
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteJsonLd) }}
-      />
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(orgJsonLd) }}
-      />
       <HomeDataView initialData={homeData} />
     </>
   );

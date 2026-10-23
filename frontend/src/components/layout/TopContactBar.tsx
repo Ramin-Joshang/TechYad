@@ -78,8 +78,9 @@ export function TopContactBar() {
             href="https://t.me/tecyad_ir"
             target="_blank"
             rel="noopener noreferrer"
+            aria-label="کانال رسمی آکادمی تک یاد در تلگرام"
             className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#229ED9]/8 hover:bg-[#229ED9]/15 text-[#229ED9] border border-[#229ED9]/20 hover:border-[#229ED9]/40 transition-all text-[11px] font-medium"
-            title="کانال و پشتیبانی تلگرام تک یاد"
+            title="کانال و پشتیبانی تلگرام آکادمی تک یاد"
           >
             <TelegramIcon className="w-3.5 h-3.5" />
             <span className="font-semibold text-[11px]">کانال تلگرام</span>
@@ -87,11 +88,12 @@ export function TopContactBar() {
 
           {/* Instagram */}
           <a
-            href="https://instagram.com/tecyad.ir"
+            href="https://www.instagram.com/tecyad.ir/"
             target="_blank"
             rel="noopener noreferrer"
+            aria-label="صفحه رسمی آکادمی تک یاد در اینستاگرام"
             className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-rose-500/8 hover:bg-rose-500/15 text-rose-600 border border-rose-500/20 hover:border-rose-500/40 transition-all text-[11px] font-medium"
-            title="پیج رسمی اینستاگرام تک یاد"
+            title="صفحه رسمی اینستاگرام آکادمی تک یاد (@tecyad.ir)"
           >
             <InstagramIcon className="w-3.5 h-3.5" />
             <span className="font-semibold text-[11px]">اینستاگرام</span>

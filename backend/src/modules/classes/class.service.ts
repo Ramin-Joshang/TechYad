@@ -28,7 +28,10 @@ export class ClassService {
   }
 
   static async getClasses(query: any = {}) {
-    const filter: any = { status: { $in: ['published', 'completed'] } };
+    const filter: any = { 
+      status: { $in: ['published', 'completed'] },
+      title: { $not: /تست برای درگاه/i },
+    };
 
     if (query.mode && query.mode !== 'all') {
       filter.mode = query.mode;

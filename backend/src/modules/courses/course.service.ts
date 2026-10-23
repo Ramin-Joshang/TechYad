@@ -83,7 +83,10 @@ export class CourseService {
   }
 
   static async getCourses(query: any) {
-    const filter: any = { status: 'published' };
+    const filter: any = { 
+      status: 'published',
+      title: { $not: /تست برای درگاه/i },
+    };
     
     // Advanced filtering
     if (query.category) filter.categoryId = query.category;

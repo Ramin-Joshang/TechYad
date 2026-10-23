@@ -101,6 +101,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       const courses = data?.data?.courses || data?.data || [];
       if (Array.isArray(courses)) {
         for (const c of courses) {
+          const title = c.title || '';
+          if (/تست برای درگاه|test/i.test(title)) continue;
+          if (c.status && c.status !== 'published') continue;
           const slugOrId = c.slug || c._id;
           if (!slugOrId) continue;
           const url = `${baseUrl}/courses/${encodeURIComponent(slugOrId)}`;
@@ -131,6 +134,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       const classes = data?.data?.classes || data?.data || [];
       if (Array.isArray(classes)) {
         for (const c of classes) {
+          const title = c.title || '';
+          if (/تست برای درگاه|test/i.test(title)) continue;
+          if (c.status && !['published', 'completed'].includes(c.status)) continue;
           const slugOrId = c.slug || c._id;
           if (!slugOrId) continue;
           const url = `${baseUrl}/classes/${encodeURIComponent(slugOrId)}`;

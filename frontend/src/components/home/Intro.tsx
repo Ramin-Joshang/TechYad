@@ -39,7 +39,7 @@ export function Intro() {
     publicSettings?.introTitle || "تجربه یادگیری بهتر و متفاوت‌تر";
   const introSubtitle =
     publicSettings?.introSubtitle ||
-    "تک یاد با هدف ارتقای سطح دانش و مهارت‌های تخصصی، پلتفرمی یکپارچه برای یادگیری فراهم کرده است. ما با بهره‌گیری از برترین اساتید ایران، دوره‌هایی متناسب با نیاز بازار کار طراحی کرده‌ایم تا مسیر رشد شما را هموارتر کنیم.";
+    "آکادمی تک یاد با هدف ارتقای سطح دانش و مهارت‌های تخصصی، پلتفرمی یکپارچه برای یادگیری فراهم کرده است. ما با بهره‌گیری از برترین اساتید ایران، کلاس‌ها و دوره‌هایی متناسب با نیاز بازار کار و سرفصل‌های دانشگاهی طراحی کرده‌ایم تا مسیر رشد شما را هموارتر کنیم.";
 
   return (
     <section className="py-24 bg-white border-b border-[var(--neo-border)] overflow-hidden relative">
@@ -88,7 +88,11 @@ export function Intro() {
             <div className="aspect-[4/3] rounded-[24px] overflow-hidden bg-[var(--neo-surface-2)] border border-[var(--neo-border)] relative group shadow-xl shadow-[var(--neo-primary)]/5">
               <img
                 src="/hero-image.png"
-                alt="دانشجویان در حال یادگیری"
+                alt="دانشجوی آکادمی تک یاد در حال یادگیری تخصصی دروس دانشگاهی و مهندسی"
+                loading="lazy"
+                decoding="async"
+                width={800}
+                height={600}
                 className="w-full h-full object-cover transition duration-700 group-hover:scale-105"
               />
 

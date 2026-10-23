@@ -510,7 +510,7 @@ export function Hero() {
                   </span>
 
                   <span className="text-[11px] text-[var(--neo-primary)] font-bold tracking-tight mt-1">
-                    تک یاد
+                    آکادمی تک یاد
                   </span>
                 </div>
               </div>

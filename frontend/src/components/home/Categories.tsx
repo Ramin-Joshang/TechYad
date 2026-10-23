@@ -194,7 +194,7 @@ export function Categories({
               </span>
             </div>
             <h2 className="text-xl sm:text-2xl md:text-3xl font-black text-[var(--neo-text-main)]">
-              گسترش مرزهای دانش در تک یاد
+              گسترش مرزهای دانش در آکادمی تک یاد
             </h2>
           </div>
 

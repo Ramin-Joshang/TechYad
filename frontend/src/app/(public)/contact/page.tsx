@@ -276,9 +276,10 @@ export default function ContactPage() {
                   </a>
 
                   <a
-                    href="https://instagram.com/tecyad.ir"
+                    href="https://www.instagram.com/tecyad.ir/"
                     target="_blank"
                     rel="noopener noreferrer"
+                    aria-label="صفحه رسمی آکادمی تک یاد در اینستاگرام"
                     className="flex items-center justify-between bg-white/10 hover:bg-white/20 px-4 py-3 rounded-xl transition border border-white/5 group"
                   >
                     <div className="flex items-center gap-3">
