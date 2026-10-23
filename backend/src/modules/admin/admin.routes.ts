@@ -109,5 +109,11 @@ router.get('/super-admin/platform-locks', isSuperAdmin, asyncHandler(Controller.
 router.put('/super-admin/platform-locks', isSuperAdmin, asyncHandler(Controller.updatePlatformLocks));
 router.patch('/super-admin/platform-locks', isSuperAdmin, asyncHandler(Controller.updatePlatformLocks));
 
+// API Request, Technical Error & Operations Tracking Hub
+router.get('/super-admin/api-logs', isSuperAdmin, asyncHandler(Controller.getApiLogs));
+router.get('/super-admin/api-logs/stats', isSuperAdmin, asyncHandler(Controller.getApiLogStats));
+router.get('/super-admin/api-logs/:id', isSuperAdmin, asyncHandler(Controller.getApiLogById));
+router.post('/super-admin/api-logs/cleanup', isSuperAdmin, asyncHandler(Controller.cleanupApiLogs));
+
 export default router;
 

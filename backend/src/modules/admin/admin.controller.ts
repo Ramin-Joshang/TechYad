@@ -3,6 +3,7 @@ import { AdminService } from './admin.service.js';
 import { sendSuccess } from '../../common/utils/response.js';
 import { FinancialRevenueService } from '../commerce/financial-revenue.service.js';
 import { SmsService } from '../../common/services/sms.service.js';
+import { ApiLoggerService } from '../../common/services/api-logger.service.js';
 
 export const getDashboardStats = async (req: Request, res: Response) => {
   const result = await AdminService.getDashboardStats();
@@ -348,5 +349,31 @@ export const removeUserRole = async (req: any, res: Response) => {
   sendSuccess(res, result.user, result.message);
 };
 
+// =========================================================================
+// API REQUEST & TECHNICAL ERROR LOGGING HUB
+// =========================================================================
 
+export const getApiLogs = async (req: Request, res: Response) => {
+  const result = await ApiLoggerService.getLogs(req.query as any);
+  sendSuccess(res, result, 'گزارش‌های درخواست‌های API با موفقیت دریافت شد');
+};
 
+export const getApiLogStats = async (req: Request, res: Response) => {
+  const result = await ApiLoggerService.getStats();
+  sendSuccess(res, result, 'آمار و شاخص‌های مانیتورینگ خطاها دریافت شد');
+};
+
+export const getApiLogById = async (req: Request, res: Response) => {
+  const result = await ApiLoggerService.getLogById(req.params.id as string);
+  if (!result) {
+    res.status(404).json({ success: false, error: { code: 'NOT_FOUND', message: 'گزارش درخواست یافت نشد.' } });
+    return;
+  }
+  sendSuccess(res, result, 'جزئیات درخواست و خطای فنی با موفقیت دریافت شد');
+};
+
+export const cleanupApiLogs = async (req: Request, res: Response) => {
+  const days = Math.max(7, Number(req.body.days) || 30);
+  const result = await ApiLoggerService.cleanup(days);
+  sendSuccess(res, result, `لاگ‌های قدیمی‌تر از ${days} روز با موفقیت پاکسازی شدند`);
+};

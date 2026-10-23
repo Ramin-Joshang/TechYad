@@ -131,44 +131,58 @@ api.interceptors.response.use(
         }
 
       } else if (!hideToast && status !== 401 && !isAuthAction) {
+        const requestId =
+          error.response.data?.error?.requestId ||
+          error.response.headers?.['x-request-id'] ||
+          '';
+
+        let formattedMessage = message;
+        if (requestId && !formattedMessage.includes(requestId) && !formattedMessage.includes('کد پیگیری')) {
+          if (status >= 500) {
+            formattedMessage = `خطای سرور. لطفاً مجدداً تلاش کنید. (کد پیگیری: ${requestId})`;
+          }
+        }
 
         switch (status) {
           case 403:
             toast.error(
-              message ||
+              formattedMessage ||
                 'شما دسترسی لازم برای این عملیات را ندارید'
             );
             break;
 
           case 404:
             toast.error(
-              message || 'مورد یافت نشد'
+              formattedMessage || 'مورد یافت نشد'
             );
             break;
 
           case 409:
             toast.error(
-              message ||
+              formattedMessage ||
                 'تداخل اطلاعات. این عملیات قابل انجام نیست'
             );
             break;
 
           case 422:
             toast.error(
-              message ||
+              formattedMessage ||
                 'اطلاعات وارد شده نامعتبر است'
             );
             break;
 
           case 500:
+          case 502:
+          case 503:
+          case 504:
             toast.error(
-              message ||
-                'خطای سرور. لطفا مجددا تلاش کنید'
+              formattedMessage ||
+                `خطای سرور. لطفا مجددا تلاش کنید ${requestId ? `(کد پیگیری: ${requestId})` : ''}`
             );
             break;
 
           default:
-            toast.error(message);
+            toast.error(formattedMessage);
         }
       }
 

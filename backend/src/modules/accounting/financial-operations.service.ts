@@ -375,7 +375,12 @@ export class FinancialOperationsService {
 
     const resolvedFinAccountId = financialAccountId || (input as any).fromAccountId;
     const resolvedToFinAccountId = toFinancialAccountId || (input as any).toAccountId;
-    const resolvedParty = party?.name ? party : { name: (input as any).payerOrPayee || "طرف حساب عمومی" };
+    const resolvedParty = {
+      name: (party?.name || (input as any).payerOrPayee || (input as any).partyName || "طرف حساب عمومی").trim(),
+      role: party?.role || (input as any).role || "other",
+      phone: party?.phone || (input as any).phone || "",
+      refUserId: party?.refUserId || (input as any).refUserId || (input as any).partnerId || undefined,
+    };
 
     // Idempotency check: prevent duplicate submissions
     if (idempotencyKey) {
@@ -425,7 +430,7 @@ export class FinancialOperationsService {
         const { code: expCode, defaultTitle: expTitle } = this.resolveExpenseCoaCode(category);
         journalEntry = await AccountingLedgerService.createJournalEntry({
           date: opDate,
-          description: `ثبت هزینه: ${description} (دریافت‌کننده: ${party.name})`,
+          description: `ثبت هزینه: ${description} (دریافت‌کننده: ${resolvedParty.name})`,
           status: "posted",
           sourceType: "expense",
           sourceId: opNumber,
@@ -439,7 +444,7 @@ export class FinancialOperationsService {
             },
             {
               accountCode: primaryAcc.coaAccountCode,
-              description: `پرداخت از ${primaryAcc.title} به ${party.name}`,
+              description: `پرداخت از ${primaryAcc.title} به ${resolvedParty.name}`,
               debit: 0,
               credit: numAmount,
               entityType: "bank",
@@ -457,7 +462,7 @@ export class FinancialOperationsService {
       case "revenue": {
         journalEntry = await AccountingLedgerService.createJournalEntry({
           date: opDate,
-          description: `دریافت درآمد مستقیم: ${description} (از طرف: ${party.name})`,
+          description: `دریافت درآمد مستقیم: ${description} (از طرف: ${resolvedParty.name})`,
           status: "posted",
           sourceType: "manual",
           sourceId: opNumber,
@@ -536,7 +541,7 @@ export class FinancialOperationsService {
       case "partner_capital": {
         journalEntry = await AccountingLedgerService.createJournalEntry({
           date: opDate,
-          description: `افزایش سرمایه و آورده نقدی شریک: ${party.name} (${description})`,
+          description: `افزایش سرمایه و آورده نقدی شریک: ${resolvedParty.name} (${description})`,
           status: "posted",
           sourceType: "manual",
           sourceId: opNumber,
@@ -544,7 +549,7 @@ export class FinancialOperationsService {
           lines: [
             {
               accountCode: primaryAcc.coaAccountCode,
-              description: `واریز آورده سرمایه ${party.name} به حساب ${primaryAcc.title}`,
+              description: `واریز آورده سرمایه ${resolvedParty.name} به حساب ${primaryAcc.title}`,
               debit: numAmount,
               credit: 0,
               entityType: "bank",
@@ -552,11 +557,11 @@ export class FinancialOperationsService {
             },
             {
               accountCode: "3010", // سرمایه اولیه و حقوق صاحبان سهام
-              description: `افزایش سرمایه ثبت‌شده شرکا - سهم ${party.name}`,
+              description: `افزایش سرمایه ثبت‌شده شرکا - سهم ${resolvedParty.name}`,
               debit: 0,
               credit: numAmount,
               entityType: "user",
-              entityId: party.refUserId ? party.refUserId.toString() : undefined,
+              entityId: resolvedParty.refUserId ? resolvedParty.refUserId.toString() : undefined,
             },
           ],
           userId,
@@ -570,7 +575,7 @@ export class FinancialOperationsService {
       case "partner_loan": {
         journalEntry = await AccountingLedgerService.createJournalEntry({
           date: opDate,
-          description: `دریافت وام/قرض‌الحسنه از شریک: ${party.name} (${description})`,
+          description: `دریافت وام/قرض‌الحسنه از شریک: ${resolvedParty.name} (${description})`,
           status: "posted",
           sourceType: "manual",
           sourceId: opNumber,
@@ -578,7 +583,7 @@ export class FinancialOperationsService {
           lines: [
             {
               accountCode: primaryAcc.coaAccountCode,
-              description: `واریز وام دریافتی از ${party.name} به ${primaryAcc.title}`,
+              description: `واریز وام دریافتی از ${resolvedParty.name} به ${primaryAcc.title}`,
               debit: numAmount,
               credit: 0,
               entityType: "bank",
@@ -586,11 +591,11 @@ export class FinancialOperationsService {
             },
             {
               accountCode: "2060", // تسهیلات و وام‌های دریافتی از شرکا (بدهی جاری)
-              description: `بدهی جاری مؤسسه به شریک ${party.name} بابت وام`,
+              description: `بدهی جاری مؤسسه به شریک ${resolvedParty.name} بابت وام`,
               debit: 0,
               credit: numAmount,
               entityType: "user",
-              entityId: party.refUserId ? party.refUserId.toString() : undefined,
+              entityId: resolvedParty.refUserId ? resolvedParty.refUserId.toString() : undefined,
             },
           ],
           userId,
@@ -604,7 +609,7 @@ export class FinancialOperationsService {
       case "partner_loan_repayment": {
         journalEntry = await AccountingLedgerService.createJournalEntry({
           date: opDate,
-          description: `بازپرداخت اصل وام شریک: ${party.name} (${description})`,
+          description: `بازپرداخت اصل وام شریک: ${resolvedParty.name} (${description})`,
           status: "posted",
           sourceType: "manual",
           sourceId: opNumber,
@@ -612,15 +617,15 @@ export class FinancialOperationsService {
           lines: [
             {
               accountCode: "2060", // تسویه بدهی به شریک
-              description: `تسویه بدهی وام شریک ${party.name}`,
+              description: `تسویه بدهی وام شریک ${resolvedParty.name}`,
               debit: numAmount,
               credit: 0,
               entityType: "user",
-              entityId: party.refUserId ? party.refUserId.toString() : undefined,
+              entityId: resolvedParty.refUserId ? resolvedParty.refUserId.toString() : undefined,
             },
             {
               accountCode: primaryAcc.coaAccountCode,
-              description: `پرداخت از ${primaryAcc.title} بابت بازپرداخت وام ${party.name}`,
+              description: `پرداخت از ${primaryAcc.title} بابت بازپرداخت وام ${resolvedParty.name}`,
               debit: 0,
               credit: numAmount,
               entityType: "bank",
@@ -638,7 +643,7 @@ export class FinancialOperationsService {
       case "partner_withdrawal": {
         journalEntry = await AccountingLedgerService.createJournalEntry({
           date: opDate,
-          description: `برداشت سود/جاری توسط شریک: ${party.name} (${description})`,
+          description: `برداشت سود/جاری توسط شریک: ${resolvedParty.name} (${description})`,
           status: "posted",
           sourceType: "manual",
           sourceId: opNumber,
@@ -646,15 +651,15 @@ export class FinancialOperationsService {
           lines: [
             {
               accountCode: "3030", // برداشت و جاری شرکا (کاهنده سرمایه)
-              description: `برداشت نقدی شریک ${party.name}`,
+              description: `برداشت نقدی شریک ${resolvedParty.name}`,
               debit: numAmount,
               credit: 0,
               entityType: "user",
-              entityId: party.refUserId ? party.refUserId.toString() : undefined,
+              entityId: resolvedParty.refUserId ? resolvedParty.refUserId.toString() : undefined,
             },
             {
               accountCode: primaryAcc.coaAccountCode,
-              description: `خروج وجه از ${primaryAcc.title} بابت برداشت ${party.name}`,
+              description: `خروج وجه از ${primaryAcc.title} بابت برداشت ${resolvedParty.name}`,
               debit: 0,
               credit: numAmount,
               entityType: "bank",
@@ -672,7 +677,7 @@ export class FinancialOperationsService {
       case "partner_dividend": {
         journalEntry = await AccountingLedgerService.createJournalEntry({
           date: opDate,
-          description: `تصویب سود سهام دوره برای شریک: ${party.name} (${description})`,
+          description: `تصویب سود سهام دوره برای شریک: ${resolvedParty.name} (${description})`,
           status: "posted",
           sourceType: "manual",
           sourceId: opNumber,
@@ -680,17 +685,17 @@ export class FinancialOperationsService {
           lines: [
             {
               accountCode: "3020", // سود انباشته
-              description: `تخصیص از سود انباشته بابت سهم سود ${party.name}`,
+              description: `تخصیص از سود انباشته بابت سهم سود ${resolvedParty.name}`,
               debit: numAmount,
               credit: 0,
             },
             {
               accountCode: "2070", // سود سهام مصوب پرداختنی به شرکا
-              description: `تعهد سود پرداختنی به شریک ${party.name}`,
+              description: `تعهد سود پرداختنی به شریک ${resolvedParty.name}`,
               debit: 0,
               credit: numAmount,
               entityType: "user",
-              entityId: party.refUserId ? party.refUserId.toString() : undefined,
+              entityId: resolvedParty.refUserId ? resolvedParty.refUserId.toString() : undefined,
             },
           ],
           userId,
@@ -714,10 +719,10 @@ export class FinancialOperationsService {
       financialAccountId: primaryAcc._id,
       toFinancialAccountId: toFinancialAccountId ? new Types.ObjectId(toFinancialAccountId) : undefined,
       party: {
-        name: party.name.trim(),
-        phone: party.phone?.trim(),
-        role: party.role || "other",
-        refUserId: party.refUserId ? new Types.ObjectId(party.refUserId) : undefined,
+        name: resolvedParty.name,
+        phone: resolvedParty.phone,
+        role: resolvedParty.role || "other",
+        refUserId: resolvedParty.refUserId ? new Types.ObjectId(resolvedParty.refUserId) : undefined,
       },
       trackingCode: trackingCode?.trim(),
       attachmentUrl: attachmentUrl?.trim(),

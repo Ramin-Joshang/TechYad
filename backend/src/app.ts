@@ -14,6 +14,7 @@ import { swaggerDocument } from './docs/swagger.js';
 import { UPLOADS_ROOT, initUploadDirectories } from './modules/media/storage.config.js';
 import { sanitizeProxyHeadersMiddleware, rateLimitKeyGenerator } from './common/utils/ip-sanitizer.js';
 import { maintenanceLockMiddleware } from './common/middleware/platform-locks.middleware.js';
+import { requestLoggerMiddleware } from './common/middleware/request-logger.middleware.js';
 
 initUploadDirectories();
 
@@ -54,9 +55,12 @@ app.use(cors({
   },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'X-Hide-Error-Toast', 'Accept'],
-  exposedHeaders: ['Set-Cookie']
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'X-Hide-Error-Toast', 'Accept', 'X-Request-Id'],
+  exposedHeaders: ['Set-Cookie', 'X-Request-Id']
 }));
+
+// Global Request Tracing & Centralized API Logger Middleware
+app.use(requestLoggerMiddleware);
 
 // Rate Limiting (Protected against brute-force attacks while allowing seamless platform browsing)
 const globalLimiter = rateLimit({

@@ -134,6 +134,20 @@ export const superAdminApi = {
   },
   getPublicPlatformLocks: async () => {
     return api.get<any, any>('/platform-locks');
+  },
+
+  // Centralized API Request & Error Logging Hub
+  getApiLogs: async (params?: any) => {
+    return api.get<any, any>('/super-admin/api-logs', { params });
+  },
+  getApiLogStats: async () => {
+    return api.get<any, any>('/super-admin/api-logs/stats');
+  },
+  getApiLogById: async (id: string) => {
+    return api.get<any, any>(`/super-admin/api-logs/${id}`);
+  },
+  cleanupApiLogs: async (days: number) => {
+    return api.post<any, any>('/super-admin/api-logs/cleanup', { days });
   }
 };
 

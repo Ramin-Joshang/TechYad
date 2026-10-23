@@ -352,6 +352,11 @@ export default function DashboardLayout({
           icon: Bell,
         },
         {
+          name: "مرکز خطاها و مانیتورینگ API",
+          href: "/super-admin/api-logs",
+          icon: Activity,
+        },
+        {
           name: "لاگ‌های امنیتی و رویدادها",
           href: "/super-admin/audit-logs",
           icon: History,

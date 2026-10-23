@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
@@ -10,6 +10,8 @@ import {
   ArrowRight,
   HelpCircle,
   ShieldAlert,
+  Copy,
+  Check,
 } from "lucide-react";
 
 export default function ErrorPage({
@@ -20,6 +22,7 @@ export default function ErrorPage({
   reset: () => void;
 }) {
   const router = useRouter();
+  const [copied, setCopied] = useState(false);
 
   useEffect(() => {
     // Log client/server error to console in dev mode
@@ -79,8 +82,20 @@ export default function ErrorPage({
             وضعیت موقتی است و تیم فنی در جریان رفع آن می‌باشد.
           </p>
           {error?.digest && (
-            <div className="text-[11px] font-mono text-slate-400 bg-slate-100 px-3 py-1 rounded-lg inline-block dir-ltr">
-              کد پیگیری خطا: {error.digest}
+            <div className="inline-flex items-center gap-2 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-3 py-1.5 rounded-xl text-xs font-mono text-slate-700 dark:text-slate-300 dir-ltr">
+              <span>کد پیگیری: {error.digest}</span>
+              <button
+                type="button"
+                onClick={() => {
+                  navigator.clipboard.writeText(error.digest || '');
+                  setCopied(true);
+                  setTimeout(() => setCopied(false), 2000);
+                }}
+                className="p-1 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-md transition text-slate-500"
+                title="کپی کد پیگیری"
+              >
+                {copied ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
+              </button>
             </div>
           )}
         </div>
