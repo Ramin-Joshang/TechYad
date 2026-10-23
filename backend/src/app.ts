@@ -13,6 +13,7 @@ import { AppError } from './common/errors/AppError.js';
 import { swaggerDocument } from './docs/swagger.js';
 import { UPLOADS_ROOT, initUploadDirectories } from './modules/media/storage.config.js';
 import { sanitizeProxyHeadersMiddleware, rateLimitKeyGenerator } from './common/utils/ip-sanitizer.js';
+import { maintenanceLockMiddleware } from './common/middleware/platform-locks.middleware.js';
 
 initUploadDirectories();
 
@@ -147,6 +148,9 @@ const uploadsProxyFallback = async (req: express.Request, res: express.Response,
 app.use('/uploads', staticUploadsMiddleware, express.static(UPLOADS_ROOT), uploadsProxyFallback);
 app.use('/api/uploads', staticUploadsMiddleware, express.static(UPLOADS_ROOT), uploadsProxyFallback);
 app.use('/api/v1/uploads', staticUploadsMiddleware, express.static(UPLOADS_ROOT), uploadsProxyFallback);
+
+// Platform Emergency Locks & Maintenance Middleware
+app.use(maintenanceLockMiddleware);
 
 // Official production API route without /v1 prefix
 app.use('/api', routes);

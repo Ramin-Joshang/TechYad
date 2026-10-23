@@ -14,11 +14,13 @@ import {
   PlusCircle,
   Sparkles,
   Check,
+  Lock,
 } from "lucide-react";
 import { useAuthStore } from "@/features/auth/stores/auth.store";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { commerceApi } from "@/features/commerce/api/commerce.api";
 import { walletApi } from "@/features/wallet/api/wallet.api";
+import { superAdminApi } from "@/features/admin/api/super-admin.api";
 import toast from "react-hot-toast";
 import Link from "next/link";
 import { getImageUrl, handleImageError } from "@/lib/utils";
@@ -59,6 +61,16 @@ export default function CheckoutPage() {
     staleTime: 0,
     refetchOnMount: true,
   });
+
+  // Fetch operational platform locks
+  const { data: locksData } = useQuery({
+    queryKey: ["public-platform-locks"],
+    queryFn: () => superAdminApi.getPublicPlatformLocks().then((res) => res.data),
+    staleTime: 10000,
+    retry: false,
+  });
+  const platformLocks = locksData?.locks || {};
+  const lockMessages = locksData?.messages || {};
 
   // Preview data state that holds either base or coupon-applied preview
   const [previewData, setPreviewData] = useState<any>(null);
@@ -551,30 +563,37 @@ export default function CheckoutPage() {
                     </button>
                   </div>
                 ) : (
-                  <form onSubmit={handleApplyCoupon} className="flex gap-2">
-                    <div className="relative flex-1">
-                      <Tag className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-[var(--neo-text-muted)]" />
-                      <input
-                        type="text"
-                        value={couponCode}
-                        onChange={(e) => setCouponCode(e.target.value)}
-                        placeholder="کد تخفیف دارید؟"
-                        disabled={isApplyingCoupon}
-                        className="w-full bg-[var(--neo-bg)] border border-[var(--neo-border)] focus:border-[var(--neo-secondary)] focus:ring-2 focus:ring-blue-200 rounded-xl py-3 pr-10 pl-4 outline-none transition text-left dir-ltr uppercase text-sm"
-                      />
-                    </div>
-                    <button
-                      type="submit"
-                      disabled={isApplyingCoupon || !couponCode.trim()}
-                      className="bg-[var(--neo-text-main)] text-white px-5 py-3 rounded-xl font-bold hover:bg-slate-800 transition disabled:opacity-50 shrink-0 text-sm flex items-center justify-center min-w-[70px]"
-                    >
-                      {isApplyingCoupon ? (
-                        <Loader2 className="w-4 h-4 animate-spin" />
-                      ) : (
-                        "اعمال"
-                      )}
-                    </button>
-                  </form>
+                  <div>
+                    {platformLocks.lockCoupons && (
+                      <div className="mb-2 p-2 bg-amber-50 border border-amber-200 text-amber-800 rounded-lg text-xs">
+                        {lockMessages.lockCoupons || "استفاده از کدهای تخفیف موقتاً غیرفعال است."}
+                      </div>
+                    )}
+                    <form onSubmit={handleApplyCoupon} className="flex gap-2">
+                      <div className="relative flex-1">
+                        <Tag className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-[var(--neo-text-muted)]" />
+                        <input
+                          type="text"
+                          value={couponCode}
+                          onChange={(e) => setCouponCode(e.target.value)}
+                          placeholder={platformLocks.lockCoupons ? "کد تخفیف (غیرفعال)" : "کد تخفیف دارید؟"}
+                          disabled={isApplyingCoupon || !!platformLocks.lockCoupons}
+                          className="w-full bg-[var(--neo-bg)] border border-[var(--neo-border)] focus:border-[var(--neo-secondary)] focus:ring-2 focus:ring-blue-200 rounded-xl py-3 pr-10 pl-4 outline-none transition text-left dir-ltr uppercase text-sm disabled:opacity-60"
+                        />
+                      </div>
+                      <button
+                        type="submit"
+                        disabled={isApplyingCoupon || !couponCode.trim() || !!platformLocks.lockCoupons}
+                        className="bg-[var(--neo-text-main)] text-white px-5 py-3 rounded-xl font-bold hover:bg-slate-800 transition disabled:opacity-50 shrink-0 text-sm flex items-center justify-center min-w-[70px]"
+                      >
+                        {isApplyingCoupon ? (
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                        ) : (
+                          "اعمال"
+                        )}
+                      </button>
+                    </form>
+                  </div>
                 )}
               </div>
 
@@ -653,8 +672,29 @@ export default function CheckoutPage() {
                 </span>
               </label>
 
+              {/* Lock Purchases Alert */}
+              {platformLocks.lockPurchases && (
+                <div className="mb-4 p-4 bg-rose-50 border border-rose-200 text-rose-800 rounded-2xl text-xs sm:text-sm flex items-start gap-3">
+                  <Lock className="w-5 h-5 shrink-0 text-rose-600 mt-0.5" />
+                  <div>
+                    <p className="font-bold text-rose-900">ثبت‌نام و پرداخت موقتاً مسدود است</p>
+                    <p className="text-xs text-rose-700 mt-1 leading-relaxed">
+                      {lockMessages.lockPurchases || "ثبت‌نام در دوره‌ها و پرداخت درگاه موقتاً توسط مدیریت غیرفعال شده است."}
+                    </p>
+                  </div>
+                </div>
+              )}
+
               {/* Final Payment Button */}
-              {isFullWalletPayment ? (
+              {platformLocks.lockPurchases ? (
+                <button
+                  disabled
+                  className="w-full flex items-center justify-center gap-2 bg-slate-300 dark:bg-slate-700 text-slate-500 dark:text-slate-400 px-6 py-4 rounded-xl font-bold cursor-not-allowed text-base"
+                >
+                  <Lock className="w-5 h-5" />
+                  <span>امکان پرداخت موقتاً مسدود است</span>
+                </button>
+              ) : isFullWalletPayment ? (
                 <button
                   onClick={handleFinalPayment}
                   disabled={!acceptedTerms || isProcessingPayment}

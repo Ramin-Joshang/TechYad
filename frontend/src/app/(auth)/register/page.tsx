@@ -8,9 +8,11 @@ import { referralApi } from '@/features/referral/api/referral.api';
 import { useAuthStore } from '@/features/auth/stores/auth.store';
 import { GuestGuard } from '@/features/auth/components/guards/GuestGuard';
 import { AuthCardLayout } from '@/features/auth/components/AuthCardLayout';
-import { Lock, User, Eye, EyeOff, Loader2, AlertCircle, ArrowLeft, Gift, CheckCircle2, Phone, Smartphone, RefreshCw } from 'lucide-react';
+import { Lock, User, Eye, EyeOff, Loader2, AlertCircle, ArrowLeft, Gift, CheckCircle2, Phone, Smartphone, RefreshCw, ShieldAlert } from 'lucide-react';
 import { toEnDigits } from '@/lib/utils';
 import toast from 'react-hot-toast';
+import { useQuery } from '@tanstack/react-query';
+import { superAdminApi } from '@/features/admin/api/super-admin.api';
 
 function RegisterForm() {
   const router = useRouter();
@@ -36,6 +38,15 @@ function RegisterForm() {
   const [showReferralInput, setShowReferralInput] = useState(false);
   const [referrerInfo, setReferrerInfo] = useState<{ referrerName: string; discountPercent: number; welcomeCredit: number } | null>(null);
   const [checkingCode, setCheckingCode] = useState(false);
+
+  const { data: locksData } = useQuery({
+    queryKey: ['public-platform-locks'],
+    queryFn: () => superAdminApi.getPublicPlatformLocks().then(res => res.data),
+    staleTime: 10000,
+    retry: false
+  });
+  const platformLocks = locksData?.locks || {};
+  const lockMessages = locksData?.messages || {};
 
   useEffect(() => {
     let timer: any;
@@ -207,6 +218,27 @@ function RegisterForm() {
 
       {step === 'form' ? (
         <>
+          {platformLocks.lockRegistration && (
+            <div className="mb-4 p-3.5 bg-rose-500/10 border border-rose-500/30 text-rose-800 dark:text-rose-300 rounded-2xl text-xs flex items-start gap-2.5">
+              <ShieldAlert className="w-4 h-4 shrink-0 text-rose-600 dark:text-rose-400 mt-0.5" />
+              <div>
+                <p className="font-black text-rose-900 dark:text-rose-200">ثبت‌نام کاربر جدید موقتاً غیرفعال است</p>
+                <p className="mt-0.5 leading-relaxed">
+                  {lockMessages.lockRegistration || 'در حال حاضر ثبت‌نام در سامانه متوقف شده است. لطفاً در زمان دیگری مراجعه فرمایید.'}
+                </p>
+              </div>
+            </div>
+          )}
+
+          {platformLocks.lockSmsOtp && (
+            <div className="mb-4 p-3 bg-amber-50 border border-amber-200 text-amber-800 rounded-2xl text-xs flex items-start gap-2">
+              <AlertCircle className="w-4 h-4 shrink-0 text-amber-600 mt-0.5" />
+              <p className="leading-relaxed">
+                سرویس پیامکی موقتاً محدود است. در صورت ثبت‌نام امکان ارسال پیامک کد تایید ممکن است با تاخیر مواجه شود.
+              </p>
+            </div>
+          )}
+
           {referrerInfo && (
             <div className="mb-4 p-3 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-xl text-xs sm:text-sm flex items-start gap-2.5">
               <Gift className="w-5 h-5 text-emerald-600 shrink-0 mt-0.5" />
@@ -348,13 +380,18 @@ function RegisterForm() {
 
             <button 
               type="submit"
-              disabled={loading}
-              className="w-full mt-2 py-3 px-4 bg-[var(--neo-primary)] hover:bg-blue-700 text-white font-bold rounded-xl transition shadow-md shadow-[var(--neo-primary)]/20 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--neo-primary)] disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2 text-sm cursor-pointer"
+              disabled={loading || !!platformLocks.lockRegistration}
+              className="w-full mt-2 py-3 px-4 bg-[var(--neo-primary)] hover:bg-blue-700 text-white font-bold rounded-xl transition shadow-md shadow-[var(--neo-primary)]/20 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--neo-primary)] disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2 text-sm cursor-pointer"
             >
               {loading ? (
                 <>
                   <Loader2 className="w-4 h-4 animate-spin" />
                   <span>در حال ارسال کد تایید...</span>
+                </>
+              ) : platformLocks.lockRegistration ? (
+                <>
+                  <Lock className="w-4 h-4" />
+                  <span>ثبت‌نام موقتاً مسدود است</span>
                 </>
               ) : (
                 <>

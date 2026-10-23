@@ -9,9 +9,11 @@ import { AuthCardLayout } from '@/features/auth/components/AuthCardLayout';
 import Link from 'next/link';
 import { 
   Mail, Lock, Eye, EyeOff, Loader2, AlertCircle, ArrowLeft, 
-  Smartphone, KeyRound, RefreshCw, CheckCircle2 
+  Smartphone, KeyRound, RefreshCw, CheckCircle2, ShieldAlert 
 } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { superAdminApi } from '@/features/admin/api/super-admin.api';
+import { useQuery } from '@tanstack/react-query';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -32,6 +34,15 @@ export default function LoginPage() {
 
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+
+  const { data: locksData } = useQuery({
+    queryKey: ['public-platform-locks'],
+    queryFn: () => superAdminApi.getPublicPlatformLocks().then(res => res.data),
+    staleTime: 10000,
+    retry: false
+  });
+  const platformLocks = locksData?.locks || {};
+  const lockMessages = locksData?.messages || {};
 
   useEffect(() => {
     let timer: any;
@@ -175,6 +186,27 @@ export default function LoginPage() {
       <AuthCardLayout
         title="ورود به حساب کاربری"
       >
+        {platformLocks.lockLogin && (
+          <div className="mb-4 p-3.5 bg-amber-500/10 border border-amber-500/30 text-amber-800 dark:text-amber-300 rounded-2xl text-xs flex items-start gap-2.5">
+            <ShieldAlert className="w-4 h-4 shrink-0 text-amber-600 dark:text-amber-400 mt-0.5" />
+            <div>
+              <p className="font-black text-amber-900 dark:text-amber-200">ورود به سامانه موقتاً محدود شده است</p>
+              <p className="mt-0.5 leading-relaxed">
+                {lockMessages.lockLogin || 'امکان ورود کاربران عادی موقتاً غیرفعال است (مدیران ارشد دسترسی دارند).'}
+              </p>
+            </div>
+          </div>
+        )}
+
+        {platformLocks.lockSmsOtp && (
+          <div className="mb-4 p-3 bg-blue-50 border border-blue-200 text-blue-800 rounded-2xl text-xs flex items-start gap-2">
+            <AlertCircle className="w-4 h-4 shrink-0 text-blue-600 mt-0.5" />
+            <p className="leading-relaxed">
+              ارسال پیامک موقتاً محدود است. برای ورود از روش «رمز عبور» استفاده نمایید.
+            </p>
+          </div>
+        )}
+
         {/* Method Toggle */}
         <div className="flex bg-[var(--neo-surface-2)] p-1 rounded-2xl mb-5 border border-[var(--neo-border)]">
           <button

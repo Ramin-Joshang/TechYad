@@ -4,6 +4,7 @@ import { Course } from "../courses/course.model.js";
 import { Class } from "../classes/class.model.js";
 import { AppError } from "../../common/errors/AppError.js";
 import { AuditService } from "../../common/services/audit.service.js";
+import { PlatformLocksService } from "../../common/services/platform-locks.service.js";
 
 export class CommentService {
   /**
@@ -44,6 +45,15 @@ export class CommentService {
     },
     req?: any
   ) {
+    const locks = PlatformLocksService.getLocksSync();
+    if (locks.lockComments) {
+      throw new AppError(
+        locks.lockCommentsMessage || 'ارسال نظرات و دیدگاه‌های جدید موقتاً غیرفعال شده است.',
+        403,
+        'COMMENTS_LOCKED'
+      );
+    }
+
     if (!data.content || !data.content.trim()) {
       throw new AppError("متن دیدگاه نمی‌تواند خالی باشد", 400);
     }

@@ -5,6 +5,7 @@ import { User } from '../auth/user.model.js';
 import { WalletTransaction } from '../wallet/wallet-transaction.model.js';
 import { Notification } from '../notifications/notification.model.js';
 import { AppError } from '../../common/errors/AppError.js';
+import { PlatformLocksService } from '../../common/services/platform-locks.service.js';
 import { Types } from 'mongoose';
 import { parseDateSafely } from '../../common/utils/date.js';
 import { AuditService } from '../../common/services/audit.service.js';
@@ -188,6 +189,15 @@ export class ClassService {
   }
 
   static async createClass(userId: string, data: any, userRole: string = 'instructor') {
+    const locks = PlatformLocksService.getLocksSync();
+    if (locks.lockCourseCreation && userRole !== 'super-admin') {
+      throw new AppError(
+        locks.lockCourseCreationMessage || 'امکان ایجاد دوره یا کلاس جدید موقتاً توسط مدیریت مسدود شده است.',
+        403,
+        'COURSE_CREATION_LOCKED'
+      );
+    }
+
     const mockRoomLink =
       data.mode === 'online'
         ? data.meetingLink || `https://www.skyroom.online/ch/tecyad/${new Types.ObjectId().toString().substring(0, 8)}`

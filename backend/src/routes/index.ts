@@ -42,6 +42,13 @@ router.get('/health', (req, res) => {
   }, 'System status retrieved');
 });
 
+// Public platform locks state endpoint (for frontend dynamic banners and graceful states)
+router.get('/platform-locks', async (req, res) => {
+  const { PlatformLocksService } = await import('../common/services/platform-locks.service.js');
+  const locks = await PlatformLocksService.getLocks();
+  sendSuccess(res, locks, 'Public platform operational locks');
+});
+
 router.use('/home', homeRoutes);
 router.use('/auth', authRoutes);
 router.use('/', catalogRoutes);

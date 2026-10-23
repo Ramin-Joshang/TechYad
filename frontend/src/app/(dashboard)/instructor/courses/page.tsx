@@ -8,10 +8,11 @@ import {
   BookOpen, Plus, Loader2, Edit, AlertCircle, FileText, 
   CheckCircle, Clock, Users, Search, LayoutGrid, List, 
   Star, ExternalLink, CheckSquare, Layers, DollarSign, 
-  ChevronRight, ChevronLeft, Sparkles
+  ChevronRight, ChevronLeft, Sparkles, Lock, ShieldAlert
 } from 'lucide-react';
 import { useAuthStore } from '@/features/auth/stores/auth.store';
 import { getImageUrl, handleImageError } from '@/lib/utils';
+import { superAdminApi } from '@/features/admin/api/super-admin.api';
 
 export default function InstructorCoursesPage() {
   const [activeTab, setActiveTab] = useState<'all' | 'published' | 'pending_review' | 'draft' | 'rejected'>('all');
@@ -28,6 +29,23 @@ export default function InstructorCoursesPage() {
       limit: 12
     }).then(res => res.data)
   });
+
+  const { data: locksData } = useQuery({
+    queryKey: ['public-platform-locks'],
+    queryFn: () => superAdminApi.getPublicPlatformLocks().then(res => res.data),
+    staleTime: 10000,
+    retry: false
+  });
+  const platformLocks = locksData?.locks || {};
+  const lockMessages = locksData?.messages || {};
+
+  const userRoles = [
+    ...(Array.isArray(user?.roles) ? user.roles : []),
+    ...(Array.isArray(user?.rolesDetail) ? user.rolesDetail.map((r: any) => r.slug) : []),
+    user?.role || ''
+  ];
+  const isSuperAdmin = userRoles.includes('super-admin');
+  const isCourseCreationLocked = platformLocks.lockCourseCreation && !isSuperAdmin;
 
   const courses = data?.courses || [];
   const totalPages = data?.pages || 1;
@@ -75,14 +93,36 @@ export default function InstructorCoursesPage() {
           </p>
         </div>
 
-        <Link 
-          href="/instructor/courses/new" 
-          className="bg-[var(--neo-primary)] hover:bg-[var(--neo-primary)] text-white px-5 py-2.5 rounded-2xl font-bold flex items-center gap-2 shadow-lg shadow-[var(--neo-primary)]/20 transition-all hover:scale-105"
-        >
-          <Plus className="w-5 h-5" />
-          ایجاد دوره جدید
-        </Link>
+        {isCourseCreationLocked ? (
+          <button 
+            disabled 
+            className="bg-slate-300 dark:bg-slate-700 text-slate-500 dark:text-slate-400 px-5 py-2.5 rounded-2xl font-bold flex items-center gap-2 cursor-not-allowed text-xs sm:text-sm"
+          >
+            <Lock className="w-4 h-4" />
+            ایجاد دوره جدید (قفل توسط مدیریت)
+          </button>
+        ) : (
+          <Link 
+            href="/instructor/courses/new" 
+            className="bg-[var(--neo-primary)] hover:bg-[var(--neo-primary)] text-white px-5 py-2.5 rounded-2xl font-bold flex items-center gap-2 shadow-lg shadow-[var(--neo-primary)]/20 transition-all hover:scale-105"
+          >
+            <Plus className="w-5 h-5" />
+            ایجاد دوره جدید
+          </Link>
+        )}
       </div>
+
+      {isCourseCreationLocked && (
+        <div className="p-4 bg-amber-500/10 border border-amber-500/30 text-amber-800 dark:text-amber-300 rounded-2xl text-xs sm:text-sm flex items-start gap-2.5">
+          <ShieldAlert className="w-5 h-5 shrink-0 text-amber-600 dark:text-amber-400 mt-0.5" />
+          <div>
+            <p className="font-black text-amber-900 dark:text-amber-200">تعریف دوره جدید موقتاً مسدود شده است</p>
+            <p className="mt-1 leading-relaxed">
+              {lockMessages.lockCourseCreation || 'امکان ثبت و تعریف دوره جدید توسط اساتید موقتاً توسط مدیریت غیرفعال شده است.'}
+            </p>
+          </div>
+        </div>
+      )}
 
       {/* KPI Cards Summary */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">

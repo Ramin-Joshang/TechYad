@@ -2,9 +2,10 @@ import { Types } from 'mongoose';
 import { Course } from './course.model.js';
 import { Chapter } from './chapter.model.js';
 import { Lesson } from './lesson.model.js';
-import '../auth/user.model.js';
+import { User } from '../auth/user.model.js';
 import '../catalog/category.model.js';
 import { AppError } from '../../common/errors/AppError.js';
+import { PlatformLocksService } from '../../common/services/platform-locks.service.js';
 import { Class } from '../classes/class.model.js';
 import { ClassEnrollment } from '../classes/class-enrollment.model.js';
 import { Order } from '../commerce/order.model.js';
@@ -16,6 +17,23 @@ import { normalizePricing } from '../../common/utils/pricing.js';
 export class CourseService {
   // --- Courses ---
   static async createCourse(instructorId: string, data: any) {
+    const locks = PlatformLocksService.getLocksSync();
+    if (locks.lockCourseCreation) {
+      const creator = await User.findById(instructorId).populate('role').populate('roles').lean();
+      const roles = [
+        (creator?.role as any)?.slug,
+        ...((creator?.roles as any[]) || []).map(r => r?.slug)
+      ].filter(Boolean);
+
+      if (!roles.includes('super-admin')) {
+        throw new AppError(
+          locks.lockCourseCreationMessage || 'امکان ایجاد دوره یا کلاس جدید موقتاً توسط مدیریت مسدود شده است.',
+          403,
+          'COURSE_CREATION_LOCKED'
+        );
+      }
+    }
+
     const payload = { ...data };
     delete payload.instructorSharePercent; // Never allow instructor to alter commission share
 

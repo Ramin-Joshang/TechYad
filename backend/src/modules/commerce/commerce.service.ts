@@ -16,6 +16,7 @@ import { AuditService } from '../../common/services/audit.service.js';
 import { FinancialRevenueService } from './financial-revenue.service.js';
 import { SamanGatewayService } from './saman-gateway.service.js';
 import { AccountingIntegrationService } from '../accounting/accounting-integration.service.js';
+import { PlatformLocksService } from '../../common/services/platform-locks.service.js';
 
 export class CommerceService {
   static async getInstructorSales(instructorId: string, month?: number, year?: number) {
@@ -477,6 +478,15 @@ export class CommerceService {
     let couponRecord = null;
 
     if (couponCode) {
+      const locks = PlatformLocksService.getLocksSync();
+      if (locks.lockCoupons) {
+        throw new AppError(
+          locks.lockCouponsMessage || 'امکان استفاده از کدهای تخفیف در حال حاضر غیرفعال است.',
+          400,
+          'COUPONS_LOCKED'
+        );
+      }
+
       const coupon = await Coupon.findOne({ code: couponCode.toUpperCase(), isActive: true });
       if (!coupon) throw new AppError('Invalid or expired coupon', 400, 'INVALID_COUPON');
 
@@ -520,6 +530,15 @@ export class CommerceService {
   }
 
   static async createOrder(userId: string, couponCode?: string, useWallet: boolean = false) {
+    const locks = PlatformLocksService.getLocksSync();
+    if (locks.lockPurchases) {
+      throw new AppError(
+        locks.lockPurchasesMessage || 'ثبت سفارش و پرداخت اینترنتی موقتاً به دلیل به‌روزرسانی سیستم‌های مالی غیرفعال است.',
+        403,
+        'PURCHASES_LOCKED'
+      );
+    }
+
     const preview = await this.checkoutPreview(userId, couponCode);
     if (preview.items.length === 0) throw new AppError('Cart is empty', 400, 'CART_EMPTY');
 
@@ -625,6 +644,15 @@ export class CommerceService {
 
   // --- Payment Gateway Flow (SEP / Saman Bank Terminal 15859910 & Hybrid Wallet) ---
   static async createPaymentMock(userId: string, orderId: string) {
+    const locks = PlatformLocksService.getLocksSync();
+    if (locks.lockPurchases) {
+      throw new AppError(
+        locks.lockPurchasesMessage || 'درگاه پرداخت و انجام تراکنش موقتاً مسدود شده است.',
+        403,
+        'PURCHASES_LOCKED'
+      );
+    }
+
     const order = await this.getOrderById(userId, orderId);
     if (order.status !== 'pending') throw new AppError('Order is already processed', 400, 'ORDER_PROCESSED');
 

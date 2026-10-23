@@ -4,10 +4,12 @@ import { env } from './config/env.js';
 import { cleanupAllBase64FromDatabase } from './modules/media/cleanupBase64.js';
 import { ensureInstructorSlugsAndVerification } from './modules/instructors/instructor-slug.migration.js';
 import { AccountingLedgerService } from './modules/accounting/accounting-ledger.service.js';
+import { PlatformLocksService } from './common/services/platform-locks.service.js';
 
 const startServer = async () => {
   // 1. Connect to Database
   await connectDB();
+  await PlatformLocksService.init();
 
   // 2. Automatically clean & migrate any legacy base64 data to disk files
   cleanupAllBase64FromDatabase().catch(err => {

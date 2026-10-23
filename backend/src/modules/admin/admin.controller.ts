@@ -257,6 +257,24 @@ export const updateSecurityConfig = async (req: Request, res: Response) => {
   sendSuccess(res, result, 'Security config updated');
 };
 
+// Platform Operational Locks (Kill-Switches)
+export const getPlatformLocks = async (req: Request, res: Response) => {
+  const { PlatformLocksService } = await import('../../common/services/platform-locks.service.js');
+  const result = await PlatformLocksService.getLocks();
+  sendSuccess(res, result, 'Platform operational locks retrieved');
+};
+
+export const updatePlatformLocks = async (req: Request, res: Response) => {
+  const { PlatformLocksService } = await import('../../common/services/platform-locks.service.js');
+  const admin = (req as any).user;
+  const result = await PlatformLocksService.updateLocks(req.body, {
+    id: admin?._id || admin?.id,
+    name: `${admin?.firstName || ''} ${admin?.lastName || ''}`.trim() || admin?.email,
+    email: admin?.email
+  });
+  sendSuccess(res, result, 'قفل‌های عملیاتی سامانه با موفقیت به‌روزرسانی شدند');
+};
+
 // --- Financial Commission & Instructor Share Settings ---
 export const getFinancialCommissionSettings = async (req: Request, res: Response) => {
   const result = await FinancialRevenueService.getFinancialSettings();

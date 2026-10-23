@@ -11,6 +11,7 @@ import { MediaService } from '../media/media.service.js';
 import { InstructorProfile } from '../instructors/instructor-profile.model.js';
 import { Otp } from './otp.model.js';
 import { SmsService } from '../../common/services/sms.service.js';
+import { PlatformLocksService } from '../../common/services/platform-locks.service.js';
 
 export const ROLE_SESSION_CONFIG: Record<string, {
   accessTokenExpiresIn: string;
@@ -85,6 +86,15 @@ export class AuthService {
       if (!cleanIdent.includes('@')) {
         mobile = cleanIdent;
       }
+    }
+
+    const locks = PlatformLocksService.getLocksSync();
+    if (locks.lockRegistration) {
+      throw new AppError(
+        locks.lockRegistrationMessage || 'ثبت‌نام کاربران جدید در حال حاضر موقتاً مسدود می‌باشد.',
+        403,
+        'REGISTRATION_LOCKED'
+      );
     }
 
     if (mobile) {
@@ -311,6 +321,16 @@ export class AuthService {
     }
     const roleSlugs = userRoles.map(r => r.slug || r.name).filter(Boolean);
     if (roleSlugs.length === 0) roleSlugs.push('student');
+
+    // Platform Operational Lock: lockLogin (super-admin bypasses)
+    const locks = PlatformLocksService.getLocksSync();
+    if (locks.lockLogin && !roleSlugs.includes('super-admin')) {
+      throw new AppError(
+        locks.lockLoginMessage || 'ورود به سامانه موقتاً به دلیل ممیزی امنیتی متوقف است. لطفاً کمی بعد مجدداً تلاش فرمایید.',
+        403,
+        'LOGIN_LOCKED'
+      );
+    }
 
     const role = user.role as any;
     const roleSlug = role?.slug || roleSlugs[0] || 'student';
@@ -598,6 +618,23 @@ export class AuthService {
   }
 
   static async sendOtp(recipientMobile: string, purpose = 'auth') {
+    const locks = PlatformLocksService.getLocksSync();
+    if (locks.lockSmsOtp) {
+      throw new AppError(
+        locks.lockSmsOtpMessage || 'سرویس ارسال پیامک و کد تایید به دلیل محدودیت فنی موقتاً متوقف شده است.',
+        403,
+        'SMS_OTP_LOCKED'
+      );
+    }
+
+    if (purpose === 'register' && locks.lockRegistration) {
+      throw new AppError(
+        locks.lockRegistrationMessage || 'ثبت‌نام کاربران جدید در حال حاضر موقتاً مسدود می‌باشد.',
+        403,
+        'REGISTRATION_LOCKED'
+      );
+    }
+
     const mobile = SmsService.normalizeMobile(recipientMobile);
     if (!mobile || !/^09\d{9}$/.test(mobile)) {
       throw new AppError('شماره موبایل نامعتبر است (فرمت صحیح: ۰۹۱۲۳۴۵۶۷۸۹)', 400, 'INVALID_MOBILE');
@@ -642,6 +679,15 @@ export class AuthService {
 
     let user = await User.findOne({ mobile }).populate('role').populate('roles');
     if (!user) {
+      const locks = PlatformLocksService.getLocksSync();
+      if (locks.lockRegistration) {
+        throw new AppError(
+          locks.lockRegistrationMessage || 'ثبت‌نام کاربران جدید در حال حاضر موقتاً مسدود می‌باشد.',
+          403,
+          'REGISTRATION_LOCKED'
+        );
+      }
+
       let studentRole = await Role.findOne({ slug: 'student' });
       if (!studentRole) {
         studentRole = await Role.create({ name: 'Student', slug: 'student', permissions: [] });
@@ -686,6 +732,16 @@ export class AuthService {
     }
     const roleSlugs = userRoles.map(r => r.slug || r.name).filter(Boolean);
     if (roleSlugs.length === 0) roleSlugs.push('student');
+
+    // Platform Operational Lock: lockLogin (super-admin bypasses)
+    const locks = PlatformLocksService.getLocksSync();
+    if (locks.lockLogin && !roleSlugs.includes('super-admin')) {
+      throw new AppError(
+        locks.lockLoginMessage || 'ورود به سامانه موقتاً به دلیل ممیزی امنیتی متوقف است.',
+        403,
+        'LOGIN_LOCKED'
+      );
+    }
 
     const role = (user.role as any)?.slug || roleSlugs[0] || 'student';
     const canTeach = roleSlugs.includes('instructor') || roleSlugs.includes('super-admin') || !!user.canTeach;

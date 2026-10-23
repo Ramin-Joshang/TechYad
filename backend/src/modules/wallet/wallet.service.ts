@@ -17,6 +17,7 @@ import { FinancialRevenueService } from "../commerce/financial-revenue.service.j
 import { Settlement } from "../commerce/settlement.model.js";
 import { SamanGatewayService } from "../commerce/saman-gateway.service.js";
 import { AccountingIntegrationService } from "../accounting/accounting-integration.service.js";
+import { PlatformLocksService } from "../../common/services/platform-locks.service.js";
 import {
   WalletTransaction,
   IWalletTransaction,
@@ -289,6 +290,15 @@ export class WalletService {
    * Initiate online wallet charge via mock gateway
    */
   static async chargeWallet(userId: string, amount: number) {
+    const locks = PlatformLocksService.getLocksSync();
+    if (locks.lockPurchases) {
+      throw new AppError(
+        locks.lockPurchasesMessage || 'شارژ آنلاین کیف پول موقتاً مسدود شده است.',
+        403,
+        'PURCHASES_LOCKED'
+      );
+    }
+
     if (!amount || amount < 10000) {
       throw new AppError("حداقل مبلغ شارژ کیف پول ۱۰,۰۰۰ تومان می‌باشد", 400);
     }
@@ -927,6 +937,15 @@ export class WalletService {
       cardNumber?: string;
     }
   ) {
+    const locks = PlatformLocksService.getLocksSync();
+    if (locks.lockSettlements) {
+      throw new AppError(
+        locks.lockSettlementsMessage || 'ثبت درخواست‌های تسویه‌حساب به دلیل ممیزی و بستن دفاتر مالی تا اطلاع ثانوی متوقف است.',
+        403,
+        'SETTLEMENTS_LOCKED'
+      );
+    }
+
     if (!data.amount || data.amount < 50000) {
       throw new AppError("حداقل مبلغ درخواست تسویه حساب ۵۰,۰۰۰ تومان است", 400);
     }

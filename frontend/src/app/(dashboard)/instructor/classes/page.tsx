@@ -5,11 +5,14 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/lib/api';
 import { 
   Loader2, Search, Video, Calendar, Users, Plus, Edit, Trash2, 
-  MapPin, ClipboardCheck, Link as LinkIcon, Share2, CheckCircle2, Copy
+  MapPin, ClipboardCheck, Link as LinkIcon, Share2, CheckCircle2, Copy,
+  Lock, ShieldAlert
 } from 'lucide-react';
 import Link from 'next/link';
 import toast from 'react-hot-toast';
+import { useAuthStore } from '@/features/auth/stores/auth.store';
 import { referralApi } from '@/features/referral/api/referral.api';
+import { superAdminApi } from '@/features/admin/api/super-admin.api';
 import { AttendanceModal } from '@/components/classes/AttendanceModal';
 import { ClassFormModal } from '@/components/classes/ClassFormModal';
 import { ClassSessionsModal } from '@/components/classes/ClassSessionsModal';
@@ -34,7 +37,25 @@ export default function InstructorClassesPage() {
     }
   });
 
+  const { user } = useAuthStore();
   const referralCode = referralData?.referralCode || '';
+
+  const { data: locksData } = useQuery({
+    queryKey: ['public-platform-locks'],
+    queryFn: () => superAdminApi.getPublicPlatformLocks().then(res => res.data),
+    staleTime: 10000,
+    retry: false
+  });
+  const platformLocks = locksData?.locks || {};
+  const lockMessages = locksData?.messages || {};
+
+  const userRoles = [
+    ...(Array.isArray(user?.roles) ? user.roles : []),
+    ...(Array.isArray(user?.rolesDetail) ? user.rolesDetail.map((r: any) => r.slug) : []),
+    user?.role || ''
+  ];
+  const isSuperAdmin = userRoles.includes('super-admin');
+  const isClassCreationLocked = platformLocks.lockCourseCreation && !isSuperAdmin;
 
   const handleCopyClassReferralLink = (cls: any) => {
     const origin = typeof window !== 'undefined' ? window.location.origin : 'https://tecyad.ir';
@@ -142,14 +163,35 @@ export default function InstructorClassesPage() {
             />
           </div>
 
-          <button 
-            onClick={handleCreate} 
-            className="w-full sm:w-auto flex items-center justify-center gap-2 bg-emerald-600 text-white px-5 py-2.5 rounded-xl font-bold text-sm hover:bg-emerald-700 transition shrink-0 shadow-sm"
-          >
-            <Plus className="w-4 h-4" /> تعریف کلاس جدید
-          </button>
+          {isClassCreationLocked ? (
+            <button 
+              disabled
+              className="w-full sm:w-auto flex items-center justify-center gap-2 bg-slate-300 dark:bg-slate-700 text-slate-500 dark:text-slate-400 px-5 py-2.5 rounded-xl font-bold text-xs sm:text-sm cursor-not-allowed shrink-0 shadow-sm"
+            >
+              <Lock className="w-4 h-4" /> تعریف کلاس (قفل توسط مدیریت)
+            </button>
+          ) : (
+            <button 
+              onClick={handleCreate} 
+              className="w-full sm:w-auto flex items-center justify-center gap-2 bg-emerald-600 text-white px-5 py-2.5 rounded-xl font-bold text-sm hover:bg-emerald-700 transition shrink-0 shadow-sm cursor-pointer"
+            >
+              <Plus className="w-4 h-4" /> تعریف کلاس جدید
+            </button>
+          )}
         </div>
       </div>
+
+      {isClassCreationLocked && (
+        <div className="p-4 bg-amber-500/10 border border-amber-500/30 text-amber-800 dark:text-amber-300 rounded-2xl text-xs sm:text-sm flex items-start gap-2.5">
+          <ShieldAlert className="w-5 h-5 shrink-0 text-amber-600 dark:text-amber-400 mt-0.5" />
+          <div>
+            <p className="font-black text-amber-900 dark:text-amber-200">تعریف کلاس جدید موقتاً مسدود شده است</p>
+            <p className="mt-1 leading-relaxed">
+              {lockMessages.lockCourseCreation || 'امکان ثبت و تعریف دوره‌ها و کلاس‌های جدید توسط اساتید موقتاً توسط مدیریت غیرفعال شده است.'}
+            </p>
+          </div>
+        </div>
+      )}
 
       {/* Classes Cards List */}
       {isLoading ? (

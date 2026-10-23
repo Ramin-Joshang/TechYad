@@ -2,9 +2,19 @@ import { Ticket } from './ticket.model.js';
 import { TicketMessage } from './ticket-message.model.js';
 import { AppError } from '../../common/errors/AppError.js';
 import { AuditService } from '../../common/services/audit.service.js';
+import { PlatformLocksService } from '../../common/services/platform-locks.service.js';
 
 export class SupportService {
   static async createTicket(userId: string, data: { subject: string, category?: string, priority?: "low" | "medium" | "high", message: string }) {
+    const locks = PlatformLocksService.getLocksSync();
+    if (locks.lockSupportTickets) {
+      throw new AppError(
+        locks.lockSupportTicketsMessage || 'ارسال تیکت پشتیبانی جدید موقتاً غیرفعال است.',
+        403,
+        'TICKETS_LOCKED'
+      );
+    }
+
     const ticket = await Ticket.create({
       userId,
       subject: data.subject,

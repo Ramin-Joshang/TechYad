@@ -123,6 +123,17 @@ export const superAdminApi = {
   // SMS Gateway Credit & Info
   getSmsCredit: async () => {
     return api.get<any, any>('/super-admin/sms/credit');
+  },
+
+  // Master Operational Locks & Emergency Kill-Switches
+  getPlatformLocks: async () => {
+    return api.get<any, any>('/super-admin/platform-locks');
+  },
+  updatePlatformLocks: async (data: any) => {
+    return api.patch<any, any>('/super-admin/platform-locks', data);
+  },
+  getPublicPlatformLocks: async () => {
+    return api.get<any, any>('/platform-locks');
   }
 };
 

@@ -104,5 +104,10 @@ router.get('/admin/audit-stats', isAdmin, asyncHandler(Controller.getAuditStats)
 router.get('/super-admin/security', isSuperAdmin, asyncHandler(Controller.getSecurityOverview));
 router.patch('/super-admin/security', isSuperAdmin, asyncHandler(Controller.updateSecurityConfig));
 
+// Platform Operational Locks (Kill-Switches)
+router.get('/super-admin/platform-locks', isSuperAdmin, asyncHandler(Controller.getPlatformLocks));
+router.put('/super-admin/platform-locks', isSuperAdmin, asyncHandler(Controller.updatePlatformLocks));
+router.patch('/super-admin/platform-locks', isSuperAdmin, asyncHandler(Controller.updatePlatformLocks));
+
 export default router;
 

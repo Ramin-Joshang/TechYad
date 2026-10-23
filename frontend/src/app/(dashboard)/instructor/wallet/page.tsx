@@ -5,9 +5,11 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { 
   Wallet, ArrowUpRight, ArrowDownLeft, CreditCard, Gift, 
   Clock, CheckCircle2, XCircle, Plus, RefreshCw,
-  Sparkles, ChevronLeft, Building2, DollarSign, TrendingUp
+  Sparkles, ChevronLeft, Building2, DollarSign, TrendingUp,
+  Lock, AlertCircle
 } from 'lucide-react';
 import { walletApi, WalletTransactionItem } from '@/features/wallet/api/wallet.api';
+import { superAdminApi } from '@/features/admin/api/super-admin.api';
 import toast from 'react-hot-toast';
 import Link from 'next/link';
 import { toEnDigits } from '@/lib/utils';
@@ -39,6 +41,15 @@ export default function InstructorWalletPage() {
     queryKey: ['instructorWalletOverview'],
     queryFn: () => walletApi.getOverview().then(res => res.data),
   });
+
+  const { data: locksData } = useQuery({
+    queryKey: ['public-platform-locks'],
+    queryFn: () => superAdminApi.getPublicPlatformLocks().then(res => res.data),
+    staleTime: 10000,
+    retry: false
+  });
+  const platformLocks = locksData?.locks || {};
+  const lockMessages = locksData?.messages || {};
 
   // Fetch Transactions
   const { data: txData, isLoading: isTxLoading } = useQuery({
@@ -144,16 +155,38 @@ export default function InstructorWalletPage() {
             گزارش فروش دوره‌ها
           </Link>
 
-          <button 
-            onClick={() => setShowWithdrawModal(true)}
-            disabled={balance < 50000}
-            className="flex items-center gap-2 px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-sm font-bold shadow-lg shadow-indigo-600/20 transition disabled:opacity-50"
-          >
-            <ArrowDownLeft className="w-4 h-4 text-white" />
-            درخواست تسویه‌حساب
-          </button>
+          {platformLocks.lockSettlements ? (
+            <button 
+              disabled
+              className="flex items-center gap-2 px-5 py-2.5 bg-slate-300 dark:bg-slate-700 text-slate-500 dark:text-slate-400 rounded-xl text-xs sm:text-sm font-bold cursor-not-allowed"
+            >
+              <Lock className="w-4 h-4" />
+              تسویه‌حساب (موقتاً غیرفعال)
+            </button>
+          ) : (
+            <button 
+              onClick={() => setShowWithdrawModal(true)}
+              disabled={balance < 50000}
+              className="flex items-center gap-2 px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-sm font-bold shadow-lg shadow-indigo-600/20 transition disabled:opacity-50"
+            >
+              <ArrowDownLeft className="w-4 h-4 text-white" />
+              درخواست تسویه‌حساب
+            </button>
+          )}
         </div>
       </div>
+
+      {platformLocks.lockSettlements && (
+        <div className="p-4 bg-amber-500/10 border border-amber-500/30 text-amber-800 dark:text-amber-300 rounded-2xl text-xs sm:text-sm flex items-start gap-2.5">
+          <AlertCircle className="w-5 h-5 shrink-0 text-amber-600 dark:text-amber-400 mt-0.5" />
+          <div>
+            <p className="font-black text-amber-900 dark:text-amber-200">ثبت درخواست تسویه‌حساب موقتاً مسدود است</p>
+            <p className="mt-1 leading-relaxed">
+              {lockMessages.lockSettlements || 'امکان ثبت درخواست تسویه حساب موقتاً توسط مدیریت غیرفعال شده است.'}
+            </p>
+          </div>
+        </div>
+      )}
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
